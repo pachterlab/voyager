@@ -1,0 +1,475 @@
+---
+title: "Untitled"
+author: "Lambda"
+date: "7/22/2020"
+output: html_document
+---
+
+Here I get the genes shared by mouse brain (I tried to get cortex but not always available for given technologies) across a number of spatial transcriptomics technologies, and compare:
+
+1. Total counts of the shared genes (only for brain data, especially when it comes to marker genes) per cell
+2. For non-brain data as well, number of UMI/spots per gene in each cell/spot (eh, "spot" has been used in two very different senses in this sentence)
+3. If I still have time after Ripley's K and related S4 methods, then look at the distribution and whether gene counts have more zeros than expected after accounting for cell types. This will be the beginning of the next paper.
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(SeuratData)
+library(Matrix)
+library(ggforce)
+library(readxl)
+library(vroom)
+library(sp)
+library(foreach)
+library(doParallel)
+library(loomR)
+registerDoParallel(40)
+theme_set(theme_bw())
+```
+
+# Loading data
+
+## STARmap
+```{r}
+# Starmap visual cortex and medial prefrontal cortex
+read_starmap_mat <- function(d) {
+  d <- normalizePath(d, mustWork = TRUE)
+  m <- read_csv(paste0(d, "/cell_barcode_count.csv"), col_names = FALSE)
+  g <- read_csv(paste0(d, "/cell_barcode_names.csv"), col_names = c("index", "code", "gene"))
+  m <- t(as.matrix(m))
+  rownames(m) <- g$gene
+  as(m, "dgCMatrix")
+}
+```
+
+```{r}
+(starmap_dirs <- list.dirs("data/2018_Wang_STARmap/combinatorially_encoded/", 
+                           recursive = TRUE))
+```
+
+```{r}
+starmap <- tibble(method = "STARmap",
+                  species = "mouse",
+                  tissue = c(rep("mpfc", 4), rep("visual", 6)),
+                  directory = starmap_dirs[c(3:6, 8, 9, 11:14)],
+                  experiment = basename(directory))
+```
+
+```{r}
+starmap <- starmap %>% 
+  mutate(mats = map(directory, read_starmap_mat))
+```
+
+```{r}
+starmap_genes <- map(starmap$mats, rownames)
+starmap_genes <- reduce(starmap_genes, intersect)
+```
+
+## ExM-MERFISH
+```{r}
+exm_merfish <- tibble(method = "ExM-MERFISH",
+                      species = "human",
+                      tissue = "U-2 OS",
+                      directory = "data/2019_subcellular_ExM-MERFISH/whole_cell.csv",
+                      experiment = basename(directory))
+```
+
+```{r}
+exm_merfish_mat <- read_csv(exm_merfish$directory)
+exm_merfish_genes <- exm_merfish_mat$X1
+exm_merfish_mat <- as.matrix(exm_merfish_mat[, -1])
+rownames(exm_merfish_mat) <- exm_merfish_genes
+exm_merfish_mat <- as(exm_merfish_mat, "dgCMatrix")
+exm_merfish$mats <- list(exm_merfish_mat)
+rm(exm_merfish_mat)
+```
+
+## HCR-seqFISH
+From the 2016 Sheel Shah paper
+```{r}
+hcr_seqfish <- tibble(method = "HCR-seqFISH",
+                      species = "mouse",
+                      tissue = c("hippo", "hippo", "hippo surround", "cortex", "hippo"),
+                      directory = paste0("data/2016_Shah_HCR-seqFISH/",
+                                         c(rep("expression125.xlsx", 4),
+                                         "expression249.xlsx")),
+                      experiment = c("brain1", "brain2_hippo", "brain2_hippo_surround",
+                                     "brain2_cortex", "hippo249"))
+```
+
+```{r}
+brain1 <- read_xlsx(hcr_seqfish$directory[1], sheet = 1)
+brain1 <- brain1[, -1]
+brain1 <- as(t(as.matrix(brain1)), "dgCMatrix")
+```
+
+```{r}
+# For the rest of the sheets
+read_shah_hcr <- function(d) {
+  m <- read_xlsx(d, col_names = FALSE)
+  g <- m[, 1]
+  m <- m[, -1]
+  as(as.matrix(m), "dgCMatrix")
+}
+```
+
+```{r}
+hcr_seqfish <- hcr_seqfish %>% 
+  mutate(mats = c(brain1,
+                  map(directory[-1], read_shah_hcr)))
+```
+
+## MERFISH 
+From the 2020 primary motor cortex study. The counts matrix in AnnData is already normalized; I want the raw counts, as for the most part I'm comparing similar cell types, mostly in mice, so I don't expect different cell sizes to play a huge role. Though after this presentation and perhaps after Sha's paper, I really need to look into this, and also cell shapes and subcellular distribution of transcripts.
+
+Here I'll use one sample for now. The transcript locations are given, but not assigned to cells; I need to use the cell segmentation polygons (I think it's really just the cell bodies when it comes to neurons, but I wonder what happens to dendritic transcripts, which are different from those in the cell body). But while transcript locations are given in 3 dimentions (though only 7 z planes), the cell segmentations only have x and y. The units are microns, and the sections are 10 um thick, so it's probably not too bad to assume cells to be oddly shaped cylinders.
+
+```{r}
+seg_cells <- vroom("data/merfish_mop/segmented_cells_mouse1sample1.csv", 
+                   delim = ",")
+seg_cells <- as_tibble(seg_cells)
+```
+
+```{r}
+seg_cells <- seg_cells %>% 
+  mutate(boundaryX = map(boundaryX, ~ as.numeric(str_split(.x, ", ")[[1]])),
+         boundaryY = map(boundaryY, ~ as.numeric(str_split(.x, ", ")[[1]])))
+```
+
+```{r}
+all.equal(lengths(seg_cells$boundaryX), lengths(seg_cells$boundaryY))
+```
+
+Also make sure that the start point and end point are the same for the polygons as sp requires this.
+```{r}
+seg_cells <- seg_cells %>% 
+  mutate(boundaryX = map(boundaryX, ~ c(.x, .x[1])),
+         boundaryY = map(boundaryY, ~ c(.x, .x[1])))
+```
+
+```{r}
+summary(lengths(seg_cells$boundaryX))
+```
+
+Since I added the first coordinate to the back, here 2 means just 1 point, so I'll get rid of any "cells" with fewer than 4 coordinates
+```{r}
+seg_cells <- seg_cells %>% 
+  filter(lengths(boundaryX) >= 4)
+```
+
+Split by slice, to ease parallelization
+```{r}
+seg_cells <- seg_cells %>% 
+  group_split(slice_id)
+```
+
+I think I understand why it's so much work to convert vectors of coordinates of boundaries to SpatialPolygons; this is because in geospatial data, regions defined by governments may have holes (think Rome when Vatican is taken out) or have discontiguous parts (think Alaska and Hawaii). But I don't care about that here since cells don't work that way anyway (unless you want to take out say nuclei or organelles or have dendrites separated from cell bodies). So this function
+```{r}
+makeSP <- function(df) {
+  poly_list <- map2(df$boundaryX, df$boundaryY, 
+                  ~ Polygon(cbind(.x, .y), hole = FALSE))
+  poly_list <- map2(poly_list, df$...1, ~ Polygons(list(.x), ID = .y))
+  segs <- SpatialPolygons(poly_list)
+  segs
+}
+```
+
+```{r}
+segs_sl <- map(seg_cells, makeSP)
+```
+
+```{r}
+txs <- vroom("data/merfish_mop/spots_mouse1sample1.csv", delim = ",")
+```
+
+Here I'll also split by slice. It's a waste of time to check if a spot in the territory of one slice is in another, distant slice.
+```{r}
+bbs <- map(segs_sl, bbox)
+```
+
+```{r}
+txs_sl <- map(bbs, ~ {
+  txs_inds <- txs$global_x >= .x["x", "min"] & txs$global_x <= .x["x", "max"] &
+    txs$global_y >= .x["y", "min"] & txs$global_y <= .x["y", "max"]
+  txs[txs_inds,]
+})
+```
+
+Now assign points to cells. I still wonder what if a substantial portion are not assigned. 
+```{r}
+slices <- map_chr(seg_cells, ~ unique(.x$slice_id))
+cell_assignment <- vector(mode = "list", length = length(slices))
+chunk_size <- 1e5
+for (s in seq_along(segs_sl)) {
+  cat("Processing", slices[s], "\n")
+  txs_use <- SpatialPoints(txs_sl[[s]][, c("global_x", "global_y")])
+  segs_use <- segs_sl[[s]]
+  bks1 <- seq(1, length(txs_use), by = chunk_size)
+  bks <- list(bks1, lead(bks1) - 1)
+  bks[[2]][is.na(bks[[2]])] <- length(txs_use)
+  bks <- transpose(bks)
+  cell_assignment[[s]] <- foreach(i = bks, .combine = c) %dopar% {
+    inds <- seq.int(i[[1]], i[[2]], by = 1)
+    over(txs_use[inds], segs_use)
+  }
+}
+```
+
+```{r}
+txs_sl <- map2(txs_sl, cell_assignment, ~ {
+  .x$cell <- unname(.y)
+  .x
+})
+```
+
+Just curious, for each slice, what proportion of spots do not fall into segmented cells?
+
+```{r}
+map(cell_assignment, ~ mean(is.na(.x)))
+```
+
+Really? Then I wonder if I did something wrong or if not, then what those spots not assigned to any cells are. Does that depend on z plane?
+```{r}
+map(txs_sl, ~ .x %>% group_by(global_z) %>% summarize(prop_out = mean(is.na(cell))))
+```
+
+It seems that z = 0 has higher proportion of spots outside cells. Are there genes that are more likely to have spots outside cells?
+```{r}
+map(txs_sl, ~ .x %>% group_by(target_molecule_name) %>% 
+      summarize(prop_out = mean(is.na(cell))) %>% 
+      top_n(10, prop_out))
+```
+
+I still wonder why; there are no unannotated garbage here. Would those be transcripts that are not in the cell body and thus missed by segmentation?
+
+```{r}
+seg_cells[[1]] %>% 
+  unnest(cols = c("boundaryX", "boundaryY")) %>% 
+  ggplot(aes(boundaryX, boundaryY, group = ...1)) +
+  geom_path() +
+  coord_equal()
+```
+
+Justs to inspect a patch of this slice
+```{r}
+xmin <- 2750
+xmax <- 3000
+ymin <- 1250
+ymax <- 1500
+foo <- seg_cells[[1]] %>% 
+  unnest(cols = c("boundaryX", "boundaryY")) %>% 
+  filter(between(boundaryX, xmin, xmax), between(boundaryY, ymin, ymax))
+bar <- txs_sl[[1]] %>% 
+  filter(between(global_x, xmin, xmax), between(global_y, ymin, ymax))
+```
+
+```{r}
+ggplot() +
+  geom_polygon(data = foo, aes(boundaryX, boundaryY, group = ...1),
+               alpha = 0.3, fill = "red") +
+  geom_point(data = bar, aes(global_x, global_y), 
+             size = 0.1, alpha = 0.3) +
+  coord_equal() +
+  facet_wrap(~ global_z)
+```
+
+Ah, I see. Some of that clearly looks like background. But some of them clearly look like cells but missed by the segmentation, probably because the segmentation boundary only has x and y and the other "cells" are in the z plane that has the provided x and y boundaries (I wonder why they don't provide the z plane of the segmentation while thtey said they did make 3D segmentation in the 2018 hypothalamus paper). But still, I can see some cells missed by segmentation that are present in all z planes. Were they rejected for some other reason? Also, there seems to be more spots at boundaries between FOVs. OK, I've got a LOT of work to do for `cosmodrome`. I've also got a LOT of work to do for `Voyager` to adapt the spatial EDA functions to 3D, plus the debate of the status of the z plane, since the z plane has different quality from x and y. Should z be a mark or a dimension? But cell segmentation just is challenging. Now also check the z plane. Also, it seems that the FOV boundary artefact is more prominent in lower z planes and that it's easier to make out the cells in the highest one.
+
+Anyway, for now, I'll simply use the transcripts that fall inside cells
+```{r}
+txs_sl2 <- map2(txs_sl, seg_cells, ~ filter(.x, !is.na(cell)) %>% 
+                 mutate(cell_id = .y$...1[cell]))
+```
+
+```{r}
+merfish <- tibble(method = "MERFIH",
+                  species = "mouse",
+                  tissue = "MOp",
+                  directory = "data/merfish_mop/counts.h5ad",
+                  experiment = slices)
+```
+
+```{r}
+merfish <- merfish %>% 
+  mutate(mats = map(txs_sl2, ~ {
+    m <- .x %>% 
+      select(target_molecule_name, cell_id, cell) %>% 
+      count(target_molecule_name, cell_id, cell)
+    gene_ids <- tibble(target_molecule_name = sort(unique(.x$target_molecule_name)),
+                       gene_ind = seq_along(target_molecule_name))
+    cell_ids <- tibble(cell_id = unique(m$cell_id),
+                       cell_ind = seq_along(cell_id))
+    m <- m %>% 
+      left_join(gene_ids, by = "target_molecule_name") %>% 
+      left_join(cell_ids, by = "cell_id")
+    sparseMatrix(i = m$gene_ind, j = m$cell_ind, x = m$n, 
+                 dimnames = list(gene_ids$target_molecule_name, cell_ids$cell_id))
+  }))
+```
+
+FINALLY!
+```{r}
+map(merfish$mats, dim)
+```
+
+```{r}
+# save the results
+save(merfish, seg_cells, txs_sl, txs_sl2, file = "merfish_mop.RData")
+```
+
+## osmFISH
+This one is easy
+```{r}
+osm <- connect("data/osmFISH/osmFISH_SScortex_mouse_all_cells.loom", mode = "r+")
+```
+
+```{r}
+osm
+```
+
+```{r}
+osmfish <- tibble(method = "osmFISH",
+                  species = "mouse",
+                  tissue = "ss cortex",
+                  directory = "data/osmFISH/osmFISH_SScortex_mouse_all_cells.loom",
+                  experiment = "osmFISH_sscortex")
+```
+
+```{r}
+m <- osm$matrix[,]
+m <- t(m)
+colnames(m) <- osm$col.attrs$CellID[]
+rownames(m) <- osm$row.attrs$Gene[]
+m <- as(m, "dgCMatrix")
+```
+
+```{r}
+osmfish$mats <- list(m)
+rm(m)
+```
+
+## seqFISH+
+```{r}
+sf_plus <- vroom("data/seqfish_plus/cortex_svz_counts.csv")
+```
+
+```{r}
+seqfish_plus <- tibble(method = "seqFISH+",
+                       species = "mouse",
+                       tissue = "SVZ",
+                       directory = "data/seqfish_plus/cortex_svz_counts.csv",
+                       experiment = "seqfish+_svz")
+```
+
+```{r}
+seqfish_plus$mats <- list(t(as.matrix(sf_plus)) %>% as("dgCMatrix"))
+```
+
+I'll worry about the subcellular stuff later.
+
+## ST Molecular Atlas
+There are over 30,000 spots; I suppose I can feel free to get primary visual cortex, somatosensory cortex, or motor cortex. I think it's also cool that they used ABA anatomical ontology. I think this is one place we should learn from the prequel era. I wonder how the Human Cell Atlas's spatial part goes.
+```{r}
+st_meta <- read_tsv("data/ST_mol_atlas/meta_table.tsv")
+```
+
+```{r}
+st_meta <- st_meta %>% 
+  filter(ABA_parent %in% c("Isocortex", "Hippocampal region"))
+st_meta %>% 
+  count(ABA_parent, ABA_name)
+```
+
+I still wonder why many studies share their obviously sparse gene count matrices as tsv or csv rather than mtx, wasting so much space.
+```{r}
+st_mat <- vroom("data/ST_mol_atlas/expr_raw_counts_table.tsv")
+```
+
+Which tissues do I already have here? Primary visual cortex, motor cortex, somatosensory cortex, hippocampus, and SVZ. I think the nice thing here is that I can find the corresponding tissues in this ST molecular atlas.
+
+```{r}
+st_mat <- st_mat %>% 
+  filter(...1 %in% st_meta$X1)
+st_cell_id <- st_mat$...1
+st_mat$...1 <- NULL
+st_mat <- t(as.matrix(st_mat)) %>% as("dgCMatrix")
+colnames(st_mat) <- st_cell_id
+```
+
+```{r}
+st_mol_atlas <- tibble(method = "ST",
+                       species = "mouse",
+                       tissue = c("Isocortex", "Hippocampal region"),
+                       directory = "data/ST_mol_atlas/expr_raw_counts_table.tsv",
+                       experiment = c("ST_isocortex", "ST_hippo"),
+                       mats = list(st_mat[,st_meta$X1[st_meta$ABA_parent == "Isocortex"]],
+                          st_mat[,st_meta$X1[st_meta$ABA_parent == "Hippocampal region"]]))
+```
+
+## Slide-seq v2
+I don't think the slide-seq v2 paper points to where the data is stored, so I wonder how Seurat team got the data. Anyway, I'm using the hippocampus one provided by Seurat.
+
+```{r}
+slide.seq <- LoadData("ssHippo")
+```
+
+I don't like the way Seurat's violin plots look. Here's a more aesthetically pleasant version
+```{r}
+slide.seq@meta.data %>% 
+  select(nCount_Spatial, nFeature_Spatial) %>% 
+  pivot_longer(cols = c("nCount_Spatial", "nFeature_Spatial"), 
+               names_to = "variable", values_to = "value") %>% 
+  ggplot(aes(variable, value)) +
+  geom_violin() +
+  geom_boxplot(width = 0.5) +
+  scale_y_log10() +
+  annotation_logticks(sides = "l")
+```
+
+```{r}
+slide_seq <- tibble(method = "slide-seq v2",
+                    species = "mouse",
+                    tissue = "hippo",
+                    directory = NA,
+                    experiment = "slide-seq2_hippo",
+                    mats = list(GetAssayData(slide.seq, slot = "counts")))
+rm(slide.seq)
+```
+
+## Visium
+None of the published data is from mouse brain, but 10x itself provides Visium data from the brain. 
+```{r}
+brain <- LoadData("stxBrain", type = "anterior1")
+```
+
+```{r}
+brain
+```
+
+```{r}
+brain@meta.data %>% 
+  select(nCount_Spatial, nFeature_Spatial) %>% 
+  pivot_longer(cols = c("nCount_Spatial", "nFeature_Spatial"), 
+               names_to = "variable", values_to = "value") %>% 
+  ggplot(aes(variable, value)) +
+  geom_violin() +
+  geom_jitter(size = 0.1, alpha = 0.1)
+  #geom_boxplot(width = 0.5) #+
+  #scale_y_log10() +
+  #annotation_logticks(sides = "l")
+```
+
+```{r}
+visium <- tibble(method = "Visium",
+                 species = "mouse",
+                 tissue = "brain",
+                 directory = NA,
+                 experiment = "visium_brain",
+                 mats = list(GetAssayData(brain, slot = "counts")))
+rm(brain) 
+```
+
+# Get relevant matrix summaries
+Finally! That really took a while, especially the MERFISH part. Now it's time to do the following:
+
+1. Get the genes shared by all these matrices
