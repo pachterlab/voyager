@@ -60,11 +60,6 @@ starmap <- starmap %>%
   mutate(mats = map(directory, read_starmap_mat))
 ```
 
-```{r}
-starmap_genes <- map(starmap$mats, rownames)
-starmap_genes <- reduce(starmap_genes, intersect)
-```
-
 ## ExM-MERFISH
 ```{r}
 exm_merfish <- tibble(method = "ExM-MERFISH",
@@ -104,19 +99,30 @@ brain1 <- as(t(as.matrix(brain1)), "dgCMatrix")
 ```
 
 ```{r}
+sheet_use <- c(2:4, 1)
+```
+
+```{r}
+foo <- read_xlsx(hcr_seqfish$directory[2], sheet = 2, col_names = FALSE)
+```
+
+```{r}
 # For the rest of the sheets
-read_shah_hcr <- function(d) {
-  m <- read_xlsx(d, col_names = FALSE)
-  g <- m[, 1]
+read_shah_hcr <- function(d, s) {
+  m <- read_xlsx(d, sheet = s, col_names = FALSE)
+  g <- m$...1
+  g <- str_remove_all(g, "'")
   m <- m[, -1]
-  as(as.matrix(m), "dgCMatrix")
+  m <- as(as.matrix(m), "dgCMatrix")
+  rownames(m) <- g
+  m
 }
 ```
 
 ```{r}
 hcr_seqfish <- hcr_seqfish %>% 
   mutate(mats = c(brain1,
-                  map(directory[-1], read_shah_hcr)))
+                  map2(directory[-1], sheet_use, read_shah_hcr)))
 ```
 
 ## MERFISH 
@@ -282,7 +288,7 @@ txs_sl2 <- map2(txs_sl, seg_cells, ~ filter(.x, !is.na(cell)) %>%
 ```
 
 ```{r}
-merfish <- tibble(method = "MERFIH",
+merfish <- tibble(method = "MERFISH",
                   species = "mouse",
                   tissue = "MOp",
                   directory = "data/merfish_mop/counts.h5ad",
@@ -389,7 +395,7 @@ Which tissues do I already have here? Primary visual cortex, motor cortex, somat
 
 ```{r}
 st_mat <- st_mat %>% 
-  filter(...1 %in% st_meta$X1)
+  filter(...1 %in% st_meta$X1[st_meta$passed_QC])
 st_cell_id <- st_mat$...1
 st_mat$...1 <- NULL
 st_mat <- t(as.matrix(st_mat)) %>% as("dgCMatrix")
@@ -402,8 +408,8 @@ st_mol_atlas <- tibble(method = "ST",
                        tissue = c("Isocortex", "Hippocampal region"),
                        directory = "data/ST_mol_atlas/expr_raw_counts_table.tsv",
                        experiment = c("ST_isocortex", "ST_hippo"),
-                       mats = list(st_mat[,st_meta$X1[st_meta$ABA_parent == "Isocortex"]],
-                          st_mat[,st_meta$X1[st_meta$ABA_parent == "Hippocampal region"]]))
+                       mats = list(st_mat[,st_meta$X1[st_meta$ABA_parent == "Isocortex" & st_meta$passed_QC]],
+                          st_mat[,st_meta$X1[st_meta$ABA_parent == "Hippocampal region" & st_meta$passed_QC]]))
 ```
 
 ## Slide-seq v2
@@ -447,6 +453,10 @@ brain
 ```
 
 ```{r}
+names(brain@meta.data)
+```
+
+```{r}
 brain@meta.data %>% 
   select(nCount_Spatial, nFeature_Spatial) %>% 
   pivot_longer(cols = c("nCount_Spatial", "nFeature_Spatial"), 
@@ -469,7 +479,340 @@ visium <- tibble(method = "Visium",
 rm(brain) 
 ```
 
+## Linnarsson scRNA-seq
+It's from the old molecular atlas of the mouse brain.
+```{r}
+linnarsson_ctx <- connect("data/linnarsson_ctx/l1_cortex1.loom", mode = "r+")
+```
+
+```{r}
+sc <- tibble(method = "10xv1",
+             species = "mouse",
+             tissue = "cortex",
+             directory = "data/linnarsson_ctx/l1_cortex1.loom",
+             experiment = "scRNA-seq_cortex")
+```
+
+```{r}
+m <- linnarsson_ctx$matrix[,]
+m <- t(m)
+colnames(m) <- linnarsson_ctx$col.attrs$CellID[]
+rownames(m) <- linnarsson_ctx$row.attrs$Gene[]
+m <- as(m, "dgCMatrix")
+```
+
+```{r}
+sc$mats <- list(m)
+rm(m)
+```
+
 # Get relevant matrix summaries
 Finally! That really took a while, especially the MERFISH part. Now it's time to do the following:
 
 1. Get the genes shared by all these matrices
+2. Compare total counts per cell/spot for those shared genes
+3. Compare mean and median counts per cell for those genes
+
+Problem: The datasets that are not transcriptome wide don't have one shared set of genes. What to do? How do I compare them? I can make one plot for the genome wide datasets, and another plot comparing the genome wide datasets with a non-genome wide one with the shared genes
+
+```{r}
+tx_wide <- rbind(sc, seqfish_plus, slide_seq, st_mol_atlas, visium)
+```
+
+```{r}
+shared_genes <- map(tx_wide$mats, ~ rownames(.x) %>% tolower()) %>% 
+  reduce(intersect)
+length(shared_genes)
+```
+
+```{r}
+tx_wide <- tx_wide %>% 
+  mutate(mats = map(mats, ~ {
+    rownames(.x) <- tolower(rownames(.x))
+    .x[shared_genes,]
+  }))
+```
+
+```{r}
+tx_wide_n_counts <- tx_wide %>% 
+  mutate(nCounts_RNA = map(mats, colSums),
+         cell_id = map(mats, colnames)) %>% 
+  select(-mats) %>% 
+  unnest(cols = c("nCounts_RNA", "cell_id"))
+```
+
+For ST, I'll normalize the counts per spot by the number of nuclei in the spot; it's so nice of the Molecular Atlas authors to provide this information.
+```{r}
+st_meta %>% 
+  filter(passed_QC, ABA_parent %in% c("Isocortex", "Hippocampal region")) %>% 
+  ggplot(aes(nuclei_segmented)) +
+  geom_histogram(bins = 20)
+```
+
+```{r}
+st_meta %>% 
+  filter(passed_QC, ABA_parent %in% c("Isocortex", "Hippocampal region")) %>% 
+  pull(nuclei_segmented) %>% 
+  summary()
+```
+
+Burning question: How about the Visium dataset? OK, some street fighting math: ST's spot diameter is 100 um, though in ths Molecular Atlas, the diameter is actually more than that.
+
+```{r}
+hist(st_meta$spot_radius)
+```
+
+```{r}
+summary(st_meta$spot_radius)
+```
+
+Say in practice the diameter is 145 um. Visium's spot diameter is 55 um, but it's hexagonal. How many times are ST spots larger than Visium spots?
+
+```{r}
+(pi * 72.5^2)/(22.5^2 * sqrt(3)/2 * 3)
+```
+
+So it's about 12.5 times. Then say the ST spot contains 7 nuclei on average, then would it be that on average, one Visium spot contains 1 or fewer nuclei? Well, it was said that a neuron is about 10 um in width. But as seem from the MERFISH plot, a 50 x 50 um square can contain from 1 to like 6 cells, so 10x website's claim that one Visium spot can contain between 1 and 10 cells is reasonable. So I'm back to where I began. I don't know what to do. But I've got data from MERFISH, from which I can get an empirical estimate. OK, cell density actually depends on tissue, and in the motor cortex, part of the tissue; I picked an area that has intermediate density of cells
+
+```{r}
+xmin <- 3000
+xmax <- 3500
+ymin <- 1000
+ymax <- 1500
+foo <- seg_cells[[1]] %>% 
+  unnest(cols = c("boundaryX", "boundaryY")) %>% 
+  filter(between(boundaryX, xmin, xmax), between(boundaryY, ymin, ymax))
+bar <- txs_sl[[1]] %>% 
+  filter(between(global_x, xmin, xmax), between(global_y, ymin, ymax))
+```
+
+The diameter is different from the side length. 
+```{r}
+width_use <- 55*(sqrt(3)/2)
+ggplot() +
+  geom_hex(data = bar, aes(global_x, global_y), binwidth = width_use) +
+  geom_polygon(data = foo, aes(boundaryX, boundaryY, group = ...1),
+               alpha = 0.5, fill = "red") +
+  coord_equal() +
+  scale_x_continuous(expand = expansion()) +
+  scale_y_continuous(expand = expansion())
+```
+
+It seems that (I mean, by visual inspection) most spots have 2 to 4 cells, so I'll use 3 to normalize the Visium data.
+
+```{r}
+tx_wide_n_counts <- tx_wide_n_counts %>% 
+  left_join(st_meta[, c("X1", "nuclei_segmented")], by = c("cell_id" = "X1")) %>% 
+  filter(nuclei_segmented > 0 | is.na(nuclei_segmented)) %>% 
+  mutate(nCounts_RNA_norm = case_when(
+    is.na(nuclei_segmented) & method != "Visium" ~ nCounts_RNA,
+    method == "Visium" ~ nCounts_RNA / 3,
+    TRUE ~ nCounts_RNA/nuclei_segmented
+  ))
+```
+
+```{r}
+tx_wide_n_counts <- tx_wide_n_counts %>% 
+  mutate(experiment = fct_reorder(experiment, nCounts_RNA_norm))
+```
+
+```{r}
+tx_wide_n_counts %>% 
+  filter(nCounts_RNA > 0) %>% 
+  ggplot(aes(experiment, nCounts_RNA_norm)) +
+  geom_violin() +
+  scale_y_log10(minor_breaks = scales::breaks_log(10)) +
+  annotation_logticks(sides = "l") +
+  labs(title = "Number of UMI/transcripts per cell for shared genes \namong transcriptome-wide methods", y = "")
+```
+
+Yeah, so after normalizing number of cells per spot, ST is comparable to scRNA-seq, Visium is somewhat better, and seqFISH+ is certainly better.
+
+How about mean count of each shared gene per cell (yes, normalized for spots)?
+```{r}
+tx_wide_gene <- tx_wide
+tx_wide_gene$mats[tx_wide_gene$method == "ST"] <- 
+  map(tx_wide_gene$mats[tx_wide_gene$method == "ST"], ~ {
+    nuclei_seg <- st_meta$nuclei_segmented[match(colnames(.x), st_meta$X1)]
+    m <- .x[, nuclei_seg > 0]
+    nuclei_seg <- nuclei_seg[nuclei_seg > 0]
+    sweep(m, 2, STATS = nuclei_seg, FUN = "/")
+  })
+tx_wide_gene$mats[tx_wide_gene$method == "Visium"] <- 
+  map(tx_wide_gene$mats[tx_wide_gene$method == "Visium"], ~ .x/3)
+```
+
+```{r}
+tx_wide_gene <- tx_wide_gene %>% 
+  mutate(mean_count = map(mats, rowMeans),
+         gene = map(mats, rownames)) %>% 
+  select(-mats) %>% 
+  unnest(cols = c("mean_count", "gene")) %>% 
+  mutate(experiment = fct_reorder(experiment, mean_count))
+```
+
+```{r}
+ggplot(tx_wide_gene, aes(experiment, mean_count)) +
+  geom_violin() +
+  scale_y_log10() +
+  annotation_logticks(sides = "l") +
+  labs(title = "Mean gene count per cell in transcriptome-wide methods", y = "")
+```
+
+```{r, fig.width=8, fig.height=8}
+tx_wide_gene %>% 
+  select(experiment, gene, mean_count) %>% 
+  mutate(mean_count = log10(mean_count)) %>% 
+  pivot_wider(names_from = "experiment", values_from = "mean_count") %>% 
+  ggplot() +
+  geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
+  scale_fill_viridis_c() +
+  facet_matrix(rows = vars(`scRNA-seq_cortex`:visium_brain))
+```
+
+Also compare the sparsity
+```{r}
+tx_wide <- tx_wide %>% 
+  mutate(sparsity = map_dbl(mats, ~ 1 - mean(.x > 0)))
+```
+
+```{r}
+tx_wide %>% 
+  mutate(experiment = fct_reorder(experiment, sparsity, .desc = TRUE)) %>% 
+  ggplot(aes(experiment, sparsity)) +
+  geom_col()
+```
+
+Then what? I suppose because the seqFISH+ dataset has so many genes, I can compare the other datasets with it one by one, to avoid the scenario when too few or simply 0 genes are shared between datasets. How about this: for each set of shared genes, I'll set the median of seqFISH+ to 1. This way it's easier to compare. 
+```{r}
+tx_panel_comp <- function(query, ref) {
+  df <- rbind(query, ref)
+  shared_genes <- map(df$mats, rownames) %>% reduce(intersect)
+  df <- df %>% 
+    mutate(mats = map(mats, ~ .x[shared_genes,]))
+  df_n_counts <- df %>% 
+    mutate(nCount_RNA = map(mats, colSums)) %>% 
+    select(-mats) %>% 
+    unnest(cols = c("nCount_RNA"))
+  ref_median <- median(df_n_counts$nCount_RNA[df_n_counts$experiment %in% ref$experiment])
+  df_n_counts <- df_n_counts %>% 
+    mutate(nCount_RNA_norm = nCount_RNA/ref_median,
+           facet = unique(query$method),
+           experiment = fct_reorder(experiment, nCount_RNA_norm))
+  df_n_counts
+}
+```
+
+```{r}
+panel_n_counts <- map_dfr(list(hcr_seqfish, merfish, osmfish, starmap),
+                          tx_panel_comp, ref = seqfish_plus) %>% 
+  mutate(facet = fct_reorder2(facet, nCount_RNA_norm, method, 
+                              .fun = function(x, y) median(x[y != "seqFISH+"])))
+```
+
+```{r, fig.width=7, fig.height=7}
+panel_n_counts %>% 
+  filter(nCount_RNA_norm > 0) %>% 
+  ggplot(aes(nCount_RNA_norm, experiment, fill = method != "seqFISH+")) +
+  geom_vline(xintercept = 1) +
+  geom_violin(orientation = "y") +
+  facet_grid(rows = vars(facet), scales = "free_y", space = "free") +
+  theme(legend.position = "none") +
+  labs(y = "", x = "Relative number of transcripts per cell",
+       subtitle = "Number of transcripts per cell relative to seqFISH+ median of shared genes") +
+  scale_x_log10() +
+  annotation_logticks(sides = "b")
+```
+
+```{r}
+tx_panel_genes <- function(query, ref) {
+  df <- rbind(query, ref)
+  shared_genes <- map(df$mats, rownames) %>% reduce(intersect)
+  df <- df %>% 
+    mutate(mats = map(mats, ~ .x[shared_genes,]))
+  df_genes <- df %>% 
+    mutate(mean_count = map(mats, rowMeans),
+           gene = map(mats, rownames)) %>% 
+    select(-mats) %>% 
+    unnest(cols = c("mean_count", "gene")) %>% 
+    mutate(facet = unique(query$method),
+           experiment = fct_reorder(experiment, mean_count))
+  df_genes
+}
+```
+
+```{r}
+panel_genes <- map_dfr(list(hcr_seqfish, merfish, osmfish, starmap),
+                          tx_panel_genes, ref = seqfish_plus) %>% 
+  mutate(facet = fct_reorder2(facet, mean_count, method, 
+                                .fun = function(x, y) median(x[y != "seqFISH+"])))
+```
+
+```{r, fig.width=7, fig.height=7.5}
+panel_genes %>% 
+  #filter(nCount_RNA_norm > 0) %>% 
+  ggplot(aes(mean_count, experiment, fill = method != "seqFISH+")) +
+  geom_violin(orientation = "y") +
+  geom_jitter(size = 0.3, alpha = 0.3) +
+  facet_grid(rows = vars(facet), scales = "free_y", space = "free") +
+  theme(legend.position = "none") +
+  labs(y = "", x = "Mean counts per gene",
+       title = "Mean counts of gene among cells",
+       subtitle = "Among genes shared with seqFISH+ data as reference") +
+  scale_x_log10() +
+  annotation_logticks(sides = "b")
+```
+
+Also plot each gene as a point. I'll not split by experiment here. Just average over methods, for shared genes.
+
+```{r}
+tx_gene_scatter <- function(query, ref) {
+  df <- rbind(query, ref)
+  shared_genes <- map(df$mats, rownames) %>% reduce(intersect)
+  df2 <- df %>% 
+    mutate(mats = map(mats, ~ .x[shared_genes,]),
+           sums = map(mats, rowSums),
+           gene = map(mats, rownames)) %>% 
+    select(-mats) %>% 
+    unnest(cols = c("sums", "gene")) %>% 
+    group_by(method, gene) %>% 
+    summarize(sums_method = sum(sums))
+  df3 <- df %>% 
+    mutate(n_cells = map_int(mats, ncol)) %>% 
+    select(-mats) %>% 
+    group_by(method) %>% 
+    summarize(cells_method = sum(n_cells))
+  df2 <- df2 %>% 
+    left_join(df3, by = "method") %>% 
+    mutate(mean_count = sums_method/cells_method,
+           method_nm = case_when(method == "seqFISH+" ~ "r",
+                                 TRUE ~ "q")) %>% 
+    ungroup() %>% 
+    select(method_nm, gene, mean_count) %>% 
+    pivot_wider(names_from = "method_nm", values_from = "mean_count")
+  df2$facet <- unique(query$method)
+  df2
+}
+```
+
+```{r}
+panel_genes2 <- map_dfr(list(hcr_seqfish[hcr_seqfish$experiment == "brain2_cortex",], 
+                             merfish, osmfish, starmap),
+                          tx_gene_scatter, ref = seqfish_plus) %>% 
+  mutate(facet = fct_reorder(facet, q))
+```
+
+```{r, fig.width=4, fig.height=6}
+ggplot(panel_genes2, aes(r, q)) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  geom_point(alpha = 0.3) +
+  facet_wrap(~ facet) +
+  scale_x_log10() +
+  scale_y_log10() +
+  annotation_logticks() +
+  coord_equal() +
+  labs(x = "seqFISH+",
+       y = "Method of interest",
+       subtitle = "Mean gene count per cell in\nmethod of interest vs. seqFISH+")
+```
+
