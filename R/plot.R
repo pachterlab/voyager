@@ -25,6 +25,26 @@ SpatialPlot2 <- function(object, group.by = NULL) {
     stop("More than one variables is not supported yet.")
   } else {
     ggplot(cell_segs, aes(x, y, fill = !!sym(group.by), group = cell)) +
-      geom_polygon()
+      geom_polygon() +
+      coord_equal()
+  }
+}
+
+SpatialFeaturePlot2 <- function(object, features) {
+  image_use <- object[[Images(object)[1]]]
+  df <- GetAssayData(object)[features,] %>%
+    as.matrix() %>%
+    as.data.frame()
+  df$cell <- Cells(object)
+  cell_segs <- GetTissueCoordinates(image_use, qhulls = TRUE)
+  cell_segs <- cell_segs %>%
+    left_join(df, by = "cell")
+  if (length(features) > 1L) {
+    # To do; now just do 1 feature
+    stop("More than one variables is not supported yet.")
+  } else {
+    ggplot(cell_segs, aes(x, y, fill = V1, group = cell)) +
+      geom_polygon() +
+      coord_equal()
   }
 }
