@@ -77,12 +77,55 @@ seg_cells_use <- seg_cells_sub %>%
   unnest(cols = c("boundaryX", "boundaryY"))
 ```
 
+Actually, because I know that the tissue ends at the left edge of the slice, I'll get the left side of the convex hull combined with that rectangle.
+```{r}
+inds <- rev(chull(seg_cells_use[, c("boundaryX", "boundaryY")]))
+tissue_coords <- seg_cells_use[inds, c("boundaryX", "boundaryY")]
+```
+
+```{r}
+min(tissue_coords$boundaryX[tissue_coords$boundaryY > 1490])
+```
+
+```{r}
+tissue_coords <- tissue_coords %>% 
+  mutate(rn = row_number())
+```
+
+```{r}
+tissue_coords %>% 
+  filter(boundaryY > 1490, near(boundaryX, 2624.07, tol = 0.001))
+```
+
+```{r}
+min(tissue_coords$boundaryX[tissue_coords$boundaryY < 1050])
+```
+
+```{r}
+tissue_coords %>% 
+  filter(boundaryY < 1050, near(boundaryX, 2589.675, tol = 0.001))
+```
+
+```{r}
+poly_use <- rbind(tissue_coords[15:30,1:2],
+                  data.frame(boundaryX = c(tissue_coords$boundaryX[30], xmax, xmax,
+                                           tissue_coords$boundaryX[15]),
+                             boundaryY = c(ymin, ymin, ymax, ymax)))
+names(poly_use) <- c("x", "y")
+```
+
+```{r}
+ggplot(poly_use, aes(x, y)) +
+  geom_path() +
+  geom_point(data = centroids, aes(X, Y))
+```
+
 ```{r}
 mer <- CreateSMSeurat(cell_centroids = centroids, 
                 tx_coords = txs_sub[, c("global_x", "global_y", "cell_id",
                                         "target_molecule_name", "global_z")],
                 cell_segmentations = seg_cells_use[, c(2, 3, 1)], 
-                tissue_owin = owin(xrange = c(xmin, xmax), yrange = c(ymin, ymax)),
+                tissue_owin = owin(poly = poly_use),
                 assay = "RNA", key = "merfish_")
 ```
 
@@ -114,13 +157,96 @@ ElbowPlot(seu, ndims = 30)
 ```
 
 ```{r}
-seu <- FindNeighbors(seu, dims = 1:20)
-seu <- FindClusters(seu, resolution = 0.5)
+seu <- FindNeighbors(seu, dims = 1:30)
+seu <- FindClusters(seu, resolution = 0.2)
+```
+
+```{r}
+PCAPlot(seu)
 ```
 
 ```{r}
 SpatialPlot2(seu, group.by = "seurat_clusters")
 ```
 
-Here comes Ripley's K on the cells; I think it's more about tissue than the technology per se.
+Here comes Ripley's K on the cells; I think it's more about tissue than the technology per se. I'll first experiment with Ripley's K on the cells, and then on transcripts within cells. Just to make a subcellular one for MERFISH and one for osmFISH. 
+
+```{r}
+SpatialFeaturePlot2(seu, "Cux2") +
+  scale_fill_distiller(palette = "Blues", direction = 1)
+```
+
+# Trying out spatstat
+To do: Getters and setters of slotes within SpatialImage that operates from the Seurat object
+
+## Cell level
+```{r}
+ggplot(centroids, aes(X, Y)) +
+  geom_hex(binwidth = 70) +
+  coord_equal()
+```
+
+```{r}
+ggplot(centroids, aes(X, Y)) +
+  geom_density2d_filled() +
+  coord_equal()
+```
+
+```{r}
+foo <- ppp(x = centroids$X, y = centroids$Y, window = owin(poly = poly_use))
+```
+
+```{r}
+H <- hextess(foo, 50)
+hQ <- quadratcount(foo, tess = H)
+quadrat.test(hQ)
+```
+
+Quadrat test suggests that the cells are pretty homogeneously distributed in space.
+
+```{r}
+fp <- frypoints(foo)
+```
+
+```{r}
+fp_coords <- coords(fp)
+```
+
+```{r}
+ggplot(fp_coords, aes(x, y)) +
+  geom_hex(binwidth = 50) +
+  coord_equal() +
+  scale_fill_viridis_c()
+```
+
+So the Fry plot suggests clustering compared to CRS. Really? To be honest, I expected regularity due to the finite size of the cells. But judging from the size and shape of that single peak, it looks like edge effect, so it's probably still pretty close to CSR. I'll see that in the K function, which also shows regularity and clustering over different length scales. 
+```{r}
+K <- Kest(foo)
+plot(K)
+```
+
+```{r}
+plot(envelope(foo))
+```
+
+```{r}
+L <- Lest(foo)
+plot(L)
+```
+
+At r > about 50, the different border corrections disagree with each other whether the point process is regular or clustered.
+```{r}
+plot(envelope(foo, Lest, global = TRUE))
+```
+
+So the cells are a tiny bit regular at a radius between 0 (or the cell size) and up to about 20 um, which means about the size of a Visium spot. I suppose that's just due to the physical size of cells plus some extra space say for dendrites that are missed by the segmentation. I wonder if this will be different in other tissues. Actually I don't expect the K function to be all that useful at the tissue level beccause while K function assumes that the point process is stationary, distribution of cells in tissues is often not (well, there's Kinhom anyway). But cross type K function can be more useful, which I'll incorporate into Voyager later, in a larger dataset I analyze in more depth rather than this small subset used for experimentation. 
+```{r}
+g <- pcf(foo, divisor = "d")
+plot(g)
+```
+
+This is consistent with the K and L functions. One thing: there's a little peak at 10. Shall I take the peak seriously? I think it's about cell size.
+
+## Transcript level
+Anyway, I don't think putting the cell coordinates in Seurat makes these explorations any more convenient, since we have to load the coordinates first anyway. But I do think this will make it easier for subcellular transcript localization, since it tooks a bit of work to convert whatever loaded into ppp's and a bit of work to get it and estimate those summary functions for many cells.
 
