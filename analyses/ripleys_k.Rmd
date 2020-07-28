@@ -1,0 +1,126 @@
+---
+title: "Ripley's K"
+author: "Lambda"
+date: "7/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(SingleCellExperiment)
+library(spatstat)
+theme_set(theme_bw())
+```
+
+# Prepare the data
+Here I use a subset of the MOp MERFISH data and a subset of osmFISH data. I use a subset for experimentation, and will later worry about scalability and what if the data doesn't fit into memory. Remember that in that MERFISH datasets, just for one mouse, one sample, there are over 17 million transcript spots. Imagine how many there will be with more samples.
+
+## MERFISH
+```{r}
+load("merfish_mop.RData")
+```
+
+```{r}
+xmin <- 2250
+xmax <- 3750
+ymin <- 1000
+ymax <- 1500
+seg_cells_sub <- seg_cells[[1]] %>% 
+  mutate(keep = map2_lgl(boundaryX, boundaryY, ~ {
+    all(.x >= xmin & .x <= xmax) & all(.y >= ymin & .y <= ymax)
+  }))
+```
+
+```{r}
+segs_sub <- segs_sl[[1]][seg_cells_sub$keep]
+```
+
+```{r}
+centroids <- coordinates(segs_sub) %>% 
+  as.data.frame()
+names(centroids) <- c("X", "Y")
+```
+
+```{r}
+seg_cells_sub <- seg_cells_sub %>% 
+  filter(keep)
+txs_sub <- txs_sl2[[1]] %>% 
+  semi_join(seg_cells_sub, by = c("cell_id" = "...1"))
+```
+
+```{r}
+seg_cells_sub <- seg_cells_sub %>% 
+  mutate(...1 = format(...1, scientific = FALSE) %>% str_remove_all("\\s"))
+txs_sub <- txs_sub %>% 
+  mutate(cell_id = format(cell_id, scientific = FALSE) %>% str_remove_all("\\s"))
+```
+
+```{r}
+centroids$cell <- seg_cells_sub$...1
+```
+
+Subset the gene count matrix
+```{r}
+mat_use <- merfish$mats[[1]][, colnames(merfish$mats[[1]]) %in% seg_cells_sub$...1]
+```
+
+Right now, the coordinates are clockwise and the first entry is repeated
+```{r}
+seg_cells_use <- seg_cells_sub %>% 
+  mutate(boundaryX = map(boundaryX, ~ rev(.x[-length(.x)])),
+         boundaryY = map(boundaryY, ~ rev(.x[-length(.x)]))) %>% 
+  unnest(cols = c("boundaryX", "boundaryY"))
+```
+
+```{r}
+mer <- CreateSMSeurat(cell_centroids = centroids, 
+                tx_coords = txs_sub[, c("global_x", "global_y", "cell_id",
+                                        "target_molecule_name", "global_z")],
+                cell_segmentations = seg_cells_use[, c(2, 3, 1)], 
+                tissue_owin = owin(xrange = c(xmin, xmax), yrange = c(ymin, ymax)),
+                assay = "RNA", key = "merfish_")
+```
+
+```{r}
+seu <- CreateSeuratObject(mat_use)
+```
+
+```{r}
+seu <- AddMetaData(seu, setNames(seg_cells_sub$slice_id, seg_cells_sub$...1),
+                   col.name = "slice")
+```
+
+```{r}
+seu <- AddImage(seu, mer)
+```
+
+
+```{r}
+FeatureScatter(seu, "nCount_RNA", "nFeature_RNA")
+```
+
+```{r}
+seu <- SCTransform(seu)
+```
+
+```{r}
+seu <- RunPCA(seu, npcs = 30, verbose = FALSE)
+ElbowPlot(seu, ndims = 30)
+```
+
+```{r}
+seu <- FindNeighbors(seu, dims = 1:20)
+seu <- FindClusters(seu, resolution = 0.5)
+```
+
+```{r}
+SpatialPlot2(seu, group.by = "seurat_clusters")
+```
+
+Here comes Ripley's K on the cells; I think it's more about tissue than the technology per se.
+

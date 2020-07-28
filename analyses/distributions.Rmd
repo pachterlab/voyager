@@ -300,7 +300,7 @@ merfish <- merfish %>%
   mutate(mats = map(txs_sl2, ~ {
     m <- .x %>% 
       select(target_molecule_name, cell_id, cell) %>% 
-      count(target_molecule_name, cell_id, cell)
+      dplyr::count(target_molecule_name, cell_id, cell)
     gene_ids <- tibble(target_molecule_name = sort(unique(.x$target_molecule_name)),
                        gene_ind = seq_along(target_molecule_name))
     cell_ids <- tibble(cell_id = unique(m$cell_id),
@@ -309,7 +309,9 @@ merfish <- merfish %>%
       left_join(gene_ids, by = "target_molecule_name") %>% 
       left_join(cell_ids, by = "cell_id")
     sparseMatrix(i = m$gene_ind, j = m$cell_ind, x = m$n, 
-                 dimnames = list(gene_ids$target_molecule_name, cell_ids$cell_id))
+                 dimnames = list(gene_ids$target_molecule_name, 
+                                 format(cell_ids$cell_id, scientific = FALSE) %>% 
+                                   str_remove_all("\\s")))
   }))
 ```
 
@@ -320,7 +322,7 @@ map(merfish$mats, dim)
 
 ```{r}
 # save the results
-save(merfish, seg_cells, txs_sl, txs_sl2, file = "merfish_mop.RData")
+save(merfish, seg_cells, segs_sl, txs_sl, txs_sl2, file = "merfish_mop.RData")
 ```
 
 ## osmFISH
