@@ -310,9 +310,10 @@ Radius.SMSeurat <- function(object) {
 #'
 subset.SMSeurat <- function(x, cells, ...) {
   coordinates <- GetTissueCoordinates(object = x, rownames = FALSE)
-  coordinates <- coordinates %>%
-    filter(cell %in% cells)
-  slot(object = x, name = 'coordinates') <- coordinates
+  inds <- match(cells, coordinates$cell)
+  x@coordinates <- x@coordinates[inds,]
+  x@qhulls <- x@qhulls[inds]
+  x@spots <- x@spots[inds]
   return(x)
 }
 
