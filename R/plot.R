@@ -2,7 +2,8 @@
 #'
 #' Because at present, Seurat's version is not extensible, though at present,
 #' my version is simpler. For now it only colors by the metadata. It would also
-#' only work on SMSeurat.
+#' only work on SMSeurat. Or maybe I can contribute some spatial Seurat plotting
+#' alternatives to dittoSeq.
 #'
 #' @param object A Seurat object
 #' @param group.by Same as in Seurat's SpatialPlot.

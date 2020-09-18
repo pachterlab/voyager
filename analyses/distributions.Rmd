@@ -538,9 +538,10 @@ tx_wide <- tx_wide %>%
 ```{r}
 tx_wide_n_counts <- tx_wide %>% 
   mutate(nCounts_RNA = map(mats, colSums),
-         cell_id = map(mats, colnames)) %>% 
+         cell_id = map(mats, colnames),
+         zeros = map(mats, ~ colMeans(.x < 1))) %>% 
   select(-mats) %>% 
-  unnest(cols = c("nCounts_RNA", "cell_id"))
+  unnest(cols = c("nCounts_RNA", "cell_id", "zeros"))
 ```
 
 For ST, I'll normalize the counts per spot by the number of nuclei in the spot; it's so nice of the Molecular Atlas authors to provide this information.
@@ -606,11 +607,13 @@ It seems that (I mean, by visual inspection) most spots have 2 to 4 cells, so I'
 tx_wide_n_counts <- tx_wide_n_counts %>% 
   left_join(st_meta[, c("X1", "nuclei_segmented")], by = c("cell_id" = "X1")) %>% 
   filter(nuclei_segmented > 0 | is.na(nuclei_segmented)) %>% 
-  mutate(nCounts_RNA_norm = case_when(
-    is.na(nuclei_segmented) & method != "Visium" ~ nCounts_RNA,
-    method == "Visium" ~ nCounts_RNA / 3,
-    TRUE ~ nCounts_RNA/nuclei_segmented
-  ))
+  mutate(
+    nCounts_RNA_norm = case_when(
+      is.na(nuclei_segmented) & method != "Visium" ~ nCounts_RNA,
+      method == "Visium" ~ nCounts_RNA / 3,
+      TRUE ~ nCounts_RNA/nuclei_segmented
+    )
+  )
 ```
 
 ```{r}
@@ -629,6 +632,14 @@ tx_wide_n_counts %>%
 ```
 
 Yeah, so after normalizing number of cells per spot, ST is comparable to scRNA-seq, Visium is somewhat better, and seqFISH+ is certainly better.
+
+```{r}
+tx_wide_n_counts %>% 
+  mutate(experiment = fct_reorder(experiment, zeros, .desc = TRUE)) %>% 
+  ggplot(aes(experiment, zeros)) +
+  geom_violin() +
+  labs(title = "Proportion of zeros per cell", y = "")
+```
 
 How about mean count of each shared gene per cell (yes, normalized for spots)?
 ```{r}
@@ -693,9 +704,10 @@ tx_panel_comp <- function(query, ref) {
   df <- df %>% 
     mutate(mats = map(mats, ~ .x[shared_genes,]))
   df_n_counts <- df %>% 
-    mutate(nCount_RNA = map(mats, colSums)) %>% 
+    mutate(nCount_RNA = map(mats, colSums),
+           zeros = map(mats, ~ colMeans(.x < 1))) %>% 
     select(-mats) %>% 
-    unnest(cols = c("nCount_RNA"))
+    unnest(cols = c("nCount_RNA", "zeros"))
   ref_median <- median(df_n_counts$nCount_RNA[df_n_counts$experiment %in% ref$experiment])
   df_n_counts <- df_n_counts %>% 
     mutate(nCount_RNA_norm = nCount_RNA/ref_median,
@@ -724,6 +736,16 @@ panel_n_counts %>%
        subtitle = "Number of transcripts per cell relative to seqFISH+ median of shared genes") +
   scale_x_log10() +
   annotation_logticks(sides = "b")
+```
+
+```{r, fig.width=7, fig.height=7}
+panel_n_counts %>% 
+  ggplot(aes(zeros, experiment, fill = method != "seqFISH+")) +
+  geom_violin(orientation = "y") +
+  facet_grid(rows = vars(facet), scales = "free_y", space = "free") +
+  theme(legend.position = "none") +
+  labs(y = "", x = "Proportion of zeros per cell",
+       subtitle = "Proportion of zeros in genes shared with seqFISH+")
 ```
 
 ```{r}

@@ -12,16 +12,22 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(Seurat)
-library(SingleCellExperiment)
 library(spatstat)
+library(loomR)
+library(rhdf5)
 library(ggrepel)
+library(raster)
+library(foreach)
+library(doParallel)
+registerDoParallel(20)
 theme_set(theme_bw())
 ```
 
 # Prepare the data
 Here I use a subset of the MOp MERFISH data and a subset of osmFISH data. I use a subset for experimentation, and will later worry about scalability and what if the data doesn't fit into memory. Remember that in that MERFISH datasets, just for one mouse, one sample, there are over 17 million transcript spots. Imagine how many there will be with more samples. Also, especially when looking at transcripts as point process, I don't want the faulty assumption that the cells are cylinders, so I'll only use the central z plane (I think it's number 4) for now.
 
-## MERFISH
+## Load data
+### MERFISH
 ```{r}
 load("merfish_mop.RData")
 ```
@@ -51,8 +57,7 @@ names(centroids) <- c("X", "Y")
 seg_cells_sub <- seg_cells_sub %>% 
   filter(keep)
 txs_sub <- txs_sl2[[1]] %>% 
-  semi_join(seg_cells_sub, by = c("cell_id" = "...1")) %>% 
-  filter(near(global_z, 4.5))
+  semi_join(seg_cells_sub, by = c("cell_id" = "...1"))
 ```
 
 ```{r}
@@ -71,6 +76,70 @@ Subset the gene count matrix
 mat_use <- merfish$mats[[1]][, colnames(merfish$mats[[1]]) %in% seg_cells_sub$...1]
 ```
 
+### osmFISH
+```{r}
+osm <- connect("data/osmFISH/osmFISH_SScortex_mouse_all_cells.loom", mode = "r+")
+```
+
+Transcript locations
+```{r}
+(txs_osm_meta <- h5ls("data/osmFISH/mRNA_coords_raw_counting.hdf5"))
+```
+
+```{r}
+txs_osm <- map_dfr(txs_osm_meta$name, ~ {
+  out <- h5read("data/osmFISH/mRNA_coords_raw_counting.hdf5", name = .x)
+  rownames(out) <- c("x", "y")
+  out <- as.data.frame(t(out))
+  out$gene <- .x
+  out
+})
+```
+
+```{r}
+osm_genes <- osm$row.attrs$Gene[]
+mer_genes <- rownames(merfish$mats[[1]])
+genes_use <- intersect(osm_genes, mer_genes)
+```
+
+```{r}
+txs_osm <- txs_osm %>% 
+  separate(gene, into = c("gene", "hyb"), sep = "_") %>% 
+  filter(gene %in% genes_use)
+```
+
+```{r}
+osm$col.attrs
+```
+
+```{r}
+osm_coords <- tibble(x = osm$col.attrs$X[],
+                     y = osm$col.attrs$Y[],
+                     cell = osm$col.attrs$CellID[])
+```
+
+```{r}
+osm$row.attrs
+```
+
+```{r}
+txs_sub <- txs_sub %>% 
+  filter(target_molecule_name %in% genes_use)
+```
+
+Cell segmentations for osmFISH
+```{r}
+segs_osm <- readRDS("data/osmFISH/polyT_seg.rds")
+```
+
+```{r}
+segs_osm[[1]][1:5,]
+```
+
+I think the polyT_seg file is actually all the polyA staining used for the staining. It's probably also a binary mask. I should actually get the outer boundary of this, but it's not the convex hull, for the cells are not necessarily convex. What to do? sp supports this, so I'll do it.
+
+## Tissue owin
+### MERFISH
 Right now, the coordinates are clockwise and the first entry is repeated
 ```{r}
 seg_cells_use <- seg_cells_sub %>% 
@@ -122,6 +191,278 @@ ggplot(poly_use, aes(x, y)) +
   geom_point(data = centroids, aes(X, Y))
 ```
 
+### osmFISH
+I also want a 1500 by 500 um subset that includes the top of the cortex. But in the osmFISH data, the unit is pixel, and one pixel is 0.065 um. I will convert it to um now.
+```{r}
+osm_coords$x <- osm_coords$x * 0.065
+osm_coords$y <- osm_coords$y * 0.065
+txs_osm$x <- txs_osm$x * 0.065
+txs_osm$y <- txs_osm$y * 0.065
+```
+
+```{r}
+segs_osm <- map(segs_osm, ~ .x * 0.065)
+```
+
+```{r}
+segs_inspect <- map(segs_osm, ~ .x[1,])
+segs_inspect <- do.call(rbind, segs_inspect)
+segs_inspect <- as.data.frame(segs_inspect)
+names(segs_inspect) <- c("x", "y")
+```
+
+```{r}
+ggplot(segs_inspect, aes(x, y)) +
+  geom_point(size = 0.5) +
+  coord_equal()
+```
+
+It turns out that the reason why the segmentation coordinates do not match cell centroids is that the tissue is inverted.
+
+How about transcript coordinates?
+```{r}
+txs_osm[sample(1:nrow(txs_osm), 5000),] %>% 
+  ggplot(aes(x, y)) +
+  geom_point(size = 0.5) +
+  coord_equal()
+```
+
+The transcript coordinates match the segmentation coordinates.
+```{r}
+osm_coords <- map(segs_osm, colMeans)
+osm_coords <- do.call(rbind, osm_coords)
+osm_coords <- as.data.frame(osm_coords)
+names(osm_coords) <- c("x", "y")
+osm_coords$cell <- names(segs_osm)
+```
+
+```{r}
+xmino <- 1000
+xmaxo <- 1500
+ymino <- 200
+ymaxo <- 1700
+ggplot(osm_coords, aes(x, y)) +
+  geom_point(size = 0.5) +
+  coord_equal(xlim = c(xmino, xmaxo), ylim = c(ymino, ymaxo))
+```
+
+```{r}
+osm_keep <- map_lgl(segs_osm, ~ {
+  all(.x[,1] <= xmaxo & .x[,1] >= xmino) & all(.x[,2] <= ymaxo & .x[,2] >= ymino)
+})
+```
+
+```{r}
+sum(osm_keep)
+```
+
+```{r}
+segs_osm <- segs_osm[osm_keep]
+```
+
+I have to convert the binnary masks to polygon. Just remove all internal points. All internal points have surrounding points and is a surrounding point
+```{r}
+foo <- as.data.frame(segs_osm[[1]])
+names(foo) <- c("x", "y")
+```
+
+```{r}
+shift_coords <- function(df, direction_x, direction_y, unit_shift = 0.065) {
+  if (direction_y == "u") {
+    df$y <- df$y + unit_shift
+  }
+  if (direction_y == "d") {
+    df$y <- df$y - unit_shift
+  }
+  if (direction_x == "l") {
+    df$x <- df$x - unit_shift
+  } 
+  if (direction_x == "r") {
+    df$x <- df$x + unit_shift
+  }
+  paste(df$x, df$y, sep = "_")
+}
+```
+
+```{r}
+all_shifts <- cross_df(list(x = c("l", "r", "n"), y = c("u", "d", "n")))
+```
+
+```{r}
+foo_shifts <- map2(all_shifts$x, all_shifts$y, shift_coords, df = foo)
+```
+
+```{r}
+foo_internal <- reduce(.x = foo_shifts, .f = intersect)
+```
+
+```{r}
+foo_str <- paste(foo$x, foo$y, sep = "_")
+```
+
+```{r}
+foo_boundary <- foo %>% filter(!foo_str %in% foo_internal)
+```
+
+Then I need to sort the boundary points so they are counterclockwise. I can compute the theta of the polar coordinate and sort it.
+```{r}
+foo_cen <- colMeans(foo_boundary)
+foo_boundary2 <- foo_boundary %>% 
+  mutate(
+    x_cen = x - foo_cen[1],
+    y_cen = y - foo_cen[2],
+    theta = atan(y_cen/x_cen),
+         theta = case_when(x_cen < 0 ~ theta + pi,
+                           x_cen > 0 & y_cen < 0 ~ theta + 2*pi,
+                           TRUE ~ theta)) %>% 
+  arrange(theta)
+# remove large jumps in x and y
+foo_boundary2 <- foo_boundary2 %>% 
+  mutate(x_lag = lag(x),
+         y_lag = lag(y)) %>% 
+  filter(abs(x - x_lag) < 0.065, abs(y - y_lag) < 0.065)
+```
+
+```{r}
+get_boundary <- function(df, unit_shift = 0.065) {
+  all_shifts <- cross_df(list(x = c("l", "r", "n"), y = c("u", "d", "n")))
+  shifts <- map2(all_shifts$x, all_shifts$y, shift_coords, df = df)
+  internal <- reduce(.x = shifts, .f = intersect)
+  df_str <- paste(df$x, df$y, sep = "_")
+  boundary <- df %>% filter(!df_str %in% internal)
+  cen <- colMeans(boundary)
+  boundary <- boundary %>% 
+    mutate(
+      x_cen = x - cen[1],
+      y_cen = y - cen[2],
+      theta = atan(y_cen/x_cen),
+      theta = case_when(x_cen < 0 ~ theta + pi,
+                        x_cen > 0 & y_cen < 0 ~ theta + 2*pi,
+                        TRUE ~ theta)) %>% 
+    arrange(theta)
+  # remove large jumps in x and y
+  boundary <- boundary %>% 
+    mutate(x_lag = lag(x),
+           y_lag = lag(y)) %>% 
+    filter(abs(x - x_lag) < unit_shift, abs(y - y_lag) < unit_shift)
+  boundary[, c("x", "y")]
+}
+```
+
+```{r}
+ggplot(foo_boundary2, aes(x, y, color = seq_along(x))) +
+  geom_point()
+```
+
+```{r}
+txs_osm_sp <- SpatialPoints(as.matrix(txs_osm[,c("x", "y")]))
+```
+
+
+```{r}
+segs_osm <- foreach(i = segs_osm) %dopar% {
+  colnames(i) <- c("x", "y")
+  out <- get_boundary(as.data.frame(i))
+  out
+}
+names(segs_osm) <- names(osm_keep)[osm_keep]
+```
+
+```{r}
+makeSP2 <- function(dfl) {
+  poly_list <- map(dfl, ~ Polygon(as.matrix(.x[, c("x", "y")]), hole = FALSE))
+  poly_list <- map2(poly_list, names(dfl), ~ Polygons(list(.x), ID = .y))
+  segs <- SpatialPolygons(poly_list)
+  segs
+}
+```
+
+```{r}
+segs_osm <- imap(segs_osm, ~ mutate(.x, cell = .y))
+```
+
+```{r}
+segs_osm_sp <- map(segs_osm, ~ rbind(.x, .x[1,])) %>% makeSP2()
+```
+
+```{r}
+tx_osm_ind <- over(txs_osm_sp, segs_osm_sp)
+txs_osm$cell <- names(segs_osm)[tx_osm_ind]
+```
+
+How many transcripts were not mapped to cells?
+```{r}
+mean(is.na(tx_osm_ind))
+```
+
+What, really?
+```{r}
+segs_osm <- bind_rows(segs_osm)
+```
+
+```{r}
+ggplot(segs_osm, aes(y, x)) +
+  geom_point(data = txs_osm, size = 0.1, alpha = 0.3) +
+  geom_polygon(aes(group = cell), fill = "red", alpha = 0.5) +
+  scale_y_continuous(limits = c(xmino, xmaxo)) +
+  scale_x_continuous(limits = c(ymino, ymaxo)) +
+  coord_equal()
+```
+
+So I assigned transcripts to cells (did not work, Linnarsson Lab's fault). How about the tissue owin? The top of the tissue is my concern. Again, for simplicity, I'll just use the convex hull trick as the top is pretty gently curved. I'll just use transcript locations for tissue owin instead. Is it that the transcript coordinates don't match the cell coordinates, or the genes kept are not expressed in those cells that seem not to match?
+```{r}
+txs_osm <- txs_osm %>% 
+  filter(between(x, xmino, xmaxo), between(y, ymino, ymaxo))
+osm_coords <- osm_coords %>% 
+  filter(between(x, xmino, xmaxo), between(y, ymino, ymaxo))
+txs_osm2 <- txs_osm %>% 
+  filter(!is.na(cell))
+```
+
+```{r}
+inds <- rev(chull(segs_osm[, c("x", "y")]))
+tissue_coords <- segs_osm[inds, c("x", "y")]
+```
+
+```{r}
+min(tissue_coords$y[tissue_coords$x > 1450])
+```
+
+```{r}
+tissue_coords <- tissue_coords %>% 
+  mutate(rn = row_number())
+```
+
+```{r}
+tissue_coords %>% 
+  filter(x > 1450, near(y, 211.9, tol = 0.001))
+```
+
+```{r}
+min(tissue_coords$y[tissue_coords$x < 1050])
+```
+
+```{r}
+tissue_coords %>% 
+  filter(x < 1050, near(y, 283.725, tol = 0.001))
+```
+
+```{r}
+poly_use <- rbind(tissue_coords[32:36,1:2],
+                  data.frame(x = c(xmaxo, xmaxo, xmino, xmino),
+                             y = c(tissue_coords$y[36], ymaxo, ymaxo, tissue_coords$y[32])))
+```
+
+```{r}
+ggplot(poly_use, aes(x, y)) +
+  geom_path() +
+  geom_point(data = osm_coords) +
+  coord_equal()
+```
+
+
+## SMSeurat objects
+I find myself using this object even without Seurat. That's why it's even more important to write the getters and setters.
 ```{r}
 mer <- CreateSMSeurat(cell_centroids = centroids, 
                 tx_coords = txs_sub[, c("global_x", "global_y", "cell_id",
@@ -131,6 +472,12 @@ mer <- CreateSMSeurat(cell_centroids = centroids,
                 assay = "RNA", key = "merfish_")
 ```
 
+
+```{r}
+osm_sm <- CreateSMSeurat()
+```
+
+# Seurat
 ```{r}
 seu <- CreateSeuratObject(mat_use)
 ```
@@ -281,7 +628,7 @@ summary(ntx)
 ```
 
 ```{r}
-mer <- mer[Cells(mer)[areas > 10]]
+mer <- mer[Cells(mer)[areas > 10 & ntx > 10]]
 ```
 
 How does number of transcripts relate to cell size?
@@ -344,7 +691,7 @@ my_plot_ppp <- function(x, mark = FALSE, plot = c("point", "hex"), ...) {
 ```
 
 ```{r}
-my_plot_ppp(mer@spots[[50]], plot = "point")
+my_plot_ppp(mer@spots[[4]], plot = "point")
 ```
 
 It does seem that upon inspection, I can tell where the nucleus might be though I don't have nuclei segmentation info; in some cells, transcripts tend to cluster in the nucleus, while in some cells, transcripts tend to be in the cytosol, though some cells seem more homogeneous. Again, this is not transcriptome wide, so if I were to seriously analyze this, I should work on `cosmodrome` first and see if I can make it faster and more user friendlier than merlin and starfish; I can't always count on the data the authors make available.
@@ -352,7 +699,7 @@ It does seem that upon inspection, I can tell where the nucleus might be though 
 ### K and L functions
 Now I'll see what if I estimate K and L functions for each cell. I do expect to see some clustering, as an artefact of the fact that the point process is not homogeneous. I can use the inhomogeneous K function that accounts for local intensity. But is it intensity or actual clustering? There's no way to tell here. Is it correlation-stationary, i.e. correlation only depends on distance? Maybe. Perhaps this is a more helpful assumption in many cases, but I don't it still applies when that nucleus is in the way; I would rather fit a Strauss process or cluster process and compare that model to a Poisson one instead, and add other covariates like location of cell in tissue, distance of transcript to nucleus, to cell membrane, neighboring cell types, and etc. That indeed is of great interest; I definitely should spend a lot of time on that after I'm done with, em, so many things, like the museumst paper and Shashank's paper. But here I just want some sort of comparison with osmFISH data and to get more familiar with spatstat.
 ```{r}
-foo <- mer@spots[[50]]
+foo <- mer@spots[[4]]
 ```
 
 ```{r}
@@ -368,12 +715,8 @@ plot(env)
 I'll plot all the L functions together on a ggplot
 
 ```{r}
-mer2 <- mer[Cells(mer)[ntx >= 10]]
-```
-
-```{r}
-names(mer2@spots) <- Cells(mer2)
-Ls <- map(mer2@spots, Lest, correction = "iso")
+names(mer@spots) <- Cells(mer)
+Ls <- map(mer@spots, Lest, correction = "iso")
 Ls_df <- imap_dfr(Ls, ~ {
   out <- as.data.frame(.x)
   out$cell <- .y
@@ -388,10 +731,11 @@ ggplot(Ls_df) +
   scale_fill_viridis_d() +
   geom_abline(slope = 1, intercept = 0, color = "red") +
   coord_equal() +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(x = "r", y = "L(r)")
 ```
 
-So while when I inspected individual cells, the L function does not significantly deviate from the theoretical value given Poisson, it does seem that in most cells, the transcript spots for all genes measured, at least within this z-plane, are a little clustered at r > 1 um and perhaps a little regular at r < 1 um. Is this significant? I don't know.
+So while when I inspected individual cells, the L function does not significantly deviate from the theoretical value given Poisson, it does seem that in most cells, the transcript spots for all genes measured, at least within this z-plane, are a little clustered at r > 1 um and perhaps a little regular at r < 1 um. A few cells are much more clustered. Is this significant? I don't know.
 
 ```{r}
 L_pooled <- do.call(pool, Ls)
@@ -403,7 +747,7 @@ plot(L_pooled, cbind(pooliso, pooltheo) ~ r,
      main="Pooled L function of transcripts in cells")
 ```
 
-Anyway, nothing surprising. It was said that the physical size of each transcript spot is 100 nm, or 0.1 um, so the regularity seen here is just the physical size of the spots. Then the pooled L function rises above the theoretical line at r > 0.3, for whatever reason, whether inhomogeneity like the stuff RNA velocity relies on or some biological process that lead to clustering.
+Anyway, nothing surprising. It was said that the physical size of each transcript spot is 100 nm, or 0.1 um, so the regularity seen here is just the physical size of the spots (for 1 z stack. See, that's why don't do the cylinder trick, but I have to do it here because the osmFISH dataset doesn't have any z info so I have no choice but do it). Then the pooled L function rises above the theoretical line at r > 0.3, for whatever reason, whether inhomogeneity like the stuff RNA velocity relies on or some biological process that lead to clustering.
 
 ```{r}
 saveRDS(mer, "mer_SMSeurat.rds")

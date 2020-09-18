@@ -113,7 +113,9 @@ setValidity("SMSeurat", function(object) {
 #' @export
 CreateSMSeurat <- function(cell_centroids, tx_coords, tissue_owin = NULL,
                            cell_segmentations = NULL, unitname = "um",
-                           assay = "Spatial", key = "spatial_") {
+                           assay = "Spatial", key = "spatial_",
+                           cell_seg_type = c("poly", "mask")) {
+  cell_seg_type <- match.arg(cell_seg_type)
   names(cell_centroids)[1:3] <- c("x", "y", "cell")
   names(tx_coords)[1:4] <- c("x", "y", "cell", "gene")
   mark_nms <- setdiff(names(tx_coords), c("x", "y", "cell"))
@@ -169,8 +171,11 @@ CreateSMSeurat <- function(cell_centroids, tx_coords, tissue_owin = NULL,
   # Construct the pattern column
   spots <- map2(tx_coords$coords, cell_segmentations$coords,
                 function(.x, .y) {
-                  ppp(x = .x$x, y = .x$y, poly = .y, marks = .x[, mark_nms])
+                  out <- ppp(x = .x$x, y = .x$y, poly = .y, marks = .x[, mark_nms])
+                  unitname(out) <- unitname
+                  out
                 })
+
   new("SMSeurat", coordinates = cell_centroids,
       qhulls = as.list(cell_segmentations$coords),
       tissue_owin = list(tissue_owin), spots = as.list(spots),
