@@ -88,3 +88,32 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
             spatialGraph(x, name) <- listw_use
             x
           })
+
+#' Find spatial neighborhood graphs for Visium spots
+#'
+#' Visium spots are arranged in a hexagonal grid. This function uses the known
+#' locations of the Visium barcodes to construct a neighborhood graph, so
+#' adjacent spots are connected by edges. Since the known rows and columns of
+#' the spots are used, the unit the spot centroid coordinates are in does not
+#' matter.
+#'
+#' @inheritParams spdep::nb2listw
+#' @param x A \code{SpatialFeatureExperiment} object with Visium data. Column
+#'   names of the gene count matrix must be Visium barcodes, which may have a
+#'   numeric suffix to distinguish between samples (e.g. "AAACAACGAATAGTTC-1").
+#' @param sample_id String specifying the sample, as in \code{sample_id} in
+#'   \code{colData}, for which the graph is to be constructed.
+#' @return A \code{listw} object for the neighborhood graph. The node index will
+#' be the order of barcodes within the sample in the gene count matrix.
+#' @importFrom spdep dnearneigh nb2listw
+#' @export
+findVisiumGraph <- function(x, sample_id, style = "W", zero.policy = NULL) {
+  bcs_use <- colnames(x)[colData(x)$sample_id == sample_id]
+  bcs_use2 <- sub("-\\d+$", "", bcs_use)
+  coords_use <- visium_row_col[match(bcs_use2, visium_row_col), c("col", "row")]
+  # So adjacent spots are equidistant
+  coords_use$row <- coords_use$row * sqrt(3)
+  g <- dnearneigh(as.matrix(coords_use), d1 = 1.9, d2 = 2.1, row.names = bcs_use)
+  out <- nb2listw(g, style = style, zero.policy = zero.policy)
+  return(out)
+}
