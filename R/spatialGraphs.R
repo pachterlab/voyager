@@ -75,7 +75,7 @@
 #' @return A \code{SpatialFeatureExperiment} object with spatial neighborhood
 #'   graph.
 #' @importFrom spdep tri2nb knearneigh dnearneigh gabrielneigh relativeneigh
-#'   soi.graph knn2nb graph2nb nb2listw
+#'   soi.graph knn2nb graph2nb nb2listw poly2nb
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SpatialFeatureExperiment spatialGraph
 #' @importFrom sf st_centroid st_coordinates st_is st_geometry
