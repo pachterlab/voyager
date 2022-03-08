@@ -6,8 +6,11 @@
 \usage{
 \S4method{findSpatialNeighbors}{SpatialFeatureExperiment}(
   x,
+  sample_id,
+  geometry = "spatialCoords",
+  MARGIN = 2,
   method = c("tri2nb", "knearneigh", "dnearneigh", "gabrielneigh", "relativeneigh",
-    "soi.graph"),
+    "soi.graph", "poly2nb"),
   name = method,
   glist = NULL,
   style = "W",
@@ -17,6 +20,15 @@
 }
 \arguments{
 \item{x}{A \code{\link{SpatialFeatureExperiment}} object.}
+
+\item{sample_id}{Which sample in the SFE object to use for the graph.}
+
+\item{geometry}{Name of the geometry associated with the MARGIN of interest
+for which to compute the graph.}
+
+\item{MARGIN}{Just like in \code{\link{apply}}, where 1 stands for row, 2
+stands for column. Here, in addition, 3 stands for annotation, to query the
+\code{\link{annotGeometries}}, such as nuclei segmentation in a Visium data}
 
 \item{method}{Name of function in the package \code{spdep} to use to find the
 spatial neighborhood graph.}
@@ -43,12 +55,13 @@ A \code{SpatialFeatureExperiment} object with spatial neighborhood
 \description{
 This function wraps all spatial neighborhood graphs implemented in the
 package \code{spdep} for the \code{SpatialFeatureExperiment} (SFE) class, to
-find spatial neighborhood graphs for the entities represented by columns of
-the gene count matrix in the SFE object. Results are stored as \code{listw}
-objects in the \code{spatialGraphs} field of the SFE object, as \code{listw}
-is used in many methods that facilitate the spatial neighborhood graph in the
-\code{spdep}, \code{spatialreg}, and \code{adespatial}. The edge weights of
-the graph in the \code{listw} object are by default style W (see
+find spatial neighborhood graphs for the entities represented by columns or
+rows of the gene count matrix in the SFE object or spatial entities in the
+\code{annotGeometries} field of the SFE object. Results are stored as
+\code{listw} objects in the \code{spatialGraphs} field of the SFE object, as
+\code{listw} is used in many methods that facilitate the spatial neighborhood
+graph in the \code{spdep}, \code{spatialreg}, and \code{adespatial}. The edge
+weights of the graph in the \code{listw} object are by default style W (see
 \code{\link{nb2listw}}) and the unweighted neighbor list is in the
 \code{neighbours} field of the \code{listw} object.
 }
