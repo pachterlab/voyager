@@ -8,24 +8,27 @@
 # 5. Diagnostic functions for graphs such as cardinality and number/proportion of singletons
 # To be made easy to call with the SFE object.
 # These internal wrapper functions return nb, which will later be converted to listw
-.tri2nb_sfe <- function(x) tri2nb(spatialCoords(x))
+.tri2nb_sfe <- function(x, row.names = NULL)
+  tri2nb(spatialCoords(x), row.names = row.names)
 .knn_sfe <- function(x, k = 1, use_kd_tree = TRUE)
   knn2nb(knearneigh(spatialCoords(x), k = k, use_kd_tree = use_kd_tree,
                     longlat = FALSE))
-.dnn_sfe <- function(x, d1, d2, use_kd_tree = TRUE)
+.dnn_sfe <- function(x, d1, d2, row.names = NULL, use_kd_tree = TRUE)
   dnearneigh(spatialCoords(x), d1, d2, longlat = FALSE,
-             use_kd_tree = use_kd_tree)
-.g2nb_sfe <- function(x, fun, nnmult = 3, sym = FALSE) {
+             use_kd_tree = use_kd_tree, row.names = row.names)
+.g2nb_sfe <- function(x, fun, nnmult = 3, sym = FALSE, row.names = NULL) {
   # Either gabrielneigh or relativeneigh
   g <- fun(spatialCoords(x), nnmult)
-  graph2nb(g, sym = sym)
+  graph2nb(g, sym = sym, row.names = row.names)
 }
-.gabriel_sfe <- function(x, nnmult = 3, sym = FALSE) .g2nb_sfe(x, gabrielneigh, nnmult, sym)
-.relative_sfe <- function(x, nnmult = 3, sym = FALSE) .g2nb_sfe(x, relativeneigh, nnmult, sym)
-.soi_sfe <- function(x, quadsegs = 10, sym = FALSE) {
+.gabriel_sfe <- function(x, nnmult = 3, sym = FALSE, row.names = NULL)
+  .g2nb_sfe(x, gabrielneigh, nnmult, sym, row.names)
+.relative_sfe <- function(x, nnmult = 3, sym = FALSE, row.names = NULL)
+  .g2nb_sfe(x, relativeneigh, nnmult, sym, row.names)
+.soi_sfe <- function(x, quadsegs = 10, sym = FALSE, row.names = NULL) {
   coords <- spatialCoords(x)
   g <- soi.graph(tri2nb(coords), coords, quadsegs)
-  graph2nb(g, sym = sym)
+  graph2nb(g, sym = sym, row.names = row.names)
 }
 
 #' Find spatial neighborhood graph
@@ -66,12 +69,12 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
                    ...) {
             method <- match.arg(method)
             extra_args_use <- switch (method,
-              tri2nb = NULL,
+              tri2nb = "row.names",
               knearneigh = c("k", "use_kd_tree"),
-              dnearneigh = c("d1", "d2", "use_kd_tree"),
-              gabrielneigh = c("nnmult", "sym"),
-              relativeneigh = c("nnmult", "sym"),
-              soi.graph = c("quadsegs", "sym")
+              dnearneigh = c("d1", "d2", "use_kd_tree", "row.names"),
+              gabrielneigh = c("nnmult", "sym", "row.names"),
+              relativeneigh = c("nnmult", "sym", "row.names"),
+              soi.graph = c("quadsegs", "sym", "row.names")
             )
             args <- list(...)
             args <- args[names(args) %in% extra_args_use]
