@@ -65,15 +65,16 @@
 #'   for which to compute the graph.
 #' @param method Name of function in the package \code{spdep} to use to find the
 #'   spatial neighborhood graph.
-#' @param name Name of the graph to store in the \code{spatialGraphs} of the
-#'   output. Defaults to the name of the function in \code{method}.
 #' @param ... Extra arguments passed to the \code{spdep} function stated in the
 #'   \code{method} argument, such as \code{k}, \code{use_kd_tree}, \code{d1},
 #'   \code{d2}, \code{nnmult}, \code{sym}, and \code{quadsegs}. Note that any
 #'   arguments about using longitude and latitude, which are irrelevant, are
 #'   ignored. The \code{longlat} argument is hard coded to \code{FALSE}.
-#' @return A \code{SpatialFeatureExperiment} object with spatial neighborhood
-#'   graph.
+#' @return A \code{listw} object representing the graph, with an attribute
+#'   "method" recording the function used to build the graph, its arguments, and
+#'   information about the geometry for which the graph was built. The attribute
+#'   is used to reconstruct the graphs when the SFE object is subsetted since
+#'   some nodes in the graph will no longer be present.
 #' @importFrom spdep tri2nb knearneigh dnearneigh gabrielneigh relativeneigh
 #'   soi.graph knn2nb graph2nb nb2listw poly2nb
 #' @importFrom SpatialExperiment spatialCoords
@@ -85,8 +86,7 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
                    method = c("tri2nb", "knearneigh", "dnearneigh",
                               "gabrielneigh", "relativeneigh", "soi.graph",
                               "poly2nb"),
-                   name = method, glist = NULL, style = "W", zero.policy = NULL,
-                   ...) {
+                   glist = NULL, style = "W", zero.policy = NULL, ...) {
             method <- match.arg(method)
             extra_args_use <- switch (method,
               tri2nb = "row.names",
@@ -117,9 +117,15 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
                                poly2nb = poly2nb
             )
             nb_out <- do.call(fun_use, c(coords = coords, args))
-            listw_use <- nb2listw(nb_out, glist, style, zero.policy)
-            spatialGraph(x, sample_id, name, MARGIN) <- listw_use
-            x
+            out <- nb2listw(nb_out, glist, style, zero.policy)
+            args_attr <- c(args, list(glist = glist, style = style,
+                                      zero.policy = zero.policy))
+            attr(out, "method") <- list(FUN = method,
+                                        args = args_attr,
+                                        geometry = list(sample_id = sample_id,
+                                                        type = geometry,
+                                                        MARGIN = MARGIN))
+            return(out)
           })
 
 #' Find spatial neighborhood graphs for Visium spots
@@ -148,5 +154,10 @@ findVisiumGraph <- function(x, sample_id, style = "W", zero.policy = NULL) {
   coords_use$row <- coords_use$row * sqrt(3)
   g <- dnearneigh(as.matrix(coords_use), d1 = 1.9, d2 = 2.1, row.names = bcs_use)
   out <- nb2listw(g, style = style, zero.policy = zero.policy)
+  attr(out, "method") <- list(FUN = "findVisiumGraph",
+                              args = list(style = style, zero.policy = zero.policy),
+                              geometry = list(sample_id = sample_id,
+                                              type = "spatialCoords",
+                                              MARGIN = 2))
   return(out)
 }

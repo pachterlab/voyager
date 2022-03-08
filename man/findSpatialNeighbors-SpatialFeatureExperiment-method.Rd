@@ -11,7 +11,6 @@
   MARGIN = 2,
   method = c("tri2nb", "knearneigh", "dnearneigh", "gabrielneigh", "relativeneigh",
     "soi.graph", "poly2nb"),
-  name = method,
   glist = NULL,
   style = "W",
   zero.policy = NULL,
@@ -33,9 +32,6 @@ stands for column. Here, in addition, 3 stands for annotation, to query the
 \item{method}{Name of function in the package \code{spdep} to use to find the
 spatial neighborhood graph.}
 
-\item{name}{Name of the graph to store in the \code{spatialGraphs} of the
-output. Defaults to the name of the function in \code{method}.}
-
 \item{glist}{list of general weights corresponding to neighbours}
 
 \item{style}{\code{style} can take values \dQuote{W}, \dQuote{B}, \dQuote{C}, \dQuote{U}, \dQuote{minmax} and \dQuote{S}}
@@ -49,8 +45,11 @@ arguments about using longitude and latitude, which are irrelevant, are
 ignored. The \code{longlat} argument is hard coded to \code{FALSE}.}
 }
 \value{
-A \code{SpatialFeatureExperiment} object with spatial neighborhood
-  graph.
+A \code{listw} object representing the graph, with an attribute
+  "method" recording the function used to build the graph, its arguments, and
+  information about the geometry for which the graph was built. The attribute
+  is used to reconstruct the graphs when the SFE object is subsetted since
+  some nodes in the graph will no longer be present.
 }
 \description{
 This function wraps all spatial neighborhood graphs implemented in the
