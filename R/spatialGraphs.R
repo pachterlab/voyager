@@ -8,25 +8,35 @@
 # 5. Diagnostic functions for graphs such as cardinality and number/proportion of singletons
 # To be made easy to call with the SFE object.
 # These internal wrapper functions return nb, which will later be converted to listw
-.tri2nb_sfe <- function(x, row.names = NULL)
-  tri2nb(spatialCoords(x), row.names = row.names)
-.knn_sfe <- function(x, k = 1, use_kd_tree = TRUE)
-  knn2nb(knearneigh(spatialCoords(x), k = k, use_kd_tree = use_kd_tree,
+.get_centroids <- function(x, sample_id, geometry, MARGIN) {
+  if (geometry == "spatialCoords") {
+    return(spatialCoords(x))
+  } else {
+    g <- spatialGraph(x, sample_id, geometry, MARGIN)
+    if (st_is(g, "POINT")) {
+      coords <- st_coordinates(st_geometry(g))
+    } else {
+      coords <- st_coordinates(st_centroid(st_geometry(g)))
+    }
+    return(coords)
+  }
+}
+.knn_sfe <- function(coords, k = 1, use_kd_tree = TRUE)
+  knn2nb(knearneigh(coords, k = k, use_kd_tree = use_kd_tree,
                     longlat = FALSE))
-.dnn_sfe <- function(x, d1, d2, row.names = NULL, use_kd_tree = TRUE)
-  dnearneigh(spatialCoords(x), d1, d2, longlat = FALSE,
+.dnn_sfe <- function(coords, d1, d2, row.names = NULL, use_kd_tree = TRUE)
+  dnearneigh(coords, d1, d2, longlat = FALSE,
              use_kd_tree = use_kd_tree, row.names = row.names)
-.g2nb_sfe <- function(x, fun, nnmult = 3, sym = FALSE, row.names = NULL) {
+.g2nb_sfe <- function(coords, fun, nnmult = 3, sym = FALSE, row.names = NULL) {
   # Either gabrielneigh or relativeneigh
-  g <- fun(spatialCoords(x), nnmult)
+  g <- fun(coords, nnmult)
   graph2nb(g, sym = sym, row.names = row.names)
 }
-.gabriel_sfe <- function(x, nnmult = 3, sym = FALSE, row.names = NULL)
-  .g2nb_sfe(x, gabrielneigh, nnmult, sym, row.names)
-.relative_sfe <- function(x, nnmult = 3, sym = FALSE, row.names = NULL)
-  .g2nb_sfe(x, relativeneigh, nnmult, sym, row.names)
-.soi_sfe <- function(x, quadsegs = 10, sym = FALSE, row.names = NULL) {
-  coords <- spatialCoords(x)
+.gabriel_sfe <- function(coords, nnmult = 3, sym = FALSE, row.names = NULL)
+  .g2nb_sfe(coords, gabrielneigh, nnmult, sym, row.names)
+.relative_sfe <- function(coords, nnmult = 3, sym = FALSE, row.names = NULL)
+  .g2nb_sfe(coords, relativeneigh, nnmult, sym, row.names)
+.soi_sfe <- function(coords, quadsegs = 10, sym = FALSE, row.names = NULL) {
   g <- soi.graph(tri2nb(coords), coords, quadsegs)
   graph2nb(g, sym = sym, row.names = row.names)
 }
@@ -35,17 +45,24 @@
 #'
 #' This function wraps all spatial neighborhood graphs implemented in the
 #' package \code{spdep} for the \code{SpatialFeatureExperiment} (SFE) class, to
-#' find spatial neighborhood graphs for the entities represented by columns of
-#' the gene count matrix in the SFE object. Results are stored as \code{listw}
-#' objects in the \code{spatialGraphs} field of the SFE object, as \code{listw}
-#' is used in many methods that facilitate the spatial neighborhood graph in the
-#' \code{spdep}, \code{spatialreg}, and \code{adespatial}. The edge weights of
-#' the graph in the \code{listw} object are by default style W (see
+#' find spatial neighborhood graphs for the entities represented by columns or
+#' rows of the gene count matrix in the SFE object or spatial entities in the
+#' \code{annotGeometries} field of the SFE object. Results are stored as
+#' \code{listw} objects in the \code{spatialGraphs} field of the SFE object, as
+#' \code{listw} is used in many methods that facilitate the spatial neighborhood
+#' graph in the \code{spdep}, \code{spatialreg}, and \code{adespatial}. The edge
+#' weights of the graph in the \code{listw} object are by default style W (see
 #' \code{\link{nb2listw}}) and the unweighted neighbor list is in the
 #' \code{neighbours} field of the \code{listw} object.
 #'
 #' @inheritParams spdep::nb2listw
 #' @param x A \code{\link{SpatialFeatureExperiment}} object.
+#' @param MARGIN Just like in \code{\link{apply}}, where 1 stands for row, 2
+#'   stands for column. Here, in addition, 3 stands for annotation, to query the
+#'   \code{\link{annotGeometries}}, such as nuclei segmentation in a Visium data
+#' @param sample_id Which sample in the SFE object to use for the graph.
+#' @param geometry Name of the geometry associated with the MARGIN of interest
+#'   for which to compute the graph.
 #' @param method Name of function in the package \code{spdep} to use to find the
 #'   spatial neighborhood graph.
 #' @param name Name of the graph to store in the \code{spatialGraphs} of the
@@ -58,13 +75,16 @@
 #' @return A \code{SpatialFeatureExperiment} object with spatial neighborhood
 #'   graph.
 #' @importFrom spdep tri2nb knearneigh dnearneigh gabrielneigh relativeneigh
-#' soi.graph knn2nb graph2nb nb2listw
+#'   soi.graph knn2nb graph2nb nb2listw
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SpatialFeatureExperiment spatialGraph
+#' @importFrom sf st_centroid st_coordinates st_is st_geometry
 #' @export
 setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
-          function(x, method = c("tri2nb", "knearneigh", "dnearneigh",
-                                 "gabrielneigh", "relativeneigh", "soi.graph"),
+          function(x, sample_id, geometry = "spatialCoords", MARGIN = 2,
+                   method = c("tri2nb", "knearneigh", "dnearneigh",
+                              "gabrielneigh", "relativeneigh", "soi.graph",
+                              "poly2nb"),
                    name = method, glist = NULL, style = "W", zero.policy = NULL,
                    ...) {
             method <- match.arg(method)
@@ -74,21 +94,31 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
               dnearneigh = c("d1", "d2", "use_kd_tree", "row.names"),
               gabrielneigh = c("nnmult", "sym", "row.names"),
               relativeneigh = c("nnmult", "sym", "row.names"),
-              soi.graph = c("quadsegs", "sym", "row.names")
+              soi.graph = c("quadsegs", "sym", "row.names"),
+              poly2nb = c("row.names", "snap", "queen", "useC", "foundInBox")
             )
             args <- list(...)
             args <- args[names(args) %in% extra_args_use]
+            if (method != "poly2nb") {
+              coords <- .get_centroids(x, sample_id, geometry, MARGIN)
+            } else {
+              coords <- spatialGraph(x, sample_id, geometry, MARGIN)
+              if (!st_is(coords, "POLYGON")) {
+                stop("poly2nb can only be used on POLYGON geometries.")
+              }
+            }
             fun_use <- switch (method,
-              tri2nb = .tri2nb_sfe,
-              knearneigh = .knn_sfe,
-              dnearneigh = .dnn_sfe,
-              gabrielneigh = .gabriel_sfe,
-              relativeneigh = .relative_sfe,
-              soi.graph = .soi_sfe
+                               tri2nb = tri2nb,
+                               knearneigh = .knn_sfe,
+                               dnearneigh = .dnn_sfe,
+                               gabrielneigh = .gabriel_sfe,
+                               relativeneigh = .relative_sfe,
+                               soi.graph = .soi_sfe,
+                               poly2nb = poly2nb
             )
-            nb_out <- do.call(fun_use, c(x = x, args))
+            nb_out <- do.call(fun_use, c(coords = coords, args))
             listw_use <- nb2listw(nb_out, glist, style, zero.policy)
-            spatialGraph(x, name) <- listw_use
+            spatialGraph(x, sample_id, name, MARGIN) <- listw_use
             x
           })
 
