@@ -118,13 +118,13 @@ setMethod("findSpatialNeighbors", "SpatialFeatureExperiment",
             )
             nb_out <- do.call(fun_use, c(coords = coords, args))
             out <- nb2listw(nb_out, glist, style, zero.policy)
-            attr(out, "method") <- list(FUN = method,
+            attr(out, "method") <- list(method = method,
                                         args = args,
                                         nb2listw_args = list(glist = glist,
                                                              style = style,
                                                              zero.policy = zero.policy),
                                         geometry = list(sample_id = sample_id,
-                                                        type = geometry,
+                                                        geometry = geometry,
                                                         MARGIN = MARGIN))
             return(out)
           })
@@ -155,10 +155,8 @@ findVisiumGraph <- function(x, sample_id, style = "W", zero.policy = NULL) {
   coords_use$row <- coords_use$row * sqrt(3)
   g <- dnearneigh(as.matrix(coords_use), d1 = 1.9, d2 = 2.1, row.names = bcs_use)
   out <- nb2listw(g, style = style, zero.policy = zero.policy)
-  attr(out, "method") <- list(FUN = "findVisiumGraph",
+  attr(out, "method") <- list(method = "findVisiumGraph",
                               nb2listw_args = list(style = style, zero.policy = zero.policy),
-                              geometry = list(sample_id = sample_id,
-                                              type = "spatialCoords",
-                                              MARGIN = 2))
+                              geometry = list(sample_id = sample_id))
   return(out)
 }
