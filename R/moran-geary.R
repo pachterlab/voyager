@@ -1,11 +1,10 @@
 # Univariate, from spdep
-# 12. Correlogram (sp.correlogram). Results can be stored in rowData or separately
 
 #' Calculate univariate spatial autocorrelation
 #'
 #' Compute Moran's I or Geary's C on gene expression or numeric columns of
 #' colData, colGeometry, or annotGeometry of a \code{SpatialFeatureExperiment}
-#' object.
+#' object. Multithreading is supported when computing for numerous genes.
 #'
 #' @inheritParams spdep::moran
 #' @param x For \code{calculateMoransI} and \code{calculateGearysC}, it can be a
@@ -28,7 +27,8 @@
 #' @param exprs_values Integer scalar or string indicating which assay of x
 #'   contains the expression values.
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether
-#'   and how computing Moran's I for numerous genes shall be parallelized.
+#'   and how computing Moran's I or Geary's C for numerous genes shall be
+#'   parallelized.
 #' @param name String specifying the name to be used to store the results in
 #'   \code{rowData(x)} for \code{runMoransI} and \code{runGearysC}. If the SFE
 #'   object has more than one \code{sample_id}, then the \code{sample_id} will
@@ -116,7 +116,7 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
     }
     listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
     mat <- assay(x, exprs_values)[features, colData(x)$sample_id %in% sample_id]
-    fun(mat, listw_use, BPPARAM, zero.policy, ...)
+    fun(mat, listw_use, BPPARAM = BPPARAM, zero.policy = zero.policy, ...)
   }
 }
 #' @rdname calculateMoransI
@@ -135,7 +135,7 @@ setMethod("calculateGearysC", "SpatialFeatureExperiment",
   if (anyNA(mat)) {
     stop("Only numeric columns without NA (within the sample_id) can be used.")
   }
-  fun(mat, listw, BPPARAM, zero.policy, ...)
+  fun(mat, listw, BPPARAM = BPPARAM, zero.policy = zero.policy, ...)
 }
 
 .coldata_univar_fun <- function(fun) {
@@ -229,7 +229,7 @@ runGearysC <- function(x, colGraphName, features, sample_id,
 #'
 #' Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
 #' usage with the \code{SpatialFeatureExperiment} object and usage over multiple
-#' genes.
+#' genes. Multithreading is supported when computing for numerous genes.
 #'
 #' @inheritParams calculateMoransI
 #' @inheritParams spdep::moran.mc
@@ -247,6 +247,7 @@ NULL
 #' @rdname calculateMoranMC
 #' @export
 setMethod("calculateMoranMC", "ANY", function(x, listw, nsim,
+                                              BPPARAM = SerialParam(),
                                               zero.policy = NULL,
                                               alternative = "greater", ...) {
   .calc_univar_autocorr(x, listw, fun = moran.mc, BPPARAM = BPPARAM,
@@ -257,6 +258,7 @@ setMethod("calculateMoranMC", "ANY", function(x, listw, nsim,
 #' @rdname calculateMoranMC
 #' @export
 setMethod("calculateGearyMC", "ANY", function(x, listw, nsim,
+                                              BPPARAM = SerialParam(),
                                               zero.policy = NULL,
                                               alternative = "greater", ...) {
   .calc_univar_autocorr(x, listw, fun = geary.mc, BPPARAM = BPPARAM,
@@ -376,7 +378,7 @@ runMoranMC <- function(x, colGraphName, features, sample_id, nsim,
 runGearyMC <- function(x, colGraphName, features, sample_id, nsim,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, alternative = "greater",
-                       name = "MoranMC", ...) {
+                       name = "GearyMC", ...) {
   .sfe_univar_mc(x, colGraphName, features, sample_id, nsim, exprs_values,
                  fun = calculateGearyMC, BPPARAM = BPPARAM,
                  zero.policy = zero.policy, alternative = alternative,
@@ -387,4 +389,35 @@ runGearyMC <- function(x, colGraphName, features, sample_id, nsim,
 #'
 #' Still debating whether I should write the wrapper. It should be straightforward
 #' to call sp.correlogram directly on single colData columns. But for genes,
-#' there's more boilerplate. I suppose, for genes,
+#' there's more boilerplate. I suppose, for genes, it might be cool to compute
+#' the correlogram for a bunch of genes and plot them in the same plot, with the
+#' error bars, or cluster them. So I'll write the wrapper.
+#'
+#' @inheritParams calculateMoransI
+#' @inheritParams spdep::sp.correlogram
+#' @param ... Other arguments passed to \code{\link{sp.correlogram}}.
+#' @importFrom spdep sp.correlogram
+#' @name calculateCorrelogram
+NULL
+
+#' @rdname calculateCorrelogram
+#' @export
+setMethod("calculateCorrelogram", "ANY",
+          function(x, listw, order = 1, method = "I", zero.policy = NULL, ...) {
+  if (is.vector(x)) {
+    x <- matrix(x, nrow = 1)
+  }
+  bplapply(seq_len(nrow(x)), function(i) {
+    sp.correlogram(listw$neighbours, var = x[i,], order = order, method = method,
+                   zero.policy = zero.policy, ...)
+  }, BPPARAM = BPPARAM)
+})
+
+#' @rdname calculateCorrelogram
+#' @export
+setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
+          function(x, colGraphName, features, sample_id, order = 1,
+                   method = "I", exprs_values = "logcounts",
+                   BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+
+          })
