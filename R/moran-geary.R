@@ -1,14 +1,4 @@
 # Univariate, from spdep
-# 3. moran.plot: The output dataframe can be stored in colData. Also options to
-# just return the results. Just like calculatePCA vs runPCA in scater
-# 4. localmoran: Output dataframe can be stored in colData
-# 5. Clustering based on moran.plot results
-# 6. Find high-high, low-low, high-low, low-high regions from moran.plot and localmoran
-# 7. Getis-Ord Gi and Gi*
-# 8. My own plotting function for moran.plot, with ggplot2
-# 9. Plotting with divergent palette
-# 10. What to do with the image when using geom_sf
-# 11. LOSH
 # 12. Correlogram (sp.correlogram). Results can be stored in rowData or separately
 
 #' Calculate univariate spatial autocorrelation
@@ -118,8 +108,14 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
   function(x, colGraphName, features, sample_id, exprs_values = "logcounts",
            BPPARAM = SerialParam(), zero.policy = NULL, ...) {
     # Am I sure that I want to use logcounts as the default?
+    if (!all(features %in% rownames(x))) {
+      features <- intersect(features, rownames(x))
+      if (!length(features)) {
+        stop("None of the specified genes/features are found in the SFE object.")
+      }
+    }
     listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-    mat <- assay(x, exprs_values)[,colData(x)$sample_id %in% sample_id]
+    mat <- assay(x, exprs_values)[features, colData(x)$sample_id %in% sample_id]
     fun(mat, listw_use, BPPARAM, zero.policy, ...)
   }
 }
@@ -383,3 +379,9 @@ runGearyMC <- function(x, colGraphName, features, sample_id, nsim,
                  zero.policy = zero.policy, alternative = alternative,
                  name = name, ...)
 }
+
+#' Spatial correlogram
+#'
+#' Still debating whether I should write the wrapper. It should be straightforward
+#' to call sp.correlogram directly on single colData columns. But for genes,
+#' there's more boilerplate. I suppose, for genes,
