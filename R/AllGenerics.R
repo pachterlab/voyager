@@ -3,3 +3,9 @@ setGeneric("calculateMoransI", function(x, ...) standardGeneric("calculateMorans
 
 #' @export
 setGeneric("calculateGearysC", function(x, ...) standardGeneric("calculateGearysC"))
+
+#' @export
+setGeneric("calculateMoranMC", function(x, ...) standardGeneric("calculateMoranMC"))
+
+#' @export
+setGeneric("calculateGearyMC", function(x, ...) standardGeneric("calculateGearyMC"))

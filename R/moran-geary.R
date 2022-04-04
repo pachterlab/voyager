@@ -1,5 +1,4 @@
 # Univariate, from spdep
-# 2. For moran.mc, results can be stored in rowData as well
 # 3. moran.plot: The output dataframe can be stored in colData. Also options to
 # just return the results. Just like calculatePCA vs runPCA in scater
 # 4. localmoran: Output dataframe can be stored in colData
@@ -80,16 +79,20 @@
 #' @importFrom SingleCellExperiment colData
 NULL
 
-.calc_univar_autocorr <- function(x, listw, fun, BPPARAM, ...) {
+.calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = TRUE, ...) {
   if (is.vector(x)) {
     x <- matrix(x, nrow = 1)
   }
   out_list <- bplapply(seq_len(nrow(x)), function(i) {
-    unlist(fun(x[i,], listw, ...), use.names = TRUE)
+    fun(x[i,], listw, ...)
   }, BPPARAM = BPPARAM)
-  out <- Reduce(rbind, out_list)
-  rownames(out) <- names(out_list)
-  DataFrame(out)
+  if (returnDF) {
+    out_list <- lapply(out_list, unlist, use.names = TRUE)
+    out <- Reduce(rbind, out_list)
+    rownames(out) <- names(out_list)
+    out <- DataFrame(out)
+  }
+  return(out)
 }
 
 #' @rdname calculateMoransI
@@ -111,104 +114,89 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
                         zero.policy = zero.policy)
 })
 
+.calc_univar_sfe_fun <- function(fun) {
+  function(x, colGraphName, features, sample_id, exprs_values = "logcounts",
+           BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+    # Am I sure that I want to use logcounts as the default?
+    listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
+    mat <- assay(x, exprs_values)[,colData(x)$sample_id %in% sample_id]
+    fun(mat, listw_use, BPPARAM, zero.policy, ...)
+  }
+}
 #' @rdname calculateMoransI
 #' @export
 setMethod("calculateMoransI", "SpatialFeatureExperiment",
-          function(x, colGraphName, features, sample_id,
-                   exprs_values = "logcounts", BPPARAM = SerialParam(),
-                   zero.policy = NULL) {
-            # Am I sure that I want to use logcounts as the default?
-            listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-            mat <- assay(x, exprs_values)[,colData(x)$sample_id %in% sample_id]
-            calculateMoransI(mat, listw_use, BPPARAM, zero.policy)
-          })
+          .calc_univar_sfe_fun(calculateMoransI))
 
 #' @rdname calculateMoransI
 #' @export
 setMethod("calculateGearysC", "SpatialFeatureExperiment",
-          function(x, colGraphName, features, sample_id,
-                   exprs_values = "logcounts", BPPARAM = SerialParam(),
-                   zero.policy = NULL) {
-            listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-            mat <- assay(x, exprs_values)[,colData(x)$sample_id %in% sample_id]
-            calculateGearysC(mat, listw_use, BPPARAM, zero.policy)
-          })
+          .calc_univar_sfe_fun(calculateGearysC))
 
-.df_univar_autocorr <- function(df, listw, features, fun, BPPARAM, zero.policy) {
+.df_univar_autocorr <- function(df, listw, features, fun, BPPARAM,
+                                zero.policy, ...) {
   mat <- t(as.matrix(df[, features]))
   if (anyNA(mat)) {
     stop("Only numeric columns without NA (within the sample_id) can be used.")
   }
-  fun(mat, listw, BPPARAM, zero.policy)
+  fun(mat, listw, BPPARAM, zero.policy, ...)
+}
+
+.coldata_univar_fun <- function(fun) {
+  function(x, colGraphName, features, sample_id, BPPARAM = SerialParam(),
+           zero.policy = NULL, ...) {
+    listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
+    .df_univar_autocorr(colData(x)[colData(x)$sample_id %in% sample_id,],
+                        listw_use, features, fun,
+                        BPPARAM, zero.policy, ...)
+  }
 }
 
 #' @rdname calculateMoransI
 #' @export
-colDataMoransI <- function(x, colGraphName, features, sample_id,
-                           BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-  .df_univar_autocorr(colData(x)[colData(x)$sample_id %in% sample_id],
-                      listw_use, features, calculateMoransI,
-                      BPPARAM, zero.policy)
-}
+colDataMoransI <- .coldata_univar_fun(calculateMoransI)
 
 #' @rdname calculateMoransI
 #' @export
-colDataGearysC <- function(x, colGraphName, features, sample_id,
-                           BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-  .df_univar_autocorr(colData(x)[colData(x)$sample_id %in% sample_id],
-                      listw_use, features, calculateGearysC,
-                      BPPARAM, zero.policy)
-}
+colDataGearysC <- .coldata_univar_fun(calculateGearysC)
 
-#' @rdname calculateMoransI
-#' @export
-colGeometryMoransI <- function(x, colGeometryName, colGraphName, features,
-                               sample_id,
-                               BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-  .df_univar_autocorr(colGeometry(x, type = colGeometryName,
-                                  sample_id = sample_id),
-                      listw_use, features, calculateMoransI, BPPARAM,
-                      zero.policy)
-}
-
-#' @rdname calculateMoransI
-#' @export
-colGeometryGearysC <- function(x, colGeometryName, colGraphName, features,
-                               sample_id,
-                               BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
-  .df_univar_autocorr(colGeometry(x, type = colGeometryName,
-                                  sample_id = sample_id),
-                      listw_use, features, calculateGearysC, BPPARAM,
-                      zero.policy)
-}
-
-#' @rdname calculateMoransI
-#' @export
-annotGeometryMoransI <- function(x, annotGeometryName, annotGraphName, features,
-                                 sample_id,
-                                 BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- annotGraph(x, type = annotGraphName, sample_id = sample_id)
-  .df_univar_autocorr(annotGeometry(x, type = annotGeometryName,
+.colgeom_univar_fun <- function(fun) {
+  function(x, colGeometryName, colGraphName, features, sample_id,
+           BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+    listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
+    .df_univar_autocorr(colGeometry(x, type = colGeometryName,
                                     sample_id = sample_id),
-                      listw_use, features, calculateMoransI, BPPARAM,
-                      zero.policy)
+                        listw_use, features, fun, BPPARAM,
+                        zero.policy, ...)
+  }
 }
 
 #' @rdname calculateMoransI
 #' @export
-annotGeometryGearysC <- function(x, annotGeometryName, annotGraphName, features,
-                                 sample_id,
-                                 BPPARAM = SerialParam(), zero.policy = NULL) {
-  listw_use <- annotGraph(x, type = annotGraphName, sample_id = sample_id)
-  .df_univar_autocorr(annotGeometry(x, type = annotGeometryName,
-                                    sample_id = sample_id),
-                      listw_use, features, calculateGearysC, BPPARAM,
-                      zero.policy)
+colGeometryMoransI <- .colgeom_univar_fun(calculateMoransI)
+
+#' @rdname calculateMoransI
+#' @export
+colGeometryGearysC <- .colgeom_univar_fun(calculateGearysC)
+
+.annotgeom_univar_fun <- function(fun) {
+  function(x, annotGeometryName, annotGraphName, features, sample_id,
+           BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+    listw_use <- annotGraph(x, type = annotGraphName, sample_id = sample_id)
+    .df_univar_autocorr(annotGeometry(x, type = annotGeometryName,
+                                      sample_id = sample_id),
+                        listw_use, features, fun, BPPARAM,
+                        zero.policy, ...)
+  }
 }
+
+#' @rdname calculateMoransI
+#' @export
+annotGeometryMoransI <- .annotgeom_univar_fun(calculateMoransI)
+
+#' @rdname calculateMoransI
+#' @export
+annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC)
 
 .sfe_univar_autocorr <- function(x, colGraphName, features, sample_id,
                                  exprs_values, fun, BPPARAM, zero.policy,
@@ -239,4 +227,159 @@ runGearysC <- function(x, colGraphName, features, sample_id,
                        zero.policy = NULL, name = "MoransI") {
   .sfe_univar_autocorr(x, colGraphName, features, sample_id, exprs_values,
                        calculateGearysC, BPPARAM, zero.policy, name = "GearysC")
+}
+
+#' Permutation test for Moran's I and Geary's C
+#'
+#' Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
+#' usage with the \code{SpatialFeatureExperiment} object and usage over multiple
+#' genes.
+#'
+#' @inheritParams calculateMoransI
+#' @inheritParams spdep::moran.mc
+#' @param ... Other parameters passed to \code{\link{moran.mc}} or
+#' \code{\link{geary.mc}}.
+#' @return For \code{calculateMoran/GearyMC}, a list of \code{mc.sim} objects.
+#' For \code{runMoran/GearyMC}, the results are converted to a \code{DataFrame}
+#' and added to \code{rowData(x)}, and a SFE object with the added \code{rowData}
+#' is returned.
+#' @importFrom spdep moran.mc geary.mc
+#' @aliases calculateGearyMC
+#' @name calculateMoranMC
+NULL
+
+#' @rdname calculateMoranMC
+#' @export
+setMethod("calculateMoranMC", "ANY", function(x, listw, nsim,
+                                              zero.policy = NULL,
+                                              alternative = "greater", ...) {
+  .calc_univar_autocorr(x, listw, fun = moran.mc, BPPARAM = BPPARAM,
+                        nsim = nsim, zero.policy = zero.policy,
+                        alternative = alternative, returnDF = FALSE, ...)
+})
+
+#' @rdname calculateMoranMC
+#' @export
+setMethod("calculateGearyMC", "ANY", function(x, listw, nsim,
+                                              zero.policy = NULL,
+                                              alternative = "greater", ...) {
+  .calc_univar_autocorr(x, listw, fun = geary.mc, BPPARAM = BPPARAM,
+                        nsim = nsim, zero.policy = zero.policy,
+                        alternative = alternative, returnDF = FALSE, ...)
+})
+
+# For the `nsim` and `alternative` arguments
+.calc_univar_sfe_fun_mc <- function(fun) {
+  function(x, colGraphName, features, sample_id, nsim, exprs_values = "logcounts",
+           BPPARAM = SerialParam(), zero.policy = NULL,
+           alternative = "greater", ...) {
+    .calc_univar_sfe_fun(fun)(x, colGraphName, features, sample_id,
+                              exprs_values, BPPARAM, zero.policy, nsim = nsim,
+                              alternative = alternative, ...)
+  }
+}
+
+#' @rdname calculateMoranMC
+#' @export
+setMethod("calculateMoranMC", "SpatialFeatureExperiment",
+          .calc_univar_sfe_fun_mc(calculateMoranMC))
+
+#' @rdname calculateMoranMC
+#' @export
+setMethod("calculateGearyMC", "SpatialFeatureExperiment",
+          .calc_univar_sfe_fun_mc(calculateGearyMC))
+
+.coldata_univar_fun_mc <- function(fun) {
+  function(x, colGeometryName, colGraphName, features, sample_id, nsim,
+           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
+           ...) {
+    .coldata_univar_fun(fun)(x, colGeometryName, colGraphName, features,
+                             sample_id, BPPARAM, zero.policy, nsim = nsim,
+                             alternative = alternative, ...)
+  }
+}
+
+#' @rdname calculateMoranMC
+#' @export
+colDataMoranMC <- .coldata_univar_fun_mc(calculateMoranMC)
+
+#' @rdname calculateMoranMC
+#' @export
+colDataGearyMC <- .coldata_univar_fun_mc(calculateGearyMC)
+
+.colgeom_univar_fun_mc <- function(fun) {
+  function(x, colGeometryName, colGraphName, features, sample_id, nsim,
+           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
+           ...) {
+    .colgeom_univar_fun(fun)(x, colGeometryName, colGraphName, features,
+                             sample_id, BPPARAM, zero.policy, nsim = nsim,
+                             alternative = alternative, ...)
+  }
+}
+#' @rdname calculateMoranMC
+#' @export
+colGeometryMoranMC <- .colgeom_univar_fun_mc(calculateMoranMC)
+
+#' @rdname calculateMoranMC
+#' @export
+colGeometryGearyMC <- .colgeom_univar_fun_mc(calculateGearyMC)
+
+.annotgeom_univar_fun_mc <- function(fun) {
+  function(x, annotGeometryName, annotGraphName, features, sample_id, nsim,
+           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
+           ...) {
+    .annotgeom_univar_fun(fun)(x, annotGeometryName, annotGraphName, features,
+                               sample_id, BPPARAM, zero.policy, nsim = nsim,
+                               alternative = alternative, ...)
+  }
+}
+
+#' @rdname calculateMoranMC
+#' @export
+annotGeometryMoranMC <- .annotgeom_univar_fun_mc(calculateMoranMC)
+
+#' @rdname calculateMoranMC
+#' @export
+annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC)
+
+.sfe_univar_mc <- function(x, colGraphName, features, sample_id, nsim,
+                           exprs_values, fun, BPPARAM, zero.policy, alternative,
+                           name, ...) {
+  out <- fun(x, colGraphName, features, sample_id, nsim, exprs_values, BPPARAM,
+             zero.policy, alternative, ...)
+  # Convert results to DFrame. I'll write my own plotting function based on ggplot2.
+  out <- lapply(out, function(o) {
+    o$res <- I(list(o$res))
+    DataFrame(unclass(o))
+  })
+  rns <- names(out)
+  out <- Reduce(out, rbind)
+  rownames(out) <- rns
+  colnames(out) <- paste(name, colnames(out), sep = "_")
+  rowData(x)[features, names(out)] <- out
+  x
+}
+
+#' @rdname calculateMoranMC
+#' @export
+runMoranMC <- function(x, colGraphName, features, sample_id, nsim,
+                       exprs_values = "logcounts", BPPARAM = SerialParam(),
+                       zero.policy = NULL, alternative = "greater",
+                       name = "MoranMC", ...) {
+  .sfe_univar_mc(x, colGraphName, features, sample_id, nsim, exprs_values,
+                 fun = calculateMoranMC, BPPARAM = BPPARAM,
+                 zero.policy = zero.policy, alternative = alternative,
+                 name = name, ...)
+}
+
+#' @rdname calculateMoranMC
+#' @export
+runGearyMC <- function(x, colGraphName, features, sample_id, nsim,
+                       exprs_values = "logcounts", BPPARAM = SerialParam(),
+                       zero.policy = NULL, alternative = "greater",
+                       name = "MoranMC", ...) {
+  .sfe_univar_mc(x, colGraphName, features, sample_id, nsim, exprs_values,
+                 fun = calculateGearyMC, BPPARAM = BPPARAM,
+                 zero.policy = zero.policy, alternative = alternative,
+                 name = name, ...)
 }
