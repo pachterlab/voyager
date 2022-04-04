@@ -352,6 +352,9 @@ annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC)
   out <- Reduce(out, rbind)
   rownames(out) <- rns
   colnames(out) <- paste(name, colnames(out), sep = "_")
+  if (length(sampleIDs(x)) > 1L) {
+    names(out) <- paste(names(out), sample_id, sep = "_")
+  }
   rowData(x)[features, names(out)] <- out
   x
 }
