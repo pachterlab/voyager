@@ -21,6 +21,7 @@
   x,
   listw,
   nsim,
+  BPPARAM = SerialParam(),
   zero.policy = NULL,
   alternative = "greater",
   ...
@@ -30,6 +31,7 @@
   x,
   listw,
   nsim,
+  BPPARAM = SerialParam(),
   zero.policy = NULL,
   alternative = "greater",
   ...
@@ -163,7 +165,7 @@ runGearyMC(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   alternative = "greater",
-  name = "MoranMC",
+  name = "GearyMC",
   ...
 )
 }
@@ -179,6 +181,10 @@ assay. For \code{runMoransI} and \code{runGearysC}, and the \code{colData},
 object.}
 
 \item{nsim}{number of permutations}
+
+\item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
+and how computing Moran's I or Geary's C for numerous genes shall be
+parallelized.}
 
 \item{zero.policy}{default NULL, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
 
@@ -207,9 +213,6 @@ calculate Moran's I or Geary's C.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
-
-\item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
-and how computing Moran's I for numerous genes shall be parallelized.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute Moran's I or
@@ -240,5 +243,5 @@ is returned.
 \description{
 Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
 usage with the \code{SpatialFeatureExperiment} object and usage over multiple
-genes.
+genes. Multithreading is supported when computing for numerous genes.
 }

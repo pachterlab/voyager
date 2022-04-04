@@ -387,23 +387,30 @@ runGearyMC <- function(x, colGraphName, features, sample_id, nsim,
 
 #' Spatial correlogram
 #'
-#' Still debating whether I should write the wrapper. It should be straightforward
-#' to call sp.correlogram directly on single colData columns. But for genes,
-#' there's more boilerplate. I suppose, for genes, it might be cool to compute
-#' the correlogram for a bunch of genes and plot them in the same plot, with the
-#' error bars, or cluster them. So I'll write the wrapper.
+#' Still debating whether I should write the wrapper. It should be
+#' straightforward to call sp.correlogram directly on single colData columns.
+#' But for genes, there's more boilerplate. I suppose, for genes, it might be
+#' cool to compute the correlogram for a bunch of genes and plot them in the
+#' same plot, with the error bars, or cluster them. So I'll write the wrapper.
 #'
 #' @inheritParams calculateMoransI
 #' @inheritParams spdep::sp.correlogram
 #' @param ... Other arguments passed to \code{\link{sp.correlogram}}.
 #' @importFrom spdep sp.correlogram
+#' @return For \code{calculateCorrelogram} and the \code{colData},
+#'   \code{colGeometry}, and \code{annotGeometry} versions, a list of
+#'   \code{spcor} objects, each element of which correslonds to a feature. For
+#'   \code{runCorrelogram}, the \code{res} field of the \code{spcor} is taken
+#'   and put in a list column in \code{rowData(x)}, and the SFE object with the
+#'   new \code{rowData} is returned.
 #' @name calculateCorrelogram
 NULL
 
 #' @rdname calculateCorrelogram
 #' @export
 setMethod("calculateCorrelogram", "ANY",
-          function(x, listw, order = 1, method = "I", zero.policy = NULL, ...) {
+          function(x, listw, order = 1, method = "I", BPPARAM = SerialParam(),
+                   zero.policy = NULL, ...) {
   if (is.vector(x)) {
     x <- matrix(x, nrow = 1)
   }
@@ -419,5 +426,58 @@ setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
           function(x, colGraphName, features, sample_id, order = 1,
                    method = "I", exprs_values = "logcounts",
                    BPPARAM = SerialParam(), zero.policy = NULL, ...) {
-
+            .calc_univar_sfe_fun(calculateCorrelogram)(
+              x, colGraphName, features, sample_id, exprs_values = exprs_values,
+              BPPARAM = BPPARAM, zero.policy = zero.policy, order = order,
+              method = method, ...)
           })
+
+#' @rdname calculateCorrelogram
+#' @export
+colGeometryCorrelogram <- function(x, colGeometryName, colGraphName, features,
+                               sample_id, order = 1, method = "I",
+                               BPPARAM = SerialParam(),
+                               zero.policy = NULL, ...) {
+  .colgeom_univar_fun(calculateCorrelogram)(
+    x, colGeometryName, colGraphName, features, sample_id, BPPARAM = BPPARAM,
+    zero.policy = zero.policy, order = order, method = method, ...)
+}
+
+#' @rdname calculateCorrelogram
+#' @export
+colDataCorrelogram <- function(x, colGraphName, features, sample_id,
+                               order = 1, method = "I", BPPARAM = SerialParam(),
+                               zero.policy = NULL, ...) {
+  .coldata_univar_fun(calculateCorrelogram)(
+    x, colGraphName, features, sample_id, BPPARAM = BPPARAM,
+    zero.policy = zero.policy, order = order, method = method, ...)
+}
+
+#' @rdname calculateCorrelogram
+#' @export
+annotGeometryCorrelogram <- function(x, annotGeometryName, annotGraphName,
+                                     features, sample_id, order = 1,
+                                     method = "I", BPPARAM = SerialParam(),
+                                     zero.policy = NULL, ...) {
+  .annotgeom_univar_fun(calculateCorrelogram)(
+    x, annotGeometryName, annotGraphName, features, sample_id, BPPARAM = BPPARAM,
+    zero.policy = zero.policy, order = order, method = method, ...)
+}
+
+#' @rdname calculateCorrelogram
+#' @export
+runCorrelogram <- function(x, colGraphName, features, sample_id, order = 1,
+                           method = "I", exprs_values = "logcounts",
+                           BPPARAM = SerialParam(), zero.policy = NULL,
+                           name = paste("Correlogram", method, sep = "_"), ...) {
+  out <- calculateCorrelogram(x, colGraphName, features, sample_id, order,
+                              method, exprs_values, BPPARAM, zero.policy, ...)
+  out <- lapply(out, function(o) I(list(o$res)))
+  out_df <- DataFrame(res = out, row.names = names(out))
+  names(out_df) <- name
+  if (length(sampleIDs(x)) > 1L) {
+    names(out_df) <- paste(names(out_df), sample_id, sep = "_")
+  }
+  rowData(x)[features, names(out_df)] <- out_df
+  x
+}
