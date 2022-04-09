@@ -118,12 +118,7 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
            zero.policy = NULL, ...) {
     # Am I sure that I want to use logcounts as the default?
     sample_id <- .check_sample_id(x, sample_id)
-    if (!all(features %in% rownames(x))) {
-      features <- intersect(features, rownames(x))
-      if (!length(features)) {
-        stop("None of the specified genes/features are found in the SFE object.")
-      }
-    }
+    features <- .check_features(x, features)[["assay"]]
     listw_use <- colGraph(x, type = colGraphName, sample_id = sample_id)
     mat <- assay(x, exprs_values)[features, colData(x)$sample_id %in% sample_id]
     fun(mat, listw_use, BPPARAM = BPPARAM, zero.policy = zero.policy, ...)
