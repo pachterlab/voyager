@@ -64,7 +64,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
   fixed_applicable <- .drop_null_list(fixed_applicable)
   fixed_applicable <- fixed_applicable[setdiff(names(fixed_applicable),
                                                names(aes_applicable))]
-  list(aes_applicable, fixed_applicable)
+  list(aes = aes_applicable, fixed = fixed_applicable)
 }
 
 .get_pal <- function(df, applicable, option, divergent, diverge_center) {
@@ -151,27 +151,37 @@ getDivergeRange <- function(values, diverge_center = 0) {
   applicable <- .get_applicable(df, fill_by, color_by, shape_by, linetype_by,
                                 size_by, size, shape, linetype, alpha, color,
                                 fill)
+
   if (only_plot_expressed) {
-    col_filter <- unlist(applicable[[1]][names(applicable[[1]]) %in% c("fill", "color")])
+    col_filter <- unlist(applicable[["aes"]][names(applicable[["aes"]]) %in% c("fill", "color")])
     if (all(df[[col_filter]] >= 0)) {
+      if (st_is(df, "POLYGON")) df2 <- df
       df <- df[df[[col_filter]] > 0,]
+      if (st_is(df, "POLYGON")) {
+        if (isTRUE(all.equal(size, 0))) size <- 1
+        # Show outlines of all polygons if those with 0 expression are not filled
+        p <- p +
+          geom_sf(data = df2, aes_string(geometry = "geometry"),
+                  fill = NA, size = size, alpha = alpha, color = color,
+                  show.legend = FALSE)
+      }
     }
   }
 
-  if ("fill" %in% names(applicable[[1]]) && is_annot_polygon)
+  if ("fill" %in% names(applicable$aes) && is_annot_polygon)
     p <- p + new_scale_fill()
-  aes_use <- do.call(aes_string, applicable[[1]])
+  aes_use <- do.call(aes_string, applicable$aes)
   geom_use <- do.call(geom_sf, c(list(mapping = aes_use, data = df),
-                                 applicable[[2]]))
+                                 applicable$fixed))
   p <- p + geom_use
 
   # Palette
-  pal <- .get_pal(df, applicable[[1]], 1, divergent, diverge_center)
+  pal <- .get_pal(df, applicable$aes, 1, divergent, diverge_center)
   if (!is.null(pal)) p <- p + pal
 
   # Line and point annotations go above feature plot
   if (!is.null(annot_df) && !is_annot_polygon) {
-    if (!is.null(pal_annot) && "color" %in% names(applicable[[1]])) {
+    if (!is.null(pal_annot) && "color" %in% names(applicable$aes)) {
       p <- p + new_scale_color()
     }
     p <- p + geom_use
@@ -225,35 +235,62 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param linetype Fixed line type, ignored if \code{linetype_by} is specified
 #'   and applicable.
 #' @param color Fixed color for \code{colGeometry} if \code{color_by} is not
-#' specified or not applicable, or for \code{annotGeometry} if \code{annot_color_by}
-#' is not specified or not applicable.
+#'   specified or not applicable, or for \code{annotGeometry} if
+#'   \code{annot_color_by} is not specified or not applicable.
 #' @param fill Similar to \code{color}, but for fill.
 #' @param alpha Transparency.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
-#' @param annot_color_by Same as \code{color_by}, but for the annotation when
-#'   \code{annotGeometryName} is specified.
-#' @param annot_colour_by Same as \code{annot_color_by}.
+#' @param annot_param A named list of plotting parameters for the
+#'   \code{annot_df}. The parameters are the same as the plotting parameters for
+#'   the features, with the same defaults. The parameters include fill_by,
+#'   color_by, shape_by, linetype_by, size_by, divergent, diverge_center, size,
+#'   shape, linetype, alpha, color, and fill.
+#' @param ncol Number of columns if plotting multiple features. Defaults to
+#'   \code{NULL}, which means using the same logic as \code{facet_wrap}, which
+#'   is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.
+#' @param ... Other arguments passed to \code{\link{wrap_plots}}.
+#' @importFrom patchwork wrap_plots
 plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id,
+                               ncol = NULL,
                                fill_by = NULL, color_by = NULL, shape_by = NULL,
                                linetype_by = NULL, size_by = NULL,
-                               annotGeometryName = NULL, annot_aes = list(),
+                               annotGeometryName = NULL, annot_params = list(),
                                exprs_values = "logcounts", divergent = FALSE,
                                diverge_center = NULL, only_plot_expressed = FALSE,
                                colour_by = color_by, size = 0,
                                shape = 16, linetype = 1, alpha = 1, color = "black",
-                               fill = "gray70") {
+                               fill = "gray70", ...) {
   features_list <- .check_features(sfe, features, colGeometryName)
-  features_use <- assay(sfe, exprs_values)[features, colData(sfe)$sample_id %in% sample_id]
+  values <- list()
+  sample_id_ind <- colData(sfe)$sample_id %in% sample_id
+  if (!is.null(features_list[["assay"]])) {
+    values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
+                                             sample_id_ind, drop = FALSE]
+    values_assay <- as.data.frame(as.matrix(t(values_assay)))
+    values[["assay"]] <- values_assay
+  }
+  if (!is.null(features_list[["coldata"]]))
+    values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
+                                                      features_list[["coldata"]],
+                                                      drop = FALSE])
+  if (length(values) > 1L) values <- cbind(values$assay, values$coldata)
 
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
-  if (length(features) == 1L) {
-    df[[features]] <- features_use
+  # Will use separate ggplots for each feature so each can have its own color scale
+  plots <- lapply(names(values), function(n) {
+    df[[n]] <- values[[n]]
+    .plot_var_sf(df, fill_by, color_by, shape_by, linetype_by, size_by,
+                 annot_df, annot_params, divergent, diverge_center,
+                 only_plot_expressed, size, shape, linetype, alpha,
+                 color, fill)
+  })
+  if (length(plots) > 1L) {
+    out <- wrap_plots(plots, ncol = ncol, ...)
   } else {
-    features_use <- t(as.matrix(features_use))
-    features_use <- as.data.frame(features_use)
-    df <- cbind(df, features_use)
+    out <- plots[[1]]
   }
+  return(out)
 }
 
 #' Use ggplot to plot the moran.plot results
