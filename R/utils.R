@@ -1,4 +1,4 @@
-.check_features_all <- function(x, features, colGeometryName) {
+.check_features <- function(x, features, colGeometryName) {
   # Check if features are in the gene count matrix or colData.
   # If not found, then assume that they're in the colGeometry
   features_assay <- intersect(features, rownames(x))
@@ -9,7 +9,7 @@
     cg <- colGeometry(x, type = colGeometryName)
     features_colgeom <- intersect(features, names(st_drop_geometry(cg)))
   }
-  out <- list(assay = featuers_assay,
+  out <- list(assay = features_assay,
               coldata = features_coldata,
               colgeom = features_colgeom)
   if (all(lengths(out) == 0L)) {
@@ -18,4 +18,9 @@
   return(out)
 }
 
-.drop_null_list <- function(l) as.list(unlist(l, use.names = TRUE))
+.drop_null_list <- function(l) {
+  null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
+  l[!null_inds]
+}
+
+.is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)

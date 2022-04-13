@@ -31,54 +31,36 @@ getDivergeRange <- function(values, diverge_center = 0) {
   c(pal_begin, pal_end)
 }
 
-.get_applicable <- function(df, fill_by, color_by, shape_by, linetype_by,
-                            size_by, size, shape, linetype, alpha, color,
-                            fill) {
-  if (st_is(df, "POINT") || st_is(df, "MULTIPOINT")) {
-    aes_applicable <- list(geometry = "geometry",
-                           color = color_by, shape = shape_by,
-                           size = size_by)
-    if (isTRUE(all.equal(0, size))) size <- 1
-    fixed_applicable <- list(size = size, shape = shape, alpha = alpha,
-                             color = color)
+.get_applicable <- function(type, fixed) {
+  fixed <- .fill_defaults(fixed)
+  if (type %in% c("POINT", "MULTIPOINT")) {
+    names_use <- c("size", "shape", "alpha", "color")
+    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 1
+    shape <- fixed[["shape"]]
     if (!is.null(shape) && shape > 20L) {
-      if (!is.null(fill_by)) aes_applicable[["color"]] <- NULL
-      aes_applicable <- c(aes_applicable, list(fill = fill_by))
-      fixed_applicable <- c(fixed_applicable, list(fill = fill))
+      names_use <- c(names_use, "fill")
     }
-  } else if (st_is(df, "LINESTRING") || st_is(df, "MULTILINESTRING")) {
-    aes_applicable <- list(geometry = "geometry", linetype = linetype_by,
-                           color = color_by, shape = shape_by, size = size_by)
-    if (isTRUE(all.equal(0, size))) size <- 1
-    fixed_applicable <- list(size = size, linetype = linetype, alpha = alpha,
-                             color = color)
+  } else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
+    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 1
+    names_use <- c("size", "linetype", "alpha", "color")
   } else {
-    if (!is.null(fill_by)) color_by <- NULL
-    aes_applicable <- list(geometry = "geometry", fill = fill_by,
-                           color = color_by, size = size_by,
-                           linetype = linetype_by)
-    fixed_applicable <- list(size = size, linetype = linetype, alpha = alpha,
-                             color = color, fill = fill)
+    # i.e. polygons
+    names_use <- c("size", "linetype", "fill", "color", "alpha")
   }
-  aes_applicable <- .drop_null_list(aes_applicable)
-  fixed_applicable <- .drop_null_list(fixed_applicable)
-  fixed_applicable <- fixed_applicable[setdiff(names(fixed_applicable),
-                                               names(aes_applicable))]
-  list(aes = aes_applicable, fixed = fixed_applicable)
+  fixed_applicable <- .drop_null_list(fixed[names_use])
+  fixed_applicable
 }
 
-.get_pal <- function(df, applicable, option, divergent, diverge_center) {
-  cols_check_names <- unlist(applicable)
-  cols_check_names <- cols_check_names[names(cols_check_names) %in% c("fill", "color")]
-  if (length(cols_check_names)) {
+.get_pal <- function(df, feature_aes, option, divergent, diverge_center) {
+  feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color")]
+  if (length(feature_aes)) {
     # color_by is set to NULL if fill_by is applicable and present
-    m <- st_drop_geometry(df)[,cols_check_names]
-    is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
-    .aes <- names(cols_check_names)
+    m <- df[[unlist(feature_aes)]]
+    .aes <- names(feature_aes)
   } else {
     return(NULL)
   }
-  if (is_discrete) {
+  if (.is_discrete(m)) {
     .pal <- switch (option, Voyager::ditto_colors, rev(Voyager::ditto_colors))
     pal_fun <- switch (.aes, fill = scale_fill_manual, color = scale_color_manual)
     pal <- pal_fun(values = .pal, na.value = "gray")
@@ -94,13 +76,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
         pal_end <- 1
       }
       .pal <- switch(option, "roma", "bam")
-      pal_fun <- switch (.aes, fill = scale_fill_scico,
-                         color = scale_color_scico)
+      pal_fun <- switch(.aes, fill = scale_fill_scico,
+                        color = scale_color_scico)
       pal <- pal_fun(palette = .pal, begin = pal_begin,
                      end = pal_end, na.value = "gray")
     } else {
-      pal_fun <- switch(.aes, fill = scale_fill_brewer,
-                        color = scale_color_brewer)
+      pal_fun <- switch(.aes, fill = scale_fill_distiller,
+                        color = scale_color_distiller)
       .pal <- switch(option, "Blues", "PuRd")
       pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1)
     }
@@ -108,88 +90,84 @@ getDivergeRange <- function(values, diverge_center = 0) {
   pal
 }
 
-.annot_defaults <- function(annot_params) {
-  defaults <- list(fill_by = NULL, color_by = NULL, shape_by = NULL,
-                   linetype_by = NULL, size_by = NULL, size = 0, shape == 16,
+.fill_defaults <- function(fixed) {
+  defaults <- list(size = 0, shape = 16,
                    linetype = 1, alpha = 1, color = "black", fill = "gray70",
                    divergent = FALSE, diverge_center = NULL)
-  if (!is.null(annot_params$fill_by)) annot_params$color_by <- NULL
-  fill <- defaults[setdiff(names(annot_params), names(defaults))]
-  .drop_null_list(c(annot_params, fill))
+  fill <- defaults[setdiff(names(fixed), names(defaults))]
+  .drop_null_list(c(fixed, fill))
 }
 
-#' @importFrom sf st_is st_drop_geometry
+#' @importFrom sf st_is st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot aes_string geom_sf scale_fill_manual
-#' scale_color_manual scale_fill_brewer scale_color_brewer
+#' scale_color_manual scale_fill_distiller scale_color_distiller
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color
-.plot_var_sf <- function(df, fill_by, color_by, shape_by, linetype_by, size_by,
-                         annot_df, annot_params, divergent, diverge_center,
-                         only_plot_expressed, size, shape, linetype, alpha,
-                         color, fill) {
+.plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes, feature_fixed,
+                         annot_aes, annot_fixed, divergent, diverge_center) {
   # Add annotGeometry if present
   if (!is.null(annot_df)) {
-    annot_params <- .annot_defaults(annot_params)
-    .by <- grepl("_by$", names(annot_aes))
-    annot_fixed <- annot_params[!.by]
-    annot_aes <- annot_params[.by]
+    annot_fixed <- .get_applicable(type_annot, annot_fixed)
+    annot_fixed <- annot_fixed[setdiff(names(annot_fixed), names(annot_aes))]
     aes_annot <- do.call(aes_string, annot_aes)
-    geom_annot <- do.call(geom_sf, c(list(mapping = aes_use, data = annot_df),
+    geom_annot <- do.call(geom_sf, c(list(mapping = aes_annot, data = annot_df),
                                      annot_fixed))
-    pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_params$divergent,
-                          annot_params$diverge_center)
+    pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_fixed$divergent,
+                          annot_fixed$diverge_center)
   }
 
   p <- ggplot()
-  # Polygon annotations go beneath feature plot
-  is_annot_polygon <- !is.null(annot_df) && (st_is(annot_df, "POLYGON") || st_is(annot_df, "MULTIPOLYGON"))
-  if (is_annot_polygon) {
+  # Filled polygon annotations go beneath feature plot
+  is_annot_filled <- !is.null(annot_df) &&
+    ("fill" %in% names(c(annot_aes, annot_fixed))) &&
+    (st_is(annot_df, "POLYGON") || st_is(annot_df, "MULTIPOLYGON"))
+  if ("fill" %in% names(annot_fixed))
+    is_annot_filled <- is_annot_filled && !is.na(annot_fixed[["fill"]])
+  if (is_annot_filled) {
     p <- p + geom_annot
     if (!is.null(pal_annot)) p <- p + pal_annot
   }
 
-  applicable <- .get_applicable(df, fill_by, color_by, shape_by, linetype_by,
-                                size_by, size, shape, linetype, alpha, color,
-                                fill)
+  feature_fixed <- .get_applicable(type, feature_fixed)
+  feature_fixed <- feature_fixed[setdiff(names(feature_fixed), names(feature_aes))]
 
-  if (only_plot_expressed) {
-    col_filter <- unlist(applicable[["aes"]][names(applicable[["aes"]]) %in% c("fill", "color")])
-    if (all(df[[col_filter]] >= 0)) {
-      if (st_is(df, "POLYGON")) df2 <- df
-      df <- df[df[[col_filter]] > 0,]
-      if (st_is(df, "POLYGON")) {
-        if (isTRUE(all.equal(size, 0))) size <- 1
-        # Show outlines of all polygons if those with 0 expression are not filled
-        p <- p +
-          geom_sf(data = df2, aes_string(geometry = "geometry"),
-                  fill = NA, size = size, alpha = alpha, color = color,
-                  show.legend = FALSE)
-      }
-    }
-  }
-
-  if ("fill" %in% names(applicable$aes) && is_annot_polygon)
+  if ("fill" %in% names(feature_aes) && is_annot_filled)
     p <- p + new_scale_fill()
-  aes_use <- do.call(aes_string, applicable$aes)
+  aes_use <- do.call(aes_string, feature_aes)
   geom_use <- do.call(geom_sf, c(list(mapping = aes_use, data = df),
-                                 applicable$fixed))
+                                 feature_fixed))
   p <- p + geom_use
 
   # Palette
-  pal <- .get_pal(df, applicable$aes, 1, divergent, diverge_center)
+  pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center)
   if (!is.null(pal)) p <- p + pal
 
   # Line and point annotations go above feature plot
-  if (!is.null(annot_df) && !is_annot_polygon) {
-    if (!is.null(pal_annot) && "color" %in% names(applicable$aes)) {
+  if (!is.null(annot_df) && !is_annot_filled) {
+    if (!is.null(pal_annot) && "color" %in% names(feature_aes)) {
       p <- p + new_scale_color()
     }
-    p <- p + geom_use
+    p <- p + geom_annot
     if (!is.null(pal_annot)) {
       p <- p + pal_annot
     }
   }
   p
+}
+
+.get_feature_aes <- function(m, type, aes_spec, shape) {
+  if (type %in% c("POINT", "MULTIPOINT")) {
+    if (aes_spec == "fill" && shape < 20) aes_spec <- "color"
+    if (aes_spec == "linetype") aes_spec <- "shape"
+  }
+  if (type %in% c("LINESTRING", "MULTILINESTRING")) {
+    if (aes_spec == "fill") aes_spec <- "color"
+    if (aes_spec == "shape") aes_spec <- "linetype"
+  }
+  if (!.is_discrete(m) && aes_spec %in% c("shape", "linetype")) {
+    stop("Shape and linetype are only applicable to discrete variables.")
+  }
+  aes_spec
 }
 
 #' Plot gene expression in space
@@ -211,22 +189,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'
 #' @inheritParams calculateMoransI
 #' @param sfe A \code{SpatialFeatureExperiment} object.
-#' @param fill_by Feature to fill the polygons or point shapes that supports
-#'   fill. The polygons will not be filled if \code{NULL}.
-#' @param color_by Feature to color the points or lines, including outlines of
-#'   polygons. For polygons, this is ignored if \code{fill_by} is specified to
-#'   avoid an overly garish and hard to read plot.
-#' @param shape_by Feature for shape of points, only applicable if the
-#'   \code{colGeometry} from \code{colGeometryName} is of type POINT or
-#'   MULTIPOINT.
-#' @param linetype_by Feature for line type, only applicable for LINESTRING,
-#'   MULTILINESTRING, POLYGON, and MULTIPOLYGON.
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
 #'   palette should diverge. If \code{NULL}, then not centering.
-#' @param only_plot_expressed Logical, if \code{TRUE}, and if all values are
-#'   non-negative, then geometries with value 0 are not plotted.
-#' @param colour_by Same as color_by.
 #' @param size Fixed size of points or width of lines, including outlines of
 #'   polygons. For polygons, this defaults to 0, meaning no outlines. For points
 #'   and lines, this defaults to 1. Ignored if \code{size_by} is specified.
@@ -241,29 +206,42 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param alpha Transparency.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
-#' @param annot_param A named list of plotting parameters for the
-#'   \code{annot_df}. The parameters are the same as the plotting parameters for
-#'   the features, with the same defaults. The parameters include fill_by,
-#'   color_by, shape_by, linetype_by, size_by, divergent, diverge_center, size,
-#'   shape, linetype, alpha, color, and fill.
+#' @param annot_aes A named list of plotting parameters for the annotation sf
+#'   data frame. The names are which geom (as in ggplot2, such as color and
+#'   fill), and the values are column names in the annotation sf data frame.
+#'   Tidyeval is NOT supported.
+#' @param annot_fixed Similar to \code{annot_aes}, but for fixed aesthetic
+#'   settings, such as \code{color = "gray"}. The defaults are the same as the
+#'   relevant defaults for this function.
 #' @param ncol Number of columns if plotting multiple features. Defaults to
 #'   \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 #'   is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.
+#' @param aes_use Aesthetic to use for discrete variables. For continuous
+#'   variables, it's always "fill" for polygons and point shapes 21-25. For
+#'   discrete variables, it can be fill, color, shape, or linetype, whenever
+#'   applicable. The specified value will be changed to the applicable equivalent.
+#'   For example, if the geometry is point but "linetype" is specified, then
+#'   "shaped" will be used instead.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
-plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id,
-                               ncol = NULL,
-                               fill_by = NULL, color_by = NULL, shape_by = NULL,
-                               linetype_by = NULL, size_by = NULL,
-                               annotGeometryName = NULL, annot_params = list(),
-                               exprs_values = "logcounts", divergent = FALSE,
+#' @importFrom stats setNames
+#' @importMethodsFrom Matrix t
+plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
+                               ncol = NULL, annotGeometryName = NULL,
+                               annot_aes = list(), annot_fixed = list(),
+                               exprs_values = "logcounts",
+                               aes_use = c("fill", "color", "shape", "linetype"),
+                               divergent = FALSE,
                                diverge_center = NULL, only_plot_expressed = FALSE,
-                               colour_by = color_by, size = 0,
-                               shape = 16, linetype = 1, alpha = 1, color = "black",
-                               fill = "gray70", ...) {
+                               size = 0, shape = 16, linetype = 1, alpha = 1,
+                               color = "black", fill = "gray70", ...) {
+  aes_use <- match.arg(aes_use)
   features_list <- .check_features(sfe, features, colGeometryName)
   values <- list()
-  sample_id_ind <- colData(sfe)$sample_id %in% sample_id
+  if (is.null(sample_id))
+    sample_id_ind <- rep(TRUE, ncol(sfe))
+  else
+    sample_id_ind <- colData(sfe)$sample_id %in% sample_id
   if (!is.null(features_list[["assay"]])) {
     values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
                                              sample_id_ind, drop = FALSE]
@@ -278,12 +256,20 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id,
 
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   # Will use separate ggplots for each feature so each can have its own color scale
+  if (!is.null(annotGeometryName)) {
+    annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
+    type_annot <- st_geometry_type(annot_df, by_geometry = FALSE)
+  }
+  else annot_df <- NULL; type_annot <- NULL
+  feature_fixed <- list(size = size, shape = shape, linetype = linetype,
+                        alpha = alpha, color = color, fill = fill)
+  type <- st_geometry_type(df, by_geometry = FALSE)
   plots <- lapply(names(values), function(n) {
     df[[n]] <- values[[n]]
-    .plot_var_sf(df, fill_by, color_by, shape_by, linetype_by, size_by,
-                 annot_df, annot_params, divergent, diverge_center,
-                 only_plot_expressed, size, shape, linetype, alpha,
-                 color, fill)
+    feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
+    feature_aes <- setNames(list(n), feature_aes_name)
+    .plot_var_sf(df, annot_df, type, type_annot, feature_aes, feature_fixed,
+                 annot_aes, annot_fixed, divergent, diverge_center)
   })
   if (length(plots) > 1L) {
     out <- wrap_plots(plots, ncol = ncol, ...)
@@ -307,7 +293,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id,
 #' @param plot_singletons Logical, whether to plot items that don't have spatial
 #' neighbors.
 #' @return A ggplot object.
-#' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hlive geom_vline
+#' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
 #' geom_density2d scale_shape_manual coord_equal labs
 #' @importFrom stringr str_to_sentence str_to_lower
 #' @export
