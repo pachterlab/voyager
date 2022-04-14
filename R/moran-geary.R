@@ -70,6 +70,8 @@
 NULL
 
 .calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = TRUE, ...) {
+  if (is.null(listw))
+    stop("The graph specified is absent from the SFE object.")
   if (is.vector(x)) {
     x <- matrix(x, nrow = 1)
   }
@@ -111,6 +113,8 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
     if (length(sample_id) > 1L) {
       stop("sample_id must be specified")
     }
+  } else if (!sample_id %in% sampleIDs(x)) {
+    stop("Sample ", sample_id, " is absent from the SFE object.")
   }
   sample_id
 }
