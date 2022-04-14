@@ -60,13 +60,13 @@
 #'   with \code{sample_id} appended if applicable.
 #' @name calculateMoransI
 #' @aliases calculateGearysC
-#' @importFrom spdep moran geary
-#' @importFrom BiocParallel SerialParam
+#' @importFrom spdep moran geary Szero
+#' @importFrom BiocParallel SerialParam bplapply
 #' @importFrom S4Vectors DataFrame
 #' @importClassesFrom SpatialFeatureExperiment SpatialFeatureExperiment
-#' @importFrom SummarizedExperiment assay
+#' @importFrom SummarizedExperiment assay rowData<-
 #' @importFrom SpatialFeatureExperiment colGraph annotGraph
-#' @importFrom SingleCellExperiment colData
+#' @importFrom SingleCellExperiment colData rowData
 NULL
 
 .calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = TRUE, ...) {
@@ -79,9 +79,11 @@ NULL
   if (returnDF) {
     out_list <- lapply(out_list, unlist, use.names = TRUE)
     out <- Reduce(rbind, out_list)
+    if (!is.matrix(out)) out <- t(as.matrix(out))
     rownames(out) <- names(out_list)
     out <- DataFrame(out)
-  }
+  } else
+    out <- out_list
   return(out)
 }
 
@@ -356,7 +358,7 @@ annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC)
     DataFrame(unclass(o))
   })
   rns <- names(out)
-  out <- Reduce(out, rbind)
+  out <- Reduce(rbind, out)
   rownames(out) <- rns
   colnames(out) <- paste(name, colnames(out), sep = "_")
   if (length(sampleIDs(x)) > 1L) {
@@ -477,6 +479,12 @@ runCorrelogram <- function(x, colGraphName, features, sample_id, order = 1,
                            name = paste("Correlogram", method, sep = "_"), ...) {
   out <- calculateCorrelogram(x, colGraphName, features, sample_id, order,
                               method, exprs_values, BPPARAM, zero.policy, ...)
+  if (method == "I") {
+    out <- lapply(out, function(o) {
+      colnames(o$res) <- c("I", "expectation", "variance")
+      o
+    })
+  }
   out <- lapply(out, function(o) I(list(o$res)))
   out_df <- DataFrame(res = out, row.names = names(out))
   names(out_df) <- name
