@@ -107,17 +107,8 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
                         n1 = length(listw$neighbours) - 1, S0 = Szero(listw),
                         zero.policy = zero.policy)
 })
-.check_sample_id <- function(x, sample_id) {
-  if (is.null(sample_id)) {
-    sample_id <- sampleIDs(x)
-    if (length(sample_id) > 1L) {
-      stop("sample_id must be specified")
-    }
-  } else if (!sample_id %in% sampleIDs(x)) {
-    stop("Sample ", sample_id, " is absent from the SFE object.")
-  }
-  sample_id
-}
+.check_sample_id <- SpatialFeatureExperiment:::.check_sample_id
+
 .calc_univar_sfe_fun <- function(fun) {
   function(x, colGraphName, features, sample_id = NULL,
            exprs_values = "logcounts", BPPARAM = SerialParam(),
