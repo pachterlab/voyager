@@ -82,10 +82,12 @@ NULL
     out_list <- lapply(out_list, unlist, use.names = TRUE)
     out <- Reduce(rbind, out_list)
     if (!is.matrix(out)) out <- t(as.matrix(out))
-    rownames(out) <- names(out_list)
+    rownames(out) <- rownames(x)
     out <- DataFrame(out)
-  } else
+  } else {
+    names(out_list) <- rownames(x)
     out <- out_list
+  }
   return(out)
 }
 
@@ -133,7 +135,7 @@ setMethod("calculateGearysC", "SpatialFeatureExperiment",
 
 .df_univar_autocorr <- function(df, listw, features, fun, BPPARAM,
                                 zero.policy, ...) {
-  mat <- t(as.matrix(df[, features]))
+  mat <- t(as.matrix(df[, features, drop = FALSE]))
   if (anyNA(mat)) {
     stop("Only numeric columns without NA (within the sample_id) can be used.")
   }
@@ -417,10 +419,12 @@ setMethod("calculateCorrelogram", "ANY",
   if (is.vector(x)) {
     x <- matrix(x, nrow = 1)
   }
-  bplapply(seq_len(nrow(x)), function(i) {
+  out <- bplapply(seq_len(nrow(x)), function(i) {
     sp.correlogram(listw$neighbours, var = x[i,], order = order, method = method,
                    zero.policy = zero.policy, ...)
   }, BPPARAM = BPPARAM)
+  names(out) <- rownames(x)
+  out
 })
 
 #' @rdname calculateCorrelogram
@@ -481,8 +485,8 @@ runCorrelogram <- function(x, colGraphName, features, sample_id = NULL, order = 
       o
     })
   }
-  out <- lapply(out, function(o) I(list(o$res)))
-  out_df <- DataFrame(res = out, row.names = names(out))
+  out <- lapply(out, function(o) o$res)
+  out_df <- DataFrame(res = I(out), row.names = features)
   names(out_df) <- name
   if (length(sampleIDs(x)) > 1L) {
     names(out_df) <- paste(names(out_df), sample_id, sep = "_")
