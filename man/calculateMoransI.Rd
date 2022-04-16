@@ -47,7 +47,7 @@ colDataMoransI(
   x,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -57,7 +57,7 @@ colDataGearysC(
   x,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -68,7 +68,7 @@ colGeometryMoransI(
   colGeometryName,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -79,7 +79,7 @@ colGeometryGearysC(
   colGeometryName,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -90,7 +90,7 @@ annotGeometryMoransI(
   annotGeometryName,
   annotGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -101,7 +101,7 @@ annotGeometryGearysC(
   annotGeometryName,
   annotGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   ...
@@ -111,7 +111,7 @@ runMoransI(
   x,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
@@ -122,7 +122,7 @@ runGearysC(
   x,
   colGraphName,
   features,
-  sample_id,
+  sample_id = NULL,
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
