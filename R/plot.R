@@ -189,6 +189,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'
 #' @inheritParams calculateMoransI
 #' @param sfe A \code{SpatialFeatureExperiment} object.
+#' @param features Features to plot, must be in rownames of the gene count
+#'   matrix, colnames of colData or a colGeometry.
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
 #'   palette should diverge. If \code{NULL}, then not centering.
@@ -219,9 +221,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param aes_use Aesthetic to use for discrete variables. For continuous
 #'   variables, it's always "fill" for polygons and point shapes 21-25. For
 #'   discrete variables, it can be fill, color, shape, or linetype, whenever
-#'   applicable. The specified value will be changed to the applicable equivalent.
-#'   For example, if the geometry is point but "linetype" is specified, then
-#'   "shaped" will be used instead.
+#'   applicable. The specified value will be changed to the applicable
+#'   equivalent. For example, if the geometry is point but "linetype" is
+#'   specified, then "shaped" will be used instead.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames

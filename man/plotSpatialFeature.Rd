@@ -31,22 +31,14 @@ plotSpatialFeature(
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute Moran's I or
-Geary's C. Use \code{\link{colGeometryNames}} to look up names of the
-\code{sf} data frames associated with cells/spots.}
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots.}
 
-\item{features}{Genes (\code{calculateMoransI/GearysC} SFE method and
-\code{runMoransI/GearysC}) or numeric columns of \code{colData(x)}
-(\code{colDataMoransI/GearysC}) or any \code{\link{colGeometry}}
-(\code{colGeometryMoransI/GearysC}) or \code{\link{annotGeometry}}
-(\code{annotGeometryMoransI/GearysC}) for which Moran's I or Geary's C is
-to be computed. Default to \code{NULL}. When \code{NULL}, then Moran's I or
-Geary's C is computed for all genes with the values in the assay specified
-in the argument \code{exprs_values}. This can be parallelized with the
-argument \code{BPPARAM}.}
+\item{features}{Features to plot, must be in rownames of the gene count
+matrix, colnames of colData or a colGeometry.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use to
-calculate Moran's I or Geary's C.}
+\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
 
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
@@ -70,9 +62,9 @@ contains the expression values.}
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
 discrete variables, it can be fill, color, shape, or linetype, whenever
-applicable. The specified value will be changed to the applicable equivalent.
-For example, if the geometry is point but "linetype" is specified, then
-"shaped" will be used instead.}
+applicable. The specified value will be changed to the applicable
+equivalent. For example, if the geometry is point but "linetype" is
+specified, then "shaped" will be used instead.}
 
 \item{divergent}{Logical, whether a divergent palette should be used.}
 
