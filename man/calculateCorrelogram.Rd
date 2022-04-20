@@ -101,8 +101,7 @@ object.}
 \item{method}{"corr" for correlation, "I" for Moran's I, "C" for Geary's C}
 
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
-and how computing Moran's I or Geary's C for numerous genes shall be
-parallelized.}
+and how computing the metric for numerous genes shall be parallelized.}
 
 \item{zero.policy}{default NULL, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
 
@@ -113,31 +112,29 @@ corresponds to entities represented by columns of the gene count matrix.
 Use \code{\link{colGraphNames}} to look up names of the available graphs
 for cells/spots.}
 
-\item{features}{Genes (\code{calculateMoransI/GearysC} SFE method and
-\code{runMoransI/GearysC}) or numeric columns of \code{colData(x)}
-(\code{colDataMoransI/GearysC}) or any \code{\link{colGeometry}}
-(\code{colGeometryMoransI/GearysC}) or \code{\link{annotGeometry}}
-(\code{annotGeometryMoransI/GearysC}) for which Moran's I or Geary's C is
-to be computed. Default to \code{NULL}. When \code{NULL}, then Moran's I or
-Geary's C is computed for all genes with the values in the assay specified
-in the argument \code{exprs_values}. This can be parallelized with the
-argument \code{BPPARAM}.}
+\item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
+numeric columns of \code{colData(x)} (\code{colData*}) or any
+\code{\link{colGeometry}} (\code{colGeometryM*}) or
+\code{\link{annotGeometry}} (\code{annotGeometry*}) for which the
+univariate metric is to be computed. Default to \code{NULL}. When
+\code{NULL}, then the metric is computed for all genes with the values in
+the assay specified in the argument \code{exprs_values}. This can be
+parallelized with the argument \code{BPPARAM}.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use to
-calculate Moran's I or Geary's C.}
+\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute Moran's I or
-Geary's C. Use \code{\link{colGeometryNames}} to look up names of the
-\code{sf} data frames associated with cells/spots.}
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute Moran's I or
-Geary's C. Use \code{\link{annotGeometryNames}} to look up names of the
-\code{sf} data frames associated with annotations.}
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{annotGeometryNames}} to look up names of the \code{sf} data
+frames associated with annotations.}
 
 \item{annotGraphName}{Name of the listw graph in the SFE object that
 corresponds to the \code{annotGeometry} of interest. Use
