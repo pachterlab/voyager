@@ -487,10 +487,70 @@ runCorrelogram <- function(x, colGraphName, features, sample_id = NULL, order = 
   }
   out <- lapply(out, function(o) o$res)
   out_df <- DataFrame(res = I(out), row.names = features)
-  names(out_df) <- name
   if (length(sampleIDs(x)) > 1L) {
-    names(out_df) <- paste(names(out_df), sample_id, sep = "_")
+    name <- paste(name, sample_id, sep = "_")
   }
+  names(out_df) <- name
+  rowData(x)[features, names(out_df)] <- out_df
+  x
+}
+
+#' Moran scatterplot
+#'
+#' To make it easier to compute the Moran scatterplot for a bunch of genes at
+#' once. And to reduce the boilerplate for getting the gene expression values.
+#' Burning question: how shall I compare these across genes? Also to organize
+#' the results, which was one of the motivations of SFE.
+#'
+#' @inheritParams calculateMoransI
+#' @param ... Other arguments passed to \code{\link{moran.plot}}.
+#' @name calculateMoranPlot
+#' @importFrom spdep moran.plot
+#' @return For \code{calculateMoranPlot} and the \code{colData},
+#'   \code{colGeometry}, and \code{annotGeometry} versions, a list of data
+#'   frames that are the output of \code{\link{moran.plot}}. The names of the
+#'   list are the names of the features. For \code{runMoranPlot}, the list is
+#'   added to a column in \code{rowData(x)}. The plot is not made.
+NULL
+
+#' @rdname calculateMoranPlot
+#' @export
+setMethod("calculateMoranPlot", "ANY",
+          function(x, listw, BPPARAM = SerialParam(),
+                   zero.policy = NULL, ...) {
+  .calc_univar_autocorr(x, listw, fun = moran.plot, BPPARAM, returnDF = FALSE,
+                        plot = FALSE, return_df = TRUE, ...)
+})
+
+#' @rdname calculateMoranPlot
+#' @export
+setMethod("calculateMoranPlot", "SpatialFeatureExperiment",
+          .calc_univar_sfe_fun(calculateMoranPlot))
+
+#' @rdname calculateMoranPlot
+#' @export
+colDataMoranPlot <- .coldata_univar_fun(calculateMoranPlot)
+
+#' @rdname calculateMoranPlot
+#' @export
+colGeometryMoranPlot <- .colgeom_univar_fun(calculateMoranPlot)
+
+#' @rdname calculateMoranPlot
+#' @export
+annotGeometryMoranPlot <- .annotgeom_univar_fun(calculateMoranPlot)
+
+#' @rdname calculateMoranPlot
+#' @export
+runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
+                         exprs_values = "logcounts", BPPARAM = SerialParam(),
+                         zero.policy = NULL, name = "MoranPlot", ...) {
+  out <- calculateMoranPlot(x, colGraphName, features, sample_id, exprs_values,
+                            BPPARAM, zero.policy, ...)
+  out_df <- DataFrame(res = I(out), row.names = features)
+  if (length(sampleIDs(x)) > 1L) {
+    name <- paste(name, sample_id, sep = "_")
+  }
+  names(out_df) <- name
   rowData(x)[features, names(out_df)] <- out_df
   x
 }

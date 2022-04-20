@@ -12,3 +12,6 @@ setGeneric("calculateGearyMC", function(x, ...) standardGeneric("calculateGearyM
 
 #' @export
 setGeneric("calculateCorrelogram", function(x, ...) standardGeneric("calculateCorrelogram"))
+
+#' @export
+setGeneric("calculateMoranPlot", function(x, ...) standardGeneric("calculateMoranPlot"))
