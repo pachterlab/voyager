@@ -1,6 +1,7 @@
 .check_features <- function(x, features, colGeometryName) {
   # Check if features are in the gene count matrix or colData.
   # If not found, then assume that they're in the colGeometry
+  if (is.null(features)) features <- rownames(x)
   features_assay <- intersect(features, rownames(x))
   features_coldata <- intersect(features, names(colData(x)))
   if (missing(colGeometryName)) {
