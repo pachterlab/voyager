@@ -65,7 +65,6 @@
 
 colDataMoranMC(
   x,
-  colGeometryName,
   colGraphName,
   features,
   sample_id = NULL,
@@ -78,7 +77,6 @@ colDataMoranMC(
 
 colDataGearyMC(
   x,
-  colGeometryName,
   colGraphName,
   features,
   sample_id = NULL,
