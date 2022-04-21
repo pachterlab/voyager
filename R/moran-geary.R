@@ -634,18 +634,17 @@ clusterMoranPlot <- function(x, features, BLUSPARAM, sample_id = NULL,
   colname_use <- paste(name, sample_id, sep = "_")
   if (is.null(colGeometryName) && is.null(annotGeometryName)) {
     features <- .check_features(x, features)
-    if (!is.null(features[["assay"]]) && colname_use %in% names(rowDatax)) {
+    if (length(features[["assay"]]) && colname_use %in% names(rowData(x))) {
       mps_assay <- rowData(x)[features[["assay"]], colname_use]
     } else mps_assay <- NULL
     fd <- attr(colData(x), "featureData")
     if (is.null(fd)) mps_coldata <- NULL
-    else if (!is.null(features[["coldata"]]) && colname_use %in% names(fd)) {
+    else if (length(features[["coldata"]]) && colname_use %in% names(fd)) {
       mps_coldata <- fd[features[["coldata"]], colname_use]
     } else mps_coldata <- NULL
     mps <- c(mps_assay, mps_coldata)
-    if (is.null(mps))
-      stop("None of the features requested from assays or colData have Moran plots computed.")
-    names(mps) <- c(features[["assay"]], features[["coldata"]])
+    if (!is.null(mps))
+      names(mps) <- c(features[["assay"]], features[["coldata"]])
   } else if (!is.null(colGeometryName)) {
     if (!is.null(annotGeometryName)) {
       warning("Using colGeometryName rather than annotGeometryName.")
@@ -658,10 +657,13 @@ clusterMoranPlot <- function(x, features, BLUSPARAM, sample_id = NULL,
     mps <- fd[features, colname_use]
     names(mps) <- features
   }
-  na_inds <- vapply(mps, is.na, FUN.VALUE = logical(1))
+  # isTRUE because is.na can return value of length > 1
+  na_inds <- vapply(mps, function(t) isTRUE(is.na(t)), FUN.VALUE = logical(1))
+  if (all(na_inds))
+    stop("None of the features requested have Moran plots computed.")
   if (any(na_inds))
     warning("Skipping features that don't have Moran plots computed.")
   mps <- mps[!na_inds]
-  out <- lapply(mps, function(mp) clusterRows(mps[,c("x", "wx")], BLUSPARAM))
+  out <- lapply(mps, function(mp) clusterRows(mp[,c("x", "wx")], BLUSPARAM))
   as.data.frame(out, row.names = colnames(x)[colData(x)$sample_id == sample_id])
 }

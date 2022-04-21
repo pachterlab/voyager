@@ -1,6 +1,7 @@
 library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
 library(Matrix)
+library(bluster)
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
 set.seed(29)
 colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
@@ -197,3 +198,56 @@ test_that("Correctly add runMoranPlot output to rowData", {
   expect_true(all(vapply(rdc, nrow, FUN.VALUE = numeric(1)) == ncol(mat1)))
 })
 
+# Should have passed the above unit tests for this to work
+sfe <- runMoranPlot(sfe, "visium1", c("B", "H"), sample_id = "sample01",
+                    exprs_values = "counts")
+sfe <- colDataMoranPlot(sfe, "visium1", "nCounts", "sample01")
+sfe <- colGeometryMoranPlot(sfe, "spotPoly", "visium1", features = "foo",
+                            sample_id = "sample01")
+
+test_that("Moran plot clustering gives right results for gene expression", {
+  out <- clusterMoranPlot(sfe, c("B", "H"), KmeansParam(2),
+                          sample_id = "sample01")
+  expect_s3_class(out, "data.frame")
+  expect_equal(names(out), c("B", "H"))
+  expect_true(all(vapply(out, is.factor, FUN.VALUE = logical(1))))
+  expect_equal(nrow(out), sum(colData(sfe)$sample_id == "sample01"))
+  expect_equal(rownames(out), colnames(sfe)[colData(sfe)$sample_id == "sample01"])
+})
+
+test_that("Warning when some of the requested features don't have Moran plot", {
+  expect_warning(out <- clusterMoranPlot(sfe, c("B", "H", "L"), KmeansParam(2),
+                                         sample_id = "sample01"),
+                 "Skipping features")
+  expect_s3_class(out, "data.frame")
+  expect_equal(names(out), c("B", "H"))
+})
+
+test_that("Error when none of the features have Moran plot", {
+  expect_error(clusterMoranPlot(sfe, c("Q", "L"), KmeansParam(2), "sample01"),
+               "None of the features requested")
+})
+
+test_that("Correct results when doing both gene expression and colData", {
+  out <- clusterMoranPlot(sfe, c("nCounts", "B", "H"), KmeansParam(2),
+                          sample_id = "sample01")
+  expect_s3_class(out, "data.frame")
+  expect_equal(names(out), c("B", "H", "nCounts"))
+  expect_true(all(vapply(out, is.factor, FUN.VALUE = logical(1))))
+  expect_equal(nrow(out), sum(colData(sfe)$sample_id == "sample01"))
+  expect_equal(rownames(out), colnames(sfe)[colData(sfe)$sample_id == "sample01"])
+})
+
+test_that("Correct Moran plot cluster results for colGeometry", {
+  out <- clusterMoranPlot(sfe, "foo", KmeansParam(2), sample_id = "sample01",
+                          colGeometryName = "spotPoly")
+  expect_s3_class(out, "data.frame")
+  expect_equal(names(out), "foo")
+  expect_s3_class(out$foo, "factor")
+})
+
+test_that("Error when the MoranPlot_sample01 column is absent", {
+  rowData(sfe)$MoranPlot_sample01 <- NULL
+  expect_error(clusterMoranPlot(sfe, c("Q", "L"), KmeansParam(2), "sample01"),
+               "None of the features requested")
+})
