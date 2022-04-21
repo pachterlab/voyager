@@ -2,8 +2,11 @@ library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
 library(Matrix)
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
+set.seed(29)
+colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
 mat <- assay(sfe, "counts")
 mat1 <- mat[,colData(sfe)$sample_id == "sample01"]
+colData(sfe)$nCounts <- colSums(mat)
 
 out_m <- calculateMoransI(mat1, listw = colGraph(sfe, "visium1", sample_id = "sample01"))
 test_that("Correct structure of calculateMoransI output (matrix)", {
@@ -15,7 +18,6 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
 })
 
 test_that("Correct structure of colDataMoransI output", {
-  colData(sfe)$nCounts <- colSums(mat)
   out <- colDataMoransI(sfe, "visium1", "nCounts", sample_id = "sample01")
   expect_s4_class(out, "SpatialFeatureExperiment")
   fd <- attr(colData(out), "featureData")
@@ -27,7 +29,6 @@ test_that("Correct structure of colDataMoransI output", {
 })
 
 test_that("Correct structure of colGeometryMoransI output", {
-  colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
   out <- colGeometryMoransI(sfe, colGeometryName = "spotPoly",
                             colGraphName = "visium1", features = "foo",
                             sample_id = "sample01")
@@ -69,6 +70,31 @@ test_that("Correct structure of calculateMoranMC output", {
   expect_equal(unname(i_score), out_m$I)
 })
 
+names_expect_mc <- c("statistic", "parameter", "p.value", "alternative",
+                  "method", "data.name", "res")
+names_expect_mc <- paste("MoranMC", names_expect_mc, "sample01", sep = "_")
+
+test_that("Correct structure of colDataMoranMC output", {
+  out <- colDataMoranMC(sfe, "visium1", "nCounts", sample_id = "sample01",
+                        nsim = 10)
+  fd <- attr(colData(out), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), names_expect_mc)
+  expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
+  expect_true(is.na(fd["barcode","MoranMC_statistic_sample01"]))
+  expect_false(is.na(fd["nCounts", "MoranMC_statistic_sample01"]))
+})
+
+test_that("Correct structure of colGeometryMoranMC output", {
+  out <- colGeometryMoranMC(sfe, "spotPoly", "visium1", "foo", "sample01", 10)
+  fd <- attr(colGeometry(out, "spotPoly"), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), names_expect_mc)
+  expect_equal(rownames(fd), c("geometry", "foo"))
+  expect_true(is.na(fd["geometry", "MoranMC_statistic_sample01"]))
+  expect_false(is.na(fd["foo", "MoranMC_statistic_sample01"]))
+})
+
 test_that("MoranMC results properly added to rowData", {
   sfe2 <- runMoranMC(sfe, "visium1", rownames(mat1), sample_id = "sample01",
                      exprs_values = "counts", nsim = 10)
@@ -87,6 +113,31 @@ test_that("calculateCorrelogram gives appropriate results (matrix)", {
   expect_equal(names(out), rownames(mat1))
   i1 <- vapply(out, function(o) o$res[1,1], FUN.VALUE = numeric(1))
   expect_equal(unname(i1), out_m$I)
+})
+
+test_that("Correct structure of colDataCorrelogram output", {
+  out <- colDataCorrelogram(sfe, "visium1", "nCounts", "sample01", order = 2)
+  fd <- attr(colData(out), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), "Correlogram_I_sample01")
+  expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
+  expect_true(is.na(fd["barcode","Correlogram_I_sample01"][[1]]))
+  res <- fd$Correlogram_I_sample01[[3]]
+  expect_equal(colnames(res), c("I", "expectation", "variance"))
+  expect_equal(nrow(res), 2L)
+})
+
+test_that("Correct structure of colGeometryCorrelogram output", {
+  out <- colGeometryCorrelogram(sfe, "spotPoly", "visium1", "foo", "sample01",
+                                order = 2)
+  fd <- attr(colGeometry(out, "spotPoly"), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), "Correlogram_I_sample01")
+  expect_equal(rownames(fd), c("geometry", "foo"))
+  expect_true(is.na(fd["geometry","Correlogram_I_sample01"][[1]]))
+  res <- fd$Correlogram_I_sample01[[2]]
+  expect_equal(colnames(res), c("I", "expectation", "variance"))
+  expect_equal(nrow(res), 2L)
 })
 
 test_that("Correlogram results correctly added to rowData", {

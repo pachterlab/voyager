@@ -314,10 +314,10 @@ setMethod("calculateGearyMC", "SpatialFeatureExperiment",
           .calc_univar_sfe_fun_mc(calculateGearyMC))
 
 .coldata_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, colGeometryName, colGraphName, features, sample_id = NULL, nsim,
+  function(x, colGraphName, features, sample_id = NULL, nsim,
            BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
            ...) {
-    .coldata_univar_fun(fun, to_df_fun, name)(x, colGeometryName, colGraphName,
+    .coldata_univar_fun(fun, to_df_fun, name)(x, colGraphName,
                                               features, sample_id, BPPARAM,
                                               zero.policy, nsim = nsim,
                                               alternative = alternative, ...)
