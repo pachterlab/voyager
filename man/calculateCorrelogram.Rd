@@ -147,12 +147,14 @@ object has more than one \code{sample_id}, then the \code{sample_id} will
 be appended to the name specified here separated by an underscore.}
 }
 \value{
-For \code{calculateCorrelogram} and the \code{colData},
-  \code{colGeometry}, and \code{annotGeometry} versions, a list of
+For \code{calculateCorrelogram}, a list of
   \code{spcor} objects, each element of which correslonds to a feature. For
   \code{runCorrelogram}, the \code{res} field of the \code{spcor} is taken
   and put in a list column in \code{rowData(x)}, and the SFE object with the
-  new \code{rowData} is returned.
+  new \code{rowData} is returned. For the colData, colGeometry, and
+  annotGeometry versions, the results are added to an attribute of the data
+  frame of interest called \code{featureData}, in a manner analogous to
+  \code{rowData}.
 }
 \description{
 Still debating whether I should write the wrapper. It should be

@@ -125,11 +125,13 @@ object has more than one \code{sample_id}, then the \code{sample_id} will
 be appended to the name specified here separated by an underscore.}
 }
 \value{
-For \code{calculateMoranPlot} and the \code{colData},
-  \code{colGeometry}, and \code{annotGeometry} versions, a list of data
-  frames that are the output of \code{\link{moran.plot}}. The names of the
-  list are the names of the features. For \code{runMoranPlot}, the list is
-  added to a column in \code{rowData(x)}. The plot is not made.
+For \code{calculateMoranPlot}, a list of data frames that are the
+  output of \code{\link{moran.plot}}. The names of the list are the names of
+  the features. For \code{runMoranPlot}, the list is added to a column in
+  \code{rowData(x)}. For the colData, colGeometry, and annotGeometry
+  versions, the results are added to an attribute of the data frame of
+  interest called \code{featureData}, in a manner analogous to
+  \code{rowData}. The plot is not made.
 }
 \description{
 To make it easier to compute the Moran scatterplot for a bunch of genes at

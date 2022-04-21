@@ -17,21 +17,9 @@
 \alias{runGearysC}
 \title{Calculate univariate spatial autocorrelation}
 \usage{
-\S4method{calculateMoransI}{ANY}(
-  x,
-  listw,
-  BPPARAM = SerialParam(),
-  zero.policy = NULL,
-  returnDF = FALSE
-)
+\S4method{calculateMoransI}{ANY}(x, listw, BPPARAM = SerialParam(), zero.policy = NULL)
 
-\S4method{calculateGearysC}{ANY}(
-  x,
-  listw,
-  BPPARAM = SerialParam(),
-  zero.policy = NULL,
-  returnDF = FALSE
-)
+\S4method{calculateGearysC}{ANY}(x, listw, BPPARAM = SerialParam(), zero.policy = NULL)
 
 \S4method{calculateMoransI}{SpatialFeatureExperiment}(
   x,
@@ -197,16 +185,17 @@ object has more than one \code{sample_id}, then the \code{sample_id} will
 be appended to the name specified here separated by an underscore.}
 }
 \value{
-For \code{calculate*}, a \code{DataFrame} with two columns: The
-  first one is I for Moran's I or C for Geary's C, and the second one is K
-  for sample kurtosis. For \code{run*}, a \code{SpatialFeatureExperiment}
-  object with the Moran's I or Geary's C values added to a column of
+For \code{calculate*}, a \code{DataFrame} with two columns: The first
+  one is I for Moran's I or C for Geary's C, and the second one is K for
+  sample kurtosis. For \code{run*}, a \code{SpatialFeatureExperiment} object
+  with the Moran's I or Geary's C values added to a column of
   \code{rowData(x)}, whose name is specified in the \code{name} argument,
   with \code{sample_id} appended if applicable. For \code{colData},
-  \code{colGeometry}, and \code{annotGeometry}, the results are added to the
-  attributes of the corresponding columns, with regular names. For instance,
-  Moran's I for nCounts for sample01 would in the "MoransI_sample01" of the
-  nCounts column in \code{colData}.
+  \code{colGeometry}, and \code{annotGeometry}, the results are added to an
+  attribute of the data frame called \code{featureData}, which is a DataFrame
+  analogous to \code{rowData} for the gene count matrix. New column names in
+  \code{featureData} would follow the same rules as in \code{rowData}. (I
+  need to write many examples to make it clear to users.)
 }
 \description{
 Compute Moran's I or Geary's C on gene expression or numeric columns of

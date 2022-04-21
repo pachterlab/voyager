@@ -24,4 +24,34 @@
   l[!null_inds]
 }
 
+.check_sample_id <- SpatialFeatureExperiment:::.check_sample_id
+
 .is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
+
+.add_name_sample_id <- function(x, out, sample_id) {
+  if (length(sampleIDs(x)) > 1L) {
+    names(out) <- paste(names(out), sample_id, sep = "_")
+  }
+  out
+}
+
+#' @importFrom S4Vectors make_zero_col_DFrame
+.initialize_featureData <- function(df) {
+  if (is.null(attr(df, "featureData"))) {
+    fd <- make_zero_col_DFrame(nrow = ncol(df))
+    rownames(fd) <- colnames(df)
+    attr(df, "featureData") <- fd
+  }
+  df
+}
+
+.add_fd <- function(x, df, res, features, sample_id, to_df_fun, name, to_df_params) {
+  args_use <- c(list(out = res, name = name), to_df_params)
+  res <- do.call(to_df_fun, args_use)
+  res <- .add_name_sample_id(x, res, sample_id)
+  df <- .initialize_featureData(df)
+  fd <- attr(df, "featureData")
+  fd[features, names(res)] <- res
+  attr(df, "featureData") <- fd
+  df
+}

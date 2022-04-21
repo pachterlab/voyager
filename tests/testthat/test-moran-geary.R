@@ -7,7 +7,7 @@ mat1 <- mat[,colData(sfe)$sample_id == "sample01"]
 
 out_m <- calculateMoransI(mat1, listw = colGraph(sfe, "visium1", sample_id = "sample01"))
 test_that("Correct structure of calculateMoransI output (matrix)", {
-  expect_true(is(out_m, "DataFrame"))
+  expect_s4_class(out_m, "DataFrame")
   expect_equal(names(out_m), c("I", "K"))
   expect_true(is.numeric(out_m$I))
   expect_true(is.numeric(out_m$K))
@@ -17,17 +17,19 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
 test_that("Correct structure of calculateMoransI output (colData)", {
   colData(sfe)$nCounts <- colSums(mat)
   out <- colDataMoransI(sfe, "visium1", "nCounts", sample_id = "sample01")
-  expect_true(is(out, "DataFrame"))
-  expect_equal(names(out), c("I", "K"))
-  expect_true(is.numeric(out$I))
-  expect_true(is.numeric(out$K))
-  expect_equal(rownames(out), "nCounts")
+  expect_s4_class(out, "SpatialFeatureExperiment")
+  fd <- attr(colData(out), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), c("MoransI_sample01", "K_sample01"))
+  expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
+  expect_true(is.na(fd["barcode","MoransI_sample01"]))
+  expect_false(is.na(fd["nCounts", "MoransI_sample01"]))
 })
 
 test_that("Correct structure of calculateMoransI output (SFE)", {
   out <- calculateMoransI(sfe, "visium1", features = rownames(mat1),
                           sample_id = "sample01", exprs_values = "counts")
-  expect_true(is(out, "DataFrame"))
+  expect_s4_class(out, "DataFrame")
   expect_equal(names(out), c("I", "K"))
   expect_true(is.numeric(out$I))
   expect_true(is.numeric(out$K))
