@@ -152,3 +152,48 @@ test_that("Correlogram results correctly added to rowData", {
   i1 <- vapply(rdc, function(r) r[1,1], FUN.VALUE = numeric(1))
   expect_equal(i1, out_m$I)
 })
+
+test_that("Correct structure of calculateMoranPlot (matrix)", {
+  out <- calculateMoranPlot(mat1, listw = colGraph(sfe, "visium1", sample_id = "sample01"))
+  expect_true(all(vapply(out, is.data.frame, FUN.VALUE = logical(1))))
+})
+
+names_expect_mp <- c("x", "wx", "is_inf", "labels", "dfb.1_", "dfb.x",
+                     "dffit", "cov.r", "cook.d", "hat")
+
+test_that("Correct structure of colDataMoranPlot output", {
+  out <- colDataMoranPlot(sfe, "visium1", "nCounts", "sample01")
+  fd <- attr(colData(out), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), "MoranPlot_sample01")
+  expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
+  expect_true(is.na(fd["barcode","MoranPlot_sample01"][[1]]))
+  res <- fd$MoranPlot_sample01[[3]]
+  expect_equal(colnames(res), names_expect_mp)
+  expect_equal(nrow(res), ncol(mat1))
+})
+
+test_that("Correct structure of colGeometryMoranPlot output", {
+  out <- colGeometryMoranPlot(sfe, "spotPoly", "visium1", "foo", "sample01")
+  fd <- attr(colGeometry(out, "spotPoly"), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), "MoranPlot_sample01")
+  expect_equal(rownames(fd), c("geometry", "foo"))
+  expect_true(is.na(fd["geometry","MoranPlot_sample01"][[1]]))
+  res <- fd$MoranPlot_sample01[[2]]
+  expect_equal(colnames(res), names_expect_mp)
+  expect_equal(nrow(res), ncol(mat1))
+})
+
+test_that("Correctly add runMoranPlot output to rowData", {
+  sfe2 <- runMoranPlot(sfe, "visium1", rownames(mat1), sample_id = "sample01",
+                       exprs_values = "counts")
+  rd <- rowData(sfe2)
+  expect_equal(names(rd), "MoranPlot_sample01")
+  rdc <- rd$MoranPlot_sample01
+  expect_true(all(vapply(rdc, is.data.frame, FUN.VALUE = logical(1))))
+  expect_true(all(vapply(rdc, function(r) identical(names(r), names_expect_mp),
+                         FUN.VALUE = logical(1))))
+  expect_true(all(vapply(rdc, nrow, FUN.VALUE = numeric(1)) == ncol(mat1)))
+})
+

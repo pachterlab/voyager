@@ -597,7 +597,7 @@ runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
   out <- .MoranPlot2df(out, name)
   rownames(out) <- features
   out <- .add_name_sample_id(x, out, sample_id)
-  rowData(x)[features, names(out_df)] <- out_df
+  rowData(x)[features, names(out)] <- out
   x
 }
 
