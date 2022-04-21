@@ -14,7 +14,7 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
   expect_equal(rownames(out_m), rownames(mat1))
 })
 
-test_that("Correct structure of calculateMoransI output (colData)", {
+test_that("Correct structure of colDataMoransI output", {
   colData(sfe)$nCounts <- colSums(mat)
   out <- colDataMoransI(sfe, "visium1", "nCounts", sample_id = "sample01")
   expect_s4_class(out, "SpatialFeatureExperiment")
@@ -24,6 +24,19 @@ test_that("Correct structure of calculateMoransI output (colData)", {
   expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
   expect_true(is.na(fd["barcode","MoransI_sample01"]))
   expect_false(is.na(fd["nCounts", "MoransI_sample01"]))
+})
+
+test_that("Correct structure of colGeometryMoransI output", {
+  colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
+  out <- colGeometryMoransI(sfe, colGeometryName = "spotPoly",
+                            colGraphName = "visium1", features = "foo",
+                            sample_id = "sample01")
+  fd <- attr(colGeometry(out, "spotPoly"), "featureData")
+  expect_s4_class(fd, "DataFrame")
+  expect_equal(names(fd), c("MoransI_sample01", "K_sample01"))
+  expect_equal(rownames(fd), c("geometry", "foo"))
+  expect_true(is.na(fd["geometry","MoransI_sample01"]))
+  expect_false(is.na(fd["foo", "MoransI_sample01"]))
 })
 
 test_that("Correct structure of calculateMoransI output (SFE)", {

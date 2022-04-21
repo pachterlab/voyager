@@ -135,6 +135,7 @@ setMethod("calculateGearysC", "SpatialFeatureExperiment",
 
 .df_univar_autocorr <- function(df, listw, features, fun, BPPARAM,
                                 zero.policy, ...) {
+  if (is(df, "sf")) df <- st_drop_geometry(df)
   mat <- t(as.matrix(df[, features, drop = FALSE]))
   if (anyNA(mat)) {
     stop("Only numeric columns without NA (within the sample_id) can be used.")
