@@ -613,6 +613,55 @@ runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
 #' for the feature of interest. If the Moran plot for that feature has not been
 #' computed for that feature in this sample_id, it will be calculated and stored
 #' in \code{rowData}. See \code{\link{calculateMoranPlot}}.
-#' @param feature One feature whose Moran plot is to be clustered.
-#' @return The clusters are added to \code{colData} of the SFE object and the
-#' SFE object is returned, just like in Seurat's \code{FindClusters}.
+#' @param colGeometryName Name of colGeometry from which the feature is from. If
+#' specified, then this function will only look in that colGeometry.
+#' @param annotGeometryName Name of annotGeometry from which the feature is from.
+#' If both \code{colGeometryName} and \code{annotGeometryName} are specified,
+#' then a warning is issued and \code{colGeometryName} will be used. If neither
+#' is specified, then this function will only look in \code{rownames(x)} and
+#' \code{colData(x)}.
+#' @param features Features whose Moran plot are to be cluster. Features whose
+#' Moran plots have not been computed will be skipped, with a warning.
+#' @return A data frame each column of which is a factor for cluster membership
+#' of each feature. The column names are the features.
+#' @importFrom bluster clusterRows
+#' @export
+clusterMoranPlot <- function(x, features, BLUSPARAM, sample_id = NULL,
+                             name = "MoranPlot",
+                             colGeometryName = NULL,
+                             annotGeometryName = NULL) {
+  sample_id <- .check_sample_id(x, sample_id)
+  colname_use <- paste(name, sample_id, sep = "_")
+  if (is.null(colGeometryName) && is.null(annotGeometryName)) {
+    features <- .check_features(x, features)
+    if (!is.null(features[["assay"]]) && colname_use %in% names(rowDatax)) {
+      mps_assay <- rowData(x)[features[["assay"]], colname_use]
+    } else mps_assay <- NULL
+    fd <- attr(colData(x), "featureData")
+    if (is.null(fd)) mps_coldata <- NULL
+    else if (!is.null(features[["coldata"]]) && colname_use %in% names(fd)) {
+      mps_coldata <- fd[features[["coldata"]], colname_use]
+    } else mps_coldata <- NULL
+    mps <- c(mps_assay, mps_coldata)
+    if (is.null(mps))
+      stop("None of the features requested from assays or colData have Moran plots computed.")
+    names(mps) <- c(features[["assay"]], features[["coldata"]])
+  } else if (!is.null(colGeometryName)) {
+    if (!is.null(annotGeometryName)) {
+      warning("Using colGeometryName rather than annotGeometryName.")
+    }
+    fd <- attr(colGeometry(x, colGeometryName, sample_id), "featureData")
+    mps <- fd[features, colname_use]
+    names(mps) <- features
+  } else if (!is.null(annotGeometryName)) {
+    fd <- attr(annotGeometry(x, annotGeometryName, sample_id), "featureData")
+    mps <- fd[features, colname_use]
+    names(mps) <- features
+  }
+  na_inds <- vapply(mps, is.na, FUN.VALUE = logical(1))
+  if (any(na_inds))
+    warning("Skipping features that don't have Moran plots computed.")
+  mps <- mps[!na_inds]
+  out <- lapply(mps, function(mp) clusterRows(mps[,c("x", "wx")], BLUSPARAM))
+  as.data.frame(out, row.names = colnames(x)[colData(x)$sample_id == sample_id])
+}
