@@ -5,6 +5,11 @@
 # in the plot function for spcor, but with ggplot.
 # 12. Cluster the correlograms and plot the clusters
 # 13. Plot the graphs with spatial coordinates
+# 14. Plot MoranMC results with ggplot2
+# Need to use vdiffr to unit test plotting functions that don't use sf
+# Shall I also allow users to plot dimension reductions as features?
+# For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
+# do that, not only for plotting functions, but also for the metrics.
 
 #' Get beginning and end of palette to center a divergent palette
 #'
@@ -17,7 +22,7 @@
 #' @export
 getDivergeRange <- function(values, diverge_center = 0) {
   rg <- range(values, na.rm = TRUE)
-  if (!between(diverge_center, rg[1], rg[2])) {
+  if (!(diverge_center >= rg[1] && diverge_center <= rg[2])) {
     stop("diverge_center must be between the minimum and maximum of the metric.")
   }
   rg_centered <- abs(rg - diverge_center)
@@ -238,24 +243,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = "black", fill = "gray70", ...) {
   aes_use <- match.arg(aes_use)
-  features_list <- .check_features(sfe, features, colGeometryName)
-  values <- list()
-  if (is.null(sample_id))
-    sample_id_ind <- rep(TRUE, ncol(sfe))
-  else
-    sample_id_ind <- colData(sfe)$sample_id %in% sample_id
-  if (!is.null(features_list[["assay"]])) {
-    values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
-                                             sample_id_ind, drop = FALSE]
-    values_assay <- as.data.frame(as.matrix(t(values_assay)))
-    values[["assay"]] <- values_assay
-  }
-  if (!is.null(features_list[["coldata"]]))
-    values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
-                                                      features_list[["coldata"]],
-                                                      drop = FALSE])
-  if (length(values) > 1L) values <- cbind(values$assay, values$coldata)
-
+  sample_id <- .check_sample_id(x, sample_id)
+  values <- .get_feature_values(sfe, features, sample_id)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
@@ -281,25 +270,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
   return(out)
 }
 
-#' Use ggplot to plot the moran.plot results
-#'
-#' Also plots contours showing point density to deal with over-plotting.
-#'
-#' @param mp Results from spdep::moran.plot.
-#' @param var_name Name of the variable to show on the plot. It will be converted
-#' to sentence case in the x axis and lower case in the y axis appended after
-#' "Spatially lagged".
-#' @param cluster string, the column name in mp to plot. The cluster column is
-#' added to the mp data frame. Don't use tidyeval. Again, I need a better way to
-#' organize the results.
-#' @param plot_singletons Logical, whether to plot items that don't have spatial
-#' neighbors.
-#' @return A ggplot object.
-#' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
-#' geom_density2d scale_shape_manual coord_equal labs
-#' @importFrom stringr str_to_sentence str_to_lower
-#' @export
-moran_ggplot <- function(mp, var_name, cluster = NULL, plot_singletons = TRUE) {
+.moran_ggplot <- function(mp, feature, color_by = NULL, plot_singletons = TRUE,
+                          divergent = FALSE, diverse_center = NULL, ...) {
   if (!plot_singletons) {
     mp <- mp[mp$wx > 0,]
   }
@@ -309,8 +281,10 @@ moran_ggplot <- function(mp, var_name, cluster = NULL, plot_singletons = TRUE) {
       geom_point(data = mp[mp$wx == 0,], shape = 21, size = 5, fill = "gray",
                  color = "black")
   }
-  if (!is.null(cluster)) {
-    pts <- geom_point(aes_string(shape = "is_inf", color = cluster))
+  if (!is.null(color_by)) {
+    pal <- .get_pal(mp, list(color = color_by), option = 1,
+                    divergent = divergent, diverge_center = diverge_center)
+    pts <- geom_point(aes_string(shape = "is_inf", color = color_by)) + pal
   } else {
     pts <- geom_point(aes(shape = is_inf), alpha = 0.7)
   }
@@ -318,56 +292,127 @@ moran_ggplot <- function(mp, var_name, cluster = NULL, plot_singletons = TRUE) {
     geom_smooth(formula=y ~ x, method="lm") +
     geom_hline(yintercept=mean(mp$wx), lty=2) +
     geom_vline(xintercept=mean(mp$x), lty=2) +
-    geom_density2d() +
+    geom_density2d(...) +
     scale_shape_manual(values = c(1, 9)) +
     coord_equal() +
-    labs(x = str_to_sentence(var_name),
-         y = paste("Spatially lagged", str_to_lower(var_name)),
+    labs(x = str_to_sentence(feature),
+         y = paste("Spatially lagged", str_to_lower(feature)),
          shape = "Influential")
-  if (!is.null(cluster)) {
-    p <- p +
-      scale_color_brewer(palette = "Set2")
-  }
   p
 }
 
-#' Plot uninfluential points from moran.plot as filled contours
-#'
-#' Just like moran_ggplot, this function plots moran.plot results with ggplot2.
-#' However, the uninfluential points are plotted as filled contours and only
-#' the influential points are plotted as points
-#'
-#' @inheritParams moran_ggplot
-#' @importFrom ggplot2 geom_density2d_filled scale_fill_viridis_d
-#' scale_x_continuous scale_y_continuous expansion
-#' @return A ggplot object.
-#' @export
-moran_ggplot_filled <- function(mp, var_name, plot_singletons = TRUE) {
+.moran_ggplot_filled <- function(mp, feature, color_by = NULL,
+                                 plot_singletons = TRUE, ...) {
   if (!plot_singletons) {
     mp <- mp[mp$wx > 0,]
   }
-  p <- ggplot(mp, aes(x=x, y=wx))
+  p <- ggplot(mp, aes(x=x, y=wx)) +
+    geom_density2d_filled(show.legend = FALSE, ...)
   if (plot_singletons) {
     p <- p +
-      geom_point(data = mp[mp$wx == 0,], shape = 21, size = 5, fill = "gray",
-                 color = "black")
+      geom_point(data = mp[mp$wx == 0 & mp$is_inf,], shape = 21, size = 5,
+                 fill = "blue", color = "cornflowerblue")
+  }
+  mp_inf <- mp[mp$is_inf,]
+  if (!is.null(color_by)) {
+    pal <- .get_pal(mp_inf, list(color = color_by), option = 1,
+                    divergent = divergent, diverge_center = diverge_center)
+    pts <- geom_point(data = mp_inf, aes_string(color = color_by),
+                      shape = 9) + pal
+  } else {
+    pts <- geom_point(data = mp_inf, shape = 9, color = "cornflowerblue")
   }
   p +
-    geom_density2d_filled(show.legend = FALSE) +
-    geom_point(data = mp[mp$wx == 0 & mp$is_inf,], shape = 21, size = 5,
-               fill = "blue", color = "cornflowerblue") +
     geom_smooth(formula=y ~ x, method="lm") +
     geom_hline(yintercept=mean(mp$wx), lty=2, color = "cornflowerblue") +
     geom_vline(xintercept=mean(mp$x), lty=2, color = "cornflowerblue") +
-    geom_point(data=mp[mp$is_inf,], aes(x=x, y=wx), shape=9, color = "cornflowerblue") +
+    pts +
     scale_fill_viridis_d(option = "E") +
     coord_equal() +
     scale_x_continuous(expand = expansion()) +
     scale_y_continuous(expand = expansion()) +
-    labs(x = str_to_sentence(var_name),
-         y = paste("Spatially lagged", str_to_lower(var_name)),
+    labs(x = str_to_sentence(feature),
+         y = paste("Spatially lagged", str_to_lower(feature)),
          shape = "Influential")
 }
+
+#' Use ggplot to plot the moran.plot results
+#'
+#' This function uses \code{ggplot2} to plot the Moran plot. The plot would be
+#' more aesthetically pleasing than the base R version implemented in
+#' \code{spdep}. In addition, contours are plotted to show point density on the
+#' plot, and the points can be colored by a variable, such as clusters. The
+#' contours may also be filled and only influential points plotted. When filled,
+#' the viridis E option is used.
+#'
+#' @inheritParams plotSpatialFeature
+#' @inheritParams clusterMoranPlot
+#' @param feature Name of one variable to show on the plot. It will be converted
+#'   to sentence case on the x axis and lower case in the y axis appended after
+#'   "Spatially lagged". One feature at a time since the colors in
+#'   \code{color_by} may be specific to this feature (e.g. from
+#'   \code{\link{clusterMoranPlot}}).
+#' @param color_by Variable to color the points by. It can be the name of a
+#'   column in colData, a gene, or the name of a column in the colGeometry
+#'   specified in colGeometryName. Or it can be a vector of the same length as
+#'   the number of cells/spots in the sample_id of interest.
+#' @param plot_singletons Logical, whether to plot items that don't have spatial
+#'   neighbors.
+#' @param filled Logical, whether to plot filled contours for the
+#'   non-influential points and only plot influential points as points.
+#' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
+#' @return A ggplot object.
+#' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
+#'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
+#'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
+#' @importFrom stringr str_to_sentence str_to_lower
+#' @export
+moranPlot <- function(sfe, feature, sample_id = NULL, color_by = NULL,
+                      colGeometryName = NULL, annotGeometryName = NULL,
+                      plot_singletons = TRUE,
+                      filled = FALSE, divergent = FALSE, diverge_center = NULL,
+                      name = "MoranPlot", ...) {
+  sample_id <- .check_sample_id(x, sample_id)
+  colname_use <- paste(name, sample_id, sep = "_")
+  if (is.null(colGeometryName) && is.null(annotGeometryName)) {
+    if (feature %in% rownames(sfe)) {
+      df <- rowData(sfe)
+    } else {
+      df <- attr(colData(sfe), "featureData")
+    }
+  } else if (!is.null(colGeometryName)) {
+    df <- attr(colGeometry(sfe, colGeometryName, sample_id), "featureData")
+  } else {
+    df <- attr(annotGeometry(sfe, annotGeometryName, sample_id), "featureData")
+  }
+  mp <- df[feature, colname_use][[1]]
+  if (is.na(mp)) stop("Moran plot has not been computed for this feature.")
+  if (length(color_by) == 1L && is.character(color_by)) {
+    # name of something
+    if (is.null(annotGeometryName) || !is.null(colGeometryName))
+      color_value <- .get_feature_values(sfe, color_by, sample_id,
+                                         colGeometryName)
+    else {
+      ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+      color_value <- st_drop_geometry(ag)[ag$sample_id == sample_id,
+                                          color_by, drop = FALSE]
+    }
+  } else if (length(color_by) == sum(colData(sfe)$sample_id == sample_id)) {
+    color_value <- color_by
+    color_by <- "V1"
+  } else {
+    stop("color_by must be either the name of a variable in sfe or a vector ",
+         "the same length as the number of cells/spots in this sample_id.")
+  }
+  mp <- cbind(mp, color_value)
+
+  if (filled)
+    .moran_ggplot_filled(mp, feature, color_by, plot_singletons, ...)
+  else
+    .moran_ggplot(mp, feature, color_by, plot_singletons, divergent,
+                  diverge_center, ...)
+}
+
 
 #' Plot the elbow plot or scree plot for PCA
 #'
