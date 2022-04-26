@@ -1,5 +1,3 @@
-# 8. My own plotting function for moran.plot, with ggplot2
-# 9. Plotting with divergent palette
 # 10. What to do with the image when using geom_sf
 # 11. Plot correlograms for multiple genes at once, with error bars (2 sd), as
 # in the plot function for spcor, but with ggplot.
@@ -10,6 +8,11 @@
 # Shall I also allow users to plot dimension reductions as features?
 # For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
 # do that, not only for plotting functions, but also for the metrics.
+# To do:
+# 1. I kind of find it annoying to type in colGeometryName and colGraphName.
+# Make those optional when there's only one anyway. Generalize .check_sample_id
+# 2. reverse_y? It's kind of hard to do that with sf.
+# 3. Make annotGeometry and annotGraph toy example and unit test.
 
 #' Get beginning and end of palette to center a divergent palette
 #'
@@ -105,7 +108,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 #' @importFrom sf st_is st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot aes_string geom_sf scale_fill_manual
-#' scale_color_manual scale_fill_distiller scale_color_distiller
+#' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
+#' geom_segment stat_density2d
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes, feature_fixed,
@@ -243,8 +247,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = "black", fill = "gray70", ...) {
   aes_use <- match.arg(aes_use)
-  sample_id <- .check_sample_id(x, sample_id)
-  values <- .get_feature_values(sfe, features, sample_id)
+  sample_id <- .check_sample_id(sfe, sample_id)
+  values <- .get_feature_values(sfe, features, sample_id, exprs_values = exprs_values)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
@@ -270,55 +274,148 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
   return(out)
 }
 
-.moran_ggplot <- function(mp, feature, color_by = NULL, plot_singletons = TRUE,
-                          divergent = FALSE, diverse_center = NULL, ...) {
-  if (!plot_singletons) {
-    mp <- mp[mp$wx > 0,]
+.plot_graph <- function(listw, coords, geometry = NULL, segment_size = 0.5,
+                        geometry_size = 0.5) {
+  cardnb <- card(listw$neighbours)
+  n <- length(listw$neighbours)
+  df <- data.frame(i = rep(1:n, cardnb),
+                   j = unlist(listw$neighbours))
+  df$x <- coords[,1][df$i]
+  df$y <- coords[,2][df$i]
+  df$x_end <- coords[,1][df$j]
+  df$y_end <- coords[,2][df$j]
+  p <- ggplot(df)
+  if (!is.null(geometry)) {
+    # Burning question: Shall I use geom_sf or just get the coordinates?
+    # Maybe for now I'll just get the coordinates.
+    coord_geom <- as.data.frame(st_coordinates(geometry))
+    names(coord_geom)[ncol(coord_geom)] <- "group"
+    geom_use <- switch (as.character(st_geometry_type(geometry, by_geometry = FALSE)),
+                        POINT = geom_point(data = coord_geom, aes(X, Y), size = geometry_size,
+                                           color = "gray70"),
+                        LINESTRING = geom_line(data = coord_geom, aes(X, Y, group = group),
+                                               size = geometry_size, color = "gray70"),
+                        POLYGON = geom_polygon(data = coord_geom, aes(X, Y, group = group),
+                                               size = geometry_size, color = "gray70", fill = NA)
+    )
+    p <- p + geom_use
+  } else {
+    p <- p +
+      geom_point(aes(x, y), size = geometry_size)
   }
+  p +
+    geom_segment(aes(x, y, xend = x_end, yend = y_end), size = segment_size) +
+    coord_equal() +
+    labs(x = NULL, y = NULL)
+}
+
+#' Plot spatial graphs
+#'
+#' A ggplot version of \code{spdep::plot.nb}, reducing boilerplate for SFE
+#' objects.
+#'
+#' @inheritParams plotSpatialFeature
+#' @param colGraphName Name of graph associated with columns of the gene count
+#' matrix.
+#' @importFrom SpatialExperiment spatialCoords
+#' @importFrom spdep card
+#' @importFrom sf st_coordinates st_centroid
+#' @return A ggplot2 object.
+#' @export
+plotColGraph <- function(sfe, colGraphName, colGeometryName = NULL, sample_id = NULL,
+                         segment_size = 0.5, geometry_size = 0.5) {
+  sample_id <- .check_sample_id(sfe, sample_id)
+  g <- colGraph(sfe, colGraphName, sample_id)
+  if (is.null(g)) stop("Graph ", colGraphName, " not found.")
+  coords <- spatialCoords(sfe)[colData(sfe)$sample_id == sample_id,]
+  geometry <- if (is.null(colGeometryName)) NULL else
+    colGeometry(sfe, colGeometryName, sample_id)
+  .plot_graph(g, coords, geometry, segment_size, geometry_size)
+}
+
+#' @rdname plotColGraph
+#' @export
+plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
+                           sample_id = NULL, segment_size = 0.5,
+                           geometry_size = 0.5) {
+  sample_id <- .check_sample_id(sfe, sample_id)
+  g <- annotGraph(sfe, annotGraphName, sample_id)
+  ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+  ag_type <- st_geometry_type(ag, by_geometry = FALSE)
+  if (ag_type == "POINT") {
+    coords <- st_coordinates(ag)
+  } else {
+    coords <- st_coordinates(st_centroid(ag))
+  }
+  .plot_graph(g, coords, ag, segment_size, geometry_size)
+}
+
+.moran_ggplot <- function(mp, feature, is_singleton, contour_color = "cyan",
+                          color_by = NULL, plot_singletons = TRUE,
+                          divergent = FALSE, diverge_center = NULL, ...) {
+  if (!plot_singletons) {
+    mp <- mp[!is_singleton,]
+  }
+  if (all(!is_singleton) && plot_singletons) plot_singletons <- FALSE
   p <- ggplot(mp, aes(x=x, y=wx))
   if (plot_singletons) {
+    # Need to use listw to check for singletons.
     p <- p +
-      geom_point(data = mp[mp$wx == 0,], shape = 21, size = 5, fill = "gray",
+      geom_point(data = mp[is_singleton,], shape = 21, size = 5, fill = "gray",
                  color = "black")
   }
   if (!is.null(color_by)) {
     pal <- .get_pal(mp, list(color = color_by), option = 1,
                     divergent = divergent, diverge_center = diverge_center)
-    pts <- geom_point(aes_string(shape = "is_inf", color = color_by)) + pal
+    p <- p + pal
+    pts <- geom_point(aes_string(shape = "is_inf", color = color_by))
   } else {
-    pts <- geom_point(aes(shape = is_inf), alpha = 0.7)
+    pts <- geom_point(aes(shape = is_inf), alpha = 0.5)
   }
-  p <- p + pts +
+  p <- p + pts
+  # stat_density2d doesn't work when there're too few points
+  # Unlikely in real data, but just in case
+  # The error doesn't show up until the plot is built.
+  p_test <- tryCatch(ggplot_build(p + stat_density2d(...)),
+                     error = function(e) {
+                       warning("Too few points for stat_density2d, not plotting contours.")
+                     },
+                     warning = function(w) {
+                       warning("Too few points for stat_density2d, not plotting contours.")
+                     })
+  if (is(p_test, "ggplot_built"))
+    p <- p + geom_density2d(color = contour_color, ...)
+  p <- p +
     geom_smooth(formula=y ~ x, method="lm") +
-    geom_hline(yintercept=mean(mp$wx), lty=2) +
-    geom_vline(xintercept=mean(mp$x), lty=2) +
-    geom_density2d(...) +
+    geom_hline(yintercept=mean(mp$wx), lty=2, color = "gray") +
+    geom_vline(xintercept=mean(mp$x), lty=2, color = "gray") +
     scale_shape_manual(values = c(1, 9)) +
     coord_equal() +
-    labs(x = str_to_sentence(feature),
-         y = paste("Spatially lagged", str_to_lower(feature)),
+    labs(x = feature,
+         y = paste("Spatially lagged", feature),
          shape = "Influential")
   p
 }
 
-.moran_ggplot_filled <- function(mp, feature, color_by = NULL,
+.moran_ggplot_filled <- function(mp, feature, is_singleton, color_by = NULL,
                                  plot_singletons = TRUE, ...) {
   if (!plot_singletons) {
-    mp <- mp[mp$wx > 0,]
+    mp <- mp[!is_singleton,]
   }
   p <- ggplot(mp, aes(x=x, y=wx)) +
     geom_density2d_filled(show.legend = FALSE, ...)
   if (plot_singletons) {
     p <- p +
-      geom_point(data = mp[mp$wx == 0 & mp$is_inf,], shape = 21, size = 5,
+      geom_point(data = mp[is_singleton & mp$is_inf,], shape = 21, size = 5,
                  fill = "blue", color = "cornflowerblue")
   }
   mp_inf <- mp[mp$is_inf,]
   if (!is.null(color_by)) {
     pal <- .get_pal(mp_inf, list(color = color_by), option = 1,
                     divergent = divergent, diverge_center = diverge_center)
+    p <- p + pal
     pts <- geom_point(data = mp_inf, aes_string(color = color_by),
-                      shape = 9) + pal
+                      shape = 9)
   } else {
     pts <- geom_point(data = mp_inf, shape = 9, color = "cornflowerblue")
   }
@@ -331,8 +428,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
     coord_equal() +
     scale_x_continuous(expand = expansion()) +
     scale_y_continuous(expand = expansion()) +
-    labs(x = str_to_sentence(feature),
-         y = paste("Spatially lagged", str_to_lower(feature)),
+    labs(x = feature,
+         y = paste("Spatially lagged", feature),
          shape = "Influential")
 }
 
@@ -365,14 +462,16 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
 #' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
 #'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
 #'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
-#' @importFrom stringr str_to_sentence str_to_lower
+#'   ggplot_build
+#' @importFrom ggplot2 aes
 #' @export
-moranPlot <- function(sfe, feature, sample_id = NULL, color_by = NULL,
+moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
+                      contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
                       name = "MoranPlot", ...) {
-  sample_id <- .check_sample_id(x, sample_id)
+  sample_id <- .check_sample_id(sfe, sample_id)
   colname_use <- paste(name, sample_id, sep = "_")
   if (is.null(colGeometryName) && is.null(annotGeometryName)) {
     if (feature %in% rownames(sfe)) {
@@ -386,30 +485,33 @@ moranPlot <- function(sfe, feature, sample_id = NULL, color_by = NULL,
     df <- attr(annotGeometry(sfe, annotGeometryName, sample_id), "featureData")
   }
   mp <- df[feature, colname_use][[1]]
-  if (is.na(mp)) stop("Moran plot has not been computed for this feature.")
-  if (length(color_by) == 1L && is.character(color_by)) {
-    # name of something
-    if (is.null(annotGeometryName) || !is.null(colGeometryName))
-      color_value <- .get_feature_values(sfe, color_by, sample_id,
-                                         colGeometryName)
-    else {
-      ag <- annotGeometry(sfe, annotGeometryName, sample_id)
-      color_value <- st_drop_geometry(ag)[ag$sample_id == sample_id,
-                                          color_by, drop = FALSE]
+  if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
+  if (!is.null(color_by)) {
+    if (length(color_by) == 1L && is.character(color_by)) {
+      # name of something
+      if (is.null(annotGeometryName) || !is.null(colGeometryName))
+        color_value <- .get_feature_values(sfe, color_by, sample_id,
+                                           colGeometryName)
+      else {
+        ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+        color_value <- st_drop_geometry(ag)[ag$sample_id == sample_id,
+                                            color_by, drop = FALSE]
+      }
+    } else if (length(color_by) == sum(colData(sfe)$sample_id == sample_id)) {
+      color_value <- color_by
+      color_by <- "V1"
+    } else {
+      stop("color_by must be either the name of a variable in sfe or a vector ",
+           "the same length as the number of cells/spots in this sample_id.")
     }
-  } else if (length(color_by) == sum(colData(sfe)$sample_id == sample_id)) {
-    color_value <- color_by
-    color_by <- "V1"
-  } else {
-    stop("color_by must be either the name of a variable in sfe or a vector ",
-         "the same length as the number of cells/spots in this sample_id.")
+    mp <- cbind(mp, color_value)
   }
-  mp <- cbind(mp, color_value)
-
+  listw <- colGraph(sfe, colGraphName, sample_id)
+  is_singleton <- lengths(listw$neighbours) == 0L
   if (filled)
-    .moran_ggplot_filled(mp, feature, color_by, plot_singletons, ...)
+    .moran_ggplot_filled(mp, feature, is_singleton, color_by, plot_singletons, ...)
   else
-    .moran_ggplot(mp, feature, color_by, plot_singletons, divergent,
+    .moran_ggplot(mp, feature, is_singleton, contour_color, color_by, plot_singletons, divergent,
                   diverge_center, ...)
 }
 

@@ -57,7 +57,8 @@
 }
 
 .get_feature_values <- function(sfe, features, sample_id,
-                                colGeometryName = NULL) {
+                                colGeometryName = NULL,
+                                exprs_values = "logcounts") {
   features_list <- .check_features(sfe, features, colGeometryName)
   values <- list()
   sample_id_ind <- colData(sfe)$sample_id %in% sample_id

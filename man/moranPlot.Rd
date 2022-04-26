@@ -7,7 +7,9 @@
 moranPlot(
   sfe,
   feature,
+  colGraphName,
   sample_id = NULL,
+  contour_color = "cyan",
   color_by = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
