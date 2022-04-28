@@ -30,7 +30,14 @@ to sentence case on the x axis and lower case in the y axis appended after
 \code{color_by} may be specific to this feature (e.g. from
 \code{\link{clusterMoranPlot}}).}
 
+\item{colGraphName}{Name of the \code{colGraph}, the spatial neighborhood
+graph used to compute the Moran plot. This is to determine which points are
+singletons to plot differently on this plot.}
+
 \item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+
+\item{contour_color}{Color of the point density contours, which can be
+changed so the contours stand out from the points.}
 
 \item{color_by}{Variable to color the points by. It can be the name of a
 column in colData, a gene, or the name of a column in the colGeometry

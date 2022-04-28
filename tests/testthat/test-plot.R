@@ -6,6 +6,7 @@ library(spatialLIBD)
 library(vdiffr)
 library(scRNAseq)
 library(scater)
+library(Matrix)
 # Toy example
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
 sfe <- runMoranPlot(sfe, "visium1", c("B", "H"), sample_id = "sample01",
@@ -70,7 +71,7 @@ ehub <- ExperimentHub::ExperimentHub()
 sce <- fetch_data(type = "sce_example", eh = ehub)
 # There's duplicated barcode. Not my fault. Just remove it. It's a toy example.
 sce <- sce[,!duplicated(colnames(sce))]
-sce <- sce[rowSums(assay(sce, "counts")) > 0,]
+sce <- sce[Matrix::rowSums(assay(sce, "counts")) > 0,]
 spe <- sce_to_spe(sce)
 sfe_libd <- toSpatialFeatureExperiment(spe)
 sample_use <- "151507"
@@ -122,8 +123,8 @@ test_that("plotColGraph", {
 # These functions are not specific to SFE, but I wrote them because I'm not
 # satisfied with existing plotting functions.
 fluidigm <- ReprocessedFluidigmData(assays = "tophat_counts")
-fluidigm <- fluidigm[rowSums(assay(fluidigm, "tophat_counts")) > 0,]
-fluidigm <- fluidigm[,colSums(assay(fluidigm, "tophat_counts")) > 0]
+fluidigm <- fluidigm[Matrix::rowSums(assay(fluidigm, "tophat_counts")) > 0,]
+fluidigm <- fluidigm[,Matrix::colSums(assay(fluidigm, "tophat_counts")) > 0]
 tot_counts <- colSums(assay(fluidigm, "tophat_counts"))
 logcounts(fluidigm) <- log1p(sweep(assay(fluidigm, "tophat_counts"), 2, tot_counts, "/")*1e5)
 fluidigm <- runPCA(fluidigm, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())

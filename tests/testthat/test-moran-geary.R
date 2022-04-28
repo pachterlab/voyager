@@ -4,10 +4,8 @@ library(Matrix)
 library(bluster)
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
 set.seed(29)
-colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
 mat <- assay(sfe, "counts")
 mat1 <- mat[,colData(sfe)$sample_id == "sample01"]
-colData(sfe)$nCounts <- colSums(mat)
 
 out_m <- calculateMoransI(mat1, listw = colGraph(sfe, "visium1", sample_id = "sample01"))
 test_that("Correct structure of calculateMoransI output (matrix)", {

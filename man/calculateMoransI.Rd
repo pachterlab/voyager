@@ -164,6 +164,9 @@ parallelized with the argument \code{BPPARAM}.}
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
 
+\item{...}{Other arguments passed to \code{\link{moran}} or
+\code{\link{geary}}.}
+
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
 \code{\link{colGeometryNames}} to look up names of the \code{sf} data

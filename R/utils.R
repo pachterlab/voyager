@@ -28,6 +28,10 @@
 
 .is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
 
+#' @importFrom SpatialFeatureExperiment sampleIDs annotGeometry annotGeometry<-
+#' colGeometry colGeometry<-
+#' @importFrom SummarizedExperiment colData<-
+#' @importFrom methods is
 .add_name_sample_id <- function(x, out, sample_id) {
   if (length(sampleIDs(x)) > 1L) {
     names(out) <- paste(names(out), sample_id, sep = "_")

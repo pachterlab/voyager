@@ -48,6 +48,8 @@
 #'   \code{\link{annotGeometryNames}} to look up names of the \code{sf} data
 #'   frames associated with annotations.
 #' @param sample_id Sample in the SFE object whose cells/spots to use.
+#' @param ... Other arguments passed to \code{\link{moran}} or
+#'   \code{\link{geary}}.
 #' @return For \code{calculate*}, a \code{DataFrame} with two columns: The first
 #'   one is I for Moran's I or C for Geary's C, and the second one is K for
 #'   sample kurtosis. For \code{run*}, a \code{SpatialFeatureExperiment} object

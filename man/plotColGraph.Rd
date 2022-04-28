@@ -27,7 +27,7 @@ plotAnnotGraph(
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{colGraphName}{Name of graph associated with columns of the gene count
-matrix.}
+matrix to be plotted.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -36,8 +36,16 @@ frames associated with cells/spots.}
 
 \item{sample_id}{Sample in the SFE object whose cells/spots to use.}
 
-\item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
-annotate the gene expression plot.}
+\item{segment_size}{Thickness of the segments that represent graph edges.}
+
+\item{geometry_size}{Point size (for POINT geometries) or line thickness (for
+LINESTRING and POLYGON) to plot the geometry in the background.}
+
+\item{annotGraphName}{Name of the annotation graph to plot.}
+
+\item{annotGeometryName}{Name of the \code{annotGeometry}, which is
+associated with the graph specified with \code{annotGraphName}, for spatial
+coordinates of the graph nodes and for context.}
 }
 \value{
 A ggplot2 object.

@@ -105,7 +105,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
   out
 }
 
-#' @importFrom sf st_is st_drop_geometry st_geometry_type
+#' @importFrom sf st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot aes_string geom_sf scale_fill_manual
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
 #' geom_segment stat_density2d
@@ -130,7 +130,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
   # Filled polygon annotations go beneath feature plot
   is_annot_filled <- !is.null(annot_df) &&
     ("fill" %in% names(c(annot_aes, annot_fixed))) &&
-    (st_is(annot_df, "POLYGON") || st_is(annot_df, "MULTIPOLYGON"))
+    type_annot %in% c("POLYGON", "MULTIPOLYGON")
   if ("fill" %in% names(annot_fixed))
     is_annot_filled <- is_annot_filled && !is.na(annot_fixed[["fill"]])
   if (is_annot_filled) {
@@ -241,6 +241,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   case it's different.
 #' @param annot_diverge_center Just as \code{diverge_center}, but for the
 #'   annotGeometry in case it's different.
+#' @param only_plot_expressed Logical, whether to only plot values > 0. This
+#' argument is only used when all values are non-negative.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
@@ -290,6 +292,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
   return(out)
 }
 
+#' @importFrom ggplot2 geom_line
 .plot_graph <- function(listw, coords, geometry = NULL, segment_size = 0.5,
                         geometry_size = 0.5) {
   cardnb <- card(listw$neighbours)
@@ -301,6 +304,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
   df$x_end <- coords[,1][df$j]
   df$y_end <- coords[,2][df$j]
   p <- ggplot(df)
+  X <- Y <- group <- x <- y <- x_end <- y_end <- NULL
   if (!is.null(geometry)) {
     # Burning question: Shall I use geom_sf or just get the coordinates?
     # Maybe for now I'll just get the coordinates.
@@ -332,7 +336,14 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
 #'
 #' @inheritParams plotSpatialFeature
 #' @param colGraphName Name of graph associated with columns of the gene count
-#' matrix.
+#'   matrix to be plotted.
+#' @param segment_size Thickness of the segments that represent graph edges.
+#' @param geometry_size Point size (for POINT geometries) or line thickness (for
+#'   LINESTRING and POLYGON) to plot the geometry in the background.
+#' @param annotGraphName Name of the annotation graph to plot.
+#' @param annotGeometryName Name of the \code{annotGeometry}, which is
+#'   associated with the graph specified with \code{annotGraphName}, for spatial
+#'   coordinates of the graph nodes and for context.
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom spdep card
 #' @importFrom sf st_coordinates st_centroid st_geometry
@@ -372,6 +383,7 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
   if (!plot_singletons) {
     mp <- mp[!is_singleton,]
   }
+  x <- wx <- is_inf <- NULL
   if (all(!is_singleton) && plot_singletons) plot_singletons <- FALSE
   p <- ggplot(mp, aes(x=x, y=wx))
   if (plot_singletons) {
@@ -414,10 +426,12 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
 }
 
 .moran_ggplot_filled <- function(mp, feature, is_singleton, color_by = NULL,
-                                 plot_singletons = TRUE, ...) {
+                                 plot_singletons = TRUE, divergent = FALSE,
+                                 diverge_center = NULL, ...) {
   if (!plot_singletons) {
     mp <- mp[!is_singleton,]
   }
+  x <- wx <- is_inf <- NULL
   p <- ggplot(mp, aes(x=x, y=wx)) +
     geom_density2d_filled(show.legend = FALSE, ...)
   if (plot_singletons) {
@@ -473,6 +487,11 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
 #'   neighbors.
 #' @param filled Logical, whether to plot filled contours for the
 #'   non-influential points and only plot influential points as points.
+#' @param colGraphName Name of the \code{colGraph}, the spatial neighborhood
+#'   graph used to compute the Moran plot. This is to determine which points are
+#'   singletons to plot differently on this plot.
+#' @param contour_color Color of the point density contours, which can be
+#'   changed so the contours stand out from the points.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
@@ -525,7 +544,8 @@ moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
   listw <- colGraph(sfe, colGraphName, sample_id)
   is_singleton <- lengths(listw$neighbours) == 0L
   if (filled)
-    .moran_ggplot_filled(mp, feature, is_singleton, color_by, plot_singletons, ...)
+    .moran_ggplot_filled(mp, feature, is_singleton, color_by, plot_singletons,
+                         divergent, diverge_center, ...)
   else
     .moran_ggplot(mp, feature, is_singleton, contour_color, color_by, plot_singletons, divergent,
                   diverge_center, ...)
@@ -555,6 +575,7 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   inds <- seq_len(ndims)
   df <- data.frame(PC = inds,
                    pct_var = percent_var[inds])
+  PC <- pct_var <- NULL
   ggplot(df, aes(PC, pct_var)) +
     geom_point() +
     labs(x = "PC", y = "Variance explained (%)") +
@@ -628,6 +649,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
   df_plt$gene <- paste(df_plt$gene_show, df_plt$PC, sep = "___")
   df_plt$gene <- reorder(df_plt$gene, df_plt$value)
   reg <- "___.+$"
+  value <- gene <- NULL
   ggplot(df_plt, aes(value, gene)) +
     geom_segment(aes(yend = gene), xend = 0, show.legend = FALSE) +
     geom_point(color = "blue") +

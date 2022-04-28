@@ -79,6 +79,9 @@ case it's different.}
 \item{annot_diverge_center}{Just as \code{diverge_center}, but for the
 annotGeometry in case it's different.}
 
+\item{only_plot_expressed}{Logical, whether to only plot values > 0. This
+argument is only used when all values are non-negative.}
+
 \item{size}{Fixed size of points or width of lines, including outlines of
 polygons. For polygons, this defaults to 0, meaning no outlines. For points
 and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.}
