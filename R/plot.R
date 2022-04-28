@@ -2,9 +2,7 @@
 # 11. Plot correlograms for multiple genes at once, with error bars (2 sd), as
 # in the plot function for spcor, but with ggplot.
 # 12. Cluster the correlograms and plot the clusters
-# 13. Plot the graphs with spatial coordinates
 # 14. Plot MoranMC results with ggplot2
-# Need to use vdiffr to unit test plotting functions that don't use sf
 # Shall I also allow users to plot dimension reductions as features?
 # For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
 # do that, not only for plotting functions, but also for the metrics.
@@ -530,16 +528,19 @@ moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
 #' @param reduction Name of the dimension reduction to use. It must have an
 #' attribute called "percentVar". Defaults to "PCA".
 #' @return A ggplot object. The y axis is percentage of variance explained.
+#' @importFrom scales breaks_extended
 #' @export
 ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   # For scater::runPCA results
   percent_var <- attr(reducedDim(sce, reduction), "percentVar")
+  if (length(percent_var) < ndims) ndims <- length(percent_var)
   inds <- seq_len(ndims)
   df <- data.frame(PC = inds,
                    pct_var = percent_var[inds])
   ggplot(df, aes(PC, pct_var)) +
     geom_point() +
-    labs(x = "PC", y = "Variance explained (%)")
+    labs(x = "PC", y = "Variance explained (%)") +
+    scale_x_continuous(breaks = breaks_extended(Q = c(1, 5, 2, 4)))
 }
 
 .get_top_loading_genes <- function(df, nfeatures, balanced) {
@@ -548,7 +549,7 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
     n2 <- floor(nfeatures/2)
     ord_plus <- order(df$value, decreasing = TRUE)
     ord_minus <- order(df$value, decreasing = FALSE)
-    out <- c(df[ord_plus[seq_len(n2)],], df[ord_minus[seq_len(n2)],])
+    out <- rbind(df[ord_plus[seq_len(n2)],], df[ord_minus[seq_len(n2)],])
   } else {
     ord <- order(abs(df$value), decreasing = TRUE)
     out <- df[ord[seq_len(nfeatures)],]
@@ -592,7 +593,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
   loading_cols <- paste0("PC", dims)
   df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),]), loadings[,loading_cols])
   if (!symbol_col %in% names(df) || !show_symbol) {
-    df$gene_show <- rownames(sce)
+    df$gene_show <- rownames(loadings)
   } else {
     df$gene_show <- df[[symbol_col]]
   }
@@ -601,6 +602,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     names(df_use)[2] <- "value"
     out <- .get_top_loading_genes(df_use, nfeatures, balanced)
     out$PC <- p
+    out
   })
   df_plt <- Reduce(rbind, df_plt)
   df_plt$PC <- factor(df_plt$PC, levels = loading_cols)
@@ -613,5 +615,6 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     geom_point(color = "blue") +
     geom_vline(xintercept = 0, linetype = 2) +
     facet_wrap(~ PC, scales = "free_y", ncol = 2) +
-    scale_y_discrete(labels = function(x) gsub(reg, "", x))
+    scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
+    labs(x = "Loading", y = "Gene")
 }
