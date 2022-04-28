@@ -1,7 +1,9 @@
 # Toy data to unit test functions in moran-geary.R
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(tidyverse)
 library(Matrix)
+library(sf)
 data("visium_row_col")
 # First sample
 coords1 <- visium_row_col %>%
@@ -38,4 +40,25 @@ sfe2 <- SpatialFeatureExperiment(list(counts = mat2), colData = coords2,
 colGraph(sfe1, "visium1") <- findVisiumGraph(sfe1)
 colGraph(sfe2, "visium2") <- findVisiumGraph(sfe2)
 sfe <- cbind(sfe1, sfe2)
+
+# Add annotGeometry and annotGraph
+set.seed(29)
+bbox1 <- st_bbox(spotPoly(sfe, "sample01"))
+annot_x <- runif(5, min = bbox1["xmin"], max = bbox1["xmax"])
+annot_y <- runif(5, min = bbox1["ymin"], max = bbox1["ymax"])
+annot_coords <- data.frame(x = annot_x, y = annot_y, sample_id = "sample01")
+annot_geom <- df2sf(annot_coords)
+annot_geom <- st_buffer(annot_geom, runif(5, max = 0.5))
+annotGeometry(sfe, "annot", "sample01") <- annot_geom
+annotGraph(sfe, "annot_tri", "sample01") <-
+  findSpatialNeighbors(sfe, "sample01", type = "annot", MARGIN = 3)
+
+# Add geometry metadata
+set.seed(29)
+colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
+colData(sfe)$nCounts <- colSums(counts(sfe))
+annotGeometry(sfe, "annot")$bar <- rnorm(5)
+colGeometry(sfe, "centroids") <- suppressWarnings(st_centroid(spotPoly(sfe)))
+colGeometry(sfe, "centroids")$category <- sample(LETTERS[22:26], ncol(sfe), replace = TRUE)
+
 saveRDS(sfe, "inst/testdata/sfe.rds")

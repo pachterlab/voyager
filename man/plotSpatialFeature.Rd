@@ -17,13 +17,15 @@ plotSpatialFeature(
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NULL,
+  annot_divergent = FALSE,
+  annot_diverge_center = NULL,
   only_plot_expressed = FALSE,
   size = 0,
   shape = 16,
   linetype = 1,
   alpha = 1,
   color = "black",
-  fill = "gray70",
+  fill = "gray80",
   ...
 )
 }
@@ -71,9 +73,15 @@ specified, then "shaped" will be used instead.}
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
 
+\item{annot_divergent}{Just as \code{divergent}, but for the annotGeometry in
+case it's different.}
+
+\item{annot_diverge_center}{Just as \code{diverge_center}, but for the
+annotGeometry in case it's different.}
+
 \item{size}{Fixed size of points or width of lines, including outlines of
 polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 1. Ignored if \code{size_by} is specified.}
+and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.}
 
 \item{shape}{Fixed shape of points, ignored if \code{shape_by} is specified
 and applicable.}

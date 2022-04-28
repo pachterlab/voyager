@@ -10,7 +10,6 @@
 # 1. I kind of find it annoying to type in colGeometryName and colGraphName.
 # Make those optional when there's only one anyway. Generalize .check_sample_id
 # 2. reverse_y? It's kind of hard to do that with sf.
-# 3. Make annotGeometry and annotGraph toy example and unit test.
 
 #' Get beginning and end of palette to center a divergent palette
 #'
@@ -41,13 +40,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
   fixed <- .fill_defaults(fixed)
   if (type %in% c("POINT", "MULTIPOINT")) {
     names_use <- c("size", "shape", "alpha", "color")
-    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 1
+    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
     shape <- fixed[["shape"]]
     if (!is.null(shape) && shape > 20L) {
       names_use <- c(names_use, "fill")
     }
   } else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
-    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 1
+    if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
     names_use <- c("size", "linetype", "alpha", "color")
   } else {
     # i.e. polygons
@@ -73,7 +72,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
   } else {
     if (divergent) {
       if (!is.null(diverge_center)) {
-        r <- df[[aes_applicable[["fill"]]]]
+        r <- df[[feature_aes[[.aes]]]]
         pal_range <- getDivergeRange(r, diverge_center)
         pal_begin <- pal_range[1]
         pal_end <- pal_range[2]
@@ -98,10 +97,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 .fill_defaults <- function(fixed) {
   defaults <- list(size = 0, shape = 16,
-                   linetype = 1, alpha = 1, color = "black", fill = "gray70",
+                   linetype = 1, alpha = 1, color = "black", fill = "gray80",
                    divergent = FALSE, diverge_center = NULL)
-  fill <- defaults[setdiff(names(fixed), names(defaults))]
-  .drop_null_list(c(fixed, fill))
+  fill <- defaults[setdiff(names(defaults), names(fixed))]
+  out <- .drop_null_list(c(fixed, fill))
+  if (is.na(out$fill)) out$size <- 0.5
+  out
 }
 
 #' @importFrom sf st_is st_drop_geometry st_geometry_type
@@ -109,18 +110,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
 #' geom_segment stat_density2d
 #' @importFrom scico scale_fill_scico scale_color_scico
-#' @importFrom ggnewscale new_scale_color
+#' @importFrom ggnewscale new_scale_color new_scale_fill
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes, feature_fixed,
-                         annot_aes, annot_fixed, divergent, diverge_center) {
+                         annot_aes, annot_fixed, divergent, diverge_center,
+                         annot_divergent, annot_diverge_center) {
   # Add annotGeometry if present
   if (!is.null(annot_df)) {
     annot_fixed <- .get_applicable(type_annot, annot_fixed)
     annot_fixed <- annot_fixed[setdiff(names(annot_fixed), names(annot_aes))]
+    if ("color" %in% names(annot_aes) && annot_fixed$size == 0)
+      annot_fixed$size <- 0.5
     aes_annot <- do.call(aes_string, annot_aes)
     geom_annot <- do.call(geom_sf, c(list(mapping = aes_annot, data = annot_df),
                                      annot_fixed))
-    pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_fixed$divergent,
-                          annot_fixed$diverge_center)
+    pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_divergent, annot_diverge_center)
   }
 
   p <- ggplot()
@@ -171,6 +174,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (aes_spec == "fill") aes_spec <- "color"
     if (aes_spec == "shape") aes_spec <- "linetype"
   }
+  if (type %in% c("POLYGON", "MULTIPOLYGON") || shape >= 20) {
+    aes_spec <- "fill"
+  }
   if (!.is_discrete(m) && aes_spec %in% c("shape", "linetype")) {
     stop("Shape and linetype are only applicable to discrete variables.")
   }
@@ -203,7 +209,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette should diverge. If \code{NULL}, then not centering.
 #' @param size Fixed size of points or width of lines, including outlines of
 #'   polygons. For polygons, this defaults to 0, meaning no outlines. For points
-#'   and lines, this defaults to 1. Ignored if \code{size_by} is specified.
+#'   and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.
 #' @param shape Fixed shape of points, ignored if \code{shape_by} is specified
 #'   and applicable.
 #' @param linetype Fixed line type, ignored if \code{linetype_by} is specified
@@ -231,6 +237,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   applicable. The specified value will be changed to the applicable
 #'   equivalent. For example, if the geometry is point but "linetype" is
 #'   specified, then "shaped" will be used instead.
+#' @param annot_divergent Just as \code{divergent}, but for the annotGeometry in
+#'   case it's different.
+#' @param annot_diverge_center Just as \code{diverge_center}, but for the
+#'   annotGeometry in case it's different.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
@@ -240,20 +250,27 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts",
                                aes_use = c("fill", "color", "shape", "linetype"),
-                               divergent = FALSE,
-                               diverge_center = NULL, only_plot_expressed = FALSE,
+                               divergent = FALSE, diverge_center = NULL,
+                               annot_divergent = FALSE,
+                               annot_diverge_center = NULL,
+                               only_plot_expressed = FALSE,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
-                               color = "black", fill = "gray70", ...) {
+                               color = "black", fill = "gray80", ...) {
   aes_use <- match.arg(aes_use)
   sample_id <- .check_sample_id(sfe, sample_id)
-  values <- .get_feature_values(sfe, features, sample_id, exprs_values = exprs_values)
+  values <- .get_feature_values(sfe, features, sample_id,
+                                colGeometryName = colGeometryName,
+                                exprs_values = exprs_values)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
     annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
     type_annot <- st_geometry_type(annot_df, by_geometry = FALSE)
   }
-  else annot_df <- NULL; type_annot <- NULL
+  else {
+    annot_df <- NULL
+    type_annot <- NULL
+  }
   feature_fixed <- list(size = size, shape = shape, linetype = linetype,
                         alpha = alpha, color = color, fill = fill)
   type <- st_geometry_type(df, by_geometry = FALSE)
@@ -262,7 +279,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
     feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
     feature_aes <- setNames(list(n), feature_aes_name)
     .plot_var_sf(df, annot_df, type, type_annot, feature_aes, feature_fixed,
-                 annot_aes, annot_fixed, divergent, diverge_center)
+                 annot_aes, annot_fixed, divergent, diverge_center,
+                 annot_divergent, annot_diverge_center)
   })
   if (length(plots) > 1L) {
     out <- wrap_plots(plots, ncol = ncol, ...)
@@ -317,7 +335,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
 #' matrix.
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom spdep card
-#' @importFrom sf st_coordinates st_centroid
+#' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
 plotColGraph <- function(sfe, colGraphName, colGeometryName = NULL, sample_id = NULL,
@@ -343,7 +361,7 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
   if (ag_type == "POINT") {
     coords <- st_coordinates(ag)
   } else {
-    coords <- st_coordinates(st_centroid(ag))
+    coords <- st_coordinates(st_centroid(st_geometry(ag)))
   }
   .plot_graph(g, coords, ag, segment_size, geometry_size)
 }

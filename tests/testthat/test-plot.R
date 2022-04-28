@@ -3,20 +3,67 @@ library(SpatialFeatureExperiment)
 library(SpatialExperiment)
 library(SingleCellExperiment)
 library(spatialLIBD)
-library(stringr)
 library(vdiffr)
 library(scRNAseq)
 library(scater)
 # Toy example
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
-set.seed(29)
-colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
-mat <- assay(sfe, "counts")
-colData(sfe)$nCounts <- colSums(mat)
 sfe <- runMoranPlot(sfe, "visium1", c("B", "H"), sample_id = "sample01",
                     exprs_values = "counts")
-sfe <- colDataMoranPlot(sfe, "visium1", features = "nCounts",
-                        sample_id = "sample01")
+
+test_that("Everything plotSpatialFeature", {
+  #testthat::skip("Skipping plots that require sf")
+  expect_doppelganger("Plot gene expression",
+                      plotSpatialFeature(sfe, "spotPoly", "H", "sample01",
+                                         exprs_values = "counts"))
+  expect_doppelganger("Plot colData",
+                      plotSpatialFeature(sfe, "spotPoly", "nCounts", "sample01",
+                                         exprs_values = "counts"))
+  expect_doppelganger("Plot colGeometry",
+                      plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+                                         exprs_values = "counts"))
+  expect_doppelganger("Plot with annotGeometry", {
+    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+                       annotGeometryName = "annot")
+  })
+  expect_doppelganger("Plot with annotGeometry, with new fill scale", {
+    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+                       annotGeometryName = "annot",
+                       annot_aes = list(fill = "bar"))
+  })
+  expect_doppelganger("Plot with annotGeometry, colored outlines of polygons", {
+    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+                       annotGeometryName = "annot",
+                       annot_aes = list(color = "bar"),
+                       annot_fixed = list(fill = NA))
+  })
+  expect_doppelganger("Divergent scale", {
+    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+                       exprs_values = "counts", divergent = TRUE,
+                       diverge_center = 0)
+  })
+  expect_doppelganger("Divergent scale, annot also on divergent scale", {
+    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+                       exprs_values = "counts", divergent = TRUE,
+                       diverge_center = 0, annotGeometryName = "annot",
+                       annot_aes = list(fill = "bar"),
+                       annot_divergent = TRUE, annot_diverge_center = 0)
+  })
+  expect_doppelganger("Divergent scale, annot not on divergent scale", {
+    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+                       exprs_values = "counts", divergent = TRUE,
+                       diverge_center = 0, annotGeometryName = "annot",
+                       annot_aes = list(fill = "bar"),
+                       annot_divergent = FALSE)
+  })
+  expect_doppelganger("Discrete, represented as point shapes", {
+    plotSpatialFeature(sfe, "centroids", "category", "sample01",
+                       aes_use = "shape", size = 2)
+  })
+  expect_doppelganger("Discrete, represented as color", {
+    plotSpatialFeature(sfe, "centroids", "category", "sample01", size = 2)
+  })
+})
 
 # Real dataset, from spatialLIBD
 ehub <- ExperimentHub::ExperimentHub()
@@ -79,7 +126,7 @@ fluidigm <- fluidigm[rowSums(assay(fluidigm, "tophat_counts")) > 0,]
 fluidigm <- fluidigm[,colSums(assay(fluidigm, "tophat_counts")) > 0]
 tot_counts <- colSums(assay(fluidigm, "tophat_counts"))
 logcounts(fluidigm) <- log1p(sweep(assay(fluidigm, "tophat_counts"), 2, tot_counts, "/")*1e5)
-fluidigm <- runPCA(fluidigm, ncomponents = 20)
+fluidigm <- runPCA(fluidigm, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
 
 test_that("ElbowPlot for PCA", {
   expect_doppelganger("ElbowPlot, default", ElbowPlot(fluidigm))

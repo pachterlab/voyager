@@ -62,22 +62,22 @@
   features_list <- .check_features(sfe, features, colGeometryName)
   values <- list()
   sample_id_ind <- colData(sfe)$sample_id %in% sample_id
-  if (!is.null(features_list[["assay"]])) {
+  if (length(features_list[["assay"]])) {
     values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
                                              sample_id_ind, drop = FALSE]
     values_assay <- as.data.frame(as.matrix(t(values_assay)))
     values[["assay"]] <- values_assay
   }
-  if (!is.null(features_list[["coldata"]]))
+  if (length(features_list[["coldata"]]))
     values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
                                                       features_list[["coldata"]],
                                                       drop = FALSE])
-  if (!is.null(features_list[["colgeom"]])) {
+  if (length(features_list[["colgeom"]])) {
     cg <- colGeometry(sfe, colGeometryName, sample_id)
     values[["colgeom"]] <- st_drop_geometry(cg)[sample_id_ind,
                                                 features_list[["colgeom"]],
                                                 drop = FALSE]
   }
-  if (length(values) > 1L) values <- do.call(cbind, values)
+  if (length(values) > 1L) values <- do.call(cbind, values) else values <- values[[1]]
   values
 }
