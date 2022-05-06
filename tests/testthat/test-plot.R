@@ -118,6 +118,41 @@ test_that("plotColGraph", {
                                    sample_id = "sample01"))
 })
 
+# Some spots don't have such high order of neighbors
+sfe_libd <- runCorrelogram(sfe_libd, features = feature_use,
+                           colGraphName = "visium", sample_id = sample_use,
+                           order = 5, zero.policy = TRUE)
+sfe_libd <- runCorrelogram(sfe_libd, features = feature_use,
+                           colGraphName = "visium", sample_id = sample_use,
+                           order = 5, zero.policy = TRUE,
+                           method = "corr")
+sfe_libd <- runCorrelogram(sfe_libd, features = feature_use,
+                           colGraphName = "visium", sample_id = sample_use,
+                           order = 5, zero.policy = TRUE,
+                           method = "C")
+sfe_libd <- colDataCorrelogram(sfe_libd, "visium", "sum_umi",
+                               sample_id = sample_use, order = 5,
+                               zero.policy = TRUE)
+test_that("plotCorrelogram", {
+  expect_doppelganger("plotCorrelogram, one gene, I",
+                      plotCorrelogram(sfe_libd, feature_use, sample_use))
+  expect_doppelganger("plotCorrelogram, one gene, corr",
+                      plotCorrelogram(sfe_libd, feature_use, sample_use, method = "corr"))
+  expect_doppelganger("plotCorrelogram, one gene, C",
+                      plotCorrelogram(sfe_libd, feature_use, sample_use, method = "C"))
+  expect_doppelganger("plotCorrelogram, colData, I",
+                      plotCorrelogram(sfe_libd, "sum_umi", sample_use))
+  expect_doppelganger("plotCorrelogram, specify gene and colData, I",
+                      plotCorrelogram(sfe_libd, c(feature_use, "sum_umi"), sample_use))
+  expect_doppelganger("plotCorrelogram, categorical color_by",
+                      plotCorrelogram(sfe_libd, c(feature_use, "sum_umi"), sample_use,
+                                      color_by = c("foo", "bar")))
+  expect_doppelganger("plotCorrelogram, continuous color_by",
+                      plotCorrelogram(sfe_libd, c(feature_use, "sum_umi"), sample_use,
+                                      color_by = 1:2) +
+                        ggplot2::theme_dark())
+})
+
 # Just toy example to test plotting functions
 # Need this because the spe toy dataset only has 1 gene
 # These functions are not specific to SFE, but I wrote them because I'm not

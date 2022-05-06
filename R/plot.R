@@ -664,7 +664,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 
   p <- p +
     geom_line() + geom_point() +
-    scale_x_continuous(breaks = breaks_extended(n = 10, Q = 1:5)) +
+    scale_x_continuous(breaks = breaks_extended(n = min(max(df$lags), 10), Q = 1:5)) +
     theme(panel.grid.minor.x = element_blank())
   if (method %in% c("I", "C")) {
     p <- p +
@@ -672,6 +672,8 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
     if (plot_signif)
       p <- p + geom_text(aes(y = ymax, label = p_symbol), vjust = 0,
                          show.legend = FALSE)
+  } else {
+    p <- p + geom_hline(yintercept = 0, linetype = 2, alpha = 0.7)
   }
   if (!is.null(color_by) && length(features) > 1L) {
     pal <- .get_pal(df, feature_aes = list(color = "color_by"), option = 1,
@@ -713,7 +715,7 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   ggplot(df, aes(PC, pct_var)) +
     geom_point() +
     labs(x = "PC", y = "Variance explained (%)") +
-    scale_x_continuous(breaks = breaks_extended(n = 10, Q = 1:5)) +
+    scale_x_continuous(breaks = breaks_extended(n = min(ndims, 10), Q = 1:5)) +
     theme(panel.grid.minor.x = element_blank())
 }
 
