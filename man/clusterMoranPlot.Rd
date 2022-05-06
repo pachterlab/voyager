@@ -28,9 +28,9 @@ Moran plots have not been computed will be skipped, with a warning.}
 \item{sample_id}{Sample in the SFE object whose cells/spots to use.}
 
 \item{name}{String specifying the name to be used to store the results in
-\code{rowData(x)} for \code{runMoransI} and \code{runGearysC}. If the SFE
-object has more than one \code{sample_id}, then the \code{sample_id} will
-be appended to the name specified here separated by an underscore.}
+\code{rowData(x)}. If not already present in the name, then the
+\code{sample_id} will be appended to the name specified here separated by
+an underscore.}
 
 \item{colGeometryName}{Name of colGeometry from which the feature is from. If
 specified, then this function will only look in that colGeometry.}

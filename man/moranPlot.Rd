@@ -64,9 +64,9 @@ non-influential points and only plot influential points as points.}
 palette should diverge. If \code{NULL}, then not centering.}
 
 \item{name}{String specifying the name to be used to store the results in
-\code{rowData(x)} for \code{runMoransI} and \code{runGearysC}. If the SFE
-object has more than one \code{sample_id}, then the \code{sample_id} will
-be appended to the name specified here separated by an underscore.}
+\code{rowData(x)}. If not already present in the name, then the
+\code{sample_id} will be appended to the name specified here separated by
+an underscore.}
 
 \item{...}{Other arguments to pass to \code{\link{geom_density2d}}.}
 }

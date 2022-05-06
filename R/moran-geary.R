@@ -28,9 +28,9 @@
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether
 #'   and how computing the metric for numerous genes shall be parallelized.
 #' @param name String specifying the name to be used to store the results in
-#'   \code{rowData(x)} for \code{runMoransI} and \code{runGearysC}. If the SFE
-#'   object has more than one \code{sample_id}, then the \code{sample_id} will
-#'   be appended to the name specified here separated by an underscore.
+#'   \code{rowData(x)}. If not already present in the name, then the
+#'   \code{sample_id} will be appended to the name specified here separated by
+#'   an underscore.
 #' @param colGraphName Name of the listw graph in the SFE object that
 #'   corresponds to entities represented by columns of the gene count matrix.
 #'   Use \code{\link{colGraphNames}} to look up names of the available graphs
@@ -470,9 +470,9 @@ setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
           })
 
 .correlogram2df <- function(out, name, method) {
-  if (method == "I") {
+  if (method %in% c("I", "C")) {
     out <- lapply(out, function(o) {
-      colnames(o$res) <- c("I", "expectation", "variance")
+      colnames(o$res) <- c(method, "expectation", "variance")
       o
     })
   }

@@ -28,14 +28,20 @@
 
 .is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
 
+.add_sample_id <- function(name, sample_id) {
+  if (!grepl(sample_id, name)) {
+    name <- paste(name, sample_id, sep = "_")
+  }
+  name
+}
+
 #' @importFrom SpatialFeatureExperiment sampleIDs annotGeometry annotGeometry<-
 #' colGeometry colGeometry<-
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
 .add_name_sample_id <- function(x, out, sample_id) {
-  if (length(sampleIDs(x)) > 1L) {
-    names(out) <- paste(names(out), sample_id, sep = "_")
-  }
+  names(out) <- vapply(names(out), .add_sample_id, sample_id = sample_id,
+                       FUN.VALUE = character(1))
   out
 }
 
@@ -84,4 +90,64 @@
   }
   if (length(values) > 1L) values <- do.call(cbind, values) else values <- values[[1]]
   values
+}
+
+.is_na_list <- function(l) {
+  vapply(l, function(d) isTRUE(is.na(d)), logical(1))
+}
+
+.get_not_na_items <- function(df, features, colname_use) {
+  if (is(df, "sf")) df <- st_drop_geometry(df)
+  out <- setNames(df[features, colname_use], features)
+  out[!.is_na_list(out)]
+}
+
+.get_feature_metadata <- function(sfe, features, name, sample_id,
+                                  colGeometryName, annotGeometryName) {
+  colname_use <- .add_sample_id(name, sample_id)
+  out_rd <- out_cd <- out_cg <- out_ag <- NULL
+  features_rd <- intersect(features, rownames(sfe))
+  if (length(features_rd)) {
+    out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
+    features <- setdiff(features, names(out_rd))
+  }
+  features_cd <- intersect(features, names(colData(sfe)))
+  if (length(features_cd)) {
+    fd <- attr(colData(sfe), "featureData")
+    if (!is.null(fd)) {
+      out_cd <- .get_not_na_items(fd, features_cd, colname_use)
+      features <- setdiff(features, names(out_cd))
+    }
+  }
+  if (!is.null(colGeometryName)) {
+    cg <- colGeometry(sfe, colGeometryName, sample_id)
+    features_cg <- intersect(features, names(cg))
+    if (length(features_cg)) {
+      fd <- attr(cg, "featureData")
+      if (!is.null(fd)) {
+        out_cg <- .get_not_na_items(fd, features_cg, colname_use)
+        features <- setdiff(features, names(out_cg))
+      }
+    }
+  }
+  if (!is.null(annotGeometryName)) {
+    ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+    features_ag <- intersect(features, names(ag))
+    if (length(features_ag)) {
+      fd <- attr(ag, "featureData")
+      if (!is.null(fd)) {
+        out_ag <- .get_not_na_items(fd, features_ag, colname_use)
+        features <- setdiff(features, names(out_ag))
+      }
+    }
+  }
+  out <- c(out_rd, out_cd, out_cg, out_ag)
+  if (is.null(out)) {
+    stop("None of the features has the requested metadata.")
+  }
+  if (length(features)) {
+    warning("Features ", paste(features, collapse = ", "),
+            " don't have the requested metadata.")
+  }
+  out
 }

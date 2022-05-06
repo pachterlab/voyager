@@ -507,19 +507,8 @@ moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
                       name = "MoranPlot", ...) {
   sample_id <- .check_sample_id(sfe, sample_id)
-  colname_use <- paste(name, sample_id, sep = "_")
-  if (is.null(colGeometryName) && is.null(annotGeometryName)) {
-    if (feature %in% rownames(sfe)) {
-      df <- rowData(sfe)
-    } else {
-      df <- attr(colData(sfe), "featureData")
-    }
-  } else if (!is.null(colGeometryName)) {
-    df <- attr(colGeometry(sfe, colGeometryName, sample_id), "featureData")
-  } else {
-    df <- attr(annotGeometry(sfe, annotGeometryName, sample_id), "featureData")
-  }
-  mp <- df[feature, colname_use][[1]]
+  mp <- .get_feature_metadata(sfe, feature, name, sample_id, colGeometryName,
+                              annotGeometryName)[[1]]
   if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
   if (!is.null(color_by)) {
     if (length(color_by) == 1L && is.character(color_by)) {
@@ -551,6 +540,151 @@ moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
                   diverge_center, ...)
 }
 
+#' Plot correlogram
+#'
+#' Use \code{ggplot2} to plot correlograms computed by
+#' \code{\link{runCorrelogram}}, pulling results from \code{rowData}.
+#' Correlograms of multiple genes with error bars can be plotted, and they can
+#' be colored by any numeric or categorical column in \code{rowData} or a vector
+#' with the same length as \code{nrow} of the SFE object. The coloring is useful
+#' when the correlograms are clustered to show types of length scales or
+#' patterns of decay of spatial autocorrelation. For \code{method = "I"}, the
+#' error bars are twice the standard deviation of the estimated Moran's I value.
+#'
+#' @inheritParams plotSpatialFeature
+#' @inheritParams calculateMoransI
+#' @inheritParams spdep::sp.correlogram
+#' @param color_by Name of a column in \code{rowData(sfe)} or in the
+#'   \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
+#'   \code{annotGeometry} by which to color the correlogram of each feature.
+#' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
+#'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
+#'   p-values are two sided, based on the assumption that the estimated Moran's
+#'   I is normally distributed with mean from a randomized version of the data.
+#'   The mean and variance come from \code{\link{moran.test}} for Moran's I and
+#'   \code{\link{geary.test}} for Geary's C. Take the results with a grain of
+#'   salt if the data is not normally distributed.
+#' @param p_adj_method Multiple testing correction method as in
+#'   \code{\link{p.adjust}}, to correct for multiple testing (number of lags
+#'   times number of features) in the Moran's I estimates if \code{plot_signif =
+#'   TRUE}.
+#' @return A ggplot object.
+#' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
+#' @importFrom stats p.adjust pnorm symnum
+#' @export
+plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
+                            color_by = NULL,
+                            colGeometryName = NULL, annotGeometryName = NULL,
+                            plot_signif = TRUE, p_adj_method = "BH",
+                            divergent = FALSE, diverge_center = NULL,
+                            name = paste("Correlogram", method, sep = "_")) {
+  sample_id <- .check_sample_id(sfe, sample_id)
+  ress <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
+                                annotGeometryName)
+  if (!is.null(color_by)) {
+    # Different from moranPlot
+    if (is.character(color_by) && length(color_by) == 1L) {
+      color_value <- .get_feature_metadata(sfe, features, color_by, sample_id,
+                                           colGeometryName,
+                                           annotGeometryName)
+      color_value <- color_value[names(ress)]
+    } else if (length(color_by) == length(features)) {
+      if (is.null(names(color_by))) names(color_by) <- features
+      color_value <- color_by[names(ress)]
+    } else {
+      stop("color_by must be either the name of a feature in sfe or a vector ",
+           "the same length as the number of the features argument.")
+    }
+  }
+  if (method == "corr") {
+    dfs <- lapply(seq_along(ress), function(i) {
+      res <- ress[[i]]
+      if (isTRUE(is.na(res))) return(NA)
+      out <- data.frame(lags = seq_along(res),
+                        res = res)
+      if (length(ress) > 1L) out$feature <- names(ress)[i]
+      if (!is.null(color_by)) out$color_by <- color_value[i]
+      out
+    })
+  } else {
+    dfs <- lapply(seq_along(ress), function(i) {
+      res <- ress[[i]]
+      if (isTRUE(is.na(res))) return(NA)
+      out <- as.data.frame(res)
+      names(out)[names(out) == method] <- "res"
+      out$lags <- seq_len(nrow(out))
+      out$sd2 <- 2*sqrt(out$variance)
+      out$ymin <- out$res - out$sd2
+      out$ymax <- out$res + out$sd2
+      if (length(features) > 1L) out$feature <- features[[i]]
+      if (!is.null(color_by)) out$color_by <- color_value[i]
+      out
+    })
+  }
+  is_na_dfs <- vapply(dfs, function(d) isTRUE(is.na(d)), FUN.VALUE = logical(1))
+  if (all(is_na_dfs))
+    stop("Correlogram has not been computed for any of the features specified ",
+         " with method ", method, " for sample ", sample_id)
+  if (any(is_na_dfs))
+    warning("Correlogram has not been computed for features ",
+            paste(features[is_na_dfs], sep = ", "), " with method ", method,
+            " for sample ", sample_id)
+
+  dfs <- dfs[!is_na_dfs]
+  df <- Reduce(rbind, dfs)
+  if (method %in% c("I", "C") && plot_signif) {
+    df$z <- (df$res - df$expectation)/sqrt(df$variance)
+    df$p <- 2*pnorm(abs(df$z), lower.tail = FALSE)
+    df$p_adj <- p.adjust(df$p, method = p_adj_method)
+    df$p_symbol <- format(symnum(df$p_adj, corr = FALSE, na = FALSE,
+                                 cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                                 symbols = c("***", "**", "*", ".", "")))
+  }
+  if (length(features) > 1L) {
+    if (is.null(color_by)) {
+      p <- ggplot(df, aes(lags, res, color = feature))
+      pal <- .get_pal(df, feature_aes = list(color = "feature"), option = 1,
+                      divergent, diverge_center)
+      p <- p + pal
+      if (method %in% c("I", "C"))
+        p <- p + geom_hline(aes(yintercept = expectation, color = feature),
+                            linetype = 2, alpha = 0.7)
+    }
+    else {
+      p <- ggplot(df, aes(lags, res, color = color_by, group = feature))
+      if (method %in% c("I", "C"))
+        p <- p + geom_hline(aes(yintercept = expectation, color = color_by),
+                           linetype = 2, alpha = 0.7)
+    }
+  } else {
+    p <- ggplot(df, aes(lags, res))
+    if (method %in% c("I", "C"))
+      p <- p + geom_hline(aes(yintercept = expectation), linetype = 2, alpha = 0.7)
+  }
+
+  p <- p +
+    geom_line() + geom_point() +
+    scale_x_continuous(breaks = breaks_extended(n = 10, Q = 1:5)) +
+    theme(panel.grid.minor.x = element_blank())
+  if (method %in% c("I", "C")) {
+    p <- p +
+      geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.2)
+    if (plot_signif)
+      p <- p + geom_text(aes(y = ymax, label = p_symbol), vjust = 0,
+                         show.legend = FALSE)
+  }
+  if (!is.null(color_by) && length(features) > 1L) {
+    pal <- .get_pal(df, feature_aes = list(color = "color_by"), option = 1,
+                    divergent, diverge_center)
+    p <- p + pal
+  }
+  p <- p +
+    labs(x = "Lags", y = switch(method,
+                                corr = "Pearson correlation",
+                                I = "Moran's I",
+                                C = "Geary's C"))
+  p
+}
 
 #' Plot the elbow plot or scree plot for PCA
 #'
@@ -579,7 +713,8 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   ggplot(df, aes(PC, pct_var)) +
     geom_point() +
     labs(x = "PC", y = "Variance explained (%)") +
-    scale_x_continuous(breaks = breaks_extended(Q = c(1, 5, 2, 4)))
+    scale_x_continuous(breaks = breaks_extended(n = 10, Q = 1:5)) +
+    theme(panel.grid.minor.x = element_blank())
 }
 
 .get_top_loading_genes <- function(df, nfeatures, balanced) {
