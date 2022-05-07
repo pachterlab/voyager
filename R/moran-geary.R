@@ -10,9 +10,8 @@
 #' @param x For \code{calculateMoransI} and \code{calculateGearysC}, it can be a
 #'   numeric matrix whose rows are features/genes, or a
 #'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
-#'   assay. For \code{runMoransI} and \code{runGearysC}, and the \code{colData},
-#'   \code{colGeometry}, and \code{annotGeometry} versions, it must be a
-#'   \code{SpatialFeatureExperiment} object.
+#'   assay.
+#' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param listw Weighted neighborhood graph as a \code{spdep} \code{listw}
 #'   object.
 #' @param features Genes (\code{calculate*} SFE method and \code{run*}) or
@@ -234,19 +233,19 @@ annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC, .MoransI2df, "Ge
 
 #' @rdname calculateMoransI
 #' @export
-runMoransI <- function(x, colGraphName, features, sample_id = NULL,
+runMoransI <- function(sfe, colGraphName, features, sample_id = NULL,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(x, colGraphName, features, sample_id, exprs_values,
+  .sfe_univar_autocorr(sfe, colGraphName, features, sample_id, exprs_values,
                        calculateMoransI, BPPARAM, zero.policy, name = "MoransI")
 }
 
 #' @rdname calculateMoransI
 #' @export
-runGearysC <- function(x, colGraphName, features, sample_id = NULL,
+runGearysC <- function(sfe, colGraphName, features, sample_id = NULL,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(x, colGraphName, features, sample_id, exprs_values,
+  .sfe_univar_autocorr(sfe, colGraphName, features, sample_id, exprs_values,
                        calculateGearysC, BPPARAM, zero.policy, name = "GearysC")
 }
 
@@ -396,11 +395,11 @@ annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, 
 
 #' @rdname calculateMoranMC
 #' @export
-runMoranMC <- function(x, colGraphName, features, sample_id = NULL, nsim,
+runMoranMC <- function(sfe, colGraphName, features, sample_id = NULL, nsim,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, alternative = "greater",
                        name = "MoranMC", ...) {
-  .sfe_univar_mc(x, colGraphName, features, sample_id, nsim, exprs_values,
+  .sfe_univar_mc(sfe, colGraphName, features, sample_id, nsim, exprs_values,
                  fun = calculateMoranMC, BPPARAM = BPPARAM,
                  zero.policy = zero.policy, alternative = alternative,
                  name = name, ...)
@@ -408,11 +407,11 @@ runMoranMC <- function(x, colGraphName, features, sample_id = NULL, nsim,
 
 #' @rdname calculateMoranMC
 #' @export
-runGearyMC <- function(x, colGraphName, features, sample_id = NULL, nsim,
+runGearyMC <- function(sfe, colGraphName, features, sample_id = NULL, nsim,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, alternative = "greater",
                        name = "GearyMC", ...) {
-  .sfe_univar_mc(x, colGraphName, features, sample_id, nsim, exprs_values,
+  .sfe_univar_mc(sfe, colGraphName, features, sample_id, nsim, exprs_values,
                  fun = calculateGearyMC, BPPARAM = BPPARAM,
                  zero.policy = zero.policy, alternative = alternative,
                  name = name, ...)
@@ -522,18 +521,52 @@ annotGeometryCorrelogram <- function(x, annotGeometryName, annotGraphName,
 
 #' @rdname calculateCorrelogram
 #' @export
-runCorrelogram <- function(x, colGraphName, features, sample_id = NULL, order = 1,
+runCorrelogram <- function(sfe, colGraphName, features, sample_id = NULL, order = 1,
                            method = "I", exprs_values = "logcounts",
                            BPPARAM = SerialParam(), zero.policy = NULL,
                            name = paste("Correlogram", method, sep = "_"), ...) {
-  sample_id <- .check_sample_id(x, sample_id)
-  out <- calculateCorrelogram(x, colGraphName, features, sample_id, order,
+  sample_id <- .check_sample_id(sfe, sample_id)
+  out <- calculateCorrelogram(sfe, colGraphName, features, sample_id, order,
                               method, exprs_values, BPPARAM, zero.policy, ...)
   out <- .correlogram2df(out, name, method)
   rownames(out) <- features
-  out <- .add_name_sample_id(x, out, sample_id)
-  rowData(x)[features, names(out)] <- out
-  x
+  out <- .add_name_sample_id(sfe, out, sample_id)
+  rowData(sfe)[features, names(out)] <- out
+  sfe
+}
+
+#' Find clusters of correlogram patterns
+#'
+#' Cluster the correlograms to find patterns in length scales of spatial
+#' autocorrelation. All the correlograms clustered must be computed with the
+#' same method and have the same number of lags.
+#'
+#' @inheritParams clusterMoranPlot
+#' @inheritParams calculateCorrelogram
+#' @param sfe A \code{SpatialFeatureExperiment} object with correlograms
+#' computed for features of interest.
+#' @param features Features whose correlograms to cluster.
+#' @return A named factor vector, whose names are features. The names are
+#' relevant since features that don't have correlogram calculated are skipped
+#' and the names will keep track of cluster membership of each feature.
+#' @export
+clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
+                                method = "I",
+                                name = paste("Correlogram", method, sep = "_"),
+                                colGeometryName = NULL,
+                                annotGeometryName = NULL) {
+  sample_id <- .check_sample_id(sfe, sample_id)
+  ress <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
+                                annotGeometryName)
+  if (method %in% c("I", "C")) {
+    # First column is the metric, second column expectation, third is variance
+    ress <- lapply(ress, function(r) r[,1])
+  }
+  res_mat <- Reduce(rbind, ress)
+  rownames(res_mat) <- names(ress)
+  out <- clusterRows(res_mat, BLUSPARAM)
+  names(out) <- names(ress)
+  out
 }
 
 #' Moran scatterplot
@@ -590,17 +623,17 @@ annotGeometryMoranPlot <- .annotgeom_univar_fun(calculateMoranPlot, .MoranPlot2d
 
 #' @rdname calculateMoranPlot
 #' @export
-runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
+runMoranPlot <- function(sfe, colGraphName, features, sample_id = NULL,
                          exprs_values = "logcounts", BPPARAM = SerialParam(),
                          zero.policy = NULL, name = "MoranPlot", ...) {
-  sample_id <- .check_sample_id(x, sample_id)
-  out <- calculateMoranPlot(x, colGraphName, features, sample_id, exprs_values,
+  sample_id <- .check_sample_id(sfe, sample_id)
+  out <- calculateMoranPlot(sfe, colGraphName, features, sample_id, exprs_values,
                             BPPARAM, zero.policy, ...)
   out <- .MoranPlot2df(out, name)
   rownames(out) <- features
-  out <- .add_name_sample_id(x, out, sample_id)
-  rowData(x)[features, names(out)] <- out
-  x
+  out <- .add_name_sample_id(sfe, out, sample_id)
+  rowData(sfe)[features, names(out)] <- out
+  sfe
 }
 
 #' Find clusters on the Moran plot
@@ -611,7 +644,7 @@ runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
 #'
 #' @inheritParams bluster::clusterRows
 #' @inheritParams calculateMoranPlot
-#' @param x A \code{SpatialFeatureExperiment} object with Moran plot computed
+#' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
 #'   been computed for that feature in this sample_id, it will be calculated and
 #'   stored in \code{rowData}. See \code{\link{calculateMoranPlot}}.
@@ -624,14 +657,14 @@ runMoranPlot <- function(x, colGraphName, features, sample_id = NULL,
 #'   of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
 #' @export
-clusterMoranPlot <- function(x, features, BLUSPARAM, sample_id = NULL,
+clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                              name = "MoranPlot",
                              colGeometryName = NULL,
                              annotGeometryName = NULL) {
-  sample_id <- .check_sample_id(x, sample_id)
+  sample_id <- .check_sample_id(sfe, sample_id)
   colname_use <- paste(name, sample_id, sep = "_")
-  mps <- .get_feature_metadata(x, features, name, sample_id, colGeometryName,
+  mps <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
                                annotGeometryName)
   out <- lapply(mps, function(mp) clusterRows(mp[,c("x", "wx")], BLUSPARAM))
-  as.data.frame(out, row.names = colnames(x)[colData(x)$sample_id == sample_id])
+  as.data.frame(out, row.names = colnames(sfe)[colData(sfe)$sample_id == sample_id])
 }

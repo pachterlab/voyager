@@ -72,7 +72,7 @@ annotGeometryCorrelogram(
 )
 
 runCorrelogram(
-  x,
+  sfe,
   colGraphName,
   features,
   sample_id = NULL,
@@ -89,9 +89,7 @@ runCorrelogram(
 \item{x}{For \code{calculateMoransI} and \code{calculateGearysC}, it can be a
 numeric matrix whose rows are features/genes, or a
 \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
-assay. For \code{runMoransI} and \code{runGearysC}, and the \code{colData},
-\code{colGeometry}, and \code{annotGeometry} versions, it must be a
-\code{SpatialFeatureExperiment} object.}
+assay.}
 
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
 object.}
@@ -140,6 +138,8 @@ frames associated with annotations.}
 corresponds to the \code{annotGeometry} of interest. Use
 \code{\link{annotGraphNames}} to look up names of available annotation
 graphs.}
+
+\item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{name}{String specifying the name to be used to store the results in
 \code{rowData(x)}. If not already present in the name, then the

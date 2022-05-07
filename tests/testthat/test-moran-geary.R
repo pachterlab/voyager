@@ -249,3 +249,13 @@ test_that("Error when the MoranPlot_sample01 column is absent", {
   expect_error(clusterMoranPlot(sfe, c("Q", "L"), KmeansParam(2), "sample01"),
                "None of the features")
 })
+
+sfe <- runCorrelogram(sfe, "visium1", features = rownames(sfe),
+                      sample_id = "sample01", order = 2,
+                      exprs_values = "counts")
+test_that("Correct clusterCorrelograms output structure", {
+  out <- clusterCorrelograms(sfe, rownames(sfe), sample_id = "sample01",
+                             BLUSPARAM = KmeansParam(2))
+  expect_s3_class(out, "factor")
+  expect_named(out, rownames(sfe))
+})

@@ -5,7 +5,7 @@
 \title{Find clusters on the Moran plot}
 \usage{
 clusterMoranPlot(
-  x,
+  sfe,
   features,
   BLUSPARAM,
   sample_id = NULL,
@@ -15,10 +15,10 @@ clusterMoranPlot(
 )
 }
 \arguments{
-\item{x}{A \code{SpatialFeatureExperiment} object with Moran plot computed
-for the feature of interest. If the Moran plot for that feature has not been
-computed for that feature in this sample_id, it will be calculated and stored
-in \code{rowData}. See \code{\link{calculateMoranPlot}}.}
+\item{sfe}{A \code{SpatialFeatureExperiment} object with Moran plot computed
+for the feature of interest. If the Moran plot for that feature has not
+been computed for that feature in this sample_id, it will be calculated and
+stored in \code{rowData}. See \code{\link{calculateMoranPlot}}.}
 
 \item{features}{Features whose Moran plot are to be cluster. Features whose
 Moran plots have not been computed will be skipped, with a warning.}
@@ -32,21 +32,17 @@ Moran plots have not been computed will be skipped, with a warning.}
 \code{sample_id} will be appended to the name specified here separated by
 an underscore.}
 
-\item{colGeometryName}{Name of colGeometry from which the feature is from. If
-specified, then this function will only look in that colGeometry.}
+\item{colGeometryName}{Name of colGeometry from which to look for features.}
 
-\item{annotGeometryName}{Name of annotGeometry from which the feature is from.
-If both \code{colGeometryName} and \code{annotGeometryName} are specified,
-then a warning is issued and \code{colGeometryName} will be used. If neither
-is specified, then this function will only look in \code{rownames(x)} and
-\code{colData(x)}.}
+\item{annotGeometryName}{Name of annotGeometry from which to look for
+features.}
 }
 \value{
 A data frame each column of which is a factor for cluster membership
-of each feature. The column names are the features.
+  of each feature. The column names are the features.
 }
 \description{
-The Moran plot plots the value at each location on the x axis, and the average
-of the neighbors of each locations on the y axis. Sometimes clusters can be
-seen on the Moran plot, indicating different types of neighborhoods.
+The Moran plot plots the value at each location on the x axis, and the
+average of the neighbors of each locations on the y axis. Sometimes clusters
+can be seen on the Moran plot, indicating different types of neighborhoods.
 }
