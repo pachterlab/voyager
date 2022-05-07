@@ -640,6 +640,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                  symbols = c("***", "**", "*", ".", "")))
   }
+  lags <- res <- feature <- expectation <- ymin <- ymax <- p_symbol
   if (length(features) > 1L) {
     if (is.null(color_by)) {
       p <- ggplot(df, aes(lags, res, color = feature))
