@@ -98,6 +98,7 @@
 
 .get_not_na_items <- function(df, features, colname_use) {
   if (is(df, "sf")) df <- st_drop_geometry(df)
+  if (!colname_use %in% names(df)) return(NULL)
   out <- setNames(df[features, colname_use], features)
   out[!.is_na_list(out)]
 }
@@ -142,7 +143,7 @@
     }
   }
   out <- c(out_rd, out_cd, out_cg, out_ag)
-  if (is.null(out)) {
+  if (!length(out)) {
     stop("None of the features has the requested metadata.")
   }
   if (length(features)) {

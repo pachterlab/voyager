@@ -216,14 +216,14 @@ test_that("Moran plot clustering gives right results for gene expression", {
 test_that("Warning when some of the requested features don't have Moran plot", {
   expect_warning(out <- clusterMoranPlot(sfe, c("B", "H", "L"), KmeansParam(2),
                                          sample_id = "sample01"),
-                 "Skipping features")
+                 "don't have the requested metadata")
   expect_s3_class(out, "data.frame")
   expect_equal(names(out), c("B", "H"))
 })
 
 test_that("Error when none of the features have Moran plot", {
   expect_error(clusterMoranPlot(sfe, c("Q", "L"), KmeansParam(2), "sample01"),
-               "None of the features requested")
+               "None of the features")
 })
 
 test_that("Correct results when doing both gene expression and colData", {
@@ -247,5 +247,5 @@ test_that("Correct Moran plot cluster results for colGeometry", {
 test_that("Error when the MoranPlot_sample01 column is absent", {
   rowData(sfe)$MoranPlot_sample01 <- NULL
   expect_error(clusterMoranPlot(sfe, c("Q", "L"), KmeansParam(2), "sample01"),
-               "None of the features requested")
+               "None of the features")
 })
