@@ -5,7 +5,7 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-This package brings the glorious tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as spdep and adespatial to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as spdep and adespatial to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
 
 ## Installation
 
