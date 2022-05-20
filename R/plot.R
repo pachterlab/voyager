@@ -247,6 +247,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
+#' @export
 plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                ncol = NULL, annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
