@@ -202,7 +202,9 @@ univariate metric is to be computed. Default to \code{NULL}. When
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
@@ -231,11 +233,14 @@ an underscore.}
 }
 \value{
 For \code{calculateMoran/GearyMC}, a list of \code{mc.sim} objects.
-For \code{runMoran/GearyMC}, the results are converted to a \code{DataFrame}
-and added to \code{rowData(x)}, and a SFE object with the added \code{rowData}
-is returned. For the colData, colGeometry, and annotGeometry versions, the
-results are added to the \code{featureData} attribute of the data frame of
-interest in a manner analogous to \code{rowData}.
+  For the SFE method of \code{calculate*}, when more than one
+  \code{sample_id} is specified, then a list of such lists, whose names are
+  the \code{sample_id}s. For \code{runMoran/GearyMC}, the results are
+  converted to a \code{DataFrame} and added to \code{rowData(x)}, and a SFE
+  object with the added \code{rowData} is returned. For the colData,
+  colGeometry, and annotGeometry versions, the results are added to the
+  \code{featureData} attribute of the data frame of interest in a manner
+  analogous to \code{rowData}.
 }
 \description{
 Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier

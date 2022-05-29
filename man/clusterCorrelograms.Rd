@@ -23,7 +23,9 @@ computed for features of interest.}
 
 \item{BLUSPARAM}{A \linkS4class{BlusterParam} object specifying the algorithm to use.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{method}{"corr" for correlation, "I" for Moran's I, "C" for Geary's C}
 
@@ -38,9 +40,9 @@ an underscore.}
 features.}
 }
 \value{
-A named factor vector, whose names are features. The names are
-relevant since features that don't have correlogram calculated are skipped
-and the names will keep track of cluster membership of each feature.
+A \code{DataFrame} with 3 columns: \code{feature} for the features,
+\code{cluster} a factor for cluster membership of the features within each
+sample, and \code{sample_id} for the sample.
 }
 \description{
 Cluster the correlograms to find patterns in length scales of spatial

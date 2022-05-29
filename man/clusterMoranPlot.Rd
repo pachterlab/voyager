@@ -25,7 +25,9 @@ Moran plots have not been computed will be skipped, with a warning.}
 
 \item{BLUSPARAM}{A \linkS4class{BlusterParam} object specifying the algorithm to use.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{name}{String specifying the name to be used to store the results in
 \code{rowData(x)}. If not already present in the name, then the
@@ -38,8 +40,8 @@ an underscore.}
 features.}
 }
 \value{
-A data frame each column of which is a factor for cluster membership
-  of each feature. The column names are the features.
+A \code{DataFrame} each column of which is a factor for cluster
+  membership of each feature. The column names are the features.
 }
 \description{
 The Moran plot plots the value at each location on the x axis, and the

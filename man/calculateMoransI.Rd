@@ -157,7 +157,9 @@ univariate metric is to be computed. Default to \code{NULL}. When
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
@@ -190,13 +192,15 @@ an underscore.}
 \value{
 For \code{calculate*}, a \code{DataFrame} with two columns: The first
   one is I for Moran's I or C for Geary's C, and the second one is K for
-  sample kurtosis. For \code{run*}, a \code{SpatialFeatureExperiment} object
-  with the Moran's I or Geary's C values added to a column of
-  \code{rowData(x)}, whose name is specified in the \code{name} argument,
-  with \code{sample_id} appended if applicable. For \code{colData},
-  \code{colGeometry}, and \code{annotGeometry}, the results are added to an
-  attribute of the data frame called \code{featureData}, which is a DataFrame
-  analogous to \code{rowData} for the gene count matrix. New column names in
+  sample kurtosis. For the SFE method of \code{calculate*}, a third column
+  indicating \code{sample_id} is added if more than one sample is indicated.
+  For \code{run*}, a \code{SpatialFeatureExperiment} object with the Moran's
+  I or Geary's C values added to a column of \code{rowData(x)}, whose name is
+  specified in the \code{name} argument, with \code{sample_id} appended if
+  applicable. For \code{colData}, \code{colGeometry}, and
+  \code{annotGeometry}, the results are added to an attribute of the data
+  frame called \code{featureData}, which is a DataFrame analogous to
+  \code{rowData} for the gene count matrix. New column names in
   \code{featureData} would follow the same rules as in \code{rowData}. (I
   need to write many examples to make it clear to users.)
 }

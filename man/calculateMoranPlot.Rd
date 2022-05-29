@@ -97,7 +97,9 @@ univariate metric is to be computed. Default to \code{NULL}. When
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}

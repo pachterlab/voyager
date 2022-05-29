@@ -43,7 +43,7 @@ test_that("Correct structure of calculateMoransI output (SFE)", {
   out <- calculateMoransI(sfe, "visium1", features = rownames(mat1),
                           sample_id = "sample01", exprs_values = "counts")
   expect_s4_class(out, "DataFrame")
-  expect_equal(names(out), c("I", "K"))
+  expect_equal(names(out), c("I", "K", "sample_id"))
   expect_true(is.numeric(out$I))
   expect_true(is.numeric(out$K))
   expect_equal(rownames(out), rownames(mat1))
@@ -204,11 +204,12 @@ sfe <- colGeometryMoranPlot(sfe, "spotPoly", "visium1", features = "foo",
                             sample_id = "sample01")
 
 test_that("Moran plot clustering gives right results for gene expression", {
-  out <- clusterMoranPlot(sfe, c("B", "H"), KmeansParam(2),
+  features <- c("B", "H")
+  out <- clusterMoranPlot(sfe, features, KmeansParam(2),
                           sample_id = "sample01")
-  expect_s3_class(out, "data.frame")
-  expect_equal(names(out), c("B", "H"))
-  expect_true(all(vapply(out, is.factor, FUN.VALUE = logical(1))))
+  expect_s4_class(out, "DataFrame")
+  expect_setequal(names(out), c("sample_id", "B", "H"))
+  expect_true(all(vapply(out[,features], is.factor, FUN.VALUE = logical(1))))
   expect_equal(nrow(out), sum(colData(sfe)$sample_id == "sample01"))
   expect_equal(rownames(out), colnames(sfe)[colData(sfe)$sample_id == "sample01"])
 })
@@ -217,8 +218,8 @@ test_that("Warning when some of the requested features don't have Moran plot", {
   expect_warning(out <- clusterMoranPlot(sfe, c("B", "H", "L"), KmeansParam(2),
                                          sample_id = "sample01"),
                  "don't have the requested metadata")
-  expect_s3_class(out, "data.frame")
-  expect_equal(names(out), c("B", "H"))
+  expect_s4_class(out, "DataFrame")
+  expect_setequal(names(out), c("sample_id", "B", "H"))
 })
 
 test_that("Error when none of the features have Moran plot", {
@@ -227,11 +228,12 @@ test_that("Error when none of the features have Moran plot", {
 })
 
 test_that("Correct results when doing both gene expression and colData", {
-  out <- clusterMoranPlot(sfe, c("nCounts", "B", "H"), KmeansParam(2),
+  features <- c("nCounts", "B", "H")
+  out <- clusterMoranPlot(sfe, features, KmeansParam(2),
                           sample_id = "sample01")
-  expect_s3_class(out, "data.frame")
-  expect_equal(names(out), c("B", "H", "nCounts"))
-  expect_true(all(vapply(out, is.factor, FUN.VALUE = logical(1))))
+  expect_s4_class(out, "DataFrame")
+  expect_setequal(names(out), c("sample_id", "B", "H", "nCounts"))
+  expect_true(all(vapply(out[,features], is.factor, FUN.VALUE = logical(1))))
   expect_equal(nrow(out), sum(colData(sfe)$sample_id == "sample01"))
   expect_equal(rownames(out), colnames(sfe)[colData(sfe)$sample_id == "sample01"])
 })
@@ -239,8 +241,8 @@ test_that("Correct results when doing both gene expression and colData", {
 test_that("Correct Moran plot cluster results for colGeometry", {
   out <- clusterMoranPlot(sfe, "foo", KmeansParam(2), sample_id = "sample01",
                           colGeometryName = "spotPoly")
-  expect_s3_class(out, "data.frame")
-  expect_equal(names(out), "foo")
+  expect_s4_class(out, "DataFrame")
+  expect_setequal(names(out), c("sample_id", "foo"))
   expect_s3_class(out$foo, "factor")
 })
 
@@ -256,6 +258,7 @@ sfe <- runCorrelogram(sfe, "visium1", features = rownames(sfe),
 test_that("Correct clusterCorrelograms output structure", {
   out <- clusterCorrelograms(sfe, rownames(sfe), sample_id = "sample01",
                              BLUSPARAM = KmeansParam(2))
-  expect_s3_class(out, "factor")
-  expect_named(out, rownames(sfe))
+  expect_s4_class(out, "DataFrame")
+  expect_named(out, c("feature", "cluster", "sample_id"))
+  expect_s3_class(out$cluster, "factor")
 })

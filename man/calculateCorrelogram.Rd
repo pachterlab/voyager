@@ -119,7 +119,9 @@ univariate metric is to be computed. Default to \code{NULL}. When
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
@@ -147,14 +149,15 @@ graphs.}
 an underscore.}
 }
 \value{
-For \code{calculateCorrelogram}, a list of
-  \code{spcor} objects, each element of which correslonds to a feature. For
-  \code{runCorrelogram}, the \code{res} field of the \code{spcor} is taken
-  and put in a list column in \code{rowData(x)}, and the SFE object with the
-  new \code{rowData} is returned. For the colData, colGeometry, and
-  annotGeometry versions, the results are added to an attribute of the data
-  frame of interest called \code{featureData}, in a manner analogous to
-  \code{rowData}.
+For \code{calculateCorrelogram}, a list of \code{spcor} objects, each
+  element of which correslonds to a feature. or if multiple \code{sample_id}s
+  are specified in the SFE method, a list of such lists whose names are the
+  \code{sample_id}s. For \code{runCorrelogram}, the \code{res} field of the
+  \code{spcor} is taken and put in a list column in \code{rowData(x)}, and
+  the SFE object with the new \code{rowData} is returned. For the colData,
+  colGeometry, and annotGeometry versions, the results are added to an
+  attribute of the data frame of interest called \code{featureData}, in a
+  manner analogous to \code{rowData}.
 }
 \description{
 Still debating whether I should write the wrapper. It should be
