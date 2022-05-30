@@ -34,9 +34,7 @@ to sentence case on the x axis and lower case in the y axis appended after
 graph used to compute the Moran plot. This is to determine which points are
 singletons to plot differently on this plot.}
 
-\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
-"all" to compute metric for all samples; the metric is computed separately
-for each sample.}
+\item{sample_id}{One sample_id for the sample whose graph to plot.}
 
 \item{contour_color}{Color of the point density contours, which can be
 changed so the contours stand out from the points.}

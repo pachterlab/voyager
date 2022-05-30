@@ -10,6 +10,7 @@ plotSpatialFeature(
   features,
   sample_id = NULL,
   ncol = NULL,
+  ncol_sample = NULL,
   annotGeometryName = NULL,
   annot_aes = list(),
   annot_fixed = list(),
@@ -47,6 +48,12 @@ for each sample.}
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.}
+
+\item{ncol_sample}{If plotting multiple samples as facets, how many columns
+of such facets. This is distinct from \code{ncols}, which is for multiple
+features. When plotting multiple features for multiple samples, then the
+result is a multi-panel plot each panel of which is a plot for each feature
+facetted by samples.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}

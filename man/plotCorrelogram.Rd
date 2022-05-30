@@ -10,6 +10,8 @@ plotCorrelogram(
   sample_id = NULL,
   method = "I",
   color_by = NULL,
+  facet_by = c("sample_id", "features"),
+  ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
   plot_signif = TRUE,
@@ -25,13 +27,22 @@ plotCorrelogram(
 \item{features}{Features to plot, must be in rownames of the gene count
 matrix, colnames of colData or a colGeometry.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{method}{"corr" for correlation, "I" for Moran's I, "C" for Geary's C}
 
 \item{color_by}{Name of a column in \code{rowData(sfe)} or in the
 \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
 \code{annotGeometry} by which to color the correlogram of each feature.}
+
+\item{facet_by}{Whether to facet by sample_id (default) or features. If
+facetting by sample_id, then different features will be plotted in the same
+facet for comparison. If facetting by features, then different samples will
+be compared for each feature. Ignored if only one sample is specified.}
+
+\item{ncol}{Number of columns if facetting.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use

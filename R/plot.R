@@ -349,6 +349,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
 #' objects.
 #'
 #' @inheritParams plotSpatialFeature
+#' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param colGraphName Name of graph associated with columns of the gene count
 #'   matrix to be plotted.
 #' @param segment_size Thickness of the segments that represent graph edges.
@@ -488,6 +489,7 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
+#' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
 #'   "Spatially lagged". One feature at a time since the colors in
@@ -554,45 +556,8 @@ moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
                   diverge_center, ...)
 }
 
-#' Plot correlogram
-#'
-#' Use \code{ggplot2} to plot correlograms computed by
-#' \code{\link{runCorrelogram}}, pulling results from \code{rowData}.
-#' Correlograms of multiple genes with error bars can be plotted, and they can
-#' be colored by any numeric or categorical column in \code{rowData} or a vector
-#' with the same length as \code{nrow} of the SFE object. The coloring is useful
-#' when the correlograms are clustered to show types of length scales or
-#' patterns of decay of spatial autocorrelation. For \code{method = "I"}, the
-#' error bars are twice the standard deviation of the estimated Moran's I value.
-#'
-#' @inheritParams plotSpatialFeature
-#' @inheritParams calculateMoransI
-#' @inheritParams spdep::sp.correlogram
-#' @param color_by Name of a column in \code{rowData(sfe)} or in the
-#'   \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
-#'   \code{annotGeometry} by which to color the correlogram of each feature.
-#' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
-#'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
-#'   p-values are two sided, based on the assumption that the estimated Moran's
-#'   I is normally distributed with mean from a randomized version of the data.
-#'   The mean and variance come from \code{\link{moran.test}} for Moran's I and
-#'   \code{\link{geary.test}} for Geary's C. Take the results with a grain of
-#'   salt if the data is not normally distributed.
-#' @param p_adj_method Multiple testing correction method as in
-#'   \code{\link{p.adjust}}, to correct for multiple testing (number of lags
-#'   times number of features) in the Moran's I estimates if \code{plot_signif =
-#'   TRUE}.
-#' @return A ggplot object.
-#' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
-#' @importFrom stats p.adjust pnorm symnum
-#' @export
-plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
-                            color_by = NULL,
-                            colGeometryName = NULL, annotGeometryName = NULL,
-                            plot_signif = TRUE, p_adj_method = "BH",
-                            divergent = FALSE, diverge_center = NULL,
-                            name = paste("Correlogram", method, sep = "_")) {
-  sample_id <- .check_sample_id(sfe, sample_id)
+.get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
+                                     colGeometryName, annotGeometryName, name) {
   ress <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
                                 annotGeometryName)
   if (!is.null(color_by)) {
@@ -645,7 +610,67 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
             " for sample ", sample_id)
 
   dfs <- dfs[!is_na_dfs]
-  df <- Reduce(rbind, dfs)
+  do.call(rbind, dfs)
+}
+
+#' Plot correlogram
+#'
+#' Use \code{ggplot2} to plot correlograms computed by
+#' \code{\link{runCorrelogram}}, pulling results from \code{rowData}.
+#' Correlograms of multiple genes with error bars can be plotted, and they can
+#' be colored by any numeric or categorical column in \code{rowData} or a vector
+#' with the same length as \code{nrow} of the SFE object. The coloring is useful
+#' when the correlograms are clustered to show types of length scales or
+#' patterns of decay of spatial autocorrelation. For \code{method = "I"}, the
+#' error bars are twice the standard deviation of the estimated Moran's I value.
+#'
+#' @inheritParams plotSpatialFeature
+#' @inheritParams calculateMoransI
+#' @inheritParams spdep::sp.correlogram
+#' @param color_by Name of a column in \code{rowData(sfe)} or in the
+#'   \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
+#'   \code{annotGeometry} by which to color the correlogram of each feature.
+#' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
+#'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
+#'   p-values are two sided, based on the assumption that the estimated Moran's
+#'   I is normally distributed with mean from a randomized version of the data.
+#'   The mean and variance come from \code{\link{moran.test}} for Moran's I and
+#'   \code{\link{geary.test}} for Geary's C. Take the results with a grain of
+#'   salt if the data is not normally distributed.
+#' @param facet_by Whether to facet by sample_id (default) or features. If
+#'   facetting by sample_id, then different features will be plotted in the same
+#'   facet for comparison. If facetting by features, then different samples will
+#'   be compared for each feature. Ignored if only one sample is specified.
+#' @param ncol Number of columns if facetting.
+#' @param p_adj_method Multiple testing correction method as in
+#'   \code{\link{p.adjust}}, to correct for multiple testing (number of lags
+#'   times number of features) in the Moran's I estimates if \code{plot_signif =
+#'   TRUE}.
+#' @return A ggplot object.
+#' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
+#' @importFrom stats p.adjust pnorm symnum
+#' @export
+plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
+                            color_by = NULL, facet_by = c("sample_id", "features"),
+                            ncol = NULL,
+                            colGeometryName = NULL, annotGeometryName = NULL,
+                            plot_signif = TRUE, p_adj_method = "BH",
+                            divergent = FALSE, diverge_center = NULL,
+                            name = paste("Correlogram", method, sep = "_")) {
+  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+  if (length(sample_id) > 1L || length(features) > 1L)
+    facet_by <- match.arg(facet_by)
+  facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
+  facet_feature <- length(features) > 1L && facet_by == "features"
+  df <- lapply(sample_id, function(s) {
+    o <- .get_plot_correlogram_df(sfe, features, s, method, color_by,
+                                  colGeometryName, annotGeometryName, name)
+    o$sample_id <- s
+    o
+  })
+  if (length(sample_id) > 1L) {
+    df <- do.call(rbind, df)
+  } else df <- df[[1]]
   if (method %in% c("I", "C") && plot_signif) {
     df$z <- (df$res - df$expectation)/sqrt(df$variance)
     df$p <- 2*pnorm(abs(df$z), lower.tail = FALSE)
@@ -655,28 +680,54 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                  symbols = c("***", "**", "*", ".", "")))
   }
   lags <- res <- feature <- expectation <- ymin <- ymax <- p_symbol <- NULL
+  group_sample <- !facet_sample && length(sample_id) > 1L
   if (length(features) > 1L) {
     if (is.null(color_by)) {
-      p <- ggplot(df, aes(lags, res, color = feature))
-      pal <- .get_pal(df, feature_aes = list(color = "feature"), option = 1,
-                      divergent, diverge_center)
+      if (group_sample) {
+        p <- ggplot(df, aes(lags, res, color = sample_id))
+        pal <- .get_pal(df, feature_aes = list(color = "sample_id"), option = 1,
+                        divergent, diverge_center)
+      } else {
+        p <- ggplot(df, aes(lags, res, color = feature))
+        pal <- .get_pal(df, feature_aes = list(color = "feature"), option = 1,
+                        divergent, diverge_center)
+      }
       p <- p + pal
-      if (method %in% c("I", "C"))
-        p <- p + geom_hline(aes(yintercept = expectation, color = feature),
-                            linetype = 2, alpha = 0.7)
+      if (method %in% c("I", "C")) {
+        if (group_sample) {
+          p <- p + geom_hline(aes(yintercept = expectation, color = sample_id),
+                              linetype = 2, alpha = 0.7)
+        } else {
+          p <- p + geom_hline(aes(yintercept = expectation, color = feature),
+                              linetype = 2, alpha = 0.7)
+        }
+      }
     }
     else {
-      p <- ggplot(df, aes(lags, res, color = color_by, group = feature))
+      if (group_sample)
+        p <- ggplot(df, aes(lags, res, color = color_by, linetype = sample_id))
+      else
+        p <- ggplot(df, aes(lags, res, color = color_by, group = feature))
       if (method %in% c("I", "C"))
         p <- p + geom_hline(aes(yintercept = expectation, color = color_by),
                            linetype = 2, alpha = 0.7)
     }
   } else {
-    p <- ggplot(df, aes(lags, res))
-    if (method %in% c("I", "C"))
-      p <- p + geom_hline(aes(yintercept = expectation), linetype = 2, alpha = 0.7)
+    if (group_sample)
+      p <- ggplot(df, aes(lags, res, color = sample_id)) +
+        .get_pal(df, feature_aes = list(color = "sample_id"), option = 1,
+                 divergent, diverge_center)
+    else
+      p <- ggplot(df, aes(lags, res))
+    if (method %in% c("I", "C")) {
+      if (group_sample) {
+        p <- p + geom_hline(aes(yintercept = expectation, color = sample_id),
+                            linetype = 2, alpha = 0.7)
+      } else {
+        p <- p + geom_hline(aes(yintercept = expectation), linetype = 2, alpha = 0.7)
+      }
+    }
   }
-
   p <- p +
     geom_line() + geom_point() +
     scale_x_continuous(breaks = breaks_extended(n = min(max(df$lags), 10), Q = 1:5)) +
@@ -700,6 +751,12 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                 corr = "Pearson correlation",
                                 I = "Moran's I",
                                 C = "Geary's C"))
+  if (facet_feature) {
+    p <- p + facet_wrap(~features, ncol = ncol)
+  }
+  if (facet_sample) {
+    p <- p + facet_wrap(~sample_id, ncol = ncol)
+  }
   p
 }
 
