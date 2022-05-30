@@ -113,7 +113,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes, feature_fixed,
                          annot_aes, annot_fixed, divergent, diverge_center,
-                         annot_divergent, annot_diverge_center) {
+                         annot_divergent, annot_diverge_center, ncol_sample) {
   # Add annotGeometry if present
   if (!is.null(annot_df)) {
     annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -161,6 +161,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(pal_annot)) {
       p <- p + pal_annot
     }
+  }
+  if ("sample_id" %in% names(df) && length(unique(df$sample_id)) > 1L) {
+    p <- p +
+      facet_wrap(~ sample_id, ncol = ncol_sample)
   }
   p
 }
@@ -231,6 +235,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param ncol Number of columns if plotting multiple features. Defaults to
 #'   \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 #'   is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.
+#' @param ncol_sample If plotting multiple samples as facets, how many columns
+#'   of such facets. This is distinct from \code{ncols}, which is for multiple
+#'   features. When plotting multiple features for multiple samples, then the
+#'   result is a multi-panel plot each panel of which is a plot for each feature
+#'   facetted by samples.
 #' @param aes_use Aesthetic to use for discrete variables. For continuous
 #'   variables, it's always "fill" for polygons and point shapes 21-25. For
 #'   discrete variables, it can be fill, color, shape, or linetype, whenever
@@ -242,14 +251,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param annot_diverge_center Just as \code{diverge_center}, but for the
 #'   annotGeometry in case it's different.
 #' @param only_plot_expressed Logical, whether to only plot values > 0. This
-#' argument is only used when all values are non-negative.
+#'   argument is only used when all values are non-negative.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
 #' @export
 plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
-                               ncol = NULL, annotGeometryName = NULL,
+                               ncol = NULL, ncol_sample = NULL,
+                               annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts",
                                aes_use = c("fill", "color", "shape", "linetype"),
@@ -260,11 +270,14 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = "black", fill = "gray80", ...) {
   aes_use <- match.arg(aes_use)
-  sample_id <- .check_sample_id(sfe, sample_id)
+  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   values <- .get_feature_values(sfe, features, sample_id,
                                 colGeometryName = colGeometryName,
                                 exprs_values = exprs_values)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
+  if (length(sample_id) > 1L) {
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id,]
+  }
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
     annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
@@ -283,7 +296,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
     feature_aes <- setNames(list(n), feature_aes_name)
     .plot_var_sf(df, annot_df, type, type_annot, feature_aes, feature_fixed,
                  annot_aes, annot_fixed, divergent, diverge_center,
-                 annot_divergent, annot_diverge_center)
+                 annot_divergent, annot_diverge_center, ncol_sample)
   })
   if (length(plots) > 1L) {
     out <- wrap_plots(plots, ncol = ncol, ...)
@@ -641,7 +654,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
                                  symbols = c("***", "**", "*", ".", "")))
   }
-  lags <- res <- feature <- expectation <- ymin <- ymax <- p_symbol
+  lags <- res <- feature <- expectation <- ymin <- ymax <- p_symbol <- NULL
   if (length(features) > 1L) {
     if (is.null(color_by)) {
       p <- ggplot(df, aes(lags, res, color = feature))

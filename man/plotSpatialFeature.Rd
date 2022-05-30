@@ -40,7 +40,9 @@ frames associated with cells/spots.}
 \item{features}{Features to plot, must be in rownames of the gene count
 matrix, colnames of colData or a colGeometry.}
 
-\item{sample_id}{Sample in the SFE object whose cells/spots to use.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
