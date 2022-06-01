@@ -22,8 +22,8 @@
 
 \S4method{calculateCorrelogram}{SpatialFeatureExperiment}(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   order = 1,
   method = "I",
@@ -35,9 +35,9 @@
 
 colGeometryCorrelogram(
   x,
-  colGeometryName,
-  colGraphName,
   features,
+  colGeometryName = 1L,
+  colGraphName = 1L,
   sample_id = NULL,
   order = 1,
   method = "I",
@@ -48,8 +48,8 @@ colGeometryCorrelogram(
 
 colDataCorrelogram(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   order = 1,
   method = "I",
@@ -60,9 +60,9 @@ colDataCorrelogram(
 
 annotGeometryCorrelogram(
   x,
-  annotGeometryName,
-  annotGraphName,
   features,
+  annotGeometryName = 1L,
+  annotGraphName = 1L,
   sample_id = NULL,
   order = 1,
   method = "I",
@@ -73,8 +73,8 @@ annotGeometryCorrelogram(
 
 runCorrelogram(
   sfe,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   order = 1,
   method = "I",
@@ -105,12 +105,6 @@ and how computing the metric for numerous genes shall be parallelized.}
 
 \item{...}{Other arguments passed to \code{\link{sp.correlogram}}.}
 
-\item{colGraphName}{Name of the listw graph in the SFE object that
-corresponds to entities represented by columns of the gene count matrix.
-Use \code{\link{colGraphNames}} to look up names of the available graphs
-for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
-that all of them have a graph of this same name.}
-
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
 \code{\link{colGeometry}} (\code{colGeometryM*}) or
@@ -119,6 +113,12 @@ univariate metric is to be computed. Default to \code{NULL}. When
 \code{NULL}, then the metric is computed for all genes with the values in
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
+
+\item{colGraphName}{Name of the listw graph in the SFE object that
+corresponds to entities represented by columns of the gene count matrix.
+Use \code{\link{colGraphNames}} to look up names of the available graphs
+for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
+that all of them have a graph of this same name.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately

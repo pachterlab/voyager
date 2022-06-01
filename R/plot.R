@@ -254,8 +254,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
 #' @export
-plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
-                               ncol = NULL, ncol_sample = NULL,
+plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
+                               sample_id = NULL,ncol = NULL, ncol_sample = NULL,
                                annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts",
@@ -361,7 +361,8 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
-plotColGraph <- function(sfe, colGraphName, colGeometryName = NULL, sample_id = NULL,
+plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
+                         sample_id = NULL,
                          segment_size = 0.5, geometry_size = 0.5) {
   sample_id <- .check_sample_id(sfe, sample_id)
   g <- colGraph(sfe, colGraphName, sample_id)
@@ -374,7 +375,7 @@ plotColGraph <- function(sfe, colGraphName, colGeometryName = NULL, sample_id = 
 
 #' @rdname plotColGraph
 #' @export
-plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
+plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
                            sample_id = NULL, segment_size = 0.5,
                            geometry_size = 0.5) {
   sample_id <- .check_sample_id(sfe, sample_id)
@@ -513,7 +514,7 @@ plotAnnotGraph <- function(sfe, annotGraphName, annotGeometryName,
 #'   ggplot_build
 #' @importFrom ggplot2 aes
 #' @export
-moranPlot <- function(sfe, feature, colGraphName, sample_id = NULL,
+moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,

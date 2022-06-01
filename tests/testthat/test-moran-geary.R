@@ -17,7 +17,7 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
 })
 
 test_that("Correct structure of colDataMoransI output", {
-  out <- colDataMoransI(sfe, "visium1", "nCounts", sample_id = "sample01")
+  out <- colDataMoransI(sfe, "nCounts", "visium1", sample_id = "sample01")
   expect_s4_class(out, "SpatialFeatureExperiment")
   fd <- attr(colData(out), "featureData")
   expect_s4_class(fd, "DataFrame")
@@ -40,7 +40,7 @@ test_that("Correct structure of colGeometryMoransI output", {
 })
 
 test_that("Correct structure of calculateMoransI output (SFE)", {
-  out <- calculateMoransI(sfe, "visium1", features = rownames(mat1),
+  out <- calculateMoransI(sfe, colGraphName = "visium1", features = rownames(mat1),
                           sample_id = "sample01", exprs_values = "counts")
   expect_s4_class(out, "DataFrame")
   expect_equal(names(out), c("I", "K", "sample_id"))
@@ -50,7 +50,8 @@ test_that("Correct structure of calculateMoransI output (SFE)", {
 })
 
 test_that("Properly add Moran's I results (no permutation) to SFE rowData", {
-  sfe2 <- runMoransI(sfe, "visium1", rownames(mat1), sample_id = "sample01",
+  sfe2 <- runMoransI(sfe, colGraphName = "visium1", features = rownames(mat1),
+                     sample_id = "sample01",
                      exprs_values = "counts")
   rd <- rowData(sfe2)
   expect_equal(names(rd), c("MoransI_sample01", "K_sample01"))
@@ -74,8 +75,8 @@ names_expect_mc <- c("statistic", "parameter", "p.value", "alternative",
 names_expect_mc <- paste("MoranMC", names_expect_mc, "sample01", sep = "_")
 
 test_that("Correct structure of colDataMoranMC output", {
-  out <- colDataMoranMC(sfe, "visium1", "nCounts", sample_id = "sample01",
-                        nsim = 10)
+  out <- colDataMoranMC(sfe, colGraphName = "visium1", features = "nCounts",
+                        sample_id = "sample01", nsim = 10)
   fd <- attr(colData(out), "featureData")
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), names_expect_mc)
@@ -85,7 +86,9 @@ test_that("Correct structure of colDataMoranMC output", {
 })
 
 test_that("Correct structure of colGeometryMoranMC output", {
-  out <- colGeometryMoranMC(sfe, "spotPoly", "visium1", "foo", "sample01", 10)
+  out <- colGeometryMoranMC(sfe, colGeometryName = "spotPoly",
+                            colGraphName = "visium1", features = "foo",
+                            sample_id = "sample01", nsim = 10)
   fd <- attr(colGeometry(out, "spotPoly"), "featureData")
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), names_expect_mc)
@@ -95,8 +98,8 @@ test_that("Correct structure of colGeometryMoranMC output", {
 })
 
 test_that("MoranMC results properly added to rowData", {
-  sfe2 <- runMoranMC(sfe, "visium1", rownames(mat1), sample_id = "sample01",
-                     exprs_values = "counts", nsim = 10)
+  sfe2 <- runMoranMC(sfe, colGraphName = "visium1", features = rownames(mat1),
+                     sample_id = "sample01", exprs_values = "counts", nsim = 10)
   rd <- rowData(sfe2)
   names_expect <- c("statistic", "parameter", "p.value", "alternative",
                     "method", "data.name", "res")
@@ -115,7 +118,8 @@ test_that("calculateCorrelogram gives appropriate results (matrix)", {
 })
 
 test_that("Correct structure of colDataCorrelogram output", {
-  out <- colDataCorrelogram(sfe, "visium1", "nCounts", "sample01", order = 2)
+  out <- colDataCorrelogram(sfe, colGraphName = "visium1", features = "nCounts",
+                            sample_id = "sample01", order = 2)
   fd <- attr(colData(out), "featureData")
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), "Correlogram_I_sample01")
@@ -127,7 +131,9 @@ test_that("Correct structure of colDataCorrelogram output", {
 })
 
 test_that("Correct structure of colGeometryCorrelogram output", {
-  out <- colGeometryCorrelogram(sfe, "spotPoly", "visium1", "foo", "sample01",
+  out <- colGeometryCorrelogram(sfe, colGeometryName = "spotPoly",
+                                colGraphName = "visium1", features = "foo",
+                                sample_id = "sample01",
                                 order = 2)
   fd <- attr(colGeometry(out, "spotPoly"), "featureData")
   expect_s4_class(fd, "DataFrame")
@@ -140,7 +146,8 @@ test_that("Correct structure of colGeometryCorrelogram output", {
 })
 
 test_that("Correlogram results correctly added to rowData", {
-  sfe2 <- runCorrelogram(sfe, "visium1", rownames(mat1), sample_id = "sample01",
+  sfe2 <- runCorrelogram(sfe, colGraphName = "visium1",
+                         features = rownames(mat1), sample_id = "sample01",
                          exprs_values = "counts", order = 2)
   rd <- rowData(sfe2)
   expect_equal(names(rd), "Correlogram_I_sample01")
@@ -161,7 +168,8 @@ names_expect_mp <- c("x", "wx", "is_inf", "labels", "dfb.1_", "dfb.x",
                      "dffit", "cov.r", "cook.d", "hat")
 
 test_that("Correct structure of colDataMoranPlot output", {
-  out <- colDataMoranPlot(sfe, "visium1", "nCounts", "sample01")
+  out <- colDataMoranPlot(sfe, colGraphName = "visium1", features = "nCounts",
+                          sample_id = "sample01")
   fd <- attr(colData(out), "featureData")
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), "MoranPlot_sample01")
@@ -173,7 +181,9 @@ test_that("Correct structure of colDataMoranPlot output", {
 })
 
 test_that("Correct structure of colGeometryMoranPlot output", {
-  out <- colGeometryMoranPlot(sfe, "spotPoly", "visium1", "foo", "sample01")
+  out <- colGeometryMoranPlot(sfe, colGeometryName = "spotPoly",
+                              colGraphName = "visium1", features = "foo",
+                              sample_id = "sample01")
   fd <- attr(colGeometry(out, "spotPoly"), "featureData")
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), "MoranPlot_sample01")
@@ -185,8 +195,8 @@ test_that("Correct structure of colGeometryMoranPlot output", {
 })
 
 test_that("Correctly add runMoranPlot output to rowData", {
-  sfe2 <- runMoranPlot(sfe, "visium1", rownames(mat1), sample_id = "sample01",
-                       exprs_values = "counts")
+  sfe2 <- runMoranPlot(sfe, colGraphName = "visium1", features = rownames(mat1),
+                       sample_id = "sample01", exprs_values = "counts")
   rd <- rowData(sfe2)
   expect_equal(names(rd), "MoranPlot_sample01")
   rdc <- rd$MoranPlot_sample01
@@ -197,10 +207,12 @@ test_that("Correctly add runMoranPlot output to rowData", {
 })
 
 # Should have passed the above unit tests for this to work
-sfe <- runMoranPlot(sfe, "visium1", c("B", "H"), sample_id = "sample01",
-                    exprs_values = "counts")
-sfe <- colDataMoranPlot(sfe, "visium1", "nCounts", "sample01")
-sfe <- colGeometryMoranPlot(sfe, "spotPoly", "visium1", features = "foo",
+sfe <- runMoranPlot(sfe, colGraphName = "visium1", features = c("B", "H"),
+                    sample_id = "sample01", exprs_values = "counts")
+sfe <- colDataMoranPlot(sfe, colGraphName = "visium1", features = "nCounts",
+                        sample_id = "sample01")
+sfe <- colGeometryMoranPlot(sfe, colGeometryName = "spotPoly",
+                            colGraphName = "visium1", features = "foo",
                             sample_id = "sample01")
 
 test_that("Moran plot clustering gives right results for gene expression", {
@@ -252,7 +264,7 @@ test_that("Error when the MoranPlot_sample01 column is absent", {
                "None of the features")
 })
 
-sfe <- runCorrelogram(sfe, "visium1", features = rownames(sfe),
+sfe <- runCorrelogram(sfe, colGraphName = "visium1", features = rownames(sfe),
                       sample_id = "sample01", order = 2,
                       exprs_values = "counts")
 test_that("Correct clusterCorrelograms output structure", {

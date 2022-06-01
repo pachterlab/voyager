@@ -39,8 +39,8 @@
 
 \S4method{calculateMoranMC}{SpatialFeatureExperiment}(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   exprs_values = "logcounts",
@@ -52,8 +52,8 @@
 
 \S4method{calculateGearyMC}{SpatialFeatureExperiment}(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   exprs_values = "logcounts",
@@ -65,8 +65,8 @@
 
 colDataMoranMC(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -77,8 +77,8 @@ colDataMoranMC(
 
 colDataGearyMC(
   x,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -89,9 +89,9 @@ colDataGearyMC(
 
 colGeometryMoranMC(
   x,
-  colGeometryName,
-  colGraphName,
   features,
+  colGeometryName = 1L,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -102,9 +102,9 @@ colGeometryMoranMC(
 
 colGeometryGearyMC(
   x,
-  colGeometryName,
-  colGraphName,
   features,
+  colGeometryName = 1L,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -115,9 +115,9 @@ colGeometryGearyMC(
 
 annotGeometryMoranMC(
   x,
-  annotGeometryName,
-  annotGraphName,
   features,
+  annotGeometryName = 1L,
+  annotGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -128,9 +128,9 @@ annotGeometryMoranMC(
 
 annotGeometryGearyMC(
   x,
-  annotGeometryName,
-  annotGraphName,
   features,
+  annotGeometryName = 1L,
+  annotGraphName = 1L,
   sample_id = NULL,
   nsim,
   BPPARAM = SerialParam(),
@@ -141,8 +141,8 @@ annotGeometryGearyMC(
 
 runMoranMC(
   sfe,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   exprs_values = "logcounts",
@@ -155,8 +155,8 @@ runMoranMC(
 
 runGearyMC(
   sfe,
-  colGraphName,
   features,
+  colGraphName = 1L,
   sample_id = NULL,
   nsim,
   exprs_values = "logcounts",
@@ -188,12 +188,6 @@ and how computing the metric for numerous genes shall be parallelized.}
 \item{...}{Other parameters passed to \code{\link{moran.mc}} or
 \code{\link{geary.mc}}.}
 
-\item{colGraphName}{Name of the listw graph in the SFE object that
-corresponds to entities represented by columns of the gene count matrix.
-Use \code{\link{colGraphNames}} to look up names of the available graphs
-for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
-that all of them have a graph of this same name.}
-
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
 \code{\link{colGeometry}} (\code{colGeometryM*}) or
@@ -202,6 +196,12 @@ univariate metric is to be computed. Default to \code{NULL}. When
 \code{NULL}, then the metric is computed for all genes with the values in
 the assay specified in the argument \code{exprs_values}. This can be
 parallelized with the argument \code{BPPARAM}.}
+
+\item{colGraphName}{Name of the listw graph in the SFE object that
+corresponds to entities represented by columns of the gene count matrix.
+Use \code{\link{colGraphNames}} to look up names of the available graphs
+for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
+that all of them have a graph of this same name.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately

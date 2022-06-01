@@ -7,7 +7,7 @@
 \usage{
 plotColGraph(
   sfe,
-  colGraphName,
+  colGraphName = 1L,
   colGeometryName = NULL,
   sample_id = NULL,
   segment_size = 0.5,
@@ -16,8 +16,8 @@ plotColGraph(
 
 plotAnnotGraph(
   sfe,
-  annotGraphName,
-  annotGeometryName,
+  annotGraphName = 1L,
+  annotGeometryName = 1L,
   sample_id = NULL,
   segment_size = 0.5,
   geometry_size = 0.5

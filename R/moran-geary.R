@@ -118,7 +118,7 @@ setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
 })
 
 .calc_univar_sfe_fun <- function(fun, returnDF = FALSE) {
-  function(x, colGraphName, features = NULL, sample_id = NULL,
+  function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
            exprs_values = "logcounts", BPPARAM = SerialParam(),
            zero.policy = NULL, ...) {
     # Am I sure that I want to use logcounts as the default?
@@ -168,7 +168,7 @@ setMethod("calculateGearysC", "SpatialFeatureExperiment",
 }
 
 .coldata_univar_fun <- function(fun, to_df_fun, name, to_df_params = list()) {
-  function(x, colGraphName, features, sample_id = NULL, BPPARAM = SerialParam(),
+  function(x, features, colGraphName = 1L, sample_id = NULL, BPPARAM = SerialParam(),
            zero.policy = NULL, ...) {
     sample_id <- .check_sample_id(x, sample_id, one = FALSE)
     for (s in sample_id) {
@@ -192,7 +192,7 @@ colDataMoransI <- .coldata_univar_fun(calculateMoransI, .MoransI2df, "MoransI")
 colDataGearysC <- .coldata_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
 
 .colgeom_univar_fun <- function(fun, to_df_fun, name, to_df_params = list()) {
-  function(x, colGeometryName, colGraphName, features, sample_id = NULL,
+  function(x, features, colGeometryName = 1L, colGraphName = 1L, sample_id = NULL,
            BPPARAM = SerialParam(), zero.policy = NULL, ...) {
     sample_id <- .check_sample_id(x, sample_id, one = FALSE)
     for (s in sample_id) {
@@ -217,7 +217,7 @@ colGeometryMoransI <- .colgeom_univar_fun(calculateMoransI, .MoransI2df, "Morans
 colGeometryGearysC <- .colgeom_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
 
 .annotgeom_univar_fun <- function(fun, to_df_fun, name, to_df_params = list()) {
-  function(x, annotGeometryName, annotGraphName, features, sample_id = NULL,
+  function(x, features, annotGeometryName = 1L, annotGraphName = 1L, sample_id = NULL,
            BPPARAM = SerialParam(), zero.policy = NULL, ...) {
     sample_id <- .check_sample_id(x, sample_id, one = FALSE)
     for (s in sample_id) {
@@ -242,12 +242,12 @@ annotGeometryMoransI <- .annotgeom_univar_fun(calculateMoransI, .MoransI2df, "Mo
 #' @export
 annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
 
-.sfe_univar_autocorr <- function(x, colGraphName, features, sample_id,
+.sfe_univar_autocorr <- function(x, features, colGraphName, sample_id,
                                  exprs_values, fun, BPPARAM, zero.policy,
                                  name) {
   sample_id <- .check_sample_id(x, sample_id, one = FALSE)
   for (s in sample_id) {
-    out <- fun(x, colGraphName, features, s, exprs_values, BPPARAM,
+    out <- fun(x, features, colGraphName, s, exprs_values, BPPARAM,
                zero.policy)
     out$sample_id <- NULL # Not necessary here, but necessary when just calling calculateMoransI
     out <- .MoransI2df(out, name)
@@ -259,19 +259,19 @@ annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC, .MoransI2df, "Ge
 
 #' @rdname calculateMoransI
 #' @export
-runMoransI <- function(sfe, colGraphName, features, sample_id = NULL,
+runMoransI <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(sfe, colGraphName, features, sample_id, exprs_values,
+  .sfe_univar_autocorr(sfe, features, colGraphName, sample_id, exprs_values,
                        calculateMoransI, BPPARAM, zero.policy, name = "MoransI")
 }
 
 #' @rdname calculateMoransI
 #' @export
-runGearysC <- function(sfe, colGraphName, features, sample_id = NULL,
+runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(sfe, colGraphName, features, sample_id, exprs_values,
+  .sfe_univar_autocorr(sfe, features, colGraphName, sample_id, exprs_values,
                        calculateGearysC, BPPARAM, zero.policy, name = "GearysC")
 }
 
@@ -323,11 +323,11 @@ setMethod("calculateGearyMC", "ANY", function(x, listw, nsim,
 
 # For the `nsim` and `alternative` arguments
 .calc_univar_sfe_fun_mc <- function(fun) {
-  function(x, colGraphName, features, sample_id = NULL, nsim,
+  function(x, features, colGraphName = 1L, sample_id = NULL, nsim,
            exprs_values = "logcounts",
            BPPARAM = SerialParam(), zero.policy = NULL,
            alternative = "greater", ...) {
-    .calc_univar_sfe_fun(fun)(x, colGraphName, features, sample_id,
+    .calc_univar_sfe_fun(fun)(x, features, colGraphName, sample_id,
                               exprs_values, BPPARAM, zero.policy, nsim = nsim,
                               alternative = alternative, ...)
   }
@@ -344,11 +344,11 @@ setMethod("calculateGearyMC", "SpatialFeatureExperiment",
           .calc_univar_sfe_fun_mc(calculateGearyMC))
 
 .coldata_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, colGraphName, features, sample_id = NULL, nsim,
+  function(x, features, colGraphName = 1L, sample_id = NULL, nsim,
            BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
            ...) {
-    .coldata_univar_fun(fun, to_df_fun, name)(x, colGraphName,
-                                              features, sample_id, BPPARAM,
+    .coldata_univar_fun(fun, to_df_fun, name)(x, features, colGraphName,
+                                              sample_id, BPPARAM,
                                               zero.policy, nsim = nsim,
                                               alternative = alternative, ...)
   }
@@ -376,11 +376,12 @@ colDataMoranMC <- .coldata_univar_fun_mc(calculateMoranMC, .MoranMC2df, "MoranMC
 colDataGearyMC <- .coldata_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
 
 .colgeom_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, colGeometryName, colGraphName, features, sample_id = NULL, nsim,
-           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
+  function(x, features, colGeometryName = 1L, colGraphName = 1L,
+           sample_id = NULL, nsim, BPPARAM = SerialParam(), zero.policy = NULL,
+           alternative = "greater",
            ...) {
-    .colgeom_univar_fun(fun, to_df_fun, name)(x, colGeometryName, colGraphName,
-                                              features, sample_id, BPPARAM,
+    .colgeom_univar_fun(fun, to_df_fun, name)(x, features, colGeometryName,
+                                              colGraphName, sample_id, BPPARAM,
                                               zero.policy, nsim = nsim,
                                               alternative = alternative, ...)
   }
@@ -394,11 +395,12 @@ colGeometryMoranMC <- .colgeom_univar_fun_mc(calculateMoranMC, .MoranMC2df, "Mor
 colGeometryGearyMC <- .colgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
 
 .annotgeom_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, annotGeometryName, annotGraphName, features, sample_id = NULL, nsim,
-           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
+  function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
+           sample_id = NULL, nsim, BPPARAM = SerialParam(), zero.policy = NULL,
+           alternative = "greater",
            ...) {
     .annotgeom_univar_fun(fun, to_df_fun, name)(
-      x, annotGeometryName, annotGraphName, features, sample_id, BPPARAM,
+      x, features, annotGeometryName, annotGraphName, sample_id, BPPARAM,
       zero.policy, nsim = nsim, alternative = alternative, ...)
   }
 }
@@ -411,12 +413,12 @@ annotGeometryMoranMC <- .annotgeom_univar_fun_mc(calculateMoranMC, .MoranMC2df, 
 #' @export
 annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
 
-.sfe_univar_mc <- function(x, colGraphName, features, sample_id, nsim,
+.sfe_univar_mc <- function(x, features, colGraphName, sample_id, nsim,
                            exprs_values, fun, BPPARAM, zero.policy, alternative,
                            name, ...) {
   sample_id <- .check_sample_id(x, sample_id, one = FALSE)
   for (s in sample_id) {
-    out <- fun(x, colGraphName, features, s, nsim, exprs_values, BPPARAM,
+    out <- fun(x, features, colGraphName, s, nsim, exprs_values, BPPARAM,
                zero.policy, alternative, ...)
     out <- .MoranMC2df(out, name)
     out <- .add_name_sample_id(x, out, s)
@@ -427,11 +429,11 @@ annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, 
 
 #' @rdname calculateMoranMC
 #' @export
-runMoranMC <- function(sfe, colGraphName, features, sample_id = NULL, nsim,
+runMoranMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, alternative = "greater",
                        name = "MoranMC", ...) {
-  .sfe_univar_mc(sfe, colGraphName, features, sample_id, nsim, exprs_values,
+  .sfe_univar_mc(sfe, features, colGraphName, sample_id, nsim, exprs_values,
                  fun = calculateMoranMC, BPPARAM = BPPARAM,
                  zero.policy = zero.policy, alternative = alternative,
                  name = name, ...)
@@ -439,11 +441,11 @@ runMoranMC <- function(sfe, colGraphName, features, sample_id = NULL, nsim,
 
 #' @rdname calculateMoranMC
 #' @export
-runGearyMC <- function(sfe, colGraphName, features, sample_id = NULL, nsim,
+runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
                        exprs_values = "logcounts", BPPARAM = SerialParam(),
                        zero.policy = NULL, alternative = "greater",
                        name = "GearyMC", ...) {
-  .sfe_univar_mc(sfe, colGraphName, features, sample_id, nsim, exprs_values,
+  .sfe_univar_mc(sfe, features, colGraphName, sample_id, nsim, exprs_values,
                  fun = calculateGearyMC, BPPARAM = BPPARAM,
                  zero.policy = zero.policy, alternative = alternative,
                  name = name, ...)
@@ -492,11 +494,11 @@ setMethod("calculateCorrelogram", "ANY",
 #' @rdname calculateCorrelogram
 #' @export
 setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
-          function(x, colGraphName, features, sample_id = NULL, order = 1,
+          function(x, features, colGraphName = 1L, sample_id = NULL, order = 1,
                    method = "I", exprs_values = "logcounts",
                    BPPARAM = SerialParam(), zero.policy = NULL, ...) {
             .calc_univar_sfe_fun(calculateCorrelogram)(
-              x, colGraphName, features, sample_id, exprs_values = exprs_values,
+              x, features, colGraphName, sample_id, exprs_values = exprs_values,
               BPPARAM = BPPARAM, zero.policy = zero.policy, order = order,
               method = method, ...)
           })
@@ -516,51 +518,53 @@ setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
 
 #' @rdname calculateCorrelogram
 #' @export
-colGeometryCorrelogram <- function(x, colGeometryName, colGraphName, features,
-                               sample_id = NULL, order = 1, method = "I",
-                               BPPARAM = SerialParam(),
-                               zero.policy = NULL, ...) {
+colGeometryCorrelogram <- function(x, features, colGeometryName = 1L,
+                                   colGraphName = 1L, sample_id = NULL,
+                                   order = 1, method = "I",
+                                   BPPARAM = SerialParam(), zero.policy = NULL,
+                                   ...) {
   .colgeom_univar_fun(calculateCorrelogram, .correlogram2df,
                       name = paste("Correlogram", method, sep = "_"),
                       to_df_params = list(method = method))(
-    x, colGeometryName, colGraphName, features, sample_id, BPPARAM = BPPARAM,
+    x, features, colGeometryName, colGraphName, sample_id, BPPARAM = BPPARAM,
     zero.policy = zero.policy, order = order, method = method, ...)
 }
 
 #' @rdname calculateCorrelogram
 #' @export
-colDataCorrelogram <- function(x, colGraphName, features, sample_id = NULL,
+colDataCorrelogram <- function(x, features, colGraphName = 1L, sample_id = NULL,
                                order = 1, method = "I", BPPARAM = SerialParam(),
                                zero.policy = NULL, ...) {
   .coldata_univar_fun(calculateCorrelogram, .correlogram2df,
                       name = paste("Correlogram", method, sep = "_"),
                       to_df_params = list(method = method))(
-    x, colGraphName, features, sample_id, BPPARAM = BPPARAM,
+    x, features, colGraphName, sample_id, BPPARAM = BPPARAM,
     zero.policy = zero.policy, order = order, method = method, ...)
 }
 
 #' @rdname calculateCorrelogram
 #' @export
-annotGeometryCorrelogram <- function(x, annotGeometryName, annotGraphName,
-                                     features, sample_id = NULL, order = 1,
-                                     method = "I", BPPARAM = SerialParam(),
+annotGeometryCorrelogram <- function(x, features, annotGeometryName = 1L,
+                                     annotGraphName = 1L, sample_id = NULL,
+                                     order = 1, method = "I",
+                                     BPPARAM = SerialParam(),
                                      zero.policy = NULL, ...) {
   .annotgeom_univar_fun(calculateCorrelogram, .correlogram2df,
                         name = paste("Correlogram", method, sep = "_"),
                         to_df_params = list(method = method))(
-    x, annotGeometryName, annotGraphName, features, sample_id, BPPARAM = BPPARAM,
+    x, features, annotGeometryName, annotGraphName, sample_id, BPPARAM = BPPARAM,
     zero.policy = zero.policy, order = order, method = method, ...)
 }
 
 #' @rdname calculateCorrelogram
 #' @export
-runCorrelogram <- function(sfe, colGraphName, features, sample_id = NULL, order = 1,
-                           method = "I", exprs_values = "logcounts",
+runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
+                           order = 1, method = "I", exprs_values = "logcounts",
                            BPPARAM = SerialParam(), zero.policy = NULL,
                            name = paste("Correlogram", method, sep = "_"), ...) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   for (s in sample_id) {
-    out <- calculateCorrelogram(sfe, colGraphName, features, s, order,
+    out <- calculateCorrelogram(sfe, features, colGraphName, s, order,
                                 method, exprs_values, BPPARAM, zero.policy, ...)
     out <- .correlogram2df(out, name, method)
     rownames(out) <- features

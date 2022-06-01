@@ -54,12 +54,12 @@ annotGeometryMoranPlot <- .annotgeom_univar_fun(calculateMoranPlot, .MoranPlot2d
 
 #' @rdname calculateMoranPlot
 #' @export
-runMoranPlot <- function(sfe, colGraphName, features, sample_id = NULL,
+runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
                          exprs_values = "logcounts", BPPARAM = SerialParam(),
                          zero.policy = NULL, name = "MoranPlot", ...) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   for (s in sample_id) {
-    out <- calculateMoranPlot(sfe, colGraphName, features, s, exprs_values,
+    out <- calculateMoranPlot(sfe, features, colGraphName, s, exprs_values,
                               BPPARAM, zero.policy, ...)
     out <- .MoranPlot2df(out, name)
     rownames(out) <- features

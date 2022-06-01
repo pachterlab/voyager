@@ -6,8 +6,8 @@
 \usage{
 plotSpatialFeature(
   sfe,
-  colGeometryName,
   features,
+  colGeometryName = 1L,
   sample_id = NULL,
   ncol = NULL,
   ncol_sample = NULL,
@@ -33,13 +33,13 @@ plotSpatialFeature(
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
+\item{features}{Features to plot, must be in rownames of the gene count
+matrix, colnames of colData or a colGeometry.}
+
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
 \code{\link{colGeometryNames}} to look up names of the \code{sf} data
 frames associated with cells/spots.}
-
-\item{features}{Features to plot, must be in rownames of the gene count
-matrix, colnames of colData or a colGeometry.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately

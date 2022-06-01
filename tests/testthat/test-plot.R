@@ -9,60 +9,60 @@ library(scater)
 library(Matrix)
 # Toy example
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
-sfe <- runMoranPlot(sfe, "visium1", c("B", "H"), sample_id = "sample01",
+sfe <- runMoranPlot(sfe, c("B", "H"), "visium1", sample_id = "sample01",
                     exprs_values = "counts")
 
 test_that("Everything plotSpatialFeature", {
   #testthat::skip("Skipping plots that require sf")
   expect_doppelganger("Plot gene expression",
-                      plotSpatialFeature(sfe, "spotPoly", "H", "sample01",
+                      plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
                                          exprs_values = "counts"))
   expect_doppelganger("Plot colData",
-                      plotSpatialFeature(sfe, "spotPoly", "nCounts", "sample01",
+                      plotSpatialFeature(sfe, "nCounts", "spotPoly", "sample01",
                                          exprs_values = "counts"))
   expect_doppelganger("Plot colGeometry",
-                      plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+                      plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
                                          exprs_values = "counts"))
   expect_doppelganger("Plot with annotGeometry", {
-    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+    plotSpatialFeature(sfe, "H", "spotPoly", "sample01", exprs_values = "counts",
                        annotGeometryName = "annot")
   })
   expect_doppelganger("Plot with annotGeometry, with new fill scale", {
-    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+    plotSpatialFeature(sfe, "H", "spotPoly", "sample01", exprs_values = "counts",
                        annotGeometryName = "annot",
                        annot_aes = list(fill = "bar"))
   })
   expect_doppelganger("Plot with annotGeometry, colored outlines of polygons", {
-    plotSpatialFeature(sfe, "spotPoly", "H", "sample01", exprs_values = "counts",
+    plotSpatialFeature(sfe, "H", "spotPoly", "sample01", exprs_values = "counts",
                        annotGeometryName = "annot",
                        annot_aes = list(color = "bar"),
                        annot_fixed = list(fill = NA))
   })
   expect_doppelganger("Divergent scale", {
-    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+    plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
                        exprs_values = "counts", divergent = TRUE,
                        diverge_center = 0)
   })
   expect_doppelganger("Divergent scale, annot also on divergent scale", {
-    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+    plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
                        exprs_values = "counts", divergent = TRUE,
                        diverge_center = 0, annotGeometryName = "annot",
                        annot_aes = list(fill = "bar"),
                        annot_divergent = TRUE, annot_diverge_center = 0)
   })
   expect_doppelganger("Divergent scale, annot not on divergent scale", {
-    plotSpatialFeature(sfe, "spotPoly", "foo", "sample01",
+    plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
                        exprs_values = "counts", divergent = TRUE,
                        diverge_center = 0, annotGeometryName = "annot",
                        annot_aes = list(fill = "bar"),
                        annot_divergent = FALSE)
   })
   expect_doppelganger("Discrete, represented as point shapes", {
-    plotSpatialFeature(sfe, "centroids", "category", "sample01",
+    plotSpatialFeature(sfe, "category", "centroids", "sample01",
                        aes_use = "shape", size = 2)
   })
   expect_doppelganger("Discrete, represented as color", {
-    plotSpatialFeature(sfe, "centroids", "category", "sample01", size = 2)
+    plotSpatialFeature(sfe, "category", "centroids", "sample01", size = 2)
   })
 })
 
@@ -79,9 +79,9 @@ colGraph(sfe_libd, "visium", sample_id = sample_use) <-
   findVisiumGraph(sfe_libd, sample_use)
 # Actually, the toy example only has one gene.
 feature_use <- sample(rownames(sfe_libd), 1)
-sfe_libd <- runMoranPlot(sfe_libd, "visium", sample_id = sample_use,
+sfe_libd <- runMoranPlot(sfe_libd, colGraphName = "visium", sample_id = sample_use,
                          features = feature_use)
-sfe_libd <- colDataMoranPlot(sfe_libd, "visium", features = "sum_umi",
+sfe_libd <- colDataMoranPlot(sfe_libd, colGraphName = "visium", features = "sum_umi",
                              sample_id = sample_use)
 colData(sfe_libd)$GraphBased <- factor(colData(sfe_libd)$GraphBased)
 
@@ -114,7 +114,8 @@ test_that("moranPlot, filled, with color_by", {
 
 test_that("plotColGraph", {
   expect_doppelganger("plotColGraph toy example",
-                      plotColGraph(sfe, "visium1", colGeometryName = "spotPoly",
+                      plotColGraph(sfe, colGraphName = "visium1",
+                                   colGeometryName = "spotPoly",
                                    sample_id = "sample01"))
 })
 
@@ -130,7 +131,7 @@ sfe_libd <- runCorrelogram(sfe_libd, features = feature_use,
                            colGraphName = "visium", sample_id = sample_use,
                            order = 5, zero.policy = TRUE,
                            method = "C")
-sfe_libd <- colDataCorrelogram(sfe_libd, "visium", "sum_umi",
+sfe_libd <- colDataCorrelogram(sfe_libd, colGraphName = "visium", features = "sum_umi",
                                sample_id = sample_use, order = 5,
                                zero.policy = TRUE)
 test_that("plotCorrelogram", {
