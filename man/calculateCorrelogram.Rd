@@ -108,7 +108,8 @@ and how computing the metric for numerous genes shall be parallelized.}
 \item{colGraphName}{Name of the listw graph in the SFE object that
 corresponds to entities represented by columns of the gene count matrix.
 Use \code{\link{colGraphNames}} to look up names of the available graphs
-for cells/spots.}
+for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
+that all of them have a graph of this same name.}
 
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
