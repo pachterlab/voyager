@@ -1,7 +1,4 @@
 # 10. What to do with the image when using geom_sf
-# 11. Plot correlograms for multiple genes at once, with error bars (2 sd), as
-# in the plot function for spcor, but with ggplot.
-# 12. Cluster the correlograms and plot the clusters
 # 14. Plot MoranMC results with ggplot2
 # Shall I also allow users to plot dimension reductions as features?
 # For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
@@ -276,7 +273,7 @@ plotSpatialFeature <- function(sfe, colGeometryName, features, sample_id = NULL,
                                 exprs_values = exprs_values)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   if (length(sample_id) > 1L) {
-    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id,]
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
   }
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
