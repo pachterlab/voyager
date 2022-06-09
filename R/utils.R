@@ -7,7 +7,7 @@
   if (is.null(colGeometryName)) {
     features_colgeom <- NULL
   } else {
-    cg <- colGeometry(x, type = colGeometryName)
+    cg <- colGeometry(x, type = colGeometryName, sample_id = "all")
     features_colgeom <- intersect(features, names(st_drop_geometry(cg)))
   }
   out <- list(assay = features_assay,

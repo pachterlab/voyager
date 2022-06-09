@@ -98,7 +98,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                    divergent = FALSE, diverge_center = NULL)
   fill <- defaults[setdiff(names(defaults), names(fixed))]
   out <- .drop_null_list(c(fixed, fill))
-  if (is.na(out$fill)) out$size <- 0.5
+  if (is.na(out$fill) && "size" %in% names(fill)) out$size <- 0.5
   out
 }
 
