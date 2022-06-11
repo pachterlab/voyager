@@ -255,7 +255,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importMethodsFrom Matrix t
 #' @export
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
-                               sample_id = NULL,ncol = NULL, ncol_sample = NULL,
+                               sample_id = NULL, ncol = NULL, ncol_sample = NULL,
                                annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts",
@@ -303,25 +303,74 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
   return(out)
 }
 
+.get_graph_df <- function(sfe, MARGIN, sample_id, graph_name, geometry) {
+  if (MARGIN == 1L) {
+    stop("Not implemented for rowGeometry yet.")
+  }
+  if (MARGIN == 3L && is.null(geometry)) {
+    stop("annotGeometry must be specified.")
+  }
+  listws <- spatialGraphs(sfe, MARGIN, sample_id = sample_id, name = graph_name)
+  sample_inds <- colData(sfe)$sample_id %in% sample_id
+  if (is.null(geometry)) {
+    coords <- as.data.frame(spatialCoords(sfe)[sample_inds,])
+  } else {
+    coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(geometry))))
+  }
+  coords$sample_id <- colData(sfe)$sample_id[sample_inds]
+  dfs <- lapply(sample_id, function(s) {
+    listw <- listws[[s]]
+    cardnb <- card(listw$neighbours)
+    n <- length(listw$neighbours)
+    df <- data.frame(i = rep(1:n, cardnb),
+                     j = unlist(listw$neighbours),
+                     sample_id = s)
+    cu <- coords[coords$sample_id == s,]
+    df$x <- cu[,1][df$i]
+    df$y <- cu[,2][df$i]
+    df$x_end <- cu[,1][df$j]
+    df$y_end <- cu[,2][df$j]
+    df
+  })
+  do.call(rbind, dfs)
+}
+
 #' @importFrom ggplot2 geom_line
-.plot_graph <- function(listw, coords, geometry = NULL, segment_size = 0.5,
-                        geometry_size = 0.5) {
-  cardnb <- card(listw$neighbours)
-  n <- length(listw$neighbours)
-  df <- data.frame(i = rep(1:n, cardnb),
-                   j = unlist(listw$neighbours))
-  df$x <- coords[,1][df$i]
-  df$y <- coords[,2][df$i]
-  df$x_end <- coords[,1][df$j]
-  df$y_end <- coords[,2][df$j]
+.plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
+                        segment_size = 0.5, geometry_size = 0.5, ncol = NULL) {
+  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+  if (!is.null(geometry_name)) {
+    gf <- switch(MARGIN, rowGeometry, colGeometry, annotGeometry)
+    geometry <- gf(sfe, MARGIN, type = geometry_name, sample_id = sample_id)
+  } else geometry <- NULL
+  df <- .get_graph_df(sfe, MARGIN, sample_id, graph_name, geometry)
   p <- ggplot(df)
   X <- Y <- group <- x <- y <- x_end <- y_end <- NULL
   if (!is.null(geometry)) {
     # Burning question: Shall I use geom_sf or just get the coordinates?
     # Maybe for now I'll just get the coordinates.
     coord_geom <- as.data.frame(st_coordinates(geometry))
-    names(coord_geom)[ncol(coord_geom)] <- "group"
-    geom_use <- switch (as.character(st_geometry_type(geometry, by_geometry = FALSE)),
+    type <- st_geometry_type(geometry, by_geometry = FALSE)
+    if (!type %in% c("POINT", "MULTIPOINT"))
+      names(coord_geom)[ncol(coord_geom)] <- "group"
+    if (length(sample_id) > 1L) {
+      if (!"sample_id" %in% names(geometry)) {
+        # Should only apply to colGeometry
+        geometry$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+      }
+      if (!type %in% c("POINT", "MULTIPOINT")) {
+        geometry$group <- seq_len(nrow(geometry))
+        coord_geom <- merge(coord_geom, st_drop_geometry(geometry), by = "group")
+      } else {
+        coord_geom$sample_id <- geometry$sample_id
+      }
+    }
+    if (type %in% c("POINT", "MULTIPOINT"))
+      geom <- "POINT"
+    else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
+      geom <- "LINESTRING"
+    } else geom <- "POLYGON"
+    geom_use <- switch (geom,
                         POINT = geom_point(data = coord_geom, aes(X, Y), size = geometry_size,
                                            color = "gray70"),
                         LINESTRING = geom_line(data = coord_geom, aes(X, Y, group = group),
@@ -334,10 +383,14 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     p <- p +
       geom_point(aes(x, y), size = geometry_size)
   }
-  p +
+  p <- p +
     geom_segment(aes(x, y, xend = x_end, yend = y_end), size = segment_size) +
     coord_equal() +
     labs(x = NULL, y = NULL)
+  if (length(sample_id) > 1L) {
+    p <- p + facet_wrap(~ sample_id, ncol = ncol)
+  }
+  p
 }
 
 #' Plot spatial graphs
@@ -346,7 +399,6 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' objects.
 #'
 #' @inheritParams plotSpatialFeature
-#' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param colGraphName Name of graph associated with columns of the gene count
 #'   matrix to be plotted.
 #' @param segment_size Thickness of the segments that represent graph edges.
@@ -357,37 +409,29 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'   associated with the graph specified with \code{annotGraphName}, for spatial
 #'   coordinates of the graph nodes and for context.
 #' @importFrom SpatialExperiment spatialCoords
+#' @importFrom SpatialFeatureExperiment spatialGraphs
 #' @importFrom spdep card
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
-                         sample_id = NULL,
-                         segment_size = 0.5, geometry_size = 0.5) {
-  sample_id <- .check_sample_id(sfe, sample_id)
-  g <- colGraph(sfe, colGraphName, sample_id)
-  if (is.null(g)) stop("Graph ", colGraphName, " not found.")
-  coords <- spatialCoords(sfe)[colData(sfe)$sample_id == sample_id,]
-  geometry <- if (is.null(colGeometryName)) NULL else
-    colGeometry(sfe, colGeometryName, sample_id)
-  .plot_graph(g, coords, geometry, segment_size, geometry_size)
+                         sample_id = NULL, segment_size = 0.5,
+                         geometry_size = 0.5, ncol = NULL) {
+  .plot_graph(sfe, MARGIN = 2L, sample_id = sample_id, graph_name = colGraphName,
+              geometry_name = colGeometryName,
+              segment_size = segment_size, geometry_size = geometry_size,
+              ncol = ncol)
 }
 
 #' @rdname plotColGraph
 #' @export
 plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
                            sample_id = NULL, segment_size = 0.5,
-                           geometry_size = 0.5) {
-  sample_id <- .check_sample_id(sfe, sample_id)
-  g <- annotGraph(sfe, annotGraphName, sample_id)
-  ag <- annotGeometry(sfe, annotGeometryName, sample_id)
-  ag_type <- st_geometry_type(ag, by_geometry = FALSE)
-  if (ag_type == "POINT") {
-    coords <- st_coordinates(ag)
-  } else {
-    coords <- st_coordinates(st_centroid(st_geometry(ag)))
-  }
-  .plot_graph(g, coords, ag, segment_size, geometry_size)
+                           geometry_size = 0.5, ncol = NULL) {
+  .plot_graph(sfe, MARGIN = 3L, sample_id = sample_id, graph_name = annotGraphName,
+              geometry_name = annotGeometryName,
+              segment_size = segment_size, geometry_size = geometry_size,
+              ncol = ncol)
 }
 
 .moran_ggplot <- function(mp, feature, is_singleton, contour_color = "cyan",

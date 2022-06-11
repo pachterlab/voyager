@@ -34,7 +34,9 @@ whose numeric columns of interest are to be used to compute the metric. Use
 \code{\link{colGeometryNames}} to look up names of the \code{sf} data
 frames associated with cells/spots.}
 
-\item{sample_id}{One sample_id for the sample whose graph to plot.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{segment_size}{Thickness of the segments that represent graph edges.}
 

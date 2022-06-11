@@ -9,7 +9,7 @@ library(scater)
 library(Matrix)
 # Toy example
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
-sfe <- runMoranPlot(sfe, c("B", "H"), "visium1", sample_id = "sample01",
+sfe <- runMoranPlot(sfe, c("B", "H"), "visium", sample_id = "sample01",
                     exprs_values = "counts")
 
 test_that("Everything plotSpatialFeature", {

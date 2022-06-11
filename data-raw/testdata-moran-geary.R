@@ -37,8 +37,8 @@ sfe2 <- SpatialFeatureExperiment(list(counts = mat2), colData = coords2,
                                  spatialCoordsNames = c("col", "row"),
                                  sample_id = "sample02",
                                  spotDiameter = 0.7)
-colGraph(sfe1, "visium1") <- findVisiumGraph(sfe1)
-colGraph(sfe2, "visium2") <- findVisiumGraph(sfe2)
+colGraph(sfe1, "visium") <- findVisiumGraph(sfe1)
+colGraph(sfe2, "visium") <- findVisiumGraph(sfe2)
 sfe <- cbind(sfe1, sfe2)
 
 # Add annotGeometry and annotGraph
@@ -55,10 +55,10 @@ annotGraph(sfe, "annot_tri", "sample01") <-
 
 # Add geometry metadata
 set.seed(29)
-colGeometry(sfe, "spotPoly")$foo <- rnorm(ncol(sfe))
+colGeometry(sfe, "spotPoly", "all")$foo <- rnorm(ncol(sfe))
 colData(sfe)$nCounts <- colSums(counts(sfe))
-annotGeometry(sfe, "annot")$bar <- rnorm(5)
-colGeometry(sfe, "centroids") <- suppressWarnings(st_centroid(spotPoly(sfe)))
-colGeometry(sfe, "centroids")$category <- sample(LETTERS[22:26], ncol(sfe), replace = TRUE)
+annotGeometry(sfe, "annot", "all")$bar <- rnorm(5)
+colGeometry(sfe, "centroids", "all") <- suppressWarnings(st_centroid(spotPoly(sfe, "all")))
+colGeometry(sfe, "centroids", "all")$category <- sample(LETTERS[22:26], ncol(sfe), replace = TRUE)
 
 saveRDS(sfe, "inst/testdata/sfe.rds")
