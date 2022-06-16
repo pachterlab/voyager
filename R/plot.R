@@ -672,6 +672,7 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
 #'   \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
 #'   \code{annotGeometry} by which to color the correlogram of each feature.
+#'   Alternatively, a vector of the same length as \code{features}.
 #' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
 #'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
 #'   p-values are two sided, based on the assumption that the estimated Moran's
@@ -799,6 +800,81 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
   if (facet_sample) {
     p <- p + facet_wrap(~sample_id, ncol = ncol)
   }
+  p
+}
+
+.get_plot_mc_df <- function(sfe, features, sample_id, name,
+                            colGeometryName, annotGeometryName) {
+  ress <- .get_feature_metadata(sfe, features, name = paste0(name, "_res"),
+                                sample_id = sample_id, colGeometryName,
+                                annotGeometryName)
+  res_stats <- .get_feature_metadata(sfe, features, name = paste0(name, "_statistic"),
+                                     sample_id = sample_id, colGeometryName,
+                                     annotGeometryName)
+  dfs <- lapply(seq_along(ress), function(i) {
+    if (isTRUE(is.na(ress[[i]]))) return(NA)
+    data.frame(res = ress[[i]],
+               statistic = res_stats[[i]],
+               feature = names(ress)[i])
+  })
+  dfs <- dfs[!.is_na_list(dfs)]
+  if (!length(dfs)) {
+    stop("None of the features have the specified MC computed.")
+  }
+  do.call(rbind, dfs)
+}
+
+#' Plot Moran/Geary monte carlo results
+#'
+#' Plot the simulations as a density plot or histogram compared to the observed
+#' Moran's I or Geary's C, with ggplot2 so it looks nicer. Unlike the plotting
+#' function in \code{spdep}, this function can also plot the same feature in
+#' different samples as facets or plot different features or samples together
+#' for comparison.
+#'
+#' @inheritParams plotCorrelogram
+#' @param ptype Plot type, one of "density", "histogram", or "freqpoly".
+#' @param ... Other arguments passed to \code{\link{geom_density}},
+#'   \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on
+#'   \code{ptype}.
+#' @return A \code{ggplot2} object.
+#' @importFrom ggplot2 geom_density geom_histogram geom_freqpoly
+#' @export
+plotMoranMC <- function(sfe, features, sample_id = NULL,
+                        facet_by = c("sample_id", "features"), ncol = NULL,
+                        colGeometryName = NULL, annotGeometryName = NULL,
+                        name = "MoranMC", ptype = c("density", "histogram",
+                                                    "freqpoly"), ...) {
+  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+  if (length(sample_id) > 1L || length(features) > 1L)
+    facet_by <- match.arg(facet_by)
+  facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
+  facet_feature <- length(features) > 1L && facet_by == "features"
+  group_sample <- !facet_sample && length(sample_id) > 1L
+
+  dens_geom <- switch(ptype,
+                      density = geom_density,
+                      histogram = geom_histogram,
+                      freqpoly = geom_freqpoly)
+
+  dfs <- .get_plot_mc_df(sfe, features, sample_id, name, colGeometryName, annotGeometryName)
+  df <- do.call(rbind, dfs)
+  p <- ggplot(df)
+  if ((length(sample_id) == 1L && (length(features) == 1L || facet_feature)) ||
+      (length(features) == 1L && facet_sample)) {
+    p <- ggplot(df)
+  }
+  if (length(features) > 1L && (length(sample) == 1L || facet_sample)) {
+    p <- ggplot(df, aes(color = feature))
+  }
+  if (length(sample_id) > 1L && (length(features) == 1L || facet_feature)) {
+    p <- ggplot(df, aes(color = sample_id))
+  }
+  method_show <- if (grepl(regexpr("moran", ignore.case = TRUE), name)) "Moran's I" else "Geary's C"
+  p <- p + dens_geom(aes(res), ...) + geom_vline(aes(xintercept = statistic)) +
+    labs(x = paste0("Monte-Carlo simulation of ", method_show))
+  if (facet_feature) p <- p + facet_wrap(~feature)
+  if (facet_sample) p <- p + facet_wrap(~sample_id)
   p
 }
 

@@ -11,7 +11,8 @@ plotColGraph(
   colGeometryName = NULL,
   sample_id = NULL,
   segment_size = 0.5,
-  geometry_size = 0.5
+  geometry_size = 0.5,
+  ncol = NULL
 )
 
 plotAnnotGraph(
@@ -20,7 +21,8 @@ plotAnnotGraph(
   annotGeometryName = 1L,
   sample_id = NULL,
   segment_size = 0.5,
-  geometry_size = 0.5
+  geometry_size = 0.5,
+  ncol = NULL
 )
 }
 \arguments{
@@ -42,6 +44,10 @@ for each sample.}
 
 \item{geometry_size}{Point size (for POINT geometries) or line thickness (for
 LINESTRING and POLYGON) to plot the geometry in the background.}
+
+\item{ncol}{Number of columns if plotting multiple features. Defaults to
+\code{NULL}, which means using the same logic as \code{facet_wrap}, which
+is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.}
 
 \item{annotGraphName}{Name of the annotation graph to plot.}
 
