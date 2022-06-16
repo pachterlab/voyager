@@ -845,6 +845,7 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
                         name = "MoranMC", ptype = c("density", "histogram",
                                                     "freqpoly"), ...) {
+  ptype <- match.arg(ptype)
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   if (length(sample_id) > 1L || length(features) > 1L)
     facet_by <- match.arg(facet_by)
