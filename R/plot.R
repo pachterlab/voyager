@@ -805,6 +805,8 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 
 .get_plot_mc_df <- function(sfe, features, sample_id, name,
                             colGeometryName, annotGeometryName) {
+  # Ah, the weight of tradition. .get_feature_metadata only works for one sample at a time
+  # As a result, this function deals with one sample at a time.
   ress <- .get_feature_metadata(sfe, features, name = paste0(name, "_res"),
                                 sample_id = sample_id, colGeometryName,
                                 annotGeometryName)
@@ -813,9 +815,12 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                      annotGeometryName)
   dfs <- lapply(seq_along(ress), function(i) {
     if (isTRUE(is.na(ress[[i]]))) return(NA)
-    data.frame(res = ress[[i]],
+    res_use <- ress[[i]]
+    res_use <- res_use[-length(res_use)]
+    data.frame(res = res_use,
                statistic = res_stats[[i]],
-               feature = names(ress)[i])
+               feature = names(ress)[i],
+               sample_id = sample_id)
   })
   dfs <- dfs[!.is_na_list(dfs)]
   if (!length(dfs)) {
@@ -858,21 +863,29 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
                       histogram = geom_histogram,
                       freqpoly = geom_freqpoly)
 
-  dfs <- .get_plot_mc_df(sfe, features, sample_id, name, colGeometryName, annotGeometryName)
-  df <- do.call(rbind, dfs)
+  df <- lapply(sample_id, function(s) .get_plot_mc_df(sfe, features, s, name, colGeometryName, annotGeometryName))
+  if (length(sample_id) > 1L) {
+    df <- do.call(rbind, df)
+  } else df <- df[[1]]
   p <- ggplot(df)
   if ((length(sample_id) == 1L && (length(features) == 1L || facet_feature)) ||
       (length(features) == 1L && facet_sample)) {
-    p <- ggplot(df)
+    p <- ggplot(df) + geom_vline(aes(xintercept = statistic))
   }
   if (length(features) > 1L && (length(sample) == 1L || facet_sample)) {
-    p <- ggplot(df, aes(color = feature))
+    if (ptype == "histogram")
+      stop("Histograms are not supported when multiple colors are used.")
+    p <- ggplot(df, aes(color = feature)) +
+      geom_vline(aes(xintercept = statistic, color = feature))
   }
   if (length(sample_id) > 1L && (length(features) == 1L || facet_feature)) {
-    p <- ggplot(df, aes(color = sample_id))
+    if (ptype == "histogram")
+      stop("Histograms are not supported when multiple colors are used.")
+    p <- ggplot(df, aes(color = sample_id)) +
+      geom_vline(aes(xintercept = statistic, color = sample_id))
   }
-  method_show <- if (grepl(regexpr("moran", ignore.case = TRUE), name)) "Moran's I" else "Geary's C"
-  p <- p + dens_geom(aes(res), ...) + geom_vline(aes(xintercept = statistic)) +
+  method_show <- if (grepl("[mM]oran", name)) "Moran's I" else "Geary's C"
+  p <- p + dens_geom(aes(res), ...) +
     labs(x = paste0("Monte-Carlo simulation of ", method_show))
   if (facet_feature) p <- p + facet_wrap(~feature)
   if (facet_sample) p <- p + facet_wrap(~sample_id)
