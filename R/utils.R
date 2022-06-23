@@ -75,6 +75,10 @@
   if (length(features_list[["assay"]])) {
     values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
                                              sample_id_ind, drop = FALSE]
+    # So symbol is shown instead of Ensembl ID
+    if ("symbol" %in% names(rowData(sfe))) {
+      rownames(values_assay) <- rowData(sfe)[rownames(values_assay), symbol]
+    }
     values_assay <- as.data.frame(as.matrix(t(values_assay)))
     values[["assay"]] <- values_assay
   }
@@ -111,6 +115,9 @@
   if (length(features_rd)) {
     out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
     features <- setdiff(features, names(out_rd))
+    if ("symbol" %in% names(rowData(sfe))) {
+      names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
+    }
   }
   features_cd <- intersect(features, names(colData(sfe)))
   if (length(features_cd)) {
