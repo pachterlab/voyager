@@ -184,6 +184,18 @@ getDivergeRange <- function(values, diverge_center = 0) {
   aes_spec
 }
 
+.get_generalized_geometry_type <- function(g) {
+  out <- st_geometry_type(g, by_geometry = FALSE)
+  if (out == "GEOMETRY") {
+    type_rank <- c("MULTIPOLYGON", "POLYGON", "MULTILINESTRING", "LINESTRING",
+                   "MULTIPOINT", "POINT", "GEOMETRYCOLLECTION")
+    types <- unique(st_geometry_type(g))
+    # From most to least general
+    out <- type_rank[which(type_rank %in% types)[1]]
+  }
+  out
+}
+
 #' Plot gene expression in space
 #'
 #' Unlike \code{Seurat} and \code{ggspavis}, plotting functions in this package
@@ -278,7 +290,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
   # Will use separate ggplots for each feature so each can have its own color scale
   if (!is.null(annotGeometryName)) {
     annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
-    type_annot <- st_geometry_type(annot_df, by_geometry = FALSE)
+    type_annot <- .get_generalized_geometry_type(annot_df)
   }
   else {
     annot_df <- NULL
@@ -286,7 +298,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
   }
   feature_fixed <- list(size = size, shape = shape, linetype = linetype,
                         alpha = alpha, color = color, fill = fill)
-  type <- st_geometry_type(df, by_geometry = FALSE)
+  type <- .get_generalized_geometry_type(df)
   plots <- lapply(names(values), function(n) {
     df[[n]] <- values[[n]]
     feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
