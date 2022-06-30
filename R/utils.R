@@ -77,7 +77,7 @@
                                              sample_id_ind, drop = FALSE]
     # So symbol is shown instead of Ensembl ID
     if ("symbol" %in% names(rowData(sfe))) {
-      rownames(values_assay) <- rowData(sfe)[rownames(values_assay), symbol]
+      rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
     }
     values_assay <- as.data.frame(as.matrix(t(values_assay)))
     values[["assay"]] <- values_assay

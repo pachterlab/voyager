@@ -795,7 +795,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                                 I = "Moran's I",
                                 C = "Geary's C"))
   if (facet_feature) {
-    p <- p + facet_wrap(~features, ncol = ncol)
+    p <- p + facet_wrap(~feature, ncol = ncol)
   }
   if (facet_sample) {
     p <- p + facet_wrap(~sample_id, ncol = ncol)
@@ -886,6 +886,7 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
   }
   method_show <- if (grepl("[mM]oran", name)) "Moran's I" else "Geary's C"
   p <- p + dens_geom(aes(res), ...) +
+    scale_color_manual(values = ditto_colors) +
     labs(x = paste0("Monte-Carlo simulation of ", method_show))
   if (facet_feature) p <- p + facet_wrap(~feature)
   if (facet_sample) p <- p + facet_wrap(~sample_id)
