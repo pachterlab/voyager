@@ -74,6 +74,14 @@
 #' @importFrom SummarizedExperiment assay rowData<-
 #' @importFrom SpatialFeatureExperiment colGraph annotGraph
 #' @importFrom SingleCellExperiment colData rowData
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute Moran's I for vector or matrix
+#' calculateMoransI(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#'
 NULL
 
 .calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = FALSE, ...) {
