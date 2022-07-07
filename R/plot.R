@@ -1,11 +1,8 @@
 # 10. What to do with the image when using geom_sf
-# 14. Plot MoranMC results with ggplot2
 # Shall I also allow users to plot dimension reductions as features?
 # For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
 # do that, not only for plotting functions, but also for the metrics.
 # To do:
-# 1. I kind of find it annoying to type in colGeometryName and colGraphName.
-# Make those optional when there's only one anyway. Generalize .check_sample_id
 # 2. reverse_y? It's kind of hard to do that with sf.
 
 #' Get beginning and end of palette to center a divergent palette
@@ -281,6 +278,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'                    annotGeometryName = "tissueBoundary",
 #'                    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
 #'                    alpha = 0.7)
+#' # Also plot an annotGeometry variable
+#' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+#'                    annotGeometryName = "myofiber_simplified",
+#'                    annot_aes = list(fill = "area"))
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = NULL, ncol = NULL, ncol_sample = NULL,
                                annotGeometryName = NULL,

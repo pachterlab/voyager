@@ -140,4 +140,8 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary",
                    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
                    alpha = 0.7)
+# Also plot an annotGeometry variable
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+                   annotGeometryName = "myofiber_simplified",
+                   annot_aes = list(fill = "area"))
 }
