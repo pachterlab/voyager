@@ -17,6 +17,9 @@
 #' @return A numeric vector of length 2, the first element is for beginning, and
 #' the second for end. The values are between 0 and 1.
 #' @export
+#' @examples
+#' v <- rnorm(10)
+#' getDivergeRange(v, diverge_center = 0)
 getDivergeRange <- function(values, diverge_center = 0) {
   rg <- range(values, na.rm = TRUE)
   if (!(diverge_center >= rg[1] && diverge_center <= rg[2])) {
@@ -266,6 +269,18 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
 #' @export
+#' @examples
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' # features can be genes or colData or colGeometry columns
+#' plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]), exprs_values = "counts",
+#'                    colGeometryName = "spotPoly",
+#'                    annotGeometryName = "tissueBoundary")
+#' # Change fixed aesthetics
+#' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+#'                    annotGeometryName = "tissueBoundary",
+#'                    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
+#'                    alpha = 0.7)
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = NULL, ncol = NULL, ncol_sample = NULL,
                                annotGeometryName = NULL,
@@ -426,6 +441,16 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' plotColGraph(sfe, colGraphName = "visium", colGeometryName = "spotPoly")
+#' annotGraph(sfe, "myofibers") <-
+#'   findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
+#' plotAnnotGraph(sfe, annotGraphName = "myofibers",
+#'                annotGeometryName = "myofiber_simplified")
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
                          sample_id = NULL, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL) {
@@ -570,6 +595,18 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #'   ggplot_build
 #' @importFrom ggplot2 aes
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' library(bluster)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute Moran plot for vector or matrix
+#' calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' # Add results to rowData, features are genes
+#' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' clust <- clusterMoranPlot(sfe, rownames(sfe)[1], BLUSPARAM = KmeansParam(2))
+#' moranPlot(sfe, rownames(sfe)[1], colGraphName = "visium", color_by = clust[,1])
 moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
@@ -705,6 +742,22 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
 #' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
 #' @importFrom stats p.adjust pnorm symnum
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' library(bluster)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' features <- rownames(sfe)[1:5]
+#' sfe <- runMoranMC(sfe, features = features, exprs_values = "counts")
+#' clust <- clusterCorrelograms(sfe, features = features,
+#'                              BLUSPARAM = KmeansParam(2))
+#' # Color by features
+#' plotCorrelogram(sfe, features)
+#' # Color by something else
+#' plotCorrelogram(sfe, features, color_by = clust[,1])
+#' # Facet by features
+#' plotCorrelogram(sfe, features, facet_by = "features")
 plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                             color_by = NULL, facet_by = c("sample_id", "features"),
                             ncol = NULL,
@@ -857,6 +910,13 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #' @return A \code{ggplot2} object.
 #' @importFrom ggplot2 geom_density geom_histogram geom_freqpoly
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' sfe <- colDataMoranMC(sfe, "nCounts")
+#' plotMoranMC(sfe, "nCounts")
 plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
@@ -921,6 +981,12 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
 #' @return A ggplot object. The y axis is percentage of variance explained.
 #' @importFrom scales breaks_extended
 #' @export
+#' @examples
+#' library(SFEData)
+#' library(scater)
+#' sfe <- McKellarMuscleData("small")
+#' sfe <- runPCA(sfe, ncomponents = 10)
+#' ElbowPlot(sfe, ndims = 10)
 ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   # For scater::runPCA results
   percent_var <- attr(reducedDim(sce, reduction), "percentVar")
@@ -975,6 +1041,12 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom ggplot2 facet_wrap scale_y_discrete
 #' @importFrom stats reorder
+#' @examples
+#' library(SFEData)
+#' library(scater)
+#' sfe <- McKellarMuscleData("small")
+#' sfe <- runPCA(sfe, ncomponents = 10)
+#' plotDimLoadings(sfe, dims = 1:2)
 plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                             show_symbol = TRUE, symbol_col = "symbol",
                             reduction = "PCA",

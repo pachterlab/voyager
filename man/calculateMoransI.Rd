@@ -210,3 +210,17 @@ Compute Moran's I or Geary's C on gene expression or numeric columns of
 colData, colGeometry, or annotGeometry of a \code{SpatialFeatureExperiment}
 object. Multithreading is supported when computing for numerous genes.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute Moran's I for vector or matrix
+calculateMoransI(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runMoransI(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+rowData(sfe)
+# Specifically for colData
+sfe <- colDataMoransI(sfe, "nCounts")
+attr(colData(sfe), "featureData")
+}

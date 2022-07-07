@@ -18,3 +18,7 @@ the second for end. The values are between 0 and 1.
 \description{
 The title is self-explanatory.
 }
+\examples{
+v <- rnorm(10)
+getDivergeRange(v, diverge_center = 0)
+}

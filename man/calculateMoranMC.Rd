@@ -248,3 +248,17 @@ Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
 usage with the \code{SpatialFeatureExperiment} object and usage over multiple
 genes. Multithreading is supported when computing for numerous genes.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute Moran's I with Monte Carlo testing for vector or matrix
+calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+rowData(sfe)
+# Specifically for colData
+sfe <- colDataMoranMC(sfe, "nCounts")
+attr(colData(sfe), "featureData")
+}

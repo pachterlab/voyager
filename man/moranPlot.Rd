@@ -81,3 +81,16 @@ plot, and the points can be colored by a variable, such as clusters. The
 contours may also be filled and only influential points plotted. When filled,
 the viridis E option is used.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+library(bluster)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute Moran plot for vector or matrix
+calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+clust <- clusterMoranPlot(sfe, rownames(sfe)[1], BLUSPARAM = KmeansParam(2))
+moranPlot(sfe, rownames(sfe)[1], colGraphName = "visium", color_by = clust[,1])
+}

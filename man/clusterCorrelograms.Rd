@@ -49,3 +49,14 @@ Cluster the correlograms to find patterns in length scales of spatial
 autocorrelation. All the correlograms clustered must be computed with the
 same method and have the same number of lags.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+library(bluster)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+
+sfe <- runMoranMC(sfe, features = rownames(sfe)[1:5], exprs_values = "counts")
+clust <- clusterCorrelograms(sfe, features = rownames(sfe)[1:5],
+                             BLUSPARAM = KmeansParam(2))
+}

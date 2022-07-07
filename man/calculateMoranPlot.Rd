@@ -142,3 +142,17 @@ once. And to reduce the boilerplate for getting the gene expression values.
 Burning question: how shall I compare these across genes? Also to organize
 the results, which was one of the motivations of SFE.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute Moran plot for vector or matrix
+calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+rowData(sfe)
+# Specifically for colData
+sfe <- colDataMoranPlot(sfe, "nCounts")
+attr(colData(sfe), "featureData")
+}

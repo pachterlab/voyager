@@ -89,3 +89,20 @@ when the correlograms are clustered to show types of length scales or
 patterns of decay of spatial autocorrelation. For \code{method = "I"}, the
 error bars are twice the standard deviation of the estimated Moran's I value.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+library(bluster)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+features <- rownames(sfe)[1:5]
+sfe <- runMoranMC(sfe, features = features, exprs_values = "counts")
+clust <- clusterCorrelograms(sfe, features = features,
+                             BLUSPARAM = KmeansParam(2))
+# Color by features
+plotCorrelogram(sfe, features)
+# Color by something else
+plotCorrelogram(sfe, features, color_by = clust[,1])
+# Facet by features
+plotCorrelogram(sfe, features, facet_by = "features")
+}

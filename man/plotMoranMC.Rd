@@ -63,3 +63,11 @@ function in \code{spdep}, this function can also plot the same feature in
 different samples as facets or plot different features or samples together
 for comparison.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+sfe <- colDataMoranMC(sfe, "nCounts")
+plotMoranMC(sfe, "nCounts")
+}

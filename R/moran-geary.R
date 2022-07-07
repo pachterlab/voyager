@@ -81,7 +81,12 @@
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' # Compute Moran's I for vector or matrix
 #' calculateMoransI(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-#'
+#' # Add results to rowData, features are genes
+#' sfe <- runMoransI(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' rowData(sfe)
+#' # Specifically for colData
+#' sfe <- colDataMoransI(sfe, "nCounts")
+#' attr(colData(sfe), "featureData")
 NULL
 
 .calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = FALSE, ...) {
@@ -305,6 +310,19 @@ runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' @importFrom spdep moran.mc geary.mc
 #' @aliases calculateGearyMC
 #' @name calculateMoranMC
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute Moran's I with Monte Carlo testing for vector or matrix
+#' calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' # Add results to rowData, features are genes
+#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' rowData(sfe)
+#' # Specifically for colData
+#' sfe <- colDataMoranMC(sfe, "nCounts")
+#' attr(colData(sfe), "featureData")
 NULL
 
 #' @rdname calculateMoranMC
@@ -481,6 +499,19 @@ runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
 #'   attribute of the data frame of interest called \code{featureData}, in a
 #'   manner analogous to \code{rowData}.
 #' @name calculateCorrelogram
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute correlogram for vector or matrix
+#' calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' # Add results to rowData, features are genes
+#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' rowData(sfe)
+#' # Specifically for colData
+#' sfe <- colDataCorrelogram(sfe, "nCounts")
+#' attr(colData(sfe), "featureData")
 NULL
 
 #' @rdname calculateCorrelogram
@@ -597,6 +628,16 @@ runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' \code{cluster} a factor for cluster membership of the features within each
 #' sample, and \code{sample_id} for the sample.
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' library(bluster)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#'
+#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1:5], exprs_values = "counts")
+#' clust <- clusterCorrelograms(sfe, features = rownames(sfe)[1:5],
+#'                              BLUSPARAM = KmeansParam(2))
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                                 method = "I",
                                 name = paste("Correlogram", method, sep = "_"),

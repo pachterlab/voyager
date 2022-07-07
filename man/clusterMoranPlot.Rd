@@ -48,3 +48,17 @@ The Moran plot plots the value at each location on the x axis, and the
 average of the neighbors of each locations on the y axis. Sometimes clusters
 can be seen on the Moran plot, indicating different types of neighborhoods.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+library(bluster)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute Moran plot for vector or matrix
+calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+sfe <- colDataMoranPlot(sfe, "nCounts")
+clusts <- clusterMoranPlot(sfe, c(rownames(sfe)[1], "nCounts"),
+                           BLUSPARAM = KmeansParam(2))
+}

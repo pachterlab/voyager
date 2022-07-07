@@ -50,3 +50,10 @@ exactly. For instance, I don't like it when Seurat imposes a ggplot theme,
 and I don't like the cowplot theme. Maybe I should rewrite it in base R but
 for now I'm using Tidyverse.
 }
+\examples{
+library(SFEData)
+library(scater)
+sfe <- McKellarMuscleData("small")
+sfe <- runPCA(sfe, ncomponents = 10)
+plotDimLoadings(sfe, dims = 1:2)
+}

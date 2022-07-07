@@ -167,3 +167,17 @@ But for genes, there's more boilerplate. I suppose, for genes, it might be
 cool to compute the correlogram for a bunch of genes and plot them in the
 same plot, with the error bars, or cluster them. So I'll write the wrapper.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+# Compute correlogram for vector or matrix
+calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+# Add results to rowData, features are genes
+sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+rowData(sfe)
+# Specifically for colData
+sfe <- colDataCorrelogram(sfe, "nCounts")
+attr(colData(sfe), "featureData")
+}

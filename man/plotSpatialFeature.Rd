@@ -128,3 +128,16 @@ palette is used. The defaults are colorblind friendly. For annotation, the
 PuRd colorbrewer palette is used for continuous variables and the other end
 of the \code{dittoSeq} palette is used for discrete variables.
 }
+\examples{
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+# features can be genes or colData or colGeometry columns
+plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]), exprs_values = "counts",
+                   colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+# Change fixed aesthetics
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary",
+                   annot_fixed = list(color = "blue", size = 0.3, fill = NA),
+                   alpha = 0.7)
+}

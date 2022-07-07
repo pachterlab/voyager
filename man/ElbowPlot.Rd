@@ -25,3 +25,10 @@ the OSCA book makes the elbow plot this way, which I find kind of cumbersome
 compared to Seurat. So I'm writing this function to make the elbow plot with
 SCE less cumbersome.
 }
+\examples{
+library(SFEData)
+library(scater)
+sfe <- McKellarMuscleData("small")
+sfe <- runPCA(sfe, ncomponents = 10)
+ElbowPlot(sfe, ndims = 10)
+}

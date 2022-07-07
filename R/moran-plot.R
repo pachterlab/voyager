@@ -18,6 +18,19 @@
 #'   versions, the results are added to an attribute of the data frame of
 #'   interest called \code{featureData}, in a manner analogous to
 #'   \code{rowData}. The plot is not made.
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute Moran plot for vector or matrix
+#' calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' # Add results to rowData, features are genes
+#' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' rowData(sfe)
+#' # Specifically for colData
+#' sfe <- colDataMoranPlot(sfe, "nCounts")
+#' attr(colData(sfe), "featureData")
 NULL
 
 #' @rdname calculateMoranPlot
@@ -90,6 +103,19 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
 #' @export
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SFEData)
+#' library(bluster)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Compute Moran plot for vector or matrix
+#' calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' # Add results to rowData, features are genes
+#' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' sfe <- colDataMoranPlot(sfe, "nCounts")
+#' clusts <- clusterMoranPlot(sfe, c(rownames(sfe)[1], "nCounts"),
+#'                            BLUSPARAM = KmeansParam(2))
 clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                              name = "MoranPlot",
                              colGeometryName = NULL,

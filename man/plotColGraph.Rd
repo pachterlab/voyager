@@ -62,3 +62,14 @@ A ggplot2 object.
 A ggplot version of \code{spdep::plot.nb}, reducing boilerplate for SFE
 objects.
 }
+\examples{
+library(SpatialFeatureExperiment)
+library(SFEData)
+sfe <- McKellarMuscleData("small")
+colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+plotColGraph(sfe, colGraphName = "visium", colGeometryName = "spotPoly")
+annotGraph(sfe, "myofibers") <-
+  findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
+plotAnnotGraph(sfe, annotGraphName = "myofibers",
+               annotGeometryName = "myofiber_simplified")
+}
