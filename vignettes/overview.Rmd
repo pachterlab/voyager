@@ -25,13 +25,64 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(Voyager)
 library(SpatialFeatureExperiment)
+library(scater)
+library(scran)
 library(SFEData)
+library(sf)
+library(ggplot2)
+library(patchwork)
 ```
 
 # Introduction
+In single cell RNA-seq (scRNA-seq), data and metadata can be represented with `SingleCellExperiment` or `Seurat` objects, and basic exploratory data analyses and visualization performed with `scater`, `scran`, and `scuttle`, or `Seurat`. The `SpatialFeatureExperiment` package and S4 class extending `SpatialExperiment` and `SingleCellExperiment` brings EDA methods for vector spatial data to spatial transcriptomics. `Voyager` to `SpatialFeatureExperiment` is just like `scater`, `scran`, and `scuttle` to `SingleCellExperiment`, implementing basic exploratory spatial data analysis (ESDA) and visualization methods. Non-spatial statistical methods often assume that the samples (cells, spots) are independent, which is not the case in spatial data, where nearby samples tend to be more similar (i.e. spatial autocorrelation). Much of ESDA is dedicated to spatial autocorrelation, such as finding whether it is present, and if so what's its length scale. 
+
+This vignette gives an overview of these spatial EDA methods, functionalities of the `Voyager` package, and applications of the `SpatialFeatureExperiment` class with a published Visium dataset.
+
+# Dataset
+The dataset used in this vignette comes from [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x). Notexin was injected into the tibialis anterior muscle to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium. The dataset here is from the 2 day timepoint. The dataset is in a `SpatialFeatureExperiment` (SFE) object.
+
+The gene count matrix was directly downloaded from GEO. All 4992 spots, whether in tissue or not, are included. The H&E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. 
+
+Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See the vignette of the `SpatialFeatureExperiment` for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package.
+
+```{r}
+(sfe <- McKellarMuscleData("full"))
+```
+
+# Plotting
+Total UMI counts (`nCounts`) and number of genes detected per spot (`nGenes`) have been precomputed and are in `colData(sfe)`. The `plotSpatialFeature` function plots any gene, `colData` values, and geometry attributes in `colGeometry` and `annotGeometry` in space. The Visium spots are plotted as polygons reflecting their actual size relative to the tissue, rather than points as in other packages that plot Visium data. Behind the scene, `geom_sf` is used to plot the geometries.
+
+```{r}
+plotSpatialFeature(sfe, features = "nCounts", colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+```
+
+```{r}
+plotSpatialFeature(sfe, features = "nGenes", colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+```
+
+The tissue boundary was found by thresholding the H&E image and removing small polygons that are most likely debris. The `in_tissue` column of `colData(sfe)` indicates which Visium spot polygon intersects the tissue polygon; this can be found with `SpatialFeatureExperiment::annotPred()` but is beyond the scope of this vignette.
+
+Since SFE inherits from `SingleCellExperiment` (SCE), the plotting functions from `scater` can still be used.
+```{r}
+plotColData(sfe, x = "nCounts", y = "nGenes", colour_by = "in_tissue")
+```
+
+Only spots in tissue will be used for further analyses. The crop function is taking a long time to run here. Probably because of the large number of nuclei and the full and simplified annotation geometries. 
+```{r}
+sfe_tissue <- sfe[,colData(sfe)$in_tissue]
+```
+
+```{r}
+plotSpatialFeature(sfe_tissue, features = "nCounts", 
+                   colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+```
 
 # Univariate spatial analyses
 
-# Plotting
 
 # Future directions
+At present, only univariate global spatial autocorrelation metrics are supported. Local univariate spatial metrics and multivariate analyses (e.g. geographically weighted principal component analysis (GWPCA), MULTISPATI PCA, and Moran eigenmap) will be added in later versions.
+
