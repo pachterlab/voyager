@@ -30,7 +30,9 @@ library(scran)
 library(SFEData)
 library(sf)
 library(ggplot2)
+library(scales)
 library(patchwork)
+theme_set(theme_bw(10))
 ```
 
 # Introduction
@@ -48,9 +50,17 @@ Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` d
 ```{r}
 (sfe <- McKellarMuscleData("full"))
 ```
+(I think I should host the low resolution image somewhere and post it here for reference, even though I haven't implemented showing the H&E image in the plots since I don't know if it will work nicely with geom_sf)
 
-# Plotting
-Total UMI counts (`nCounts`) and number of genes detected per spot (`nGenes`) have been precomputed and are in `colData(sfe)`. The `plotSpatialFeature` function plots any gene, `colData` values, and geometry attributes in `colGeometry` and `annotGeometry` in space. The Visium spots are plotted as polygons reflecting their actual size relative to the tissue, rather than points as in other packages that plot Visium data. Behind the scene, `geom_sf` is used to plot the geometries.
+# Exploratory data analysis
+## All spots
+```{r}
+names(colData(sfe))
+```
+
+Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and proportion of mitochondrially encoded counts (`prop_mito`) have been precomputed and are in `colData(sfe)`. The `plotSpatialFeature` function plots any gene, `colData` values, and geometry attributes in `colGeometry` and `annotGeometry` in space. The Visium spots are plotted as polygons reflecting their actual size relative to the tissue, rather than points as in other packages that plot Visium data. Behind the scene, `geom_sf` is used to plot the geometries.
+
+The tissue boundary was found by thresholding the H&E image and removing small polygons that are most likely debris. The `in_tissue` column of `colData(sfe)` indicates which Visium spot polygon intersects the tissue polygon; this can be found with `SpatialFeatureExperiment::annotPred()` but is beyond the scope of this vignette.
 
 ```{r}
 plotSpatialFeature(sfe, features = "nCounts", colGeometryName = "spotPoly",
@@ -62,26 +72,233 @@ plotSpatialFeature(sfe, features = "nGenes", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary")
 ```
 
-The tissue boundary was found by thresholding the H&E image and removing small polygons that are most likely debris. The `in_tissue` column of `colData(sfe)` indicates which Visium spot polygon intersects the tissue polygon; this can be found with `SpatialFeatureExperiment::annotPred()` but is beyond the scope of this vignette.
+```{r}
+plotSpatialFeature(sfe, features = "prop_mito", colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+```
+
+Spots off tissue have higher proportion of mitochondrially encoded counts, as an artifact of tissue permeablization. The notexin injury site is around the middle of the tissue in the y direction. Spots on tissue that also have high mitochondrial proportion are on myofibers, which have more mitochondria.
+
+The different `colData` columns can also be plotted together (using the `patchwork` package), though the panels may become too small to read. Each feature, whether `colData` or gene expression, will have its own color scale so a feature with much larger values than others won't throw off the dynamic range.
+```{r, fig.width=8, fig.height=3}
+plotSpatialFeature(sfe, features = c("nCounts", "nGenes", "prop_mito"), 
+                   colGeometryName = "spotPoly",
+                   annotGeometryName = "tissueBoundary")
+```
 
 Since SFE inherits from `SingleCellExperiment` (SCE), the plotting functions from `scater` can still be used.
 ```{r}
 plotColData(sfe, x = "nCounts", y = "nGenes", colour_by = "in_tissue")
 ```
 
-Only spots in tissue will be used for further analyses. The crop function is taking a long time to run here. Probably because of the large number of nuclei and the full and simplified annotation geometries. 
 ```{r}
-sfe_tissue <- sfe[,colData(sfe)$in_tissue]
+plotColData(sfe, x = "nCounts", y = "prop_mito", colour_by = "in_tissue")
 ```
 
+```{r}
+plotColData(sfe, y = "nCounts", x = "in_tissue", colour_by = "in_tissue") +
+  plotColData(sfe, y = "nGenes", x = "in_tissue", colour_by = "in_tissue") +
+  plotColData(sfe, y = "prop_mito", x = "in_tissue", colour_by = "in_tissue") &
+  theme(legend.position = "none")
+```
+
+# Spots in tissue
+Only spots that intersect tissue will be used for further analyses. While `scran` is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don't know what the best practice really should be. As seen in the `nCounts` plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts to adjacent spots and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. 
+```{r}
+sfe_tissue <- sfe[,colData(sfe)$in_tissue]
+sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
+```
+
+```{r}
+clusters <- quickCluster(sfe_tissue)
+sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+sfe_tissue <- logNormCounts(sfe_tissue)
+```
+
+Myofiber and nuclei segmentation polygons are available in this dataset, in the field `annotGeometries`. Myofibers were manually segmented, and nuclei were segmented with [`StarDist`](https://github.com/stardist/stardist), trained with a manually segmented subset. 
+
+```{r}
+annotGeometryNames(sfe_tissue)
+```
+
+The `plotSpatialFeature` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields in the SFE object. For `rowGeometries` and `colGeometries`, such columns associated with the `sf` data frames rather than `rowData` or `colData` are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish from the column associated values. 
+
+Here, from the `annotGeometries`, the myofiber polygons are plotted, colored by cross section area as observed in this tissue section. The `aes_use` argument is set to `color` rather than `fill` (default for polygons) to only plot the Visium spot outlines to make the myofiber polygons more visible. The `fill` argument is set to `NA` to make the Visium spots look hollow, and the `size` argument controls the thickness of the outlines. The `annot_aes` argument specifies which column in the `annotGeometry` to use to specify the values of an aesthstic, just like `aes` in `ggplot2` (`aes_string` to be precise, since `tidyeval` is not used here). The `annot_fixed` argument (not used here) can set the fixed size, alpha, color, and etc. for the `annotGeometry`. 
 ```{r}
 plotSpatialFeature(sfe_tissue, features = "nCounts", 
                    colGeometryName = "spotPoly",
-                   annotGeometryName = "tissueBoundary")
+                   annotGeometryName = "myofiber_simplified", 
+                   annot_aes = list(fill = "area"), 
+                   aes_use = "color", size = 0.5, fill = NA)
 ```
 
-# Univariate spatial analyses
+The larger myofibers seem to have fewer total counts, possibly because the larger size of these myofibers dilute the transcripts. If this is the case, then data normalization would be relevant to correct for this. 
 
+With `SpatialFeatureExperiment`, we can find the number of myofibers and nuclei that intersect each Visium spot. The predicate can be [anything implemented in `sf`](https://r-spatial.github.io/sf/reference/geos_binary_pred.html), so for example, the number of nuclei fully covered by each Visium spot can also be found. The default predicate is `st_intersects`.
+```{r}
+colData(sfe_tissue)$n_myofibers <- 
+  annotNPred(sfe_tissue, colGeometryName = "spotPoly",
+             annotGeometryName = "myofiber_simplified")
+colData(sfe_tissue)$n_nuclei <- 
+  annotNPred(sfe_tissue, colGeometryName = "spotPoly",
+             annotGeometryName = "nuclei")
+```
+
+We can also find the intersection geometries between each myofiber and Visium spot, and compute their areas.
+```{r}
+myofiber_in_spot <- annotOp(sfe_tissue, colGeometryName = "spotPoly",
+                            annotGeometryName = "myofiber_simplified")
+colData(sfe_tissue)$prop_myofiber <- 
+  st_area(myofiber_in_spot) / st_area(spotPoly(sfe_tissue))
+```
+
+Moreover, some spots are at the margin of the tissue and don't fully cover tissue. Here we can find the proportion of area in each spot occupied by tissue.
+```{r}
+tissue_in_spot <- annotOp(sfe_tissue, "spotPoly", "tissueBoundary")
+colData(sfe_tissue)$prop_tissue <- 
+  st_area(tissue_in_spot) / st_area(spotPoly(sfe_tissue))
+```
+
+```{r, fig.width=8, fig.height=4}
+plotSpatialFeature(sfe_tissue, 
+                   features = c("n_myofibers", "n_nuclei", "prop_myofiber"),
+                   colGeometryName = "spotPoly")
+```
+
+The injury site infiltrated with immune cells have more nuclei; this is apparent from the H&E image, but is quantified here.
+
+There is no one to one mapping between Visium spots and myofibers and nuclei. However, we may want to relate attributes of myofibers and nuclei to gene expression detected at the Visium spots. One way to do so is to summarize the attributes of all myofibers or nuclei that intersect (or choose another better predicate implemented in `sf`) each spot, such as to calculate the mean, median, or sum. (Need to implement that. Shall I put that function in Voyager or SFE? I think SFE since it's related to annotOp, annotPred, and annotNPred in SFE and does not involve spatial statistics.) 
+
+How does the number of myofibers relate to total counts and proportion of mytochondrial counts?
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = "n_myofibers")
+```
+
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = "prop_myofiber")
+```
+
+How total UMI counts relate to proportion of mitochondrial counts here is very different from what we usually see in scRNA-seq data, i.e. a cluster of cells with low total counts and high proportion of mitochondrial counts. Here we see two clusters, one with lower total counts and lower proportion of mitochondrial counts, and another higher in both. The two clusters seem to be associated with spots being in myofibers, as spots in the upper cluster tend to intersect with a larger number of myofibers. However, some spots in the lower cluster are also entirely within myofibers, but they tend to have a smaller number of myofibers. This might be due to different types of myofibers. The tibialis anterior is a fast twitch muscle with predominantly type II myofibers. Type IIx myofibers are more anaerobic, have larger diameters, and have fewer mitochondria. Type IIa myofibers are more aerobic, have smaller diameters, and have more mitochondria.
+
+Marker genes: Myh7 (Type I), Myh2 (Type IIa), Myh4 (Type IIb), Myh1 (Type IIx), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/)
+```{r}
+markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
+```
+
+```{r}
+names(rowData(sfe_tissue))
+```
+
+First look at Type I myofibers. Again, this is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. Again, this default may or may not be best practice given that total UMI counts may have biological relevance in spatial data. Therefore we are plotting both the raw counts and the log normalized counts here.
+```{r}
+# Function specific for this vignette, with some hard coded values
+plot_counts_logcounts <- function(sfe, feature) {
+  p1 <- plotSpatialFeature(sfe, feature, "spotPoly",
+                   annotGeometryName = "myofiber_simplified", 
+                   annot_aes = list(fill = "area"), aes_use = "color",
+                   fill = NA, size = 0.5, show_symbol = TRUE, 
+                   exprs_values = "counts") +
+    ggtitle("Raw counts")
+  p2 <- plotSpatialFeature(sfe, feature, "spotPoly",
+                   annotGeometryName = "myofiber_simplified", 
+                   annot_aes = list(fill = "area"), aes_use = "color",
+                   fill = NA, size = 0.5, show_symbol = TRUE, 
+                   exprs_values = "logcounts") +
+    ggtitle("Log normalized counts")
+  p1 + p2 +
+    plot_annotation(title = feature) &
+    theme(legend.position = "none") 
+}
+```
+
+```{r}
+plot_counts_logcounts(sfe_tissue, markers["I"])
+```
+
+There are indeed few Type I myofibers, and they tend to be smaller.
+```{r}
+gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["I"]]
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = gene_id)
+```
+
+The Type I myofibers also tend to have higher proportion of mitochondrial counts.
+
+```{r}
+plot_counts_logcounts(sfe_tissue, markers["IIa"])
+```
+
+Type IIa myofibers also tend to be clustered together on left side of the tissue.
+
+```{r}
+gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["IIa"]]
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = gene_id, by_exprs_values = "logcounts")
+```
+
+Spots with Type IIa myofibers tend to have higher proportion of mitochondrial counts, mostly in the upper cluster in this plot. However, some of these spots are in the lower cluster. As Visium spots can intersect with multiple myofibers, these spots might have both Type IIa and some more anaerobic myofibers.
+
+```{r}
+plot_counts_logcounts(sfe_tissue, markers["IIb"])
+```
+
+While the raw counts suggest that Type IIb myofibers tend to aggregate at the top region of this section and away from Type IIa myofibers, data normalization made expression of Myh4 seem ubiquitous.
+
+```{r}
+gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["IIb"]]
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = gene_id, by_exprs_values = "counts")
+```
+
+In raw counts, spots with high Myh4 expression, indicating Type IIb, also tend to have somewhat high mitochondrial count proportion (still in the upper cluster), but not as high as Type IIa.
+
+```{r}
+plot_counts_logcounts(sfe_tissue, markers["IIx"])
+```
+
+```{r}
+gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["IIx"]]
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", 
+            colour_by = gene_id, by_exprs_values = "logcounts")
+```
+
+If the markers are correct, then Type IIx myofibers seem to colocalize with Type IIa in this dataset. [scRNA-seq data](https://skeletalmusclejournal.biomedcentral.com/articles/10.1186/s13395-021-00269-2) indicates that some myofibers coexpress Myh1 and Myh2, but Type IIa myofibers have greater proportion of Myh2 and Type IIx have greater proportion of Myh1 and there maybe cell hybrids.
+
+How does total UMI count relate to the number of nuclei per spot?
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "n_nuclei", 
+            colour_by = "n_myofibers")
+```
+
+Also coloring by proportion of area of each spot in tissue, highlighting spots at the margin.
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "n_nuclei", 
+            colour_by = "prop_tissue")
+```
+
+There might not be a clear relationship. There are some spots with both low total counts and small number of nuclei; those are at the margin of the tissue and don't fully cover tissue. There are also some spots with relatively low total counts and large number of nuclei.
+
+How do the number and proportion area of myofibers per spot relate to the number of nuclei per spot?
+
+```{r}
+# Use geom_jitter to address overplotting due to integer number of myofibers
+colData(sfe_tissue) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(n_myofibers, n_nuclei, color = prop_myofiber)) +
+  geom_jitter(alpha = 0.5, width = 0.2) +
+  scale_color_viridis_c() +
+  # For a consistent look
+  cowplot::theme_cowplot(10) +
+  # Set Q to avoid non-integer labels on x axis
+  scale_x_continuous(breaks = breaks_pretty(Q = c(1,2,4,5)))
+```
+
+Spots interseting larger number of myofibers and fully covering myofibers tend to have fewer nuclei, which is expected as nuclei are at the margins of mature myofibers. However, in later time points (data not included in `SFEData` yet), some small myofibers have nuclei in the center -- those are nascent myofibers where the nuclei have not yet migrated to the periphery.
+
+# Exploratory _spatial_ data analysis
+## Univariate
 
 # Future directions
 At present, only univariate global spatial autocorrelation metrics are supported. Local univariate spatial metrics and multivariate analyses (e.g. geographically weighted principal component analysis (GWPCA), MULTISPATI PCA, and Moran eigenmap) will be added in later versions.
