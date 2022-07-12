@@ -3,6 +3,9 @@
   # If not found, then assume that they're in the colGeometry
   if (is.null(features)) features <- rownames(x)
   features_assay <- intersect(features, rownames(x))
+  if (!length(features_assay) && "symbol" %in% names(rowData(x))) {
+    features_assay <- rownames(x)[match(features, rowData(x)$symbol)]
+  }
   features_coldata <- intersect(features, names(colData(x)))
   if (is.null(colGeometryName)) {
     features_colgeom <- NULL
@@ -68,7 +71,8 @@
 
 .get_feature_values <- function(sfe, features, sample_id,
                                 colGeometryName = NULL,
-                                exprs_values = "logcounts") {
+                                exprs_values = "logcounts",
+                                show_symbol = TRUE) {
   features_list <- .check_features(sfe, features, colGeometryName)
   values <- list()
   sample_id_ind <- colData(sfe)$sample_id %in% sample_id
@@ -76,7 +80,7 @@
     values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
                                              sample_id_ind, drop = FALSE]
     # So symbol is shown instead of Ensembl ID
-    if ("symbol" %in% names(rowData(sfe))) {
+    if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
       rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
     }
     values_assay <- as.data.frame(as.matrix(t(values_assay)))
@@ -108,14 +112,15 @@
 }
 
 .get_feature_metadata <- function(sfe, features, name, sample_id,
-                                  colGeometryName, annotGeometryName) {
+                                  colGeometryName, annotGeometryName,
+                                  show_symbol) {
   colname_use <- .add_sample_id(name, sample_id)
   out_rd <- out_cd <- out_cg <- out_ag <- NULL
   features_rd <- intersect(features, rownames(sfe))
   if (length(features_rd)) {
     out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
     features <- setdiff(features, names(out_rd))
-    if ("symbol" %in% names(rowData(sfe))) {
+    if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
       names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
     }
   }

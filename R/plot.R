@@ -94,11 +94,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 .fill_defaults <- function(fixed) {
   defaults <- list(size = 0, shape = 16,
-                   linetype = 1, alpha = 1, color = "black", fill = "gray80",
+                   linetype = 1, alpha = 1, color = NA, fill = "gray80",
                    divergent = FALSE, diverge_center = NULL)
   fill <- defaults[setdiff(names(defaults), names(fixed))]
   out <- .drop_null_list(c(fixed, fill))
-  if (is.na(out$fill) && "size" %in% names(fill)) out$size <- 0.5
+  if (is.na(out$fill) && "size" %in% names(fill)) {
+    out$size <- 0.5
+    out$color <- "black"
+  }
   out
 }
 
@@ -175,9 +178,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (aes_spec == "fill") aes_spec <- "color"
     if (aes_spec == "shape") aes_spec <- "linetype"
   }
-  if (type %in% c("POLYGON", "MULTIPOLYGON") || shape >= 20) {
-    aes_spec <- "fill"
-  }
+  #if (type %in% c("POLYGON", "MULTIPOLYGON") || shape >= 20) {
+  #  aes_spec <- "fill"
+  #}
   if (!.is_discrete(m) && aes_spec %in% c("shape", "linetype")) {
     stop("Shape and linetype are only applicable to discrete variables.")
   }
@@ -261,6 +264,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   annotGeometry in case it's different.
 #' @param only_plot_expressed Logical, whether to only plot values > 0. This
 #'   argument is only used when all values are non-negative.
+#' @param show_symbol Logical, whether to show human readable gene symbol on the
+#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
@@ -293,12 +299,14 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_diverge_center = NULL,
                                only_plot_expressed = FALSE,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
-                               color = "black", fill = "gray80", ...) {
+                               color = NA, fill = "gray80", show_symbol = TRUE,
+                               ...) {
   aes_use <- match.arg(aes_use)
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   values <- .get_feature_values(sfe, features, sample_id,
                                 colGeometryName = colGeometryName,
-                                exprs_values = exprs_values)
+                                exprs_values = exprs_values,
+                                show_symbol = show_symbol)
   df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
   if (length(sample_id) > 1L) {
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
@@ -613,10 +621,10 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      name = "MoranPlot", ...) {
+                      name = "MoranPlot", show_symbol = TRUE, ...) {
   sample_id <- .check_sample_id(sfe, sample_id)
   mp <- .get_feature_metadata(sfe, feature, name, sample_id, colGeometryName,
-                              annotGeometryName)[[1]]
+                              annotGeometryName, show_symbol)[[1]]
   if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
   if (!is.null(color_by)) {
     if (length(color_by) == 1L && is.character(color_by)) {
@@ -649,9 +657,10 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
 }
 
 .get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
-                                     colGeometryName, annotGeometryName, name) {
+                                     colGeometryName, annotGeometryName, name,
+                                     show_symbol) {
   ress <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
-                                annotGeometryName)
+                                annotGeometryName, show_symbol)
   if (!is.null(color_by)) {
     # Different from moranPlot
     if (is.character(color_by) && length(color_by) == 1L) {
@@ -765,7 +774,8 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            name = paste("Correlogram", method, sep = "_")) {
+                            name = paste("Correlogram", method, sep = "_"),
+                            show_symbol = TRUE) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   if (length(sample_id) > 1L || length(features) > 1L)
     facet_by <- match.arg(facet_by)
@@ -773,7 +783,8 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
   facet_feature <- length(features) > 1L && facet_by == "features"
   df <- lapply(sample_id, function(s) {
     o <- .get_plot_correlogram_df(sfe, features, s, method, color_by,
-                                  colGeometryName, annotGeometryName, name)
+                                  colGeometryName, annotGeometryName, name,
+                                  show_symbol)
     o$sample_id <- s
     o
   })
@@ -870,15 +881,15 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 }
 
 .get_plot_mc_df <- function(sfe, features, sample_id, name,
-                            colGeometryName, annotGeometryName) {
+                            colGeometryName, annotGeometryName, show_symbol) {
   # Ah, the weight of tradition. .get_feature_metadata only works for one sample at a time
   # As a result, this function deals with one sample at a time.
   ress <- .get_feature_metadata(sfe, features, name = paste0(name, "_res"),
                                 sample_id = sample_id, colGeometryName,
-                                annotGeometryName)
+                                annotGeometryName, show_symbol)
   res_stats <- .get_feature_metadata(sfe, features, name = paste0(name, "_statistic"),
                                      sample_id = sample_id, colGeometryName,
-                                     annotGeometryName)
+                                     annotGeometryName, show_symbol)
   dfs <- lapply(seq_along(ress), function(i) {
     if (isTRUE(is.na(ress[[i]]))) return(NA)
     res_use <- ress[[i]]
@@ -922,7 +933,8 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
                         name = "MoranMC", ptype = c("density", "histogram",
-                                                    "freqpoly"), ...) {
+                                                    "freqpoly"),
+                        show_symbol = TRUE, ...) {
   ptype <- match.arg(ptype)
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   if (length(sample_id) > 1L || length(features) > 1L)
@@ -936,7 +948,10 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
                       histogram = geom_histogram,
                       freqpoly = geom_freqpoly)
 
-  df <- lapply(sample_id, function(s) .get_plot_mc_df(sfe, features, s, name, colGeometryName, annotGeometryName))
+  df <- lapply(sample_id, function(s) .get_plot_mc_df(sfe, features, s, name,
+                                                      colGeometryName,
+                                                      annotGeometryName,
+                                                      show_symbol))
   if (length(sample_id) > 1L) {
     df <- do.call(rbind, df)
   } else df <- df[[1]]
