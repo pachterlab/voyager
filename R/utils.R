@@ -5,6 +5,7 @@
   features_assay <- intersect(features, rownames(x))
   if (!length(features_assay) && "symbol" %in% names(rowData(x))) {
     features_assay <- rownames(x)[match(features, rowData(x)$symbol)]
+    if (all(is.na(features_assay))) features_assay <- NULL
   }
   features_coldata <- intersect(features, names(colData(x)))
   if (is.null(colGeometryName)) {
