@@ -34,6 +34,7 @@ library(scales)
 library(patchwork)
 library(sparseMatrixStats)
 library(BiocParallel)
+library(bluster)
 theme_set(theme_bw(10))
 ```
 
@@ -269,7 +270,9 @@ Marker genes: Myh7 (Type I), Myh2 (Type IIa), Myh4 (Type IIb), Myh1 (Type IIx), 
 markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
 ```
 
-First look at Type I myofibers. Again, this is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. Again, this default may or may not be best practice given that total UMI counts may have biological relevance in spatial data. Therefore we are plotting both the raw counts and the log normalized counts here.
+First look at Type I myofibers. Again, this is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature` function and other functions in `Voyager`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
+
+The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. Again, this default may or may not be best practice given that total UMI counts may have biological relevance in spatial data. Therefore we are plotting both the raw counts and the log normalized counts here.
 ```{r}
 # Function specific for this vignette, with some hard coded values
 plot_counts_logcounts <- function(sfe, feature) {
@@ -328,7 +331,7 @@ Plotting proportion of mitochondrial counts vs. mean myofiber area, we also see 
 plot_counts_logcounts(sfe_tissue, markers["IIb"])
 ```
 
-While the raw counts suggest that Type IIb myofibers tend to aggregate at the top region of this section and away from Type IIa myofibers, data normalization made expression of Myh4 seem ubiquitous.
+While the raw counts suggest that Type IIb myofibers tend to aggregate at the top region of this section and away from Type IIa myofibers, data normalization made expression of Myh4 seem ubiquitous even in regions without myofibers.
 
 ```{r}
 gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["IIb"]]
@@ -576,12 +579,175 @@ plotMoranMC(sfe_tissue, features = hvgs[1:5], show_symbol = FALSE)
 These genes have positive spatial autocorrelation that is stronger than total counts.
 
 ### Correlogram
-What's the length scale of the spatial autocorrelation? In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results.
+What's the length scale of the spatial autocorrelation? In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. Functions to compute correlograms wrap [`sp.correlogram` in `spdep`](https://r-spatial.github.io/spdep/reference/sp.correlogram.html), and have the same pattern of `calculate*` and `run*` as the Moran's I and permutation test functions, except for the `order` argument specifying the maximum order of neighbors.
 
-### Moran plot
+For `colData`, Moran's I correlogram:
+```{r}
+sfe_tissue <- colDataCorrelogram(sfe_tissue, c("nCounts", "nGenes"),
+                                 colGraphName = "visium", order = 10)
+```
+
+The results can be plotted with `plotCorrelogram`
+```{r}
+plotCorrelogram(sfe_tissue, c("nCounts", "nGenes"))
+```
+
+The error bars are twice the standard deviation of the Moran's I value. The standard deviation and p-values (null hypothesis is that Moran's I is 0) come from `moran.test` (for Geary's C correlogram, `geary.test`); these should be taken with a grain of salt for data that is not normally distributed. The p-values have been corrected for multiple hypothesis testing across all orders and features. As usual, . means p < 0.1, \* means p < 0.05, \*\* means p < 0.01, and \*\*\* means p < 0.001. 
+
+Geary's C correlogram can be computed by specifying `method = "C"`. 
+```{r}
+sfe_tissue <- colDataCorrelogram(sfe_tissue, c("nCounts", "nGenes"), 
+                                 colGraphName = "visium", method = "C",
+                                 order = 10)
+```
+
+```{r}
+plotCorrelogram(sfe_tissue, c("nCounts", "nGenes"), method = "C")
+```
+
+For attributes of `annotGeometry`:
+```{r}
+sfe_tissue <- annotGeometryCorrelogram(sfe_tissue, 
+                                       features = c("area", "eccentricity",
+                                                    "convexity", "sine_theta"),
+                                       annotGeometryName = "myofiber_simplified",
+                                       annotGraphName = "myofiber_poly2nb",
+                                       zero.policy = TRUE, order = 10)
+```
+
+```{r}
+plotCorrelogram(sfe_tissue, c("area", "eccentricity", "convexity", "sine_theta"),
+                annotGeometryName = "myofiber_simplified")
+```
+
+For myofiber area and convexity, Moran's I goes up in second order neighbors, because in one region in this tissue section, there are many large myofibers and what seem like small myofibers sandwiched between the large ones.
+
+For gene expression
+```{r}
+sfe_tissue <- runCorrelogram(sfe_tissue, hvgs[1:15], colGraphName = "visium", order = 10,
+                             BPPARAM = MulticoreParam(2))
+```
+
+```{r}
+plotCorrelogram(sfe_tissue, hvgs[1:15])
+```
+
+With more genes, the colors become hard to tell apart. In case the correlograms of different genes have different patterns, the correlograms can be clustered and colored with the cluster rather than gene. In the example here, the genes plotted all have similar correlogram patterns, though some seem to decay past the 8th order more quickly than others. Just to demonstrate the clustering:
+```{r}
+corr_clusters <- clusterCorrelograms(sfe_tissue, hvgs[1:15], BLUSPARAM = KmeansParam(3))
+head(corr_clusters)
+```
+
+The `color_by` argument can be used to color the correlograms by anything other than feature or sample. The `color_by` argument can be a column name in `rowData`, or a vector the same length as the `features` argument (as in this example).
+```{r}
+plotCorrelogram(sfe_tissue, features = hvgs[1:15], color_by = corr_clusters$cluster) +
+  labs(color = "cluster")
+```
+
+### Moran scatter plot
+In the Moran scatter plot, the x axis is the value itself and the y axis is the average value of the neighbors. The slope of the fitted line is Moran's I. Sometimes clusters appear in this plot, showing different kinds of neighborhoods for this value. Just like Moran's I, permutation testing, and correlogram functions, the functions for Moran scatter plot also follow the `calculate*` and `run*` patterns and have the same user interface. However, the plot can only be made for one feature at a time.
+
+For colData:
+```{r}
+sfe_tissue <- colDataMoranPlot(sfe_tissue, features = "nCounts", 
+                               colGraphName = "visium")
+```
+
+```{r}
+moranPlot(sfe_tissue, "nCounts", colGraphName = "visium")
+```
+
+This plot is a `ggplot2` remake of the function to plot Moran scatter plots in `spdep`, and with contours to indicate point density to address overplotting. "Inflential" comes from [`influence.measures`](https://rdrr.io/r/stats/influence.measures.html) when the line is fitted. The contours can also be shown as filled and only the influential points are plotted individually.
+```{r}
+moranPlot(sfe_tissue, "nCounts", colGraphName = "visium", filled = TRUE)
+```
+
+The influential points can be shown in space
+
+```{r}
+colData(sfe_tissue)$nCounts_moranPlot_inf <- 
+  attr(colData(sfe_tissue), "featureData")["nCounts", "MoranPlot_Vis5A"][[1]]$is_inf
+```
+
+```{r}
+plotSpatialFeature(sfe_tissue, "nCounts_moranPlot_inf", 
+                   colGeometryName = "spotPoly")
+```
+
+For `annotGeometry`:
+```{r}
+sfe_tissue <- annotGeometryMoranPlot(sfe_tissue, features = "area",
+                                     annotGeometryName = "myofiber_simplified",
+                                     annotGraphName = "myofiber_poly2nb",
+                                     zero.policy = TRUE)
+```
+
+```{r}
+moranPlot(sfe_tissue, "area", annotGeometryName = "myofiber_simplified", 
+          graphName = "myofiber_poly2nb")
+```
+
+Singletons have no neighbors and are circled in this plot. There appears to be clusters in this plot, of small myofibers next to other small myofibers, larger ones next to larger ones, and small ones next to larger ones. To identify clusters on the Moran plot:
+
+```{r}
+clusts <- clusterMoranPlot(sfe_tissue, "area", 
+                           annotGeometryName = "myofiber_simplified",
+                           BLUSPARAM = KmeansParam(7))
+```
+
+```{r}
+moranPlot(sfe_tissue, "area", graphName = "myofiber_poly2nb", 
+          color_by = clusts$area, annotGeometryName = "myofiber_simplified") +
+  labs(color = "cluster")
+```
+
+Again, the clusters can be plotted in space
+```{r}
+# There's an empty geometry
+ag <- annotGeometry(sfe_tissue, "myofiber_simplified")
+empty_ind <- st_is_empty(ag)
+annotGeometry(sfe_tissue, "myofiber_simplified") <- ag[!empty_ind,]
+annotGeometry(sfe_tissue, "myofiber_simplified")$area_moranPlot_cluster <- clusts$area
+```
+
+```{r}
+data("ditto_colors")
+ggplot(annotGeometry(sfe_tissue, "myofiber_simplified")) +
+  geom_sf(aes(fill = area_moranPlot_cluster), color = NA) +
+  scale_fill_manual(values = ditto_colors)
+```
+
+Clusters in the Moran plot delineate different regions in the tissue. Note that the clusters are paired, because, for example, when a larger myofiber is a neighbor of a smaller myofiber, then that smaller myofiber is also a neighbor of that larger myofiber -- the spatial neighborhood graph is undirected. 
+
+For gene expression, to use one gene to demonstrate:
+```{r}
+sfe_tissue <- runMoranPlot(sfe_tissue, "Myh1", colGraphName = "visium")
+```
+
+```{r}
+moranPlot(sfe_tissue, "Myh1", graphName = "visium")
+```
+
+There are no singletons here. Some Visium spots have neighbors that don't express Myh1 but spots that don't express Myh1 usually have at least some neighbors that do. There are 2 main clusters for spots whose neighbors do express Myh1. 
+
+```{r}
+clusts <- clusterMoranPlot(sfe_tissue, "Myh1", BLUSPARAM = KmeansParam(2))
+```
+
+```{r}
+moranPlot(sfe_tissue, "Myh1", graphName = "visium", color_by = clusts$Myh1)
+```
+
+Again, plot the clusters in space
+```{r}
+colData(sfe_tissue)$Myh1_moranPlot_clust <- clusts$Myh1
+plotSpatialFeature(sfe_tissue, "Myh1_moranPlot_clust", colGeometryName = "spotPoly")
+```
 
 
-# Future directions
-At present, only univariate global spatial autocorrelation metrics are supported. These metrics can't tell whether spatial autocorrelation differs in different directions (i.e. anisotropy), nor can they tell what causes the spatial autocorrelation. Local univariate spatial metrics, anisotropy, spatial modeling, multivariate analyses from packages such as [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html), [`spatialreg`](https://cran.r-project.org/web/packages/spatialreg/index.html), [`GWmodel`](https://cran.r-project.org/web/packages/GWmodel/index.html), and [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) will be added in later versions. 
+# Limitations and future directions
+At present, only univariate global spatial autocorrelation metrics are supported. These metrics can't tell whether spatial autocorrelation differs in different directions (i.e. anisotropy), nor can they tell what causes the spatial autocorrelation. Furthermore, it would be impractical and inefficient to check these metrics for each of thousands of genes, so multivariate ESDA would be helpful. Local univariate spatial metrics (each location has its own value rather than one value for the whole dataset), anisotropy, spatial modeling, and multivariate analyses from packages such as [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html), [`spatialreg`](https://cran.r-project.org/web/packages/spatialreg/index.html), [`GWmodel`](https://cran.r-project.org/web/packages/GWmodel/index.html), and [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) will be added in later versions. 
 
-Also, at present, the plotting functions don't plot the H&E image in the background. This may be added in a future version if we find it more helpful to plot the image.
+For plotting, at present, the plotting functions don't plot the H&E image in the background. This may be added in a future version if we find it more helpful to plot the image. Furthermore, while `geom_sf` plots the origin at the lower left corner, the origin is at the top left corner in images, so the plots are flipped compared to the original H&E image (the H&E image in the beginning of the vignette was flipped to match the plots). As `coord_flip` doesn't work with `geom_sf`, flipping the y axis would involve either flipping the sign of the y coordinates and re-create the geometries or creating a custom coordinate reference system (CRS).
+
+Finally, while Simple Features and some geospatial package support 3D data, this package and the plotting functions only support 2D data, as most geospatial resources cater to 2D data. Moreover, for 3D spatial transcriptomics data, the z dimension often has a much lower resolution than x and y, whether the z dimension comes from different z-planes in confocal imaging or from different tissue sections (and especially the latter case). The different resolutions may mean that the z dimension should be treated differently from x and y. 
