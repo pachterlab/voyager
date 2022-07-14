@@ -14,6 +14,7 @@ plotMoranMC(
   annotGeometryName = NULL,
   name = "MoranMC",
   ptype = c("density", "histogram", "freqpoly"),
+  show_symbol = TRUE,
   ...
 )
 }
@@ -48,6 +49,10 @@ annotate the gene expression plot.}
 an underscore.}
 
 \item{ptype}{Plot type, one of "density", "histogram", or "freqpoly".}
+
+\item{show_symbol}{Logical, whether to show human readable gene symbol on the
+plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 
 \item{...}{Other arguments passed to \code{\link{geom_density}},
 \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on

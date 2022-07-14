@@ -25,8 +25,9 @@ plotSpatialFeature(
   shape = 16,
   linetype = 1,
   alpha = 1,
-  color = "black",
+  color = NA,
   fill = "gray80",
+  show_symbol = TRUE,
   ...
 )
 }
@@ -108,6 +109,10 @@ specified or not applicable, or for \code{annotGeometry} if
 \code{annot_color_by} is not specified or not applicable.}
 
 \item{fill}{Similar to \code{color}, but for fill.}
+
+\item{show_symbol}{Logical, whether to show human readable gene symbol on the
+plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }

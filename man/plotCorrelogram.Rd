@@ -18,7 +18,8 @@ plotCorrelogram(
   p_adj_method = "BH",
   divergent = FALSE,
   diverge_center = NULL,
-  name = paste("Correlogram", method, sep = "_")
+  name = paste("Correlogram", method, sep = "_"),
+  show_symbol = TRUE
 )
 }
 \arguments{
@@ -75,6 +76,10 @@ palette should diverge. If \code{NULL}, then not centering.}
 \code{rowData(x)}. If not already present in the name, then the
 \code{sample_id} will be appended to the name specified here separated by
 an underscore.}
+
+\item{show_symbol}{Logical, whether to show human readable gene symbol on the
+plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 }
 \value{
 A ggplot object.
