@@ -32,6 +32,8 @@ library(sf)
 library(ggplot2)
 library(scales)
 library(patchwork)
+library(sparseMatrixStats)
+library(BiocParallel)
 theme_set(theme_bw(10))
 ```
 
@@ -360,18 +362,226 @@ plotColData(sfe_tissue, x = "mean_myofiber_area", y = "prop_mito",
             colour_by = gene_id, by_exprs_values = "logcounts")
 ```
 
+## rowData
+Spatial dependence analyses are performed on features, which can be gene expression, `colData`, `colGeometry` attributes, or `annotGeometry` attributes. For gene expression, the results are stored in `rowData`, which is metadata for the genes, inherited from `SummarizedExperiment`. For `colData`, `colGeometry`, and `annotGeometry`, the results are stored in an attribute called `featureData` of `colData` or the `colGeometry` or `annotGeometry` of interest. This section demonstrates some more utilities of `rowData`, which Seurat doesn't have. 
+
+Here mean, variance, and CV2 of genes are computed and stored in `rowData`, so they will be subsetted when rows of the SFE object are subsetted. However, in these cases, the values are no longer valid when columns of the SFE object are subsetted. Nevertheless, it's still helpful to store gene attributes that are independent from the cells/spots such as gene symbol, biotype, and genomic coordinates.
+
+```{r}
+rowData(sfe_tissue)$means <- rowMeans(counts(sfe_tissue))
+rowData(sfe_tissue)$vars <- rowVars(counts(sfe_tissue))
+rowData(sfe_tissue)$cv2 <- rowData(sfe_tissue)$vars/rowData(sfe_tissue)$means^2
+```
+
+To show overdispersion, compared to Poisson (mean = var, red line), and density of points in the plot is shown with the contours
+```{r}
+plotRowData(sfe_tissue, x = "means", y = "vars") +
+  scale_x_log10() + scale_y_log10() +
+  geom_density2d() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  coord_equal()
+```
+
+To show overdispersion, with CV2 (red line is what's expected from Poisson distribution)
+```{r}
+plotRowData(sfe_tissue, x = "means", y = "cv2") +
+  scale_x_log10() + scale_y_log10() +
+  geom_density2d() +
+  geom_abline(intercept = 0, slope = -1, color = "red") +
+  coord_equal()
+```
+
+# Spatial neighborhood graphs
+A spatial neighborhood graph is required to compute spatial dependency metrics such as Moran's I and Geary's C. The `SpatialFeatureExperiment` package wraps methods in `spdep` to find spatial neighborhood graphs, which are stored within the SFE object (see `spdep` documentation for [`gabrielneigh`](https://r-spatial.github.io/spdep/reference/graphneigh.html), [`knearneigh`](https://r-spatial.github.io/spdep/reference/knearneigh.html), [`poly2nb`](https://r-spatial.github.io/spdep/reference/poly2nb.html), and [`tri2nb`](https://r-spatial.github.io/spdep/reference/tri2nb.html)). The `Voyager` package then uses these graphs for spatial dependency analyses, again based on `spdep` in this first version, but methods from other geospatial packages, some of which also use the spatial neighborhood graphs, may be added later as needed.
+
+For Visium, where the spots are in a hexagonal grid, the spatial neighborhood graph is straightforward. However, for spatial technologies with single cell resolution (e.g. MERFISH) and in this dataset, the myofibers and nuclei, many different methods can be used to find the spatial neighborhood graph. Here for myofibers, the method "poly2nb" identifies myofiber polygons that are physically touch each other. `zero.policy = TRUE` will allow singletons or nodes without neighbors in the graph; in the inflamed region, there are more singletons. We have not yet benchmarked which spatial neighborhood method is the "best" in which situation; the particular method used here is for demonstration purpose and may or may not be best practice. 
+
+```{r}
+colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
+annotGraph(sfe_tissue, "myofiber_poly2nb") <- 
+  findSpatialNeighbors(sfe_tissue, type = "myofiber_simplified", MARGIN = 3,
+                       method = "poly2nb", zero.policy = TRUE)
+```
+
+The `plotColGraph` function plots the graph in space associated with a `colGeometry`, along with the geometry of interest.
+```{r}
+plotColGraph(sfe_tissue, colGraphName = "visium", colGeometryName = "spotPoly")
+```
+
+Similarly, the `plotAnnotGraph` function plots the graph associated with an `annotGeometry`, along with the geometry of interest. 
+```{r}
+plotAnnotGraph(sfe_tissue, annotGraphName = "myofiber_poly2nb", 
+               annotGeometryName = "myofiber_simplified")
+```
+
+There is no `plotRowGraph` yet since we haven't worked with a dataset where spatial graphs related to genes are relevant, although the SFE object supports row graphs.
+
 # Exploratory _spatial_ data analysis
-## Spatial neighborhood graphs
+All spatial autocorrelation metrics in this package can be computed directly on a vector or a matrix rather than an SFE object. The user interface emulates those of dimension reductions in the `scater` package (e.g. `calculateUMAP` that takes in a matrix or SCE object and returns a matrix, and `runUMAP` that takes in an SCE object and adds the results to the `reducedDims` field of the SCE object). So `calculate*` functions take in a matrix or an SFE object and directly return the results (format of the results depends on the structure of the results), while `run*` functions take in an SFE object and add the results to the object.
 
 ## Univariate
+In this first version, `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions.
 
-### colData
+To demonstrate spatial autocorrelation in gene expression, top highly variable genes (HVGs) are used. The HVGs are found with the `scran` method.
+```{r}
+dec <- modelGeneVar(sfe_tissue)
+hvgs <- getTopHVGs(dec, n = 50)
+```
 
-### Attributes of myofibers and nuclei
+### Moran's I
+There are several ways to quantify spatial autocorrelation, the most common of which is Moran's I:
 
-### Gene expression
+$$
+I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}
+$$
+
+Where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The `spdep` package uses the neighborhood. 
+
+Moran's I takes values between -1 and 1. For positive spatial autocorrelation, i.e. nearby spots tend to be more similar, Moran's I will be positive. For negative spatial autocorrelation, i.e. nearby spots tend to be more dissimilar, Moran's I will be negative. When the variable is distributed in space randomly like salt and pepper, then Moran's I will be around 0. Positive Moran's I indicates global structure, while negative Moran's I indicates local structure.
+
+Upon visual inspection, total UMI counts per spot seem to have spatial autocorrelation. A spatial neighborhood graph is required to compute Moran's I, and is specified with the `listw` argument. Also, if the metrics are computed for a large number of features, parallel computing is supported, with `BiocParallel`, with the `BPPARAM` argument.
+
+For matrices, the rows are the features, as in the gene count matrix.
+```{r}
+# Directly use vector or matrix, and multiple features can be specified at once
+calculateMoransI(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]), 
+                 listw = colGraph(sfe_tissue, "visium"))
+```
+
+I is Moran's I, and K is sample kurtosis.
+
+To add the results to the SFE object, specifically for colData:
+```{r}
+sfe_tissue <- colDataMoransI(sfe_tissue, features = c("nCounts", "nGenes"),
+                             colGraphName = "visium")
+head(attr(colData(sfe_tissue), "featureData"), 10)
+```
+
+For `colData`, the results are added to the attribute called "featureData", and features for which Moran's I is not calculated have NA. The column names of `featureData` distinguishes between different samples (there's only one sample in this dataset), and are parsed by plotting functions. 
+
+To add the results to the SFE object, specifically for geometries: Here "area" is the area of the cross section of each myofiber as seen in this tissue section, "eccentricity" is the eccentricity of the ellipse fitted to each myofiber, convexity is the ratio between the actual area of each myofiber and that of its convex hull, and "sine_theta" is the sine of the angle of the fitted ellipse from a reference indicating orientation (sine because 0 degrees and 180 degrees are the same orientation though the values are very different).
+```{r}
+# Remember zero.policy = TRUE since there're singletons
+sfe_tissue <- annotGeometryMoransI(sfe_tissue, 
+                                   features = c("area", "eccentricity", 
+                                                "convexity", "sine_theta"), 
+                                   annotGeometryName = "myofiber_simplified",
+                                   annotGraphName = "myofiber_poly2nb", 
+                                   zero.policy = TRUE)
+head(attr(annotGeometry(sfe_tissue, "myofiber_simplified"), "featureData"))
+```
+
+For a non-geometry column in a `colGeometry`, `colGeometryMoransI` is like `annotGeometryMoransI` here, but none of the `colGeometries` in this dataset has extra columns.
+
+For gene expression, the `logcounts` assay is used by default (use the `exprs_values` argument to change the assay), though this may or may not be best practice.
+```{r}
+sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, colGraphName = "visium", 
+                         BPPARAM = MulticoreParam(2))
+rowData(sfe_tissue)[head(hvgs),]
+```
+
+### Geary's C
+Another spatial autocorrelation metric is Geary's C, defined as:
+
+$$
+C = \frac{(n-1)}{2\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij}(x_i - x_j)^2}{{\sum_{i=1}^n (x_i - \bar{x})^2}}
+$$
+
+Geary's C well below 1 indicates positive spatial autocorrelation, and above 1 indicates negative spatial autocorrelation.
+
+Simply substitute "MoransI" in the names of the functions in the previous section with "GearysC" to compute Geary's C for features of interest and add the results to the SFE object. For example, for `colData`
+```{r}
+sfe_tissue <- colDataGearysC(sfe_tissue, features = c("nCounts", "nGenes"),
+                             colGraphName = "visium")
+head(attr(colData(sfe_tissue), "featureData"), 10)
+```
+
+There's only one column for K since it's the same for Moran's I and Geary's C. Here both Moran's I and Geary's C suggest positive spatial autocorrelation for `nCounts` and `nGenes`.
+
+### Permutation testing
+Is the spatial autocorrelation statistically significant? The `moran.test` function in `spdep` can give an analytic p-value but the p-value would not be accurate if the data is not normally distributed. As gene expression data is generally not normally distributed and data normalization doesn't necessarily make the data that close to a normal distribution, permutation testing is used in this package to test the significance of Moran's I and Geary's C, wrapping [`moran.mc` in `spdep`](https://r-spatial.github.io/spdep/reference/moran.mc.html). Just like Moran's I, there's `calculateMoranMC` and `calculateGearyMC` functions to directly return the results, and `colDataMoranMC`, `colGeometryMoranMC`, `annotGeometryMoranMC`, and `runMoranMC` to add the results to the SFE object. MC stands for Monte Carlo. The `nsim` argument specifies the number of simulations. 
+
+For matrices, the results are a named list, each element of which is for each feature.
+```{r}
+calculateMoranMC(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]), 
+                 listw = colGraph(sfe_tissue, "visium"), nsim = 100)
+```
+
+Or add it to the SFE object
+```{r}
+sfe_tissue <- colDataMoranMC(sfe_tissue, features = c("nCounts", "nGenes"), 
+                             colGraphName = "visium", nsim = 100)
+head(attr(colData(sfe_tissue), "featureData"), 10)
+```
+
+Note that while the test is performed for multiple features, the p-values here are not corrected for multiple hypothesis testing.
+
+The results can be plotted:
+```{r}
+plotMoranMC(sfe_tissue, c("nCounts", "nGenes"))
+```
+
+By default, the colorblind friendly palette from `dittoSeq` is used for categorical variables. The density is of Moran's I from the simulations where the values are permuted and disconnected from spatial locations, and the vertical line is the actual Moran's I value. The simulation indicates that the spatial autocorrelation is significant. 
+
+When there're multiple samples, the plot will by default be facetted by sample. But it can also be facetted by feature; in this case, when there're multiple samples, samples will be colored instead of features so spatial autocorrelation for the same features can be compared across samples.
+```{r}
+plotMoranMC(sfe_tissue, c("nCounts", "nGenes"), facet_by = "feature")
+```
+
+Each function for Moran MC has a Geary's C equivalent (e.g. `runGearyMC`). 
+```{r}
+sfe_tissue <- colDataGearyMC(sfe_tissue, features = c("nCounts", "nGenes"), 
+                             colGraphName = "visium", nsim = 100)
+```
+
+```{r}
+plotMoranMC(sfe_tissue, c("nCounts", "nGenes"), name = "GearyMC")
+```
+
+Also see some myofiber morphological metrics
+```{r}
+sfe_tissue <- annotGeometryMoranMC(sfe_tissue, 
+                                   features = c("area", "eccentricity", 
+                                                "convexity", "sine_theta"), 
+                                   annotGeometryName = "myofiber_simplified",
+                                   annotGraphName = "myofiber_poly2nb", 
+                                   zero.policy = TRUE, nsim = 100)
+```
+
+Specify `annotGeometryName` to make the `plotMoranMC` function look for results in the `annotGeometry` of interest.
+```{r}
+plotMoranMC(sfe_tissue, 
+            features = c("area", "eccentricity", "convexity", "sine_theta"),
+            annotGeometryName = "myofiber_simplified")
+```
+
+Here all 4 morphological metrics have positive spatial autocorrelation, but myofiber area is more strongly autocorrelated. 
+
+This can also be done to gene expression, again, by default, using the "logcounts" assay.
+```{r}
+sfe_tissue <- runMoranMC(sfe_tissue, hvgs[1:5], colGraphName = "visium", nsim = 100)
+```
+
+Although the row names of `sfe_tissue` are actually Ensembl IDs, the human readable gene symbols are shown in the plots by default.
+```{r}
+plotMoranMC(sfe_tissue, features = hvgs[1:5])
+```
+
+The vertical lines for Car3 and Myh2 overlap but they're not the same value (see results of `runMoransI` above). To show Ensembl IDs instead (note that the colors are not linked to the genes and are assigned to genes in alphabetical order of the symbol or ID):
+
+```{r}
+plotMoranMC(sfe_tissue, features = hvgs[1:5], show_symbol = FALSE)
+```
+
+These genes have positive spatial autocorrelation that is stronger than total counts.
+
+### Correlogram
+What's the length scale of the spatial autocorrelation? In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results.
+
+### Moran plot
+
 
 # Future directions
-At present, only univariate global spatial autocorrelation metrics are supported. Local univariate spatial metrics and multivariate analyses (e.g. geographically weighted principal component analysis (GWPCA), MULTISPATI PCA, and Moran eigenmap) will be added in later versions.
+At present, only univariate global spatial autocorrelation metrics are supported. These metrics can't tell whether spatial autocorrelation differs in different directions (i.e. anisotropy), nor can they tell what causes the spatial autocorrelation. Local univariate spatial metrics, anisotropy, spatial modeling, multivariate analyses from packages such as [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html), [`spatialreg`](https://cran.r-project.org/web/packages/spatialreg/index.html), [`GWmodel`](https://cran.r-project.org/web/packages/GWmodel/index.html), and [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) will be added in later versions. 
 
 Also, at present, the plotting functions don't plot the H&E image in the background. This may be added in a future version if we find it more helpful to plot the image.
