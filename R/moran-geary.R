@@ -235,9 +235,9 @@ colGeometryGearysC <- .colgeom_univar_fun(calculateGearysC, .MoransI2df, "Gearys
     sample_id <- .check_sample_id(x, sample_id, one = FALSE)
     for (s in sample_id) {
       listw_use <- annotGraph(x, type = annotGraphName, sample_id = s)
-      res <- .df_univar_autocorr(annotGeometry(x, type = annotGeometryName,
-                                               sample_id = s),
-                                 listw_use, features, fun, BPPARAM,
+      ag <- annotGeometry(x, type = annotGeometryName, sample_id = s)
+      ag <- .rm_empty_geometries(ag, MARGIN = 3)
+      res <- .df_univar_autocorr(ag, listw_use, features, fun, BPPARAM,
                                  zero.policy, ...)
       annotGeometry(x, annotGeometryName) <- .add_fd(x, annotGeometry(x, annotGeometryName),
                                                      res, features, s,

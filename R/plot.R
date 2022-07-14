@@ -353,13 +353,19 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
   } else {
     coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(geometry))))
   }
-  coords$sample_id <- colData(sfe)$sample_id[sample_inds]
+  if (MARGIN == 2L) {
+    coords$sample_id <- colData(sfe)$sample_id[sample_inds]
+  } else {
+    # sample_id column is required for annotGeometries
+    coords$sample_id <- geometry$sample_id
+  }
   dfs <- lapply(sample_id, function(s) {
     listw <- listws[[s]]
     cardnb <- card(listw$neighbours)
     n <- length(listw$neighbours)
+    neighbors_use <- listw$neighbours[cardnb > 0]
     df <- data.frame(i = rep(1:n, cardnb),
-                     j = unlist(listw$neighbours),
+                     j = unlist(neighbors_use),
                      sample_id = s)
     cu <- coords[coords$sample_id == s,]
     df$x <- cu[,1][df$i]
@@ -377,7 +383,8 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   if (!is.null(geometry_name)) {
     gf <- switch(MARGIN, rowGeometry, colGeometry, annotGeometry)
-    geometry <- gf(sfe, MARGIN, type = geometry_name, sample_id = sample_id)
+    geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
+    geometry <- .rm_empty_geometries(geometry, MARGIN)
   } else geometry <- NULL
   df <- .get_graph_df(sfe, MARGIN, sample_id, graph_name, geometry)
   p <- ggplot(df)
