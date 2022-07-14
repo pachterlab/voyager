@@ -39,7 +39,8 @@ setMethod("calculateMoranPlot", "ANY",
           function(x, listw, BPPARAM = SerialParam(),
                    zero.policy = NULL, ...) {
             .calc_univar_autocorr(x, listw, fun = moran.plot, BPPARAM, returnDF = FALSE,
-                                  plot = FALSE, return_df = TRUE, ...)
+                                  plot = FALSE, return_df = TRUE,
+                                  zero.policy = zero.policy, ...)
           })
 
 #' @rdname calculateMoranPlot
@@ -75,6 +76,7 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
     out <- calculateMoranPlot(sfe, features, colGraphName, s, exprs_values,
                               BPPARAM, zero.policy, ...)
     out <- .MoranPlot2df(out, name)
+    features <- .symbol2id(sfe, features)
     rownames(out) <- features
     out <- .add_name_sample_id(sfe, out, s)
     rowData(sfe)[features, names(out)] <- out
@@ -90,6 +92,7 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #'
 #' @inheritParams bluster::clusterRows
 #' @inheritParams calculateMoranPlot
+#' @inheritParams moranPlot
 #' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
 #'   been computed for that feature in this sample_id, it will be calculated and
@@ -119,16 +122,18 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                              name = "MoranPlot",
                              colGeometryName = NULL,
-                             annotGeometryName = NULL) {
+                             annotGeometryName = NULL, show_symbol = TRUE) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+  use_col <- is.null(annotGeometryName) || !is.null(colGeometryName)
   out <- lapply(sample_id, function(s) {
     colname_use <- paste(name, s, sep = "_")
     mps <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
-                                 annotGeometryName)
+                                 annotGeometryName, show_symbol)
     o <- lapply(mps, function(mp) clusterRows(mp[,c("x", "wx")], BLUSPARAM))
     o <- as(o, "DataFrame")
     o$sample_id <- s
-    row.names(o) <- colnames(sfe)[colData(sfe)$sample_id == s]
+    if (use_col)
+      row.names(o) <- colnames(sfe)[colData(sfe)$sample_id == s]
     # What if some features don't have the Moran Plot computed
     features_absent <- setdiff(features, names(o))
     if (length(features_absent) && length(sample_id) > 1L) {

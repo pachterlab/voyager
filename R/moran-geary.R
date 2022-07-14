@@ -21,7 +21,11 @@
 #'   univariate metric is to be computed. Default to \code{NULL}. When
 #'   \code{NULL}, then the metric is computed for all genes with the values in
 #'   the assay specified in the argument \code{exprs_values}. This can be
-#'   parallelized with the argument \code{BPPARAM}.
+#'   parallelized with the argument \code{BPPARAM}. For genes, if the column
+#'   "symbol" is present in \code{rowData} and the row names of the SFE object
+#'   are Ensembl IDs, then the gene symbol can be used and converted to IDs
+#'   behind the scene. However, if one symbol matches multiple IDs, a warning
+#'   will be given and the first match will be used.
 #' @param exprs_values Integer scalar or string indicating which assay of x
 #'   contains the expression values.
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether
@@ -265,6 +269,7 @@ annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC, .MoransI2df, "Ge
     out$sample_id <- NULL # Not necessary here, but necessary when just calling calculateMoransI
     out <- .MoransI2df(out, name)
     out <- .add_name_sample_id(x, out, s)
+    features <- .symbol2id(x, features)
     rowData(x)[features, names(out)] <- out
   }
   x
@@ -447,6 +452,7 @@ annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, 
     out <- fun(x, features, colGraphName, s, nsim, exprs_values, BPPARAM,
                zero.policy, alternative, ...)
     out <- .MoranMC2df(out, name)
+    features <- .symbol2id(x, features)
     out <- .add_name_sample_id(x, out, s)
     rowData(x)[features, names(out)] <- out
   }
@@ -606,6 +612,7 @@ runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
     out <- calculateCorrelogram(sfe, features, colGraphName, s, order,
                                 method, exprs_values, BPPARAM, zero.policy, ...)
     out <- .correlogram2df(out, name, method)
+    features <- .symbol2id(sfe, features)
     rownames(out) <- features
     out <- .add_name_sample_id(sfe, out, s)
     rowData(sfe)[features, names(out)] <- out
@@ -621,6 +628,7 @@ runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #'
 #' @inheritParams clusterMoranPlot
 #' @inheritParams calculateCorrelogram
+#' @inheritParams plotCorrelogram
 #' @param sfe A \code{SpatialFeatureExperiment} object with correlograms
 #' computed for features of interest.
 #' @param features Features whose correlograms to cluster.
@@ -642,11 +650,11 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                                 method = "I",
                                 name = paste("Correlogram", method, sep = "_"),
                                 colGeometryName = NULL,
-                                annotGeometryName = NULL) {
+                                annotGeometryName = NULL, show_symbol = TRUE) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   out <- lapply(sample_id, function(s) {
     ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
-                                  annotGeometryName)
+                                  annotGeometryName, show_symbol = show_symbol)
     if (method %in% c("I", "C")) {
       # First column is the metric, second column expectation, third is variance
       ress <- lapply(ress, function(r) r[,1])

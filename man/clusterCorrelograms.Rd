@@ -12,7 +12,8 @@ clusterCorrelograms(
   method = "I",
   name = paste("Correlogram", method, sep = "_"),
   colGeometryName = NULL,
-  annotGeometryName = NULL
+  annotGeometryName = NULL,
+  show_symbol = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,10 @@ an underscore.}
 
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
+
+\item{show_symbol}{Logical, whether to show human readable gene symbol on the
+plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 }
 \value{
 A \code{DataFrame} with 3 columns: \code{feature} for the features,

@@ -112,7 +112,11 @@ numeric columns of \code{colData(x)} (\code{colData*}) or any
 univariate metric is to be computed. Default to \code{NULL}. When
 \code{NULL}, then the metric is computed for all genes with the values in
 the assay specified in the argument \code{exprs_values}. This can be
-parallelized with the argument \code{BPPARAM}.}
+parallelized with the argument \code{BPPARAM}. For genes, if the column
+"symbol" is present in \code{rowData} and the row names of the SFE object
+are Ensembl IDs, then the gene symbol can be used and converted to IDs
+behind the scene. However, if one symbol matches multiple IDs, a warning
+will be given and the first match will be used.}
 
 \item{colGraphName}{Name of the listw graph in the SFE object that
 corresponds to entities represented by columns of the gene count matrix.

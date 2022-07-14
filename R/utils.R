@@ -5,6 +5,7 @@
   features_assay <- intersect(features, rownames(x))
   if (!length(features_assay) && "symbol" %in% names(rowData(x))) {
     features_assay <- rownames(x)[match(features, rowData(x)$symbol)]
+    .warn_symbol_duplicate(x, features_assay)
     if (all(is.na(features_assay))) features_assay <- NULL
   }
   features_coldata <- intersect(features, names(colData(x)))
@@ -21,6 +22,24 @@
     stop("None of the features are found in the SFE object.")
   }
   return(out)
+}
+
+.warn_symbol_duplicate <- function(x, symbols) {
+  all_matches <- rowData(x)$symbol[rowData(x)$symbol %in% symbols]
+  which_duplicated <- duplicated(all_matches)
+  genes_show <- all_matches[which_duplicated]
+  if (anyDuplicated(all_matches)) {
+    warning("Gene symbol is duplicated for ",
+            paste(genes_show, collapse = ", "), ", the first match is used.")
+  }
+}
+
+.symbol2id <- function(x, features) {
+  if (!any(features %in% rownames(x)) && "symbol" %in% names(rowData(x))) {
+    features <- rownames(x)[match(features, rowData(x)$symbol)]
+    .warn_symbol_duplicate(x, features)
+  }
+  features
 }
 
 .drop_null_list <- function(l) {
@@ -118,11 +137,19 @@
   colname_use <- .add_sample_id(name, sample_id)
   out_rd <- out_cd <- out_cg <- out_ag <- NULL
   features_rd <- intersect(features, rownames(sfe))
+  if (!length(features_rd) && "symbol" %in% names(rowData(sfe))) {
+    features_symbol <- intersect(features, rowData(sfe)$symbol)
+    .warn_symbol_duplicate(sfe, features_rd)
+    features <- setdiff(features, features_symbol)
+    features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)$symbol)]
+    if (all(is.na(features_rd))) features_rd <- NULL
+  }
   if (length(features_rd)) {
     out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
     features <- setdiff(features, names(out_rd))
     if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
       names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
+      .warn_symbol_duplicate(sfe, names(out_rd))
     }
   }
   features_cd <- intersect(features, names(colData(sfe)))

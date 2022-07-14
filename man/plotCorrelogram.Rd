@@ -107,7 +107,7 @@ clust <- clusterCorrelograms(sfe, features = features,
 # Color by features
 plotCorrelogram(sfe, features)
 # Color by something else
-plotCorrelogram(sfe, features, color_by = clust[,1])
+plotCorrelogram(sfe, features, color_by = clust$cluster)
 # Facet by features
 plotCorrelogram(sfe, features, facet_by = "features")
 }

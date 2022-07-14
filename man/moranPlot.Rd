@@ -7,7 +7,7 @@
 moranPlot(
   sfe,
   feature,
-  colGraphName = 1L,
+  graphName = 1L,
   sample_id = NULL,
   contour_color = "cyan",
   color_by = NULL,
@@ -31,9 +31,9 @@ to sentence case on the x axis and lower case in the y axis appended after
 \code{color_by} may be specific to this feature (e.g. from
 \code{\link{clusterMoranPlot}}).}
 
-\item{colGraphName}{Name of the \code{colGraph}, the spatial neighborhood
-graph used to compute the Moran plot. This is to determine which points are
-singletons to plot differently on this plot.}
+\item{graphName}{Name of the \code{colGraph} or \code{annotGraph}, the
+spatial neighborhood graph used to compute the Moran plot. This is to
+determine which points are singletons to plot differently on this plot.}
 
 \item{sample_id}{One sample_id for the sample whose graph to plot.}
 
@@ -64,11 +64,6 @@ non-influential points and only plot influential points as points.}
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
 
-\item{name}{String specifying the name to be used to store the results in
-\code{rowData(x)}. If not already present in the name, then the
-\code{sample_id} will be appended to the name specified here separated by
-an underscore.}
-
 \item{show_symbol}{Logical, whether to show human readable gene symbol on the
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in \code{rowData(sfe)} called "symbol" for this to work.}
@@ -97,5 +92,5 @@ calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
 # Add results to rowData, features are genes
 sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
 clust <- clusterMoranPlot(sfe, rownames(sfe)[1], BLUSPARAM = KmeansParam(2))
-moranPlot(sfe, rownames(sfe)[1], colGraphName = "visium", color_by = clust[,1])
+moranPlot(sfe, rownames(sfe)[1], graphName = "visium", color_by = clust[,1])
 }
