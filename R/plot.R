@@ -598,9 +598,9 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #'   neighbors.
 #' @param filled Logical, whether to plot filled contours for the
 #'   non-influential points and only plot influential points as points.
-#' @param colGraphName Name of the \code{colGraph}, the spatial neighborhood
-#'   graph used to compute the Moran plot. This is to determine which points are
-#'   singletons to plot differently on this plot.
+#' @param graphName Name of the \code{colGraph} or \code{annotGraph}, the
+#'   spatial neighborhood graph used to compute the Moran plot. This is to
+#'   determine which points are singletons to plot differently on this plot.
 #' @param contour_color Color of the point density contours, which can be
 #'   changed so the contours stand out from the points.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
@@ -622,8 +622,8 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' # Add results to rowData, features are genes
 #' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
 #' clust <- clusterMoranPlot(sfe, rownames(sfe)[1], BLUSPARAM = KmeansParam(2))
-#' moranPlot(sfe, rownames(sfe)[1], colGraphName = "visium", color_by = clust[,1])
-moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
+#' moranPlot(sfe, rownames(sfe)[1], graphName = "visium", color_by = clust[,1])
+moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,
@@ -633,28 +633,36 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
   mp <- .get_feature_metadata(sfe, feature, name, sample_id, colGeometryName,
                               annotGeometryName, show_symbol)[[1]]
   if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
+  use_col <- is.null(annotGeometryName) || !is.null(colGeometryName)
+  mar <- if (use_col) 2L else 3L
+  if (use_col) {
+    length_ref <- sum(colData(sfe)$sample_id == sample_id)
+  } else {
+    ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+    ag <- .rm_empty_geometries(ag, 3)
+    length_ref <- nrow(ag)
+  }
   if (!is.null(color_by)) {
     if (length(color_by) == 1L && is.character(color_by)) {
       # name of something
-      if (is.null(annotGeometryName) || !is.null(colGeometryName))
+      if (use_col) {
         color_value <- .get_feature_values(sfe, color_by, sample_id,
                                            colGeometryName)
-      else {
-        ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+      } else {
         color_value <- st_drop_geometry(ag)[ag$sample_id == sample_id,
                                             color_by, drop = FALSE]
       }
-    } else if (length(color_by) == sum(colData(sfe)$sample_id == sample_id)) {
+    } else if (length(color_by) == length_ref) {
       color_value <- color_by
-      color_by <- "V1"
+      color_by <- "color_value"
     } else {
       stop("color_by must be either the name of a variable in sfe or a vector ",
            "the same length as the number of cells/spots in this sample_id.")
     }
     mp <- cbind(mp, color_value)
   }
-  listw <- colGraph(sfe, colGraphName, sample_id)
-  is_singleton <- lengths(listw$neighbours) == 0L
+  listw <- spatialGraph(sfe, type = graphName, MARGIN = mar, sample_id = sample_id)
+  is_singleton <- vapply(listw$neighbours, min, FUN.VALUE = integer(1)) == 0L
   if (filled)
     .moran_ggplot_filled(mp, feature, is_singleton, color_by, plot_singletons,
                          divergent, diverge_center, ...)
@@ -703,7 +711,7 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
       out$sd2 <- 2*sqrt(out$variance)
       out$ymin <- out$res - out$sd2
       out$ymax <- out$res + out$sd2
-      if (length(features) > 1L) out$feature <- features[[i]]
+      if (length(features) > 1L) out$feature <- names(ress)[[i]]
       if (!is.null(color_by)) out$color_by <- color_value[i]
       out
     })
@@ -772,7 +780,7 @@ moranPlot <- function(sfe, feature, colGraphName = 1L, sample_id = NULL,
 #' # Color by features
 #' plotCorrelogram(sfe, features)
 #' # Color by something else
-#' plotCorrelogram(sfe, features, color_by = clust[,1])
+#' plotCorrelogram(sfe, features, color_by = clust$cluster)
 #' # Facet by features
 #' plotCorrelogram(sfe, features, facet_by = "features")
 plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
