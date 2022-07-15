@@ -148,6 +148,7 @@ the results, which was one of the motivations of SFE.
 }
 \examples{
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(SFEData)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)

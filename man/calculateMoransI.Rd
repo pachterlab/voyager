@@ -216,6 +216,7 @@ object. Multithreading is supported when computing for numerous genes.
 }
 \examples{
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(SFEData)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)

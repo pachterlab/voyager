@@ -38,12 +38,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
   if (type %in% c("POINT", "MULTIPOINT")) {
     names_use <- c("size", "shape", "alpha", "color")
     if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
+    if (is.na(fixed$color)) fixed$color <- "black"
     shape <- fixed[["shape"]]
     if (!is.null(shape) && shape > 20L) {
       names_use <- c(names_use, "fill")
     }
   } else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
     if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
+    if (is.na(fixed$color)) fixed$color <- "black"
     names_use <- c("size", "linetype", "alpha", "color")
   } else {
     # i.e. polygons
@@ -63,7 +65,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     return(NULL)
   }
   if (.is_discrete(m)) {
-    .pal <- switch (option, Voyager::ditto_colors, rev(Voyager::ditto_colors))
+    .pal <- switch (option, ditto_colors, rev(ditto_colors))
     pal_fun <- switch (.aes, fill = scale_fill_manual, color = scale_color_manual)
     pal <- pal_fun(values = .pal, na.value = "gray")
   } else {
@@ -268,12 +270,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
+#' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
+#' object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
 #' @export
 #' @examples
 #' library(SFEData)
+#' library(sf)
 #' sfe <- McKellarMuscleData("small")
 #' # features can be genes or colData or colGeometry columns
 #' plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]), exprs_values = "counts",
@@ -284,6 +289,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'                    annotGeometryName = "tissueBoundary",
 #'                    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
 #'                    alpha = 0.7)
+#' # Make the myofiber segmentations a valid POLYGON geometry
+#' ag <- annotGeometry(sfe, "myofiber_simplified")
+#' ag <- st_buffer(ag, 0)
+#' ag <- ag[!st_is_empty(ag),]
+#' annotGeometry(sfe, "myofiber_simplified") <- ag
 #' # Also plot an annotGeometry variable
 #' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
 #'                    annotGeometryName = "myofiber_simplified",
@@ -378,6 +388,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 }
 
 #' @importFrom ggplot2 geom_line
+#' @importFrom SpatialFeatureExperiment rowGeometry
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -452,7 +463,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'   associated with the graph specified with \code{annotGraphName}, for spatial
 #'   coordinates of the graph nodes and for context.
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom SpatialFeatureExperiment spatialGraphs
+#' @importFrom SpatialFeatureExperiment spatialGraphs spatialGraph
 #' @importFrom spdep card
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
@@ -460,9 +471,15 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
+#' library(sf)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' plotColGraph(sfe, colGraphName = "visium", colGeometryName = "spotPoly")
+#' # Make the myofiber segmentations a valid POLYGON geometry
+#' ag <- annotGeometry(sfe, "myofiber_simplified")
+#' ag <- st_buffer(ag, 0)
+#' ag <- ag[!st_is_empty(ag),]
+#' annotGeometry(sfe, "myofiber_simplified") <- ag
 #' annotGraph(sfe, "myofibers") <-
 #'   findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
 #' plotAnnotGraph(sfe, annotGraphName = "myofibers",
@@ -584,6 +601,7 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
+#' @inheritParams calculateMoransI
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
@@ -613,16 +631,17 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' library(bluster)
-#' sfe <- McKellarMuscleData("small")
+#' sfe <- McKellarMuscleData("full")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' # Compute Moran plot for vector or matrix
-#' calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' foo <- calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
 #' # Add results to rowData, features are genes
-#' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
-#' clust <- clusterMoranPlot(sfe, rownames(sfe)[1], BLUSPARAM = KmeansParam(2))
-#' moranPlot(sfe, rownames(sfe)[1], graphName = "visium", color_by = clust[,1])
+#' sfe <- runMoranPlot(sfe, features = "Myh1", exprs_values = "counts")
+#' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
+#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[,1])
 moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
@@ -773,8 +792,10 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' library(bluster)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' features <- rownames(sfe)[1:5]
-#' sfe <- runMoranMC(sfe, features = features, exprs_values = "counts")
+#' inds <- c(1,3,4,5)
+#' features <- rownames(sfe)[inds]
+#' sfe <- runCorrelogram(sfe, features = features, exprs_values = "counts",
+#'                       order = 5)
 #' clust <- clusterCorrelograms(sfe, features = features,
 #'                              BLUSPARAM = KmeansParam(2))
 #' # Color by features
@@ -942,7 +963,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' sfe <- colDataMoranMC(sfe, "nCounts")
+#' sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
 #' plotMoranMC(sfe, "nCounts")
 plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,
@@ -971,6 +992,7 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
     df <- do.call(rbind, df)
   } else df <- df[[1]]
   p <- ggplot(df)
+  statistic <- feature <- res <- NULL
   if ((length(sample_id) == 1L && (length(features) == 1L || facet_feature)) ||
       (length(features) == 1L && facet_sample)) {
     p <- ggplot(df) + geom_vline(aes(xintercept = statistic))
@@ -1016,7 +1038,7 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
 #' library(SFEData)
 #' library(scater)
 #' sfe <- McKellarMuscleData("small")
-#' sfe <- runPCA(sfe, ncomponents = 10)
+#' sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 #' ElbowPlot(sfe, ndims = 10)
 ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
   # For scater::runPCA results
@@ -1072,11 +1094,12 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom ggplot2 facet_wrap scale_y_discrete
 #' @importFrom stats reorder
+#' @export
 #' @examples
 #' library(SFEData)
 #' library(scater)
 #' sfe <- McKellarMuscleData("small")
-#' sfe <- runPCA(sfe, ncomponents = 10)
+#' sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 #' plotDimLoadings(sfe, dims = 1:2)
 plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                             show_symbol = TRUE, symbol_col = "symbol",

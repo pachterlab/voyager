@@ -116,6 +116,10 @@ be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
+\value{
+A \code{ggplot2} object if plotting one feature. A \code{patchwork}
+object if plotting multiple features.
+}
 \description{
 Unlike \code{Seurat} and \code{ggspavis}, plotting functions in this package
 uses \code{geom_sf} whenever applicable.
@@ -135,6 +139,7 @@ of the \code{dittoSeq} palette is used for discrete variables.
 }
 \examples{
 library(SFEData)
+library(sf)
 sfe <- McKellarMuscleData("small")
 # features can be genes or colData or colGeometry columns
 plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]), exprs_values = "counts",
@@ -145,6 +150,11 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary",
                    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
                    alpha = 0.7)
+# Make the myofiber segmentations a valid POLYGON geometry
+ag <- annotGeometry(sfe, "myofiber_simplified")
+ag <- st_buffer(ag, 0)
+ag <- ag[!st_is_empty(ag),]
+annotGeometry(sfe, "myofiber_simplified") <- ag
 # Also plot an annotGeometry variable
 plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
                    annotGeometryName = "myofiber_simplified",

@@ -254,15 +254,18 @@ genes. Multithreading is supported when computing for numerous genes.
 }
 \examples{
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(SFEData)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 # Compute Moran's I with Monte Carlo testing for vector or matrix
-calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
+                 nsim = 100)
 # Add results to rowData, features are genes
-sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts",
+                  nsim = 100)
 rowData(sfe)
 # Specifically for colData
-sfe <- colDataMoranMC(sfe, "nCounts")
+sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
 attr(colData(sfe), "featureData")
 }

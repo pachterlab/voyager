@@ -100,8 +100,10 @@ library(SFEData)
 library(bluster)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-features <- rownames(sfe)[1:5]
-sfe <- runMoranMC(sfe, features = features, exprs_values = "counts")
+inds <- c(1,3,4,5)
+features <- rownames(sfe)[inds]
+sfe <- runCorrelogram(sfe, features = features, exprs_values = "counts",
+                      order = 5)
 clust <- clusterCorrelograms(sfe, features = features,
                              BLUSPARAM = KmeansParam(2))
 # Color by features

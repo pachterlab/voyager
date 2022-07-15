@@ -65,9 +65,15 @@ objects.
 \examples{
 library(SpatialFeatureExperiment)
 library(SFEData)
+library(sf)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 plotColGraph(sfe, colGraphName = "visium", colGeometryName = "spotPoly")
+# Make the myofiber segmentations a valid POLYGON geometry
+ag <- annotGeometry(sfe, "myofiber_simplified")
+ag <- st_buffer(ag, 0)
+ag <- ag[!st_is_empty(ag),]
+annotGeometry(sfe, "myofiber_simplified") <- ag
 annotGraph(sfe, "myofibers") <-
   findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
 plotAnnotGraph(sfe, annotGraphName = "myofibers",

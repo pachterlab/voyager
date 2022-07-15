@@ -173,15 +173,18 @@ same plot, with the error bars, or cluster them. So I'll write the wrapper.
 }
 \examples{
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(SFEData)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 # Compute correlogram for vector or matrix
-calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
+                     order = 5)
 # Add results to rowData, features are genes
-sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts",
+                      order = 5)
 rowData(sfe)
 # Specifically for colData
-sfe <- colDataCorrelogram(sfe, "nCounts")
+sfe <- colDataCorrelogram(sfe, "nCounts", order = 5)
 attr(colData(sfe), "featureData")
 }

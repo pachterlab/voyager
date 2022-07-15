@@ -73,6 +73,6 @@ library(SpatialFeatureExperiment)
 library(SFEData)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-sfe <- colDataMoranMC(sfe, "nCounts")
+sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
 plotMoranMC(sfe, "nCounts")
 }

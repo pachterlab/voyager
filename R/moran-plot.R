@@ -20,6 +20,7 @@
 #'   \code{rowData}. The plot is not made.
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
@@ -92,6 +93,7 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #'
 #' @inheritParams bluster::clusterRows
 #' @inheritParams calculateMoranPlot
+#' @inheritParams calculateMoransI
 #' @inheritParams moranPlot
 #' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
@@ -105,9 +107,11 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' @return A \code{DataFrame} each column of which is a factor for cluster
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
+#' @importFrom methods as
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' library(bluster)
 #' sfe <- McKellarMuscleData("small")

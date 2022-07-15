@@ -192,3 +192,5 @@
   }
   out
 }
+
+.rm_empty_geometries <- SpatialFeatureExperiment:::.rm_empty_geometries

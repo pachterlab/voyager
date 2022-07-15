@@ -54,6 +54,6 @@ for now I'm using Tidyverse.
 library(SFEData)
 library(scater)
 sfe <- McKellarMuscleData("small")
-sfe <- runPCA(sfe, ncomponents = 10)
+sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 plotDimLoadings(sfe, dims = 1:2)
 }

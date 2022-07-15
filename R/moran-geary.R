@@ -80,6 +80,7 @@
 #' @importFrom SingleCellExperiment colData rowData
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
@@ -217,9 +218,9 @@ colDataGearysC <- .coldata_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
       cg <- colGeometry(x, type = colGeometryName, sample_id = s)
       res <- .df_univar_autocorr(cg, listw_use, features, fun, BPPARAM,
                                  zero.policy, ...)
-      colGeometry(x, colGeometryName) <- .add_fd(x, colGeometry(x, colGeometryName),
-                                                 res, features, s,
-                                                 to_df_fun, name, to_df_params)
+      colGeometry(x, colGeometryName, sample_id = "all") <-
+        .add_fd(x, colGeometry(x, colGeometryName, sample_id = "all"),
+                res, features, s, to_df_fun, name, to_df_params)
     }
     x
   }
@@ -243,9 +244,9 @@ colGeometryGearysC <- .colgeom_univar_fun(calculateGearysC, .MoransI2df, "Gearys
       ag <- .rm_empty_geometries(ag, MARGIN = 3)
       res <- .df_univar_autocorr(ag, listw_use, features, fun, BPPARAM,
                                  zero.policy, ...)
-      annotGeometry(x, annotGeometryName) <- .add_fd(x, annotGeometry(x, annotGeometryName),
-                                                     res, features, s,
-                                                     to_df_fun, name, to_df_params)
+      annotGeometry(x, annotGeometryName, sample_id = "all") <-
+        .add_fd(x, annotGeometry(x, annotGeometryName, sample_id = "all"),
+                res, features, s, to_df_fun, name, to_df_params)
     }
     x
   }
@@ -317,16 +318,19 @@ runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' @name calculateMoranMC
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' # Compute Moran's I with Monte Carlo testing for vector or matrix
-#' calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
+#'                  nsim = 100)
 #' # Add results to rowData, features are genes
-#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts",
+#'                   nsim = 100)
 #' rowData(sfe)
 #' # Specifically for colData
-#' sfe <- colDataMoranMC(sfe, "nCounts")
+#' sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
 #' attr(colData(sfe), "featureData")
 NULL
 
@@ -507,16 +511,19 @@ runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
 #' @name calculateCorrelogram
 #' @examples
 #' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' # Compute correlogram for vector or matrix
-#' calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
+#' calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
+#'                      order = 5)
 #' # Add results to rowData, features are genes
-#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts")
+#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts",
+#'                       order = 5)
 #' rowData(sfe)
 #' # Specifically for colData
-#' sfe <- colDataCorrelogram(sfe, "nCounts")
+#' sfe <- colDataCorrelogram(sfe, "nCounts", order = 5)
 #' attr(colData(sfe), "featureData")
 NULL
 
@@ -642,9 +649,10 @@ runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' library(bluster)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#'
-#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1:5], exprs_values = "counts")
-#' clust <- clusterCorrelograms(sfe, features = rownames(sfe)[1:5],
+#' inds <- c(1,3,4,5)
+#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[inds],
+#'                       exprs_values = "counts", order = 5)
+#' clust <- clusterCorrelograms(sfe, features = rownames(sfe)[inds],
 #'                              BLUSPARAM = KmeansParam(2))
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                                 method = "I",

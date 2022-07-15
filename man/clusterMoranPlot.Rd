@@ -55,6 +55,7 @@ can be seen on the Moran plot, indicating different types of neighborhoods.
 }
 \examples{
 library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
 library(SFEData)
 library(bluster)
 sfe <- McKellarMuscleData("small")
