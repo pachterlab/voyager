@@ -242,10 +242,11 @@ For \code{calculateMoran/GearyMC}, a list of \code{mc.sim} objects.
   \code{sample_id} is specified, then a list of such lists, whose names are
   the \code{sample_id}s. For \code{runMoran/GearyMC}, the results are
   converted to a \code{DataFrame} and added to \code{rowData(x)}, and a SFE
-  object with the added \code{rowData} is returned. For the colData,
-  colGeometry, and annotGeometry versions, the results are added to the
+  object with the added \code{rowData} is returned. For the
+  colGeometry and annotGeometry versions, the results are added to the
   \code{featureData} attribute of the data frame of interest in a manner
-  analogous to \code{rowData}.
+  analogous to \code{rowData}. For \code{colData}, the results can be
+  accessed with the \code{colFeatureData} function.
 }
 \description{
 Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
@@ -267,5 +268,5 @@ sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts",
 rowData(sfe)
 # Specifically for colData
 sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
-attr(colData(sfe), "featureData")
+colFeatureData(sfe)
 }

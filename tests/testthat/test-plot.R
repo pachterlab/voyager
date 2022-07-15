@@ -72,11 +72,12 @@ colGraph(sfe_muscle, "visium") <- findVisiumGraph(sfe_muscle)
 feature_use <- "Myh1"
 sfe_muscle <- runMoranPlot(sfe_muscle, colGraphName = "visium",
                            features = feature_use, exprs_values = "counts")
+sfe_muscle <- colDataMoranPlot(sfe_muscle, colGraphName = "visium",
+                               features = "nCounts")
 set.seed(29)
 colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle), replace = TRUE),
                                          levels = as.character(1:5))
-sfe_muscle <- colDataMoranPlot(sfe_muscle, colGraphName = "visium",
-                               features = "nCounts")
+
 # Problem: when you add new column to colData, the attributes are gone.
 # This is a property of S4 DataFrame
 # Maybe reimplement the featureData thing later.

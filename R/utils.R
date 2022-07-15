@@ -69,6 +69,7 @@
 }
 
 #' @importFrom S4Vectors make_zero_col_DFrame
+#' @importFrom SingleCellExperiment int_metadata int_metadata<-
 .initialize_featureData <- function(df) {
   if (is.null(attr(df, "featureData"))) {
     fd <- make_zero_col_DFrame(nrow = ncol(df))
@@ -87,6 +88,61 @@
   fd[features, names(res)] <- res
   attr(df, "featureData") <- fd
   df
+}
+
+.initialize_fd_dimData <- function(x, MARGIN) {
+  fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
+  if (is.null(int_metadata(x)[[fd_name]])) {
+    rownames_use <- switch(MARGIN, names(rowData(x)), names(colData(x)))
+    fd <- make_zero_col_DFrame(nrow = length(rownames_use))
+    rownames(fd) <- rownames_use
+    int_metadata(x)[[fd_name]] <- fd
+  }
+  x
+}
+
+# Because adding a new column to S4 DataFrame will remove the attributes
+# Put the featureData of colData and rowData in int_metadata instead
+.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, to_df_fun,
+                            name, to_df_params) {
+  args_use <- c(list(out = res, name = name), to_df_params)
+  res <- do.call(to_df_fun, args_use)
+  res <- .add_name_sample_id(x, res, sample_id)
+  x <- .initialize_fd_dimData(x, MARGIN)
+  fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
+  fd <- int_metadata(x)[[fd_name]]
+  fd[features, names(res)] <- res
+  int_metadata(x)[[fd_name]] <- fd
+  x
+}
+
+#' Get metadata of colData and rowData
+#'
+#' Results of spatial analyses on columns in \code{colData} and \code{rowData}
+#' are stored in \code{int_metadata(sfe)}, or internal metadata. This function
+#' allows the users to access these results.
+#'
+#' @param sfe An SFE object.
+#' @return A \code{DataFrame}.
+#' @export
+#' @name colFeatureData
+#' @examples
+#' library(SpatialFeatureExperiment)
+#' library(SingleCellExperiment)
+#' library(SFEData)
+#' sfe <- McKellarMuscleData("small")
+#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#' # Moran's I for colData
+#' sfe <- colDataMoransI(sfe, "nCounts")
+#' colFeatureData(sfe)
+colFeatureData <- function(sfe) {
+  int_metadata(sfe)$colFeatureData
+}
+
+#' @rdname colFeatureData
+#' @export
+rowFeatureData <- function(sfe) {
+  int_metadata(sfe)$rowFeatureData
 }
 
 .get_feature_values <- function(sfe, features, sample_id,
@@ -154,7 +210,7 @@
   }
   features_cd <- intersect(features, names(colData(sfe)))
   if (length(features_cd)) {
-    fd <- attr(colData(sfe), "featureData")
+    fd <- colFeatureData(sfe)
     if (!is.null(fd)) {
       out_cd <- .get_not_na_items(fd, features_cd, colname_use)
       features <- setdiff(features, names(out_cd))

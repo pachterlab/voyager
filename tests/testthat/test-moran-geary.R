@@ -19,7 +19,7 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
 test_that("Correct structure of colDataMoransI output", {
   out <- colDataMoransI(sfe, "nCounts", "visium", sample_id = "sample01")
   expect_s4_class(out, "SpatialFeatureExperiment")
-  fd <- attr(colData(out), "featureData")
+  fd <- colFeatureData(out)
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), c("MoransI_sample01", "K_sample01"))
   expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
@@ -77,7 +77,7 @@ names_expect_mc <- paste("MoranMC", names_expect_mc, "sample01", sep = "_")
 test_that("Correct structure of colDataMoranMC output", {
   out <- colDataMoranMC(sfe, colGraphName = "visium", features = "nCounts",
                         sample_id = "sample01", nsim = 10)
-  fd <- attr(colData(out), "featureData")
+  fd <- colFeatureData(out)
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), names_expect_mc)
   expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
@@ -120,7 +120,7 @@ test_that("calculateCorrelogram gives appropriate results (matrix)", {
 test_that("Correct structure of colDataCorrelogram output", {
   out <- colDataCorrelogram(sfe, colGraphName = "visium", features = "nCounts",
                             sample_id = "sample01", order = 2)
-  fd <- attr(colData(out), "featureData")
+  fd <- colFeatureData(out)
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), "Correlogram_I_sample01")
   expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
@@ -170,7 +170,7 @@ names_expect_mp <- c("x", "wx", "is_inf", "labels", "dfb.1_", "dfb.x",
 test_that("Correct structure of colDataMoranPlot output", {
   out <- colDataMoranPlot(sfe, colGraphName = "visium", features = "nCounts",
                           sample_id = "sample01")
-  fd <- attr(colData(out), "featureData")
+  fd <- colFeatureData(out)
   expect_s4_class(fd, "DataFrame")
   expect_equal(names(fd), "MoranPlot_sample01")
   expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))

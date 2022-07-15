@@ -63,12 +63,12 @@
 #'   For \code{run*}, a \code{SpatialFeatureExperiment} object with the Moran's
 #'   I or Geary's C values added to a column of \code{rowData(x)}, whose name is
 #'   specified in the \code{name} argument, with \code{sample_id} appended if
-#'   applicable. For \code{colData}, \code{colGeometry}, and
-#'   \code{annotGeometry}, the results are added to an attribute of the data
-#'   frame called \code{featureData}, which is a DataFrame analogous to
-#'   \code{rowData} for the gene count matrix. New column names in
-#'   \code{featureData} would follow the same rules as in \code{rowData}. (I
-#'   need to write many examples to make it clear to users.)
+#'   applicable. For \code{colGeometry} and \code{annotGeometry}, the results
+#'   are added to an attribute of the data frame called \code{featureData},
+#'   which is a DataFrame analogous to \code{rowData} for the gene count matrix.
+#'   New column names in \code{featureData} would follow the same rules as in
+#'   \code{rowData}. For \code{colData}, the results can be accessed with the
+#'   \code{colFeatureData} function.
 #' @name calculateMoransI
 #' @aliases calculateGearysC
 #' @importFrom spdep moran geary Szero
@@ -91,7 +91,7 @@
 #' rowData(sfe)
 #' # Specifically for colData
 #' sfe <- colDataMoransI(sfe, "nCounts")
-#' attr(colData(sfe), "featureData")
+#' colFeatureData(sfe)
 NULL
 
 .calc_univar_autocorr <- function(x, listw, fun, BPPARAM, returnDF = FALSE, ...) {
@@ -194,8 +194,8 @@ setMethod("calculateGearysC", "SpatialFeatureExperiment",
       res <- .df_univar_autocorr(colData(x)[colData(x)$sample_id == s,],
                                  listw_use, features, fun,
                                  BPPARAM, zero.policy, ...)
-      colData(x) <- .add_fd(x, colData(x), res, features, s, to_df_fun,
-                            name, to_df_params)
+      x <- .add_fd_dimData(x, MARGIN = 2, res, features, s, to_df_fun, name,
+                           to_df_params)
     }
     x
   }
@@ -309,10 +309,11 @@ runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #'   \code{sample_id} is specified, then a list of such lists, whose names are
 #'   the \code{sample_id}s. For \code{runMoran/GearyMC}, the results are
 #'   converted to a \code{DataFrame} and added to \code{rowData(x)}, and a SFE
-#'   object with the added \code{rowData} is returned. For the colData,
-#'   colGeometry, and annotGeometry versions, the results are added to the
+#'   object with the added \code{rowData} is returned. For the
+#'   colGeometry and annotGeometry versions, the results are added to the
 #'   \code{featureData} attribute of the data frame of interest in a manner
-#'   analogous to \code{rowData}.
+#'   analogous to \code{rowData}. For \code{colData}, the results can be
+#'   accessed with the \code{colFeatureData} function.
 #' @importFrom spdep moran.mc geary.mc
 #' @aliases calculateGearyMC
 #' @name calculateMoranMC
@@ -331,7 +332,7 @@ runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
 #' rowData(sfe)
 #' # Specifically for colData
 #' sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
-#' attr(colData(sfe), "featureData")
+#' colFeatureData(sfe)
 NULL
 
 #' @rdname calculateMoranMC
@@ -504,10 +505,11 @@ runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
 #'   are specified in the SFE method, a list of such lists whose names are the
 #'   \code{sample_id}s. For \code{runCorrelogram}, the \code{res} field of the
 #'   \code{spcor} is taken and put in a list column in \code{rowData(x)}, and
-#'   the SFE object with the new \code{rowData} is returned. For the colData,
-#'   colGeometry, and annotGeometry versions, the results are added to an
+#'   the SFE object with the new \code{rowData} is returned. For the
+#'   colGeometry and annotGeometry versions, the results are added to an
 #'   attribute of the data frame of interest called \code{featureData}, in a
-#'   manner analogous to \code{rowData}.
+#'   manner analogous to \code{rowData}. For \code{colData}, the results can be
+#'   accessed with the \code{colFeatureData} function.
 #' @name calculateCorrelogram
 #' @examples
 #' library(SpatialFeatureExperiment)
@@ -524,7 +526,7 @@ runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
 #' rowData(sfe)
 #' # Specifically for colData
 #' sfe <- colDataCorrelogram(sfe, "nCounts", order = 5)
-#' attr(colData(sfe), "featureData")
+#' colFeatureData(sfe)
 NULL
 
 #' @rdname calculateCorrelogram

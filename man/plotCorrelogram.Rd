@@ -35,9 +35,10 @@ for each sample.}
 \item{method}{"corr" for correlation, "I" for Moran's I, "C" for Geary's C}
 
 \item{color_by}{Name of a column in \code{rowData(sfe)} or in the
-\code{featureData} attribute of \code{colData}, \code{colGeometry}, or
-\code{annotGeometry} by which to color the correlogram of each feature.
-Alternatively, a vector of the same length as \code{features}.}
+\code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
+\code{colGeometry}, or \code{annotGeometry} by which to color the
+correlogram of each feature. Alternatively, a vector of the same length as
+\code{features}.}
 
 \item{facet_by}{Whether to facet by sample_id (default) or features. If
 facetting by sample_id, then different features will be plotted in the same

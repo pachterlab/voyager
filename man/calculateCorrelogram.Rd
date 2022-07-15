@@ -159,10 +159,11 @@ For \code{calculateCorrelogram}, a list of \code{spcor} objects, each
   are specified in the SFE method, a list of such lists whose names are the
   \code{sample_id}s. For \code{runCorrelogram}, the \code{res} field of the
   \code{spcor} is taken and put in a list column in \code{rowData(x)}, and
-  the SFE object with the new \code{rowData} is returned. For the colData,
-  colGeometry, and annotGeometry versions, the results are added to an
+  the SFE object with the new \code{rowData} is returned. For the
+  colGeometry and annotGeometry versions, the results are added to an
   attribute of the data frame of interest called \code{featureData}, in a
-  manner analogous to \code{rowData}.
+  manner analogous to \code{rowData}. For \code{colData}, the results can be
+  accessed with the \code{colFeatureData} function.
 }
 \description{
 Still debating whether I should write the wrapper. It should be
@@ -186,5 +187,5 @@ sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts",
 rowData(sfe)
 # Specifically for colData
 sfe <- colDataCorrelogram(sfe, "nCounts", order = 5)
-attr(colData(sfe), "featureData")
+colFeatureData(sfe)
 }

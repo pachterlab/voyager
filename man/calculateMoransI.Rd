@@ -202,12 +202,12 @@ For \code{calculate*}, a \code{DataFrame} with two columns: The first
   For \code{run*}, a \code{SpatialFeatureExperiment} object with the Moran's
   I or Geary's C values added to a column of \code{rowData(x)}, whose name is
   specified in the \code{name} argument, with \code{sample_id} appended if
-  applicable. For \code{colData}, \code{colGeometry}, and
-  \code{annotGeometry}, the results are added to an attribute of the data
-  frame called \code{featureData}, which is a DataFrame analogous to
-  \code{rowData} for the gene count matrix. New column names in
-  \code{featureData} would follow the same rules as in \code{rowData}. (I
-  need to write many examples to make it clear to users.)
+  applicable. For \code{colGeometry} and \code{annotGeometry}, the results
+  are added to an attribute of the data frame called \code{featureData},
+  which is a DataFrame analogous to \code{rowData} for the gene count matrix.
+  New column names in \code{featureData} would follow the same rules as in
+  \code{rowData}. For \code{colData}, the results can be accessed with the
+  \code{colFeatureData} function.
 }
 \description{
 Compute Moran's I or Geary's C on gene expression or numeric columns of
@@ -227,5 +227,5 @@ sfe <- runMoransI(sfe, features = rownames(sfe)[1], exprs_values = "counts")
 rowData(sfe)
 # Specifically for colData
 sfe <- colDataMoransI(sfe, "nCounts")
-attr(colData(sfe), "featureData")
+colFeatureData(sfe)
 }

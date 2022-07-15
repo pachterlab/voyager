@@ -457,10 +457,10 @@ To add the results to the SFE object, specifically for colData:
 ```{r}
 sfe_tissue <- colDataMoransI(sfe_tissue, features = c("nCounts", "nGenes"),
                              colGraphName = "visium")
-head(attr(colData(sfe_tissue), "featureData"), 10)
+head(colFeatureData(sfe_tissue), 10)
 ```
 
-For `colData`, the results are added to the attribute called "featureData", and features for which Moran's I is not calculated have NA. The column names of `featureData` distinguishes between different samples (there's only one sample in this dataset), and are parsed by plotting functions. 
+For `colData`, the results are added to `colFeatureData(sfe)`, and features for which Moran's I is not calculated have NA. The column names of `featureData` distinguishes between different samples (there's only one sample in this dataset), and are parsed by plotting functions. 
 
 To add the results to the SFE object, specifically for geometries: Here "area" is the area of the cross section of each myofiber as seen in this tissue section, "eccentricity" is the eccentricity of the ellipse fitted to each myofiber, convexity is the ratio between the actual area of each myofiber and that of its convex hull, and "sine_theta" is the sine of the angle of the fitted ellipse from a reference indicating orientation (sine because 0 degrees and 180 degrees are the same orientation though the values are very different).
 ```{r}
@@ -496,7 +496,7 @@ Simply substitute "MoransI" in the names of the functions in the previous sectio
 ```{r}
 sfe_tissue <- colDataGearysC(sfe_tissue, features = c("nCounts", "nGenes"),
                              colGraphName = "visium")
-head(attr(colData(sfe_tissue), "featureData"), 10)
+head(colFeatureData(sfe_tissue), 10)
 ```
 
 There's only one column for K since it's the same for Moran's I and Geary's C. Here both Moran's I and Geary's C suggest positive spatial autocorrelation for `nCounts` and `nGenes`.
@@ -514,7 +514,7 @@ Or add it to the SFE object
 ```{r}
 sfe_tissue <- colDataMoranMC(sfe_tissue, features = c("nCounts", "nGenes"), 
                              colGraphName = "visium", nsim = 100)
-head(attr(colData(sfe_tissue), "featureData"), 10)
+head(colFeatureData(sfe_tissue), 10)
 ```
 
 Note that while the test is performed for multiple features, the p-values here are not corrected for multiple hypothesis testing.
@@ -634,6 +634,7 @@ plotCorrelogram(sfe_tissue, hvgs[1:15])
 
 With more genes, the colors become hard to tell apart. In case the correlograms of different genes have different patterns, the correlograms can be clustered and colored with the cluster rather than gene. In the example here, the genes plotted all have similar correlogram patterns, though some seem to decay past the 8th order more quickly than others. Just to demonstrate the clustering:
 ```{r}
+set.seed(29)
 corr_clusters <- clusterCorrelograms(sfe_tissue, hvgs[1:15], BLUSPARAM = KmeansParam(3))
 head(corr_clusters)
 ```
@@ -666,7 +667,7 @@ The influential points can be shown in space
 
 ```{r}
 colData(sfe_tissue)$nCounts_moranPlot_inf <- 
-  attr(colData(sfe_tissue), "featureData")["nCounts", "MoranPlot_Vis5A"][[1]]$is_inf
+  colFeatureData(sfe_tissue)["nCounts", "MoranPlot_Vis5A"][[1]]$is_inf
 ```
 
 ```{r}
@@ -690,6 +691,7 @@ moranPlot(sfe_tissue, "area", annotGeometryName = "myofiber_simplified",
 Singletons have no neighbors and are circled in this plot. There appears to be clusters in this plot, of small myofibers next to other small myofibers, larger ones next to larger ones, and small ones next to larger ones. To identify clusters on the Moran plot:
 
 ```{r}
+set.seed(29)
 clusts <- clusterMoranPlot(sfe_tissue, "area", 
                            annotGeometryName = "myofiber_simplified",
                            BLUSPARAM = KmeansParam(7))
@@ -731,6 +733,7 @@ moranPlot(sfe_tissue, "Myh1", graphName = "visium")
 There are no singletons here. Some Visium spots have neighbors that don't express Myh1 but spots that don't express Myh1 usually have at least some neighbors that do. There are 2 main clusters for spots whose neighbors do express Myh1. 
 
 ```{r}
+set.seed(29)
 clusts <- clusterMoranPlot(sfe_tissue, "Myh1", BLUSPARAM = KmeansParam(2))
 ```
 

@@ -763,9 +763,10 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' @inheritParams calculateMoransI
 #' @inheritParams spdep::sp.correlogram
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
-#'   \code{featureData} attribute of \code{colData}, \code{colGeometry}, or
-#'   \code{annotGeometry} by which to color the correlogram of each feature.
-#'   Alternatively, a vector of the same length as \code{features}.
+#'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
+#'   \code{colGeometry}, or \code{annotGeometry} by which to color the
+#'   correlogram of each feature. Alternatively, a vector of the same length as
+#'   \code{features}.
 #' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
 #'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
 #'   p-values are two sided, based on the assumption that the estimated Moran's
