@@ -55,7 +55,7 @@ Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` d
 ```
 
 The H&E image of this section:
-```{r, echo=FALSE, out.width = "100%", fig.cap="Low resolution H&E image of the tissue section"}
+```{r, echo=FALSE, out.width = "100%", fig.cap="Low resolution H&E image of the tissue section", fig.alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."}
 knitr::include_graphics("tissue_lowres_5a.jpeg")
 ```
 
@@ -69,17 +69,17 @@ Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and 
 
 The tissue boundary was found by thresholding the H&E image and removing small polygons that are most likely debris. The `in_tissue` column of `colData(sfe)` indicates which Visium spot polygon intersects the tissue polygon; this can be found with `SpatialFeatureExperiment::annotPred()` but is beyond the scope of this vignette.
 
-```{r}
+```{r, fig.alt="Plot of total UMI counts per Visium spot (nCounts) in physical space, with tissue boundary in the background. Total counts are high near the top and bottom of the tissue and low in the center at the injury site."}
 plotSpatialFeature(sfe, features = "nCounts", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary")
 ```
 
-```{r}
+```{r, fig.alt="Plot of number of genes detected per Visium spot (nGenes) in physical space. Number of genes is higher in the regions surrounding but not within the injury site."}
 plotSpatialFeature(sfe, features = "nGenes", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary")
 ```
 
-```{r}
+```{r, fig.alt="Plot of proportion of mitochondrially encoded UMI counts per Visium spot in physical space. Mitochondrial proportion is high far outside the injury site in tissue where myofibers are tightly packed. Mitochondrial proportion is also high outside tissue."}
 plotSpatialFeature(sfe, features = "prop_mito", colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary")
 ```
@@ -87,24 +87,24 @@ plotSpatialFeature(sfe, features = "prop_mito", colGeometryName = "spotPoly",
 Spots off tissue have higher proportion of mitochondrially encoded counts, as an artifact of tissue permeablization. The notexin injury site is around the middle of the tissue in the y direction. Spots on tissue that also have high mitochondrial proportion are on myofibers, which have more mitochondria.
 
 The different `colData` columns can also be plotted together (using the `patchwork` package), though the panels may become too small to read. Each feature, whether `colData` or gene expression, will have its own color scale so a feature with much larger values than others won't throw off the dynamic range.
-```{r, fig.width=8, fig.height=3}
+```{r, fig.width=8, fig.height=3, fig.alt="The previous 3 plots shown side by side in one row."}
 plotSpatialFeature(sfe, features = c("nCounts", "nGenes", "prop_mito"), 
                    colGeometryName = "spotPoly",
                    annotGeometryName = "tissueBoundary")
 ```
 
 Since SFE inherits from `SingleCellExperiment` (SCE), the plotting functions from `scater` can still be used.
-```{r}
+```{r, fig.alt="Scatter plot with nGenes in the y axis and nCounts in the x axis. The y axis ranges from 0 to 5000, and the x axis ranges from 0 to 20,000. The points represent Visium spots, and are concentrated near the origin and form two branches to the upper right away from the origin. The points are colored by whether they are in tissue. Those not in tissue are generally close to the origin, while the two branches are predominantly in tissue."}
 plotColData(sfe, x = "nCounts", y = "nGenes", colour_by = "in_tissue")
 ```
 
 Unlike in the typical scRNA-seq dataset, this plot appears to have two "branches", which might make more sense in the next section when we explore more characteristics of this tissue section.
 
-```{r}
+```{r, fig.alt="Scatter plot with mitochondrial proportion (prop_mito) in the y axis and nCounts in the x axis. The x axis ranges from 0 to 20,000, and the y axis ranges from 0 to 0.7. Points represent Visium spots, and are colored by whether they are in tissue. Those not in tissue concentrate around a straight line where x = 0 and range from 0 to around 0.6 in y. Points in tissue form two clusters, one with nCounts ranging from around 0 to around 10,000 and prop_mito randing from around 0.05 to 0.25, and another with nCounts ranging from around 2000 to 20,000 and prop_mito from around 0.25 to 0.5."}
 plotColData(sfe, x = "nCounts", y = "prop_mito", colour_by = "in_tissue")
 ```
 
-```{r}
+```{r, fig.alt="3 panels of violin plots with logical indicator of whether a Visium spot is in tissue in the x axis and different y axis per panel. First panel: nCounts is vastly higher in tissue (mode around 2500, with long tail going above 20,000) than outside (almost all near 0). Second panel: nGenes is vastly higher in tissue (mode around 1500 with long tail going to 5000) than outside. Third panel: On average, prop_mito is comparable in and out of tissue, but in tissue, the distribution of prop_mito is bimodal, with one peak at around 0.15 and another around 0.35, and long tail going to 0.7."}
 plotColData(sfe, y = "nCounts", x = "in_tissue", colour_by = "in_tissue") +
   plotColData(sfe, y = "nGenes", x = "in_tissue", colour_by = "in_tissue") +
   plotColData(sfe, y = "prop_mito", x = "in_tissue", colour_by = "in_tissue") &
@@ -134,7 +134,7 @@ annotGeometryNames(sfe_tissue)
 The `plotSpatialFeature` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields in the SFE object. For `rowGeometries` and `colGeometries`, such columns associated with the `sf` data frames rather than `rowData` or `colData` are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish from the column associated values. 
 
 Here, from the `annotGeometries`, the myofiber polygons are plotted, colored by cross section area as observed in this tissue section. The `aes_use` argument is set to `color` rather than `fill` (default for polygons) to only plot the Visium spot outlines to make the myofiber polygons more visible. The `fill` argument is set to `NA` to make the Visium spots look hollow, and the `size` argument controls the thickness of the outlines. The `annot_aes` argument specifies which column in the `annotGeometry` to use to specify the values of an aesthstic, just like `aes` in `ggplot2` (`aes_string` to be precise, since `tidyeval` is not used here). The `annot_fixed` argument (not used here) can set the fixed size, alpha, color, and etc. for the `annotGeometry`. 
-```{r}
+```{r, fig.alt="Plot of Visium spots in tissue and myofiber polygons in physical space. Visium spots are colored by nCounts, and myofibers are colored by area."}
 plotSpatialFeature(sfe_tissue, features = "nCounts", 
                    colGeometryName = "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
@@ -169,7 +169,7 @@ colData(sfe_tissue)$prop_tissue <-
   st_area(tissue_in_spot) / st_area(spotPoly(sfe_tissue))
 ```
 
-```{r, fig.width=8, fig.height=4}
+```{r, fig.width=8, fig.height=4, fig.alt="3 panels of plots of Visium spots in tissue in physical space, colored by: number of myofibers intersecting each spot (higher in the lower left and lower in the injury site), number of nuclei intersecting each spot (higher in the injury site), and proportion of area of each spot occupied by myofibers (1 or nearly 1 except around the injury site and tissue margins)."}
 plotSpatialFeature(sfe_tissue, 
                    features = c("n_myofibers", "n_nuclei", "prop_myofiber"),
                    colGeometryName = "spotPoly")
@@ -184,49 +184,49 @@ colData(sfe_tissue)$mean_myofiber_area <-
                annotColNames = "area")[,1] # it always returns a data frame
 ```
 
-```{r}
+```{r, fig.alt="Plot of Visium spots in tissue in physical space, colored by the average area of myofibers that intersect each spot. The average area is higher near the mid-top right part of the tissue."}
 # The gray spots don't intersect any myofiber
 plotSpatialFeature(sfe_tissue, "mean_myofiber_area", "spotPoly")
 ```
 
 Now we can see how the mean area of myofibers intersecting each Visium spot relates to other aspects of the spots such as total counts and gene expression.
-```{r}
+```{r, fig.alt="Scatter plot with nCounts in the y axis and mean myofiber area in the x axis, where each point represents a Visium spot, colored by the number of myofibers intersecting the spot."}
 plotColData(sfe_tissue, x = "mean_myofiber_area", y = "nCounts", colour_by = "n_myofibers")
 ```
 
 The NAs are for spots not intersecting any myofibers, e.g. those in the inflammatory region. There seem to be two clusters: spots with smaller mean myofiber area and larger total counts, and spots with larger mean myofiber area and smaller total counts. Indeed, spots with smaller mean myofiber area tend to have a larger number of myofibers; that the myofibers are smaller is the reason why there are more of them intersecting each spot.
 
-```{r}
+```{r, fig.alt="Scatter plot with nGenes in the y axis and nCounts in the x axis. Each point represents a Visium spot in tissue, colored by mean myofiber area."}
 plotColData(sfe_tissue, x = "nCounts", y = "nGenes", colour_by = "mean_myofiber_area")
 ```
 
-```{r}
+```{r, fig.alt="Scatter plot with nGenes in the y axis and nCounts in the x axis. Each point represents a Visium spot in tissue, colored by number of myofibers."}
 plotColData(sfe_tissue, x = "nCounts", y = "nGenes", colour_by = "n_myofibers")
 ```
 
-```{r}
+```{r, fig.alt="Scatter plot with nGenes in the y axis and nCounts in the x axis. Each point represents a Visium spot in tissue, colored by number of nuclei."}
 plotColData(sfe_tissue, x = "nCounts", y = "nGenes", colour_by = "n_nuclei")
 ```
 
-Mean myofiber area, number of myofibers per spot, and number of nuclei per spot seem to be related to the two branches in the nGenes vs. nCounts plot. The upper branch includes the inflamed injury site with lots of immune cells and devoid of myofibers and the adjacent region with larger myofibers.
+Mean myofiber area, number of myofibers per spot, and number of nuclei per spot seem to be related to the two branches in the nGenes vs. nCounts plot. The upper branch includes the inflamed injury site with lots of immune cells and hence nuclei and devoid of myofibers and the adjacent region with larger myofibers.
 
 How does total UMI count relate to the number of nuclei per spot?
-```{r}
+```{r, fig.alt="Scatter plot with number of nuclei in the y axis and nCounts in the x axis. Each point represents a Visium spot in tissue, colored by number of myofibers."}
 plotColData(sfe_tissue, x = "nCounts", y = "n_nuclei", 
             colour_by = "n_myofibers")
 ```
 
 Also coloring by proportion of area of each spot in tissue, highlighting spots at the margin.
-```{r}
+```{r, fig.alt="Scatter plot with number of nuclei in the y axis and nCounts in the x axis. Each point represents a Visium spot in tissue, colored by proportion of area of each spot intersecting tissue."}
 plotColData(sfe_tissue, x = "nCounts", y = "n_nuclei", 
             colour_by = "prop_tissue")
 ```
 
-There might not be a clear relationship. There are some spots with both low total counts and small number of nuclei; those are at the margin of the tissue and don't fully cover tissue. There are also some spots with relatively low total counts and large number of nuclei.
+There might not be a clear relationship between the number of nuclei and total counts. There are some spots with both low total counts and small number of nuclei; those are at the margin of the tissue and don't fully cover tissue. There are also some spots with relatively low total counts and large number of nuclei.
 
 How do the number and proportion area of myofibers per spot relate to the number of nuclei per spot?
 
-```{r}
+```{r, fig.alt="Scatter plot with number of nuclei in the y axis and number of myofibers intersecting each Visium spot in the x axis. Each point represents a Visium spot in tissue, colored by proportion of area of each spot occupied by myofibers."}
 # Use geom_jitter to address overplotting due to integer number of myofibers
 colData(sfe_tissue) %>% 
   as.data.frame() %>% 
