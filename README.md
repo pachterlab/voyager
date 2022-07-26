@@ -9,7 +9,7 @@ This package brings the tradition of geospatial statistics to spatial omics by w
 
 ## Installation
 
-You can install the development version of Voyager from [GitHub](https://github.com/) with:
+This package has been submitted to Bioconductor. Before it's accepted, you can install the development version of Voyager from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
