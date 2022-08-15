@@ -79,7 +79,7 @@ runMoranPlot <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
     out <- .MoranPlot2df(out, name)
     features <- .symbol2id(sfe, features)
     rownames(out) <- features
-    out <- .add_name_sample_id(sfe, out, s)
+    out <- .add_name_sample_id(out, s)
     rowData(sfe)[features, names(out)] <- out
   }
   sfe

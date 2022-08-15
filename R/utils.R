@@ -62,7 +62,7 @@
 #' colGeometry colGeometry<-
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
-.add_name_sample_id <- function(x, out, sample_id) {
+.add_name_sample_id <- function(out, sample_id) {
   names(out) <- vapply(names(out), .add_sample_id, sample_id = sample_id,
                        FUN.VALUE = character(1))
   out
@@ -82,7 +82,7 @@
 .add_fd <- function(x, df, res, features, sample_id, to_df_fun, name, to_df_params) {
   args_use <- c(list(out = res, name = name), to_df_params)
   res <- do.call(to_df_fun, args_use)
-  res <- .add_name_sample_id(x, res, sample_id)
+  res <- .add_name_sample_id(res, sample_id)
   df <- .initialize_featureData(df)
   fd <- attr(df, "featureData")
   fd[features, names(res)] <- res
@@ -107,7 +107,7 @@
                             name, to_df_params) {
   args_use <- c(list(out = res, name = name), to_df_params)
   res <- do.call(to_df_fun, args_use)
-  res <- .add_name_sample_id(x, res, sample_id)
+  res <- .add_name_sample_id(res, sample_id)
   x <- .initialize_fd_dimData(x, MARGIN)
   fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
   fd <- int_metadata(x)[[fd_name]]
