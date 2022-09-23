@@ -1,17 +1,11 @@
 #' @export
+setGeneric("calculateUnivariate", function(x, ...) standardGeneric("calculateUnivariate"))
+
+#' @export
 setGeneric("calculateMoransI", function(x, ...) standardGeneric("calculateMoransI"))
 
 #' @export
-setGeneric("calculateGearysC", function(x, ...) standardGeneric("calculateGearysC"))
+setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
 
 #' @export
-setGeneric("calculateMoranMC", function(x, ...) standardGeneric("calculateMoranMC"))
-
-#' @export
-setGeneric("calculateGearyMC", function(x, ...) standardGeneric("calculateGearyMC"))
-
-#' @export
-setGeneric("calculateCorrelogram", function(x, ...) standardGeneric("calculateCorrelogram"))
-
-#' @export
-setGeneric("calculateMoranPlot", function(x, ...) standardGeneric("calculateMoranPlot"))
+setGeneric("calculateMultivariate", function(x, ...) standardGeneric("calculateMultivariate"))

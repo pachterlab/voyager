@@ -54,8 +54,11 @@
 #' @param sample_id Sample(s) in the SFE object whose cells/spots to use. Can be
 #'   "all" to compute metric for all samples; the metric is computed separately
 #'   for each sample.
-#' @param ... Other arguments passed to \code{\link{moran}} or
-#'   \code{\link{geary}}.
+#' @param ... Other arguments passed to S4 method (for convenience wrappers like
+#'   \code{calculateMoransI}) or method used to compute metrics as specified by
+#'   the argument \code{type} (as in more general functions like
+#'   \code{calculateUnivariate}). See documentation in the \code{spdep} package
+#'   for the latter.
 #' @return For \code{calculate*}, a \code{DataFrame} with two columns: The first
 #'   one is I for Moran's I or C for Geary's C, and the second one is K for
 #'   sample kurtosis. For the SFE method of \code{calculate*}, a third column
@@ -69,8 +72,8 @@
 #'   New column names in \code{featureData} would follow the same rules as in
 #'   \code{rowData}. For \code{colData}, the results can be accessed with the
 #'   \code{colFeatureData} function.
-#' @name calculateMoransI
-#' @aliases calculateGearysC
+#' @name calculateUnivariate
+#' @aliases calculateMoransI
 #' @importFrom spdep moran geary Szero
 #' @importFrom BiocParallel SerialParam bplapply
 #' @importFrom S4Vectors DataFrame
@@ -94,325 +97,76 @@
 #' colFeatureData(sfe)
 NULL
 
-#' @rdname calculateMoransI
+#' @rdname calculateUnivariate
 #' @export
-setMethod("calculateMoransI", "ANY", function(x, listw, BPPARAM = SerialParam(),
-                                              zero.policy = NULL) {
-  .calc_univar_autocorr(x, listw, fun = moran, BPPARAM = BPPARAM,
-                        n = length(listw$neighbours), S0 = Szero(listw),
-                        zero.policy = zero.policy, returnDF = TRUE)
-})
-
-#' @rdname calculateMoransI
-#' @export
-setMethod("calculateGearysC", "ANY", function(x, listw, BPPARAM = SerialParam(),
-                                              zero.policy = NULL) {
-  .calc_univar_autocorr(x, listw, fun = geary, BPPARAM = BPPARAM,
-                        n = length(listw$neighbours),
-                        n1 = length(listw$neighbours) - 1, S0 = Szero(listw),
-                        zero.policy = zero.policy, returnDF = TRUE)
-})
-
-#' @rdname calculateMoransI
-#' @export
-setMethod("calculateMoransI", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun(calculateMoransI, returnDF = TRUE))
-
-#' @rdname calculateMoransI
-#' @export
-setMethod("calculateGearysC", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun(calculateGearysC, returnDF = TRUE))
-
-#' @rdname calculateMoransI
-#' @export
-colDataMoransI <- .coldata_univar_fun(calculateMoransI, .MoransI2df, "MoransI")
-
-#' @rdname calculateMoransI
-#' @export
-colDataGearysC <- .coldata_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
-
-#' @rdname calculateMoransI
-#' @export
-colGeometryMoransI <- .colgeom_univar_fun(calculateMoransI, .MoransI2df, "MoransI")
-
-#' @rdname calculateMoransI
-#' @export
-colGeometryGearysC <- .colgeom_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
-
-#' @rdname calculateMoransI
-#' @export
-annotGeometryMoransI <- .annotgeom_univar_fun(calculateMoransI, .MoransI2df, "MoransI")
-
-#' @rdname calculateMoransI
-#' @export
-annotGeometryGearysC <- .annotgeom_univar_fun(calculateGearysC, .MoransI2df, "GearysC")
-
-#' @rdname calculateMoransI
-#' @export
-runMoransI <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
-                       exprs_values = "logcounts", BPPARAM = SerialParam(),
-                       zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(sfe, features, colGraphName, sample_id, exprs_values,
-                       calculateMoransI, BPPARAM, zero.policy, name = "MoransI")
-}
-
-#' @rdname calculateMoransI
-#' @export
-runGearysC <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
-                       exprs_values = "logcounts", BPPARAM = SerialParam(),
-                       zero.policy = NULL, name = "MoransI") {
-  .sfe_univar_autocorr(sfe, features, colGraphName, sample_id, exprs_values,
-                       calculateGearysC, BPPARAM, zero.policy, name = "GearysC")
-}
-
-#' Permutation test for Moran's I and Geary's C
-#'
-#' Thin wrapper of \code{\link{moran.mc}} and \code{\link{geary.mc}} for easier
-#' usage with the \code{SpatialFeatureExperiment} object and usage over multiple
-#' genes. Multithreading is supported when computing for numerous genes.
-#'
-#' @inheritParams calculateMoransI
-#' @inheritParams spdep::moran.mc
-#' @param ... Other parameters passed to \code{\link{moran.mc}} or
-#'   \code{\link{geary.mc}}.
-#' @return For \code{calculateMoran/GearyMC}, a list of \code{mc.sim} objects.
-#'   For the SFE method of \code{calculate*}, when more than one
-#'   \code{sample_id} is specified, then a list of such lists, whose names are
-#'   the \code{sample_id}s. For \code{runMoran/GearyMC}, the results are
-#'   converted to a \code{DataFrame} and added to \code{rowData(x)}, and a SFE
-#'   object with the added \code{rowData} is returned. For the
-#'   colGeometry and annotGeometry versions, the results are added to the
-#'   \code{featureData} attribute of the data frame of interest in a manner
-#'   analogous to \code{rowData}. For \code{colData}, the results can be
-#'   accessed with the \code{colFeatureData} function.
-#' @importFrom spdep moran.mc geary.mc
-#' @aliases calculateGearyMC
-#' @name calculateMoranMC
-#' @examples
-#' library(SpatialFeatureExperiment)
-#' library(SingleCellExperiment)
-#' library(SFEData)
-#' sfe <- McKellarMuscleData("small")
-#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Compute Moran's I with Monte Carlo testing for vector or matrix
-#' calculateMoranMC(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
-#'                  nsim = 100)
-#' # Add results to rowData, features are genes
-#' sfe <- runMoranMC(sfe, features = rownames(sfe)[1], exprs_values = "counts",
-#'                   nsim = 100)
-#' rowData(sfe)
-#' # Specifically for colData
-#' sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
-#' colFeatureData(sfe)
-NULL
-
-#' @rdname calculateMoranMC
-#' @export
-setMethod("calculateMoranMC", "ANY", function(x, listw, nsim,
-                                              BPPARAM = SerialParam(),
-                                              zero.policy = NULL,
-                                              alternative = "greater", ...) {
-  .calc_univar_autocorr(x, listw, fun = moran.mc, BPPARAM = BPPARAM,
-                        nsim = nsim, zero.policy = zero.policy,
-                        alternative = alternative, returnDF = FALSE, ...)
-})
-
-#' @rdname calculateMoranMC
-#' @export
-setMethod("calculateGearyMC", "ANY", function(x, listw, nsim,
-                                              BPPARAM = SerialParam(),
-                                              zero.policy = NULL,
-                                              alternative = "greater", ...) {
-  .calc_univar_autocorr(x, listw, fun = geary.mc, BPPARAM = BPPARAM,
-                        nsim = nsim, zero.policy = zero.policy,
-                        alternative = alternative, returnDF = FALSE, ...)
-})
-
-#' @rdname calculateMoranMC
-#' @export
-setMethod("calculateMoranMC", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun_mc(calculateMoranMC))
-
-#' @rdname calculateMoranMC
-#' @export
-setMethod("calculateGearyMC", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun_mc(calculateGearyMC))
-
-#' @rdname calculateMoranMC
-#' @export
-colDataMoranMC <- .coldata_univar_fun_mc(calculateMoranMC, .MoranMC2df, "MoranMC")
-
-#' @rdname calculateMoranMC
-#' @export
-colDataGearyMC <- .coldata_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
-
-#' @rdname calculateMoranMC
-#' @export
-colGeometryMoranMC <- .colgeom_univar_fun_mc(calculateMoranMC, .MoranMC2df, "MoranMC")
-
-#' @rdname calculateMoranMC
-#' @export
-colGeometryGearyMC <- .colgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
-
-#' @rdname calculateMoranMC
-#' @export
-annotGeometryMoranMC <- .annotgeom_univar_fun_mc(calculateMoranMC, .MoranMC2df, "MoranMC")
-
-#' @rdname calculateMoranMC
-#' @export
-annotGeometryGearyMC <- .annotgeom_univar_fun_mc(calculateGearyMC, .MoranMC2df, "GearyMC")
-
-#' @rdname calculateMoranMC
-#' @export
-runMoranMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
-                       exprs_values = "logcounts", BPPARAM = SerialParam(),
-                       zero.policy = NULL, alternative = "greater",
-                       name = "MoranMC", ...) {
-  .sfe_univar_mc(sfe, features, colGraphName, sample_id, nsim, exprs_values,
-                 fun = calculateMoranMC, BPPARAM = BPPARAM,
-                 zero.policy = zero.policy, alternative = alternative,
-                 name = name, ...)
-}
-
-#' @rdname calculateMoranMC
-#' @export
-runGearyMC <- function(sfe, features, colGraphName = 1L, sample_id = NULL, nsim,
-                       exprs_values = "logcounts", BPPARAM = SerialParam(),
-                       zero.policy = NULL, alternative = "greater",
-                       name = "GearyMC", ...) {
-  .sfe_univar_mc(sfe, features, colGraphName, sample_id, nsim, exprs_values,
-                 fun = calculateGearyMC, BPPARAM = BPPARAM,
-                 zero.policy = zero.policy, alternative = alternative,
-                 name = name, ...)
-}
-
-#' Spatial correlogram
-#'
-#' Still debating whether I should write the wrapper. It should be
-#' straightforward to call sp.correlogram directly on single colData columns.
-#' But for genes, there's more boilerplate. I suppose, for genes, it might be
-#' cool to compute the correlogram for a bunch of genes and plot them in the
-#' same plot, with the error bars, or cluster them. So I'll write the wrapper.
-#'
-#' @inheritParams calculateMoransI
-#' @inheritParams spdep::sp.correlogram
-#' @param ... Other arguments passed to \code{\link{sp.correlogram}}.
-#' @importFrom spdep sp.correlogram
-#' @return For \code{calculateCorrelogram}, a list of \code{spcor} objects, each
-#'   element of which correslonds to a feature. or if multiple \code{sample_id}s
-#'   are specified in the SFE method, a list of such lists whose names are the
-#'   \code{sample_id}s. For \code{runCorrelogram}, the \code{res} field of the
-#'   \code{spcor} is taken and put in a list column in \code{rowData(x)}, and
-#'   the SFE object with the new \code{rowData} is returned. For the
-#'   colGeometry and annotGeometry versions, the results are added to an
-#'   attribute of the data frame of interest called \code{featureData}, in a
-#'   manner analogous to \code{rowData}. For \code{colData}, the results can be
-#'   accessed with the \code{colFeatureData} function.
-#' @name calculateCorrelogram
-#' @examples
-#' library(SpatialFeatureExperiment)
-#' library(SingleCellExperiment)
-#' library(SFEData)
-#' sfe <- McKellarMuscleData("small")
-#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Compute correlogram for vector or matrix
-#' calculateCorrelogram(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"),
-#'                      order = 5)
-#' # Add results to rowData, features are genes
-#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[1], exprs_values = "counts",
-#'                       order = 5)
-#' rowData(sfe)
-#' # Specifically for colData
-#' sfe <- colDataCorrelogram(sfe, "nCounts", order = 5)
-#' colFeatureData(sfe)
-NULL
-
-#' @rdname calculateCorrelogram
-#' @export
-setMethod("calculateCorrelogram", "ANY",
-          function(x, listw, order = 1, method = "I", BPPARAM = SerialParam(),
-                   zero.policy = NULL, ...) {
-  if (is.vector(x)) {
-    x <- matrix(x, nrow = 1)
-  }
-  out <- bplapply(seq_len(nrow(x)), function(i) {
-    sp.correlogram(listw$neighbours, var = x[i,], order = order, method = method,
-                   zero.policy = zero.policy, ...)
-  }, BPPARAM = BPPARAM)
-  names(out) <- rownames(x)
-  out
-})
-
-#' @rdname calculateCorrelogram
-#' @export
-setMethod("calculateCorrelogram", "SpatialFeatureExperiment",
-          function(x, features, colGraphName = 1L, sample_id = NULL, order = 1,
-                   method = "I", exprs_values = "logcounts",
-                   BPPARAM = SerialParam(), zero.policy = NULL, ...) {
-            .calc_univar_sfe_fun(calculateCorrelogram)(
-              x, features, colGraphName, sample_id, exprs_values = exprs_values,
-              BPPARAM = BPPARAM, zero.policy = zero.policy, order = order,
-              method = method, ...)
+setMethod("calculateUnivariate", "ANY",
+          function(x, listw, type = c("moran", "geary", "moran.mc", "geary.mc",
+                                      "moran.test", "geary.test", "globalG.test",
+                                      "sp.correlogram", "moran.plot", "localmoran",
+                                      "localmoran_perm", "localC", "localC_perm",
+                                      "loclaG", "localG_perm", "LOSH", "LOSH.mc",
+                                      "gwss"),
+                   BPPARAM = SerialParam(),
+                   zero.policy = NULL, returnDF = TRUE, ...) {
+              type <- match.arg(type)
+              fun <- match.fun(type)
+              obscure_args <- switch(type,
+                                     moran = c("n", "S0"),
+                                     geary = c("n", "n1", "S0"))
+              defaults <- .obscure_arg_defaults(listw, type)
+              other_args <- list(...)
+              defaults_use <- defaults[setdiff(names(defaults), other_args)]
+              all_args <- list(x = x, listw = listw, fun = fun,
+                               BPPARAM = BPPARAM, returnDF = returnDF,
+                               zero.policy = zero.policy)
+              all_args <- c(all_args, other_args, defaults_use)
+              out <- do.call(.calc_univar, all_args)
+              if (returnDF) out <- .res2df(out, type, ...)
+              out
           })
 
-#' @rdname calculateCorrelogram
+#' @rdname calculateUnivariate
 #' @export
-colGeometryCorrelogram <- function(x, features, colGeometryName = 1L,
-                                   colGraphName = 1L, sample_id = NULL,
-                                   order = 1, method = "I",
-                                   BPPARAM = SerialParam(), zero.policy = NULL,
-                                   ...) {
-  .colgeom_univar_fun(calculateCorrelogram, .correlogram2df,
-                      name = paste("Correlogram", method, sep = "_"),
-                      to_df_params = list(method = method))(
-    x, features, colGeometryName, colGraphName, sample_id, BPPARAM = BPPARAM,
-    zero.policy = zero.policy, order = order, method = method, ...)
-}
+setMethod("calculateUnivariate", "SpatialFeatureExperiment",
+          .calc_univar_sfe_fun())
 
-#' @rdname calculateCorrelogram
+#' @rdname calculateUnivariate
 #' @export
-colDataCorrelogram <- function(x, features, colGraphName = 1L, sample_id = NULL,
-                               order = 1, method = "I", BPPARAM = SerialParam(),
-                               zero.policy = NULL, ...) {
-  .coldata_univar_fun(calculateCorrelogram, .correlogram2df,
-                      name = paste("Correlogram", method, sep = "_"),
-                      to_df_params = list(method = method))(
-    x, features, colGraphName, sample_id, BPPARAM = BPPARAM,
-    zero.policy = zero.policy, order = order, method = method, ...)
-}
+setMethod("calculateMoransI", "ANY",
+          function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL)
+              calculateUnivariate(x, type = "moran", BPPARAM = BPPARAM,
+                                  zero.policy = zero.policy, ...)
+          )
 
-#' @rdname calculateCorrelogram
+#' @rdname calculateUnivariate
 #' @export
-annotGeometryCorrelogram <- function(x, features, annotGeometryName = 1L,
-                                     annotGraphName = 1L, sample_id = NULL,
-                                     order = 1, method = "I",
-                                     BPPARAM = SerialParam(),
-                                     zero.policy = NULL, ...) {
-  .annotgeom_univar_fun(calculateCorrelogram, .correlogram2df,
-                        name = paste("Correlogram", method, sep = "_"),
-                        to_df_params = list(method = method))(
-    x, features, annotGeometryName, annotGraphName, sample_id, BPPARAM = BPPARAM,
-    zero.policy = zero.policy, order = order, method = method, ...)
-}
+setMethod("calculateMoransI", "SpatialFeatureExperiment",
+          .calc_univar_sfe_fun(type = "moran"))
 
-#' @rdname calculateCorrelogram
+#' @rdname calculateUnivariate
 #' @export
-runCorrelogram <- function(sfe, features, colGraphName = 1L, sample_id = NULL,
-                           order = 1, method = "I", exprs_values = "logcounts",
-                           BPPARAM = SerialParam(), zero.policy = NULL,
-                           name = paste("Correlogram", method, sep = "_"), ...) {
-  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-  for (s in sample_id) {
-    out <- calculateCorrelogram(sfe, features, colGraphName, s, order,
-                                method, exprs_values, BPPARAM, zero.policy, ...)
-    out <- .correlogram2df(out, name, method)
-    features <- .symbol2id(sfe, features)
-    rownames(out) <- features
-    out <- .add_name_sample_id(out, s)
-    rowData(sfe)[features, names(out)] <- out
-  }
-  sfe
-}
+colDataUnivariate <- .coldata_univar_fun()
+
+#' @rdname calculateUnivariate
+#' @export
+colDataMoransI <- .coldata_univar_fun(type = "moran")
+
+#' @rdname calculateUnivariate
+#' @export
+colGeometryUnivariate <- .colgeom_univar_fun()
+
+#' @rdname calculateUnivariate
+#' @export
+
+colGeometryMoransI <- .colgeom_univar_fun(type = "moran")
+
+#' @rdname calculateUnivariate
+#' @export
+annotGeometryUnivariate <- .annotgeom_univar_fun()
+
+#' @rdname calculateUnivariate
+#' @export
+annotGeometryMoransI <- .annotgeom_univar_fun(type = "moran")
 
 #' Find clusters of correlogram patterns
 #'

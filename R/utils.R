@@ -1,46 +1,6 @@
-.check_features <- function(x, features, colGeometryName = NULL) {
-  # Check if features are in the gene count matrix or colData.
-  # If not found, then assume that they're in the colGeometry
-  if (is.null(features)) features <- rownames(x)
-  features_assay <- intersect(features, rownames(x))
-  if (!length(features_assay) && "symbol" %in% names(rowData(x))) {
-    features_assay <- rownames(x)[match(features, rowData(x)$symbol)]
-    .warn_symbol_duplicate(x, features_assay)
-    if (all(is.na(features_assay))) features_assay <- NULL
-  }
-  features_coldata <- intersect(features, names(colData(x)))
-  if (is.null(colGeometryName)) {
-    features_colgeom <- NULL
-  } else {
-    cg <- colGeometry(x, type = colGeometryName, sample_id = "all")
-    features_colgeom <- intersect(features, names(st_drop_geometry(cg)))
-  }
-  out <- list(assay = features_assay,
-              coldata = features_coldata,
-              colgeom = features_colgeom)
-  if (all(lengths(out) == 0L)) {
-    stop("None of the features are found in the SFE object.")
-  }
-  return(out)
-}
-
-.warn_symbol_duplicate <- function(x, symbols) {
-  all_matches <- rowData(x)$symbol[rowData(x)$symbol %in% symbols]
-  which_duplicated <- duplicated(all_matches)
-  genes_show <- all_matches[which_duplicated]
-  if (anyDuplicated(all_matches)) {
-    warning("Gene symbol is duplicated for ",
-            paste(genes_show, collapse = ", "), ", the first match is used.")
-  }
-}
-
-.symbol2id <- function(x, features) {
-  if (!any(features %in% rownames(x)) && "symbol" %in% names(rowData(x))) {
-    features <- rownames(x)[match(features, rowData(x)$symbol)]
-    .warn_symbol_duplicate(x, features)
-  }
-  features
-}
+.check_features <- SpatialFeatureExperiment:::.check_features
+.warn_symbol_duplicate <- SpatialFeatureExperiment:::.warn_symbol_duplicate
+.symbol2id <- SpatialFeatureExperiment:::.symbol2id
 
 .drop_null_list <- function(l) {
   null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
@@ -103,10 +63,8 @@
 
 # Because adding a new column to S4 DataFrame will remove the attributes
 # Put the featureData of colData and rowData in int_metadata instead
-.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, to_df_fun,
-                            name, to_df_params) {
-  args_use <- c(list(out = res, name = name), to_df_params)
-  res <- do.call(to_df_fun, args_use)
+.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
+  res <- .res2df(res, type, ...)
   res <- .add_name_sample_id(res, sample_id)
   x <- .initialize_fd_dimData(x, MARGIN)
   fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
@@ -146,34 +104,47 @@ rowFeatureData <- function(sfe) {
 }
 
 .get_feature_values <- function(sfe, features, sample_id,
-                                colGeometryName = NULL,
-                                exprs_values = "logcounts",
+                                colGeometryName = NULL, annotGeometryName = NULL,
+                                exprs_values = "logcounts", cbind_all = TRUE,
                                 show_symbol = TRUE) {
-  features_list <- .check_features(sfe, features, colGeometryName)
-  values <- list()
-  sample_id_ind <- colData(sfe)$sample_id %in% sample_id
-  if (length(features_list[["assay"]])) {
-    values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
-                                             sample_id_ind, drop = FALSE]
-    # So symbol is shown instead of Ensembl ID
-    if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-      rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
+    features_list <- .check_features(sfe, features, colGeometryName, annotGeometryName)
+    values <- list()
+    sample_id_ind <- colData(sfe)$sample_id %in% sample_id
+    if (length(features_list[["assay"]])) {
+        values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
+                                                 sample_id_ind, drop = FALSE]
+        # So symbol is shown instead of Ensembl ID
+        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
+            rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
+        }
+        values_assay <- as.data.frame(as.matrix(t(values_assay)))
+        values[["assay"]] <- values_assay
     }
-    values_assay <- as.data.frame(as.matrix(t(values_assay)))
-    values[["assay"]] <- values_assay
-  }
-  if (length(features_list[["coldata"]]))
-    values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
-                                                      features_list[["coldata"]],
-                                                      drop = FALSE])
-  if (length(features_list[["colgeom"]])) {
-    cg <- colGeometry(sfe, colGeometryName, sample_id)
-    values[["colgeom"]] <- st_drop_geometry(cg)[sample_id_ind,
-                                                features_list[["colgeom"]],
-                                                drop = FALSE]
-  }
-  if (length(values) > 1L) values <- do.call(cbind, values) else values <- values[[1]]
-  values
+    if (length(features_list[["coldata"]]))
+        values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
+                                                          features_list[["coldata"]],
+                                                          drop = FALSE])
+    if (length(features_list[["colgeom"]])) {
+        cg <- colGeometry(sfe, colGeometryName, sample_id)
+        values[["colgeom"]] <- st_drop_geometry(cg)[sample_id_ind,
+                                                    features_list[["colgeom"]],
+                                                    drop = FALSE]
+    }
+    if (length(features_list[["annotgeom"]])) {
+        ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+        sample_id_ind2 <- ag$sample_id %in% sample_id
+        values[["annotgeom"]] <- st_drop_geometry(ag)[sample_id_ind,
+                                                      features_list[["annotgeom"]],
+                                                      drop = FALSE]
+    }
+    if (cbind_all) {
+        if (length(values) > 1L) {
+            if (length(features_list[["annotgeom"]]))
+                warning("annotGeometry values cannot be cbinded to other values.")
+            values <- do.call(cbind, values[c("assay", "coldata", "colgeom")])
+        } else values <- values[[1]]
+    }
+    values
 }
 
 .is_na_list <- function(l) {

@@ -30,6 +30,13 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+      - name: Install Bioc devel
+        run: install.packages("BiocManager"); BiocManager::install(version = "devel", ask = FALSE)
+        shell: Rscript {0}
+      - name: Install SFEData
+        run: pak::pkg_install("pachterlab/SFEData")
+      - name: Install SFE
+        run: pak::pkg_install("pachterlab/SpatialFeatureExperiment")
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
