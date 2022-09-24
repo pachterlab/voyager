@@ -167,56 +167,10 @@ annotGeometryUnivariate <- .annotgeom_univar_fun()
 #' @export
 annotGeometryMoransI <- .annotgeom_univar_fun(type = "moran")
 
-#' Find clusters of correlogram patterns
-#'
-#' Cluster the correlograms to find patterns in length scales of spatial
-#' autocorrelation. All the correlograms clustered must be computed with the
-#' same method and have the same number of lags.
-#'
-#' @inheritParams clusterMoranPlot
-#' @inheritParams calculateCorrelogram
-#' @inheritParams plotCorrelogram
-#' @param sfe A \code{SpatialFeatureExperiment} object with correlograms
-#' computed for features of interest.
-#' @param features Features whose correlograms to cluster.
-#' @return A \code{DataFrame} with 3 columns: \code{feature} for the features,
-#' \code{cluster} a factor for cluster membership of the features within each
-#' sample, and \code{sample_id} for the sample.
+#' @rdname calculateUnivariate
 #' @export
-#' @examples
-#' library(SpatialFeatureExperiment)
-#' library(SFEData)
-#' library(bluster)
-#' sfe <- McKellarMuscleData("small")
-#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' inds <- c(1,3,4,5)
-#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[inds],
-#'                       exprs_values = "counts", order = 5)
-#' clust <- clusterCorrelograms(sfe, features = rownames(sfe)[inds],
-#'                              BLUSPARAM = KmeansParam(2))
-clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
-                                method = "I",
-                                name = paste("Correlogram", method, sep = "_"),
-                                colGeometryName = NULL,
-                                annotGeometryName = NULL, show_symbol = TRUE) {
-  sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-  out <- lapply(sample_id, function(s) {
-    ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
-                                  annotGeometryName, show_symbol = show_symbol)
-    if (method %in% c("I", "C")) {
-      # First column is the metric, second column expectation, third is variance
-      ress <- lapply(ress, function(r) r[,1])
-    }
-    res_mat <- do.call(rbind, ress)
-    rownames(res_mat) <- names(ress)
-    clus <- clusterRows(res_mat, BLUSPARAM)
-    DataFrame(feature = names(ress),
-              cluster = clus,
-              sample_id = s)
-  })
-  if (length(sample_id) > 1L) {
-    out <- do.call(rbind, out)
-    out$cluster <- factor(out$cluster, levels = seq_len(max(as.integer(out$cluster))))
-  } else out <- out[[1]]
-  out
-}
+runUnivariate <- .sfe_univar_fun()
+
+#' @rdname calculateUnivariate
+#' @export
+runMoransI <- .sfe_univar_fun(type = "moran")
