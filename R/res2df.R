@@ -1,15 +1,31 @@
 # Convert different types of results into data frames
-# Input: list of results
-
-.res2df <- function(out, type, ...) {
-    fun_use <- if (type %in% c("moran", "geary")) .moran2df
-    else if (type %in% c("moran.mc", "geary.mc", "sp.mantel.mc", "EBImoran.mc",
-                         "lee.mc")) .mcsim2df
-    else if (type %in% c("moran.test", "geary.test", "globalG.test"))
-        .htest2df
-    else if (type == "sp.correlogram") .correlogram2df
-    else .other2df
-    fun_use(out, type, ...)
+# Input: list of results, each element is for each feature
+# Output: For global results, a DataFrame each row of which is for a feature,
+# to be added to rowData or featureData.
+# For local results, the results for each feature is reformatted as a vector or
+# a matrix or data frame if necessary,
+# and a DataFrame or data.frame (for geometries) each column of which is for
+# a feature is returned.
+.res2df <- function(out, type, local = FALSE, use_geometry = FALSE, ...) {
+    if (local) {
+        fun_use <- if (type %in% c("localmoran", "localmoran_perm"))
+            .localmoran2df
+        else if (type %in% c("localG", "localG_perm")) .localG2df
+        else if (type == "localC_perm") .localCperm2df
+        else identity
+        out <- fun_use(out)
+        out <- .value2df(out, use_geometry)
+    } else {
+        fun_use <- if (type %in% c("moran", "geary")) .moran2df
+        else if (type %in% c("moran.mc", "geary.mc", "sp.mantel.mc", "EBImoran.mc",
+                             "lee.mc")) .mcsim2df
+        else if (type %in% c("moran.test", "geary.test", "globalG.test"))
+            .htest2df
+        else if (type == "sp.correlogram") .correlogram2df
+        else .other2df
+        out <- fun_use(out, type, ...)
+    }
+    out
 }
 
 .moran2df <- function(out, name, ...) {
@@ -68,3 +84,29 @@
     names(out_df) <- name
     out_df
 }
+
+.value2df <- SpatialFeatureExperiment:::.value2df
+
+.localmoran2df <- function(out) {
+    features <- names(out)
+    out <- lapply(out, function(o) {
+        o1 <- as.data.frame(o)
+        quadr <- attr(o, "quadr")
+        I(cbind(o1, quadr))
+    })
+    out
+}
+
+.attrmat2df <- function(out, attr_name, type) {
+    if (attr_name %in% names(attributes(out[[1]]))) {
+        out <- lapply(out, function(o) {
+            attr_mat <- attr(o, attr_name)
+            attr_mat <- cbind(o, attr_mat)
+            colnames(attr_mat)[1] <- type
+        })
+    } else out
+}
+
+.localG2df <- function(out) .attrmat2df(out, "internals", "localG")
+
+.localCperm2df <- function(out) .attrmat2df(out, "pseudo-p", "localC")

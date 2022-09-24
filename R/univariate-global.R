@@ -107,7 +107,7 @@ setMethod("calculateUnivariate", "ANY",
                                       "loclaG", "localG_perm", "LOSH", "LOSH.mc",
                                       "gwss"),
                    BPPARAM = SerialParam(),
-                   zero.policy = NULL, returnDF = TRUE, ...) {
+                   zero.policy = NULL, ...) {
               type <- match.arg(type)
               fun <- match.fun(type)
               obscure_args <- switch(type,
@@ -121,7 +121,6 @@ setMethod("calculateUnivariate", "ANY",
                                zero.policy = zero.policy)
               all_args <- c(all_args, other_args, defaults_use)
               out <- do.call(.calc_univar, all_args)
-              if (returnDF) out <- .res2df(out, type, ...)
               out
           })
 

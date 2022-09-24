@@ -27,12 +27,14 @@
 }
 
 #' @importFrom spdep include.self nb2listw
-.calc_univar_sfe_fun <- function(type = NULL, include_self = FALSE) {
+.calc_univar_sfe_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = NULL,
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
-                        zero.policy = NULL, returnDF = FALSE, ...) {
+                        zero.policy = NULL, returnDF = FALSE,
+                        include_self = FALSE, ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        local <- .is_local(type)
         out <- lapply(sample_id, function(s) {
             features <- .check_features(x, features)[["assay"]]
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
@@ -43,9 +45,8 @@
             mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s]
             o <- calculateUnivariate(mat, listw_use, type = type,
                                      BPPARAM = BPPARAM,
-                                     zero.policy = zero.policy,
-                                     returnDF = returnDF, ...)
-            if (returnDF) o$sample_id <- s
+                                     zero.policy = zero.policy, ...)
+            if (returnDF) o <- .res2df(o, type, local, ...)
             o
         })
         names(out) <- sample_id
@@ -57,9 +58,11 @@
     } else {
         function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
-                 zero.policy = NULL, returnDF = FALSE, ...)
+                 zero.policy = NULL, returnDF = FALSE,
+                 include_self = FALSE, ...)
             fun_use(x, type, features, colGraphName, sample_id,
-                    exprs_values, BPPARAM, zero.policy, returnDF, ...)
+                    exprs_values, BPPARAM, zero.policy, returnDF,
+                    include_self,...)
     }
 }
 
@@ -108,10 +111,20 @@
 # Also need plotting functions for localResults
 # And functions to compute the spatial metrics for reducedDims
 # And plot reducedDims values in space
-.coldata_univar_fun <- function(type = NULL, include_self = FALSE, local = FALSE) {
+
+.is_local <- function(type) {
+    if (type %in% c("localmoran", "localmoran_perm", "localC", "localC_perm",
+                    "loclaG", "localG_perm", "LOSH", "LOSH.mc", "gwss",
+                    "lee", "localmoran_bv"))
+        TRUE
+    else FALSE
+}
+
+.coldata_univar_fun <- function(type = NULL) {
   fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
-           BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+           BPPARAM = SerialParam(), zero.policy = NULL, include_self = FALSE, ...) {
     sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+    local <- .is_local(type)
     for (s in sample_id) {
       listw_use <- colGraph(x, type = colGraphName, sample_id = s)
       if (include_self) {
@@ -119,8 +132,8 @@
         listw_use <- nb2listw(nb2)
       }
       res <- calculateUnivariate(colData(x)[colData(x)$sample_id == s, features],
-                                 listw_use, type, BPPARAM, zero.policy,
-                                 returnDF = TRUE, ...)
+                                 listw_use, type, BPPARAM, zero.policy, ...)
+      if (returnDF) res <- .res2df(res, type, local, ...)
       if (local) {
         localResults(x, sample_id, type, features) <- res
       } else {
@@ -133,17 +146,20 @@
       fun_use
   } else {
       function(x, features, colGraphName = 1L, sample_id = NULL,
-               BPPARAM = SerialParam(), zero.policy = NULL, ...)
+               BPPARAM = SerialParam(), zero.policy = NULL,
+               include_self = FALSE, ...)
           fun_use(x, type, features, colGraphName, sample_id,
-                  BPPARAM, zero.policy, ...)
+                  BPPARAM, zero.policy, include_self, ...)
   }
 }
 
-.colgeom_univar_fun <- function(type = NULL, include_self = FALSE, local = FALSE) {
+.colgeom_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, colGeometryName = 1L,
                         colGraphName = 1L, sample_id = NULL,
-                        BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+                        BPPARAM = SerialParam(), zero.policy = NULL,
+                        include_self = FALSE, ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        local <- .is_local(type)
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
             if (include_self) {
@@ -151,8 +167,9 @@
                 listw_use <- nb2listw(nb2)
             }
             cg <- colGeometry(x, type = colGeometryName, sample_id = s)
-            res <- calculateUnivariate(cg[, features], listw_use, type, BPPARAM, zero.policy,
-                                       returnDF = TRUE, ...)
+            res <- calculateUnivariate(cg[, features], listw_use, type, BPPARAM,
+                                       zero.policy, ...)
+            if (returnDF) res <- .res2df(res, type, local, use_geometry = TRUE, ...)
             if (local) {
                 localResults(x, sample_id, type, features,
                              colGeometryName = colGeometryName) <- res
@@ -168,17 +185,20 @@
         fun_use
     } else {
         function(x, features, colGeometryName = 1L, colGraphName = 1L,
-                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL, ...)
+                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, ...)
             fun_use(x, type, features, colGeometryName, colGraphName, sample_id,
-                    BPPARAM, zero.policy, ...)
+                    BPPARAM, zero.policy, include_self, ...)
     }
 }
 
-.annotgeom_univar_fun <- function(type = NULL, include_self = FALSE, local = FALSE) {
+.annotgeom_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, annotGeometryName = 1L,
                         annotGraphName = 1L, sample_id = NULL,
-                        BPPARAM = SerialParam(), zero.policy = NULL, ...) {
+                        BPPARAM = SerialParam(), zero.policy = NULL,
+                        include_self = FALSE, ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        local <- .is_local(type)
         for (s in sample_id) {
             listw_use <- annotGraph(x, type = annotGraphName, sample_id = s)
             if (include_self) {
@@ -187,8 +207,9 @@
             }
             ag <- annotGeometry(x, type = annotGeometryName, sample_id = s)
             ag <- .rm_empty_geometries(ag, MARGIN = 3)
-            res <- calculateUnivariate(ag[,features], listw_use, type, BPPARAM, zero.policy,
-                                       returnDF = TRUE, ...)
+            res <- calculateUnivariate(ag[,features], listw_use, type, BPPARAM,
+                                       zero.policy, ...)
+            if (returnDF) res <- .res2df(res, type, local, use_geometry = TRUE, ...)
             if (local) {
                 localResults(x, sample_id, type, features,
                              annotGeometryName = annotGeometryName) <- res
@@ -204,98 +225,43 @@
         fun_use
     } else {
         function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
-                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL, ...)
+                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, ...)
             fun_use(x, type, features, annotGeometryName, annotGraphName, sample_id,
-                    BPPARAM, zero.policy, ...)
+                    BPPARAM, zero.policy, include_self, ...)
     }
 }
 
-.sfe_univar_autocorr <- function(x, features, colGraphName, sample_id,
-                                 exprs_values, fun, BPPARAM, zero.policy,
-                                 name) {
-  sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-  for (s in sample_id) {
-    out <- fun(x, features, colGraphName, s, exprs_values, BPPARAM,
-               zero.policy)
-    out$sample_id <- NULL # Not necessary here, but necessary when just calling calculateMoransI
-    out <- .MoransI2df(out, name)
-    out <- .add_name_sample_id(out, s)
-    features <- .symbol2id(x, features)
-    rowData(x)[features, names(out)] <- out
-  }
-  x
-}
-
-# For the `nsim` and `alternative` arguments
-.calc_univar_sfe_fun_mc <- function(fun) {
-  function(x, features, colGraphName = 1L, sample_id = NULL, nsim,
-           exprs_values = "logcounts",
-           BPPARAM = SerialParam(), zero.policy = NULL,
-           alternative = "greater", ...) {
-    .calc_univar_sfe_fun(fun)(x, features, colGraphName, sample_id,
-                              exprs_values, BPPARAM, zero.policy, nsim = nsim,
-                              alternative = alternative, ...)
-  }
-}
-
-.coldata_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, features, colGraphName = 1L, sample_id = NULL, nsim,
-           BPPARAM = SerialParam(), zero.policy = NULL, alternative = "greater",
-           ...) {
-    .coldata_univar_fun(fun, to_df_fun, name)(x, features, colGraphName,
-                                              sample_id, BPPARAM,
-                                              zero.policy, nsim = nsim,
-                                              alternative = alternative, ...)
-  }
-}
-
-.colgeom_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, features, colGeometryName = 1L, colGraphName = 1L,
-           sample_id = NULL, nsim, BPPARAM = SerialParam(), zero.policy = NULL,
-           alternative = "greater",
-           ...) {
-    .colgeom_univar_fun(fun, to_df_fun, name)(x, features, colGeometryName,
-                                              colGraphName, sample_id, BPPARAM,
-                                              zero.policy, nsim = nsim,
-                                              alternative = alternative, ...)
-  }
-}
-
-.annotgeom_univar_fun_mc <- function(fun, to_df_fun, name) {
-  function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
-           sample_id = NULL, nsim, BPPARAM = SerialParam(), zero.policy = NULL,
-           alternative = "greater",
-           ...) {
-    .annotgeom_univar_fun(fun, to_df_fun, name)(
-      x, features, annotGeometryName, annotGraphName, sample_id, BPPARAM,
-      zero.policy, nsim = nsim, alternative = alternative, ...)
-  }
-}
-
-.sfe_univar_mc <- function(x, features, colGraphName, sample_id, nsim,
-                           exprs_values, fun, BPPARAM, zero.policy, alternative,
-                           name, ...) {
-  sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-  for (s in sample_id) {
-    out <- fun(x, features, colGraphName, s, nsim, exprs_values, BPPARAM,
-               zero.policy, alternative, ...)
-    out <- .MoranMC2df(out, name)
-    features <- .symbol2id(x, features)
-    out <- .add_name_sample_id(out, s)
-    rowData(x)[features, names(out)] <- out
-  }
-  x
-}
-
-.sfe_univar_local_fun <- function(fun) {
-  function(x, features, colGraphName, sample_id, exprs_values, fun, BPPARAM,
-           zero.policy, name, ...) {
-    sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-    for (s in sample_id) {
-      out <- fun(x, features, colGraphName, s, exprs_values, BPPARAM,
-                 zero.policy, ...)
-      out <- .add_name_sample_id(out, s)
+.sfe_univar_fun <- function(type = NULL) {
+    fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
+                        exprs_values = "logcounts", BPPARAM = SerialParam(),
+                        zero.policy = NULL, include_self = FALSE, ...) {
+        sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        local <- .is_local(type)
+        for (s in sample_id) {
+            out <- calculateUnivariate(x, type, features, colGraphName, s,
+                                       exprs_values, BPPARAM, zero.policy,
+                                       returnDF = TRUE,
+                                       include_self = include_self, ...)
+            if (local) {
+                localResults(x, type, features, sample_id = s) <- out
+            } else {
+                out <- .add_name_sample_id(out, s)
+                features <- .symbol2id(x, features)
+                rowData(x)[features, names(out)] <- out
+            }
+        }
+        x
     }
-    x
-  }
+    if (is.null(type)) {
+        fun_use
+    } else {
+        function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
+                 exprs_values = "logcounts", BPPARAM = SerialParam(),
+                 zero.policy = NULL, returnDF = FALSE,
+                 include_self = FALSE, ...)
+            fun_use(x, type, features, colGraphName, sample_id,
+                    exprs_values, BPPARAM, zero.policy, returnDF,
+                    include_self,...)
+    }
 }
