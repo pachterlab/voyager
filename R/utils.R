@@ -1,13 +1,10 @@
-.check_features <- SpatialFeatureExperiment:::.check_features
-.warn_symbol_duplicate <- SpatialFeatureExperiment:::.warn_symbol_duplicate
-.symbol2id <- SpatialFeatureExperiment:::.symbol2id
+#' @importFrom SpatialFeatureExperiment .value2df .check_features
+#'   .warn_symbol_duplicate .symbol2id .check_sample_id .rm_empty_geometries
 
 .drop_null_list <- function(l) {
   null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
   l[!null_inds]
 }
-
-.check_sample_id <- SpatialFeatureExperiment:::.check_sample_id
 
 .is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
 
@@ -219,5 +216,3 @@ rowFeatureData <- function(sfe) {
   }
   out
 }
-
-.rm_empty_geometries <- SpatialFeatureExperiment:::.rm_empty_geometries

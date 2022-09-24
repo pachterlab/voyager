@@ -85,8 +85,6 @@
     out_df
 }
 
-.value2df <- SpatialFeatureExperiment:::.value2df
-
 .localmoran2df <- function(out) {
     features <- names(out)
     out <- lapply(out, function(o) {
