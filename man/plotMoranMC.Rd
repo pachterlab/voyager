@@ -12,7 +12,7 @@ plotMoranMC(
   ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
-  name = "MoranMC",
+  name = "moran.mc",
   ptype = c("density", "histogram", "freqpoly"),
   show_symbol = TRUE,
   ...
@@ -42,11 +42,6 @@ frames associated with cells/spots.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
-
-\item{name}{String specifying the name to be used to store the results in
-\code{rowData(x)}. If not already present in the name, then the
-\code{sample_id} will be appended to the name specified here separated by
-an underscore.}
 
 \item{ptype}{Plot type, one of "density", "histogram", or "freqpoly".}
 

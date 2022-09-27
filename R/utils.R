@@ -36,9 +36,7 @@
   df
 }
 
-.add_fd <- function(x, df, res, features, sample_id, to_df_fun, name, to_df_params) {
-  args_use <- c(list(out = res, name = name), to_df_params)
-  res <- do.call(to_df_fun, args_use)
+.add_fd <- function(x, df, res, features, sample_id, name) {
   res <- .add_name_sample_id(res, sample_id)
   df <- .initialize_featureData(df)
   fd <- attr(df, "featureData")
@@ -61,7 +59,6 @@
 # Because adding a new column to S4 DataFrame will remove the attributes
 # Put the featureData of colData and rowData in int_metadata instead
 .add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
-  res <- .res2df(res, type, ...)
   res <- .add_name_sample_id(res, sample_id)
   x <- .initialize_fd_dimData(x, MARGIN)
   fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
@@ -104,7 +101,7 @@ rowFeatureData <- function(sfe) {
                                 colGeometryName = NULL, annotGeometryName = NULL,
                                 exprs_values = "logcounts", cbind_all = TRUE,
                                 show_symbol = TRUE) {
-    features_list <- .check_features(sfe, features, colGeometryName, annotGeometryName)
+    features_list <- .check_features(sfe, features, colGeometryName)
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {

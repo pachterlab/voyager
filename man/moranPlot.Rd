@@ -17,7 +17,7 @@ moranPlot(
   filled = FALSE,
   divergent = FALSE,
   diverge_center = NULL,
-  name = "MoranPlot",
+  name = "moran.plot",
   show_symbol = TRUE,
   ...
 )
@@ -63,11 +63,6 @@ non-influential points and only plot influential points as points.}
 
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
-
-\item{name}{String specifying the name to be used to store the results in
-\code{rowData(x)}. If not already present in the name, then the
-\code{sample_id} will be appended to the name specified here separated by
-an underscore.}
 
 \item{show_symbol}{Logical, whether to show human readable gene symbol on the
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must

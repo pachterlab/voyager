@@ -1,22 +1,50 @@
 # Univariate, from spdep
 
-#' Calculate univariate global spatial autocorrelation
+#' Univariate spatial stiatistics
 #'
-#' Compute Moran's I or Geary's C on gene expression or numeric columns of
-#' colData, colGeometry, or annotGeometry of a \code{SpatialFeatureExperiment}
-#' object. Multithreading is supported when computing for numerous genes.
+#' These functions compute univariate spatial statistics, both global and local,
+#' on matrices, data frames, and SFE objects. For SFE objects, the statistics
+#' can be computed for numeric columns of \code{colData}, \code{colGeometries},
+#' and \code{annotGeometries}, and the results are stored within the SFE object.
+#' \code{calculateMoransI} and \code{runMoransI} are convenience wrappers for
+#' \code{calculateUnivariate} and \code{runUnivariate} respectively.
+#'
+#' Most univariate methods in the package \code{spdep} are supported here. These
+#' methods are global, meaning returning one result for all spatial locations in
+#' the dataset: \code{\link[spdep]{moran}}, \code{\link[spdep]{geary}},
+#' \code{\link[spdep]{moran.mc}}, \code{\link[spdep]{geary.mc}},
+#' \code{\link[spdep]{moran.test}}, \code{\link[spdep]{geary.test}},
+#' \code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}.
+#'
+#' The following methods are local, meaning each location has its own results:
+#' \code{\link[spdep]{moran.plot}}, \code{\link[spdep]{localmoran}},
+#' \code{\link[spdep]{localmoran_perm}}, \code{\link[spdep]{localC}},
+#' \code{\link[spdep]{localC_perm}}, \code{\link[spdep]{localG}},
+#' \code{\link[spdep]{localG_perm}}, \code{\link[spdep]{LOSH}},
+#' \code{\link[spdep]{LOSH.mc}}. The \code{GWmodel::gwss} method will be
+#' supported soon, but is not supported yet.
+#'
+#' Global results for genes are stored in \code{rowData}. For \code{colGeometry}
+#' and \code{annotGeometry}, the results are added to an attribute of the data
+#' frame called \code{featureData}, which is a DataFrame analogous to
+#' \code{rowData} for the gene count matrix. New column names in
+#' \code{featureData} would follow the same rules as in \code{rowData}. For
+#' \code{colData}, the results can be accessed with the \code{colFeatureData}
+#' function.
+#'
+#' Local results are stored in the field \code{localResults} field of the SFE
+#' object, which can be accessed with \code{\link[SpatialFeatureExperiment]{localResults}}
+#' or \code{\link[SpatialFeatureExperiment]{localResult}}.
 #'
 #' @inheritParams spdep::moran
-#' @param x For \code{calculateMoransI} and \code{calculateGearysC}, it can be a
-#'   numeric matrix whose rows are features/genes, or a
+#' @param x A numeric matrix whose rows are features/genes, or a
 #'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 #'   assay.
-#' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param listw Weighted neighborhood graph as a \code{spdep} \code{listw}
 #'   object.
 #' @param features Genes (\code{calculate*} SFE method and \code{run*}) or
 #'   numeric columns of \code{colData(x)} (\code{colData*}) or any
-#'   \code{\link{colGeometry}} (\code{colGeometryM*}) or
+#'   \code{\link{colGeometry}} (\code{colGeometry*}) or
 #'   \code{\link{annotGeometry}} (\code{annotGeometry*}) for which the
 #'   univariate metric is to be computed. Default to \code{NULL}. When
 #'   \code{NULL}, then the metric is computed for all genes with the values in
@@ -30,10 +58,6 @@
 #'   contains the expression values.
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether
 #'   and how computing the metric for numerous genes shall be parallelized.
-#' @param name String specifying the name to be used to store the results in
-#'   \code{rowData(x)}. If not already present in the name, then the
-#'   \code{sample_id} will be appended to the name specified here separated by
-#'   an underscore.
 #' @param colGraphName Name of the listw graph in the SFE object that
 #'   corresponds to entities represented by columns of the gene count matrix.
 #'   Use \code{\link{colGraphNames}} to look up names of the available graphs
@@ -59,27 +83,20 @@
 #'   the argument \code{type} (as in more general functions like
 #'   \code{calculateUnivariate}). See documentation in the \code{spdep} package
 #'   for the latter.
-#' @return For \code{calculate*}, a \code{DataFrame} with two columns: The first
-#'   one is I for Moran's I or C for Geary's C, and the second one is K for
-#'   sample kurtosis. For the SFE method of \code{calculate*}, a third column
-#'   indicating \code{sample_id} is added if more than one sample is indicated.
-#'   For \code{run*}, a \code{SpatialFeatureExperiment} object with the Moran's
-#'   I or Geary's C values added to a column of \code{rowData(x)}, whose name is
-#'   specified in the \code{name} argument, with \code{sample_id} appended if
-#'   applicable. For \code{colGeometry} and \code{annotGeometry}, the results
-#'   are added to an attribute of the data frame called \code{featureData},
-#'   which is a DataFrame analogous to \code{rowData} for the gene count matrix.
-#'   New column names in \code{featureData} would follow the same rules as in
-#'   \code{rowData}. For \code{colData}, the results can be accessed with the
-#'   \code{colFeatureData} function.
+#' @return In \code{calculateUnivariate}, if \code{returnDF = TRUE}, then a
+#'   \code{DataFrame}, otherwise a list each element of which is the results for
+#'   each feature. For \code{run*}, a \code{SpatialFeatureExperiment} object
+#'   with the results added. See Details for where the results are stored.
 #' @name calculateUnivariate
 #' @aliases calculateMoransI
-#' @importFrom spdep moran geary Szero
+#' @importFrom spdep moran geary Szero moran.mc geary.mc moran.test geary.test
+#'   globalG.test sp.correlogram moran.plot localmoran localmoran_perm localC
+#'   localC_perm localG localG_perm LOSH LOSH.mc
 #' @importFrom BiocParallel SerialParam bplapply
 #' @importFrom S4Vectors DataFrame
 #' @importClassesFrom SpatialFeatureExperiment SpatialFeatureExperiment
 #' @importFrom SummarizedExperiment assay rowData<-
-#' @importFrom SpatialFeatureExperiment colGraph annotGraph
+#' @importFrom SpatialFeatureExperiment colGraph annotGraph localResults<-
 #' @importFrom SingleCellExperiment colData rowData
 #' @examples
 #' library(SpatialFeatureExperiment)
@@ -87,14 +104,42 @@
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Compute Moran's I for vector or matrix
-#' calculateMoransI(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-#' # Add results to rowData, features are genes
-#' sfe <- runMoransI(sfe, features = rownames(sfe)[1], exprs_values = "counts")
-#' rowData(sfe)
-#' # Specifically for colData
-#' sfe <- colDataMoransI(sfe, "nCounts")
-#' colFeatureData(sfe)
+#' features_use <- rownames(sfe)[1:5]
+#'
+#' # Moran's I
+#' moran_results <- calculateMoransI(sfe, features = features_use,
+#'                                   colGraphName = "visium",
+#'                                   exprs_values = "counts")
+#'
+#' # This does not advocate for computing Moran's I on raw counts.
+#' # Just an example for function usage.
+#'
+#' sfe <- runMoransI(sfe, features = features_use, colGraphName = "visium",
+#'                   exprs_values = "counts")
+#' # Look at the results
+#' head(rowData(sfe))
+#'
+#' # Local Moran's I
+#' sfe <- runUnivariate(sfe, type = "localmoran", features = features_use,
+#'                      colGraphName = "visium", exprs_values = "counts")
+#' head(localResult(sfe, "localmoran", features_use[1]))
+#'
+#' # For colData
+#' sfe <- colDataUnivariate(sfe, type = "localmoran", features = "nCounts",
+#'                          colGraphName = "visium")
+#' head(localResult(sfe, "localmoran", "nCounts"))
+#'
+#' # For annotGeometries
+#' annotGraph(sfe, "myofiber_tri2nb") <-
+#'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3L,
+#'                          method = "tri2nb", dist_type = "idw",
+#'                          zero.policy = TRUE)
+#' sfe <- annotGeometryUnivariate(sfe, type = "localG", features = "area",
+#'                                annotGraphName = "myofiber_tri2nb",
+#'                                annotGeometryName = "myofiber_simplified",
+#'                                zero.policy = TRUE)
+#' head(localResult(sfe, "localG", "area",
+#'                  annotGeometryName = "myofiber_simplified"))
 NULL
 
 #' @rdname calculateUnivariate
@@ -104,12 +149,15 @@ setMethod("calculateUnivariate", "ANY",
                                       "moran.test", "geary.test", "globalG.test",
                                       "sp.correlogram", "moran.plot", "localmoran",
                                       "localmoran_perm", "localC", "localC_perm",
-                                      "loclaG", "localG_perm", "LOSH", "LOSH.mc",
+                                      "localG", "localG_perm", "LOSH", "LOSH.mc",
                                       "gwss"),
                    BPPARAM = SerialParam(),
-                   zero.policy = NULL, ...) {
+                   zero.policy = NULL, returnDF = TRUE, ...) {
               type <- match.arg(type)
-              fun <- match.fun(type)
+              # I wrote a thin wrapper to make the argument names consistent
+              if (type == "sp.correlogram") fun <- .sp.correpogram
+              else fun <- match.fun(type)
+              local <- .is_local(type)
               obscure_args <- switch(type,
                                      moran = c("n", "S0"),
                                      geary = c("n", "n1", "S0"))
@@ -117,10 +165,10 @@ setMethod("calculateUnivariate", "ANY",
               other_args <- list(...)
               defaults_use <- defaults[setdiff(names(defaults), other_args)]
               all_args <- list(x = x, listw = listw, fun = fun,
-                               BPPARAM = BPPARAM, returnDF = returnDF,
-                               zero.policy = zero.policy)
+                               BPPARAM = BPPARAM, zero.policy = zero.policy)
               all_args <- c(all_args, other_args, defaults_use)
               out <- do.call(.calc_univar, all_args)
+              if (returnDF) out <- .res2df(out, type, local, ...)
               out
           })
 

@@ -29,10 +29,11 @@
 }
 
 .moran2df <- function(out, name, ...) {
+    rns <- names(out)
     out <- lapply(out, unlist, use.names = TRUE)
-    out <- Reduce(rbind, res)
+    out <- Reduce(rbind, out)
     if (!is.matrix(out)) out <- t(as.matrix(out))
-    rownames(out) <- rownames(x)
+    rownames(out) <- rns
     out <- DataFrame(out)
     names(out)[1] <- name
     out
@@ -54,6 +55,12 @@
     # When it's not also mc.sim
     names_use <- c("statistic", "p.value", "alternative", "data.name", "method")
     out <- lapply(out, function(o) {
+        o[names_use] <- lapply(o[names_use],
+                               function(n) {
+                                   if (is.matrix(n) && all(dim(n) == 1))
+                                       n <- as.vector(n)
+                                   n
+                               })
         o <- c(o[names_use], as.list(o[["estimate"]]))
         DataFrame(unclass(o))
     })
@@ -68,13 +75,17 @@
     other_args <- list(...)
     if ("method" %in% names(other_args)) method <- other_args[["method"]]
     else method <- "corr" # spdep's default
-    out <- lapply(out, function(o) {
-        colnames(o$res) <- c(method, "expectation", "variance")
-        o
-    })
+    name <- paste(name, method, sep = "_")
+    if (method %in% c("I", "C")) {
+        out <- lapply(out, function(o) {
+            colnames(o$res) <- c(method, "expectation", "variance")
+            o
+        })
+    }
     out <- lapply(out, function(o) o$res)
     out_df <- DataFrame(res = I(out))
     names(out_df) <- name
+    rownames(out_df) <- names(out)
     out_df
 }
 
@@ -82,6 +93,7 @@
     if (!is.atomic(out)) out <- I(out)
     out_df <- DataFrame(res = out)
     names(out_df) <- name
+    rownames(out_df) <- names(out)
     out_df
 }
 
@@ -97,10 +109,11 @@
 
 .attrmat2df <- function(out, attr_name, type) {
     if (attr_name %in% names(attributes(out[[1]]))) {
-        out <- lapply(out, function(o) {
+        lapply(out, function(o) {
             attr_mat <- attr(o, attr_name)
             attr_mat <- cbind(o, attr_mat)
             colnames(attr_mat)[1] <- type
+            attr_mat
         })
     } else out
 }

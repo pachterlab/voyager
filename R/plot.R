@@ -218,7 +218,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' PuRd colorbrewer palette is used for continuous variables and the other end
 #' of the \code{dittoSeq} palette is used for discrete variables.
 #'
-#' @inheritParams calculateMoransI
+#' @inheritParams calculateUnivariate
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
@@ -601,7 +601,7 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
-#' @inheritParams calculateMoransI
+#' @inheritParams calculateUnivariate
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
@@ -647,8 +647,9 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      name = "MoranPlot", show_symbol = TRUE, ...) {
+                      name = "moran.plot", show_symbol = TRUE, ...) {
   sample_id <- .check_sample_id(sfe, sample_id)
+  # Change as moran.plot has been moved to localResults.
   mp <- .get_feature_metadata(sfe, feature, name, sample_id, colGeometryName,
                               annotGeometryName, show_symbol)[[1]]
   if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
@@ -689,7 +690,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     .moran_ggplot(mp, feature, is_singleton, contour_color, color_by, plot_singletons, divergent,
                   diverge_center, ...)
 }
-
+# Check if still works
 .get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
                                      colGeometryName, annotGeometryName, name,
                                      show_symbol) {
@@ -699,8 +700,8 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     # Different from moranPlot
     if (is.character(color_by) && length(color_by) == 1L) {
       color_value <- .get_feature_metadata(sfe, features, color_by, sample_id,
-                                           colGeometryName,
-                                           annotGeometryName)
+                                           colGeometryName, annotGeometryName,
+                                           show_symbol)
       color_value <- color_value[names(ress)]
     } else if (length(color_by) == length(features)) {
       if (is.null(names(color_by))) names(color_by) <- features
@@ -760,7 +761,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' error bars are twice the standard deviation of the estimated Moran's I value.
 #'
 #' @inheritParams plotSpatialFeature
-#' @inheritParams calculateMoransI
+#' @inheritParams calculateUnivariate
 #' @inheritParams spdep::sp.correlogram
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
 #'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
@@ -811,7 +812,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            name = paste("Correlogram", method, sep = "_"),
+                            name = paste("sp.correlogram", method, sep = "_"),
                             show_symbol = TRUE) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   if (length(sample_id) > 1L || length(features) > 1L)
@@ -969,7 +970,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
-                        name = "MoranMC", ptype = c("density", "histogram",
+                        name = "moran.mc", ptype = c("density", "histogram",
                                                     "freqpoly"),
                         show_symbol = TRUE, ...) {
   ptype <- match.arg(ptype)
