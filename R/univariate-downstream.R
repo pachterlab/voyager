@@ -76,6 +76,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
 #' @importFrom methods as
+#' @importFrom SpatialFeatureExperiment localResults
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
