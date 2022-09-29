@@ -30,6 +30,7 @@
            geary = list(n = length(nb), n1 = length(nb) - 1,
                         S0 = Szero(listw)),
            lee = list(n = length(nb)),
+           sp.correlogram = list(method = "I"),
            moran.plot = list(plot = FALSE))
 }
 
@@ -250,6 +251,9 @@
                                        include_self = include_self, ...)
             local <- .is_local(type)
             if (local) {
+                if (length(features) == 1L) {
+                    names(out) <- features
+                }
                 localResults(x, type, features, sample_id = s) <- out
             } else {
                 out <- .add_name_sample_id(out, s)

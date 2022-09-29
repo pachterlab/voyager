@@ -10,7 +10,6 @@ clusterCorrelograms(
   BLUSPARAM,
   sample_id = NULL,
   method = "I",
-  name = paste("Correlogram", method, sep = "_"),
   colGeometryName = NULL,
   annotGeometryName = NULL,
   show_symbol = TRUE
@@ -56,8 +55,9 @@ library(bluster)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 inds <- c(1,3,4,5)
-sfe <- runCorrelogram(sfe, features = rownames(sfe)[inds],
-                      exprs_values = "counts", order = 5)
+sfe <- runUnivariate(sfe, type = "sp.correlogram",
+                     features = rownames(sfe)[inds],
+                     exprs_values = "counts", order = 5)
 clust <- clusterCorrelograms(sfe, features = rownames(sfe)[inds],
                              BLUSPARAM = KmeansParam(2))
 }

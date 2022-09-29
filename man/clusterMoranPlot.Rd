@@ -9,7 +9,6 @@ clusterMoranPlot(
   features,
   BLUSPARAM,
   sample_id = NULL,
-  name = "MoranPlot",
   colGeometryName = NULL,
   annotGeometryName = NULL,
   show_symbol = TRUE
@@ -51,11 +50,9 @@ library(SFEData)
 library(bluster)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-# Compute Moran plot for vector or matrix
-calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-# Add results to rowData, features are genes
-sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
-sfe <- colDataMoranPlot(sfe, "nCounts")
-clusts <- clusterMoranPlot(sfe, c(rownames(sfe)[1], "nCounts"),
+# Compute moran plot
+sfe <- runUnivariate(sfe, type = "moran.plot", features = rownames(sfe)[1],
+                     exprs_values = "counts")
+clusts <- clusterMoranPlot(sfe, rownames(sfe)[1],
                            BLUSPARAM = KmeansParam(2))
 }

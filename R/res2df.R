@@ -74,7 +74,7 @@
 .correlogram2df <- function(out, name, ...) {
     other_args <- list(...)
     if ("method" %in% names(other_args)) method <- other_args[["method"]]
-    else method <- "corr" # spdep's default
+    else method <- "I" # My default set in .obscure_arg_defaults
     name <- paste(name, method, sep = "_")
     if (method %in% c("I", "C")) {
         out <- lapply(out, function(o) {

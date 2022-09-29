@@ -2,13 +2,18 @@ library(SpatialFeatureExperiment)
 library(SingleCellExperiment)
 library(bluster)
 
-sfe <- runMoranPlot(sfe, colGraphName = "visium", features = c("B", "H"),
-                    sample_id = "sample01", exprs_values = "counts")
-sfe <- colDataMoranPlot(sfe, colGraphName = "visium", features = "nCounts",
-                        sample_id = "sample01")
-sfe <- colGeometryMoranPlot(sfe, colGeometryName = "spotPoly",
-                            colGraphName = "visium", features = "foo",
-                            sample_id = "sample01")
+sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
+sfe <- runUnivariate(sfe, type = "moran.plot", colGraphName = "visium",
+                     features = c("B", "H"), sample_id = "sample01",
+                     exprs_values = "counts")
+sfe <- colDataUnivariate(sfe, type = "moran.plot", colGraphName = "visium",
+                         features = "nCounts", sample_id = "sample01")
+set.seed(29)
+spotPoly(sfe, sample_id = "all")$foo <- rnorm(ncol(sfe))
+sfe <- colGeometryUnivariate(sfe, type = "moran.plot",
+                             colGeometryName = "spotPoly",
+                             colGraphName = "visium", features = "foo",
+                             sample_id = "sample01")
 
 test_that("Moran plot clustering gives right results for gene expression", {
     features <- c("B", "H")
@@ -24,7 +29,7 @@ test_that("Moran plot clustering gives right results for gene expression", {
 test_that("Warning when some of the requested features don't have Moran plot", {
     expect_warning(out <- clusterMoranPlot(sfe, c("B", "H", "L"), KmeansParam(2),
                                            sample_id = "sample01"),
-                   "don't have the requested metadata")
+                   "are absent in")
     expect_s4_class(out, "DataFrame")
     expect_setequal(names(out), c("sample_id", "B", "H"))
 })
@@ -59,9 +64,9 @@ test_that("Error when the MoranPlot_sample01 column is absent", {
                  "None of the features")
 })
 
-sfe <- runCorrelogram(sfe, colGraphName = "visium", features = rownames(sfe),
-                      sample_id = "sample01", order = 2,
-                      exprs_values = "counts")
+sfe <- runUnivariate(sfe, type = "sp.correlogram", colGraphName = "visium",
+                     features = rownames(sfe), sample_id = "sample01",
+                     order = 2, exprs_values = "counts")
 test_that("Correct clusterCorrelograms output structure", {
     out <- clusterCorrelograms(sfe, rownames(sfe), sample_id = "sample01",
                                BLUSPARAM = KmeansParam(2))

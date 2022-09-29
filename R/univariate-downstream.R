@@ -21,16 +21,17 @@
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' inds <- c(1,3,4,5)
-#' sfe <- runCorrelogram(sfe, features = rownames(sfe)[inds],
-#'                       exprs_values = "counts", order = 5)
+#' sfe <- runUnivariate(sfe, type = "sp.correlogram",
+#'                      features = rownames(sfe)[inds],
+#'                      exprs_values = "counts", order = 5)
 #' clust <- clusterCorrelograms(sfe, features = rownames(sfe)[inds],
 #'                              BLUSPARAM = KmeansParam(2))
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
                                 method = "I",
-                                name = paste("Correlogram", method, sep = "_"),
                                 colGeometryName = NULL,
                                 annotGeometryName = NULL, show_symbol = TRUE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    name <- paste("sp.correlogram", method, sep = "_")
     out <- lapply(sample_id, function(s) {
         ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
                                       annotGeometryName, show_symbol = show_symbol)
@@ -83,25 +84,27 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
 #' library(bluster)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Compute Moran plot for vector or matrix
-#' calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-#' # Add results to rowData, features are genes
-#' sfe <- runMoranPlot(sfe, features = rownames(sfe)[1], exprs_values = "counts")
-#' sfe <- colDataMoranPlot(sfe, "nCounts")
-#' clusts <- clusterMoranPlot(sfe, c(rownames(sfe)[1], "nCounts"),
+#' # Compute moran plot
+#' sfe <- runUnivariate(sfe, type = "moran.plot", features = rownames(sfe)[1],
+#'                      exprs_values = "counts")
+#' clusts <- clusterMoranPlot(sfe, rownames(sfe)[1],
 #'                            BLUSPARAM = KmeansParam(2))
 clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
-                             name = "MoranPlot",
                              colGeometryName = NULL,
                              annotGeometryName = NULL, show_symbol = TRUE) {
   sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
   use_col <- is.null(annotGeometryName) || !is.null(colGeometryName)
+  if (is.null(colGeometryName) && is.null(annotGeometryName))
+      features <- .symbol2id(sfe, features)
   out <- lapply(sample_id, function(s) {
-    colname_use <- paste(name, s, sep = "_")
-    mps <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
-                                 annotGeometryName, show_symbol)
-    o <- lapply(mps, function(mp) clusterRows(mp[,c("x", "wx")], BLUSPARAM))
+    mps <- localResults(sfe, name = "moran.plot", features = features,
+                        sample_id = s, colGeometryName = colGeometryName,
+                        annotGeometryName = annotGeometryName)
+    if (is.data.frame(mps)) o <- clusterRows(mps[,c("x", "wx")], BLUSPARAM)
+    else
+        o <- lapply(mps, function(mp) clusterRows(mp[,c("x", "wx")], BLUSPARAM))
     o <- as(o, "DataFrame")
+    if (is.data.frame(mps)) names(o)[1] <- features
     o$sample_id <- s
     if (use_col)
       row.names(o) <- colnames(sfe)[colData(sfe)$sample_id == s]
