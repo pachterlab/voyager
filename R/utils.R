@@ -97,6 +97,15 @@ rowFeatureData <- function(sfe) {
   int_metadata(sfe)$rowFeatureData
 }
 
+.cbind_all <- function(values) {
+    if (length(values) > 1L) {
+        if (length(features_list[["annotgeom"]]))
+            warning("annotGeometry values cannot be cbinded to other values.")
+        values <- do.call(cbind, values[c("assay", "coldata", "colgeom")])
+    } else values <- values[[1]]
+    values
+}
+
 .get_feature_values <- function(sfe, features, sample_id,
                                 colGeometryName = NULL, annotGeometryName = NULL,
                                 exprs_values = "logcounts", cbind_all = TRUE,
@@ -132,11 +141,81 @@ rowFeatureData <- function(sfe) {
                                                       drop = FALSE]
     }
     if (cbind_all) {
-        if (length(values) > 1L) {
-            if (length(features_list[["annotgeom"]]))
-                warning("annotGeometry values cannot be cbinded to other values.")
-            values <- do.call(cbind, values[c("assay", "coldata", "colgeom")])
-        } else values <- values[[1]]
+        values <- .cbind_all(values)
+    }
+    values
+}
+
+.check_features_lr <- function(sfe, type, features, sample_id, colGeometryName,
+                               annotGeometryName) {
+    features_assay <- localResultFeatures(sfe, type) # includes colData
+    features_assay <- intersect(features_assay, features)
+    if (!is.null(colGeometryName)) {
+        features_colgeom <- localResultFeatures(sfe, type,
+                                                colGeometryName = colGeometryName)
+        features_colgeom <- intersect(features_colgeom, features)
+    } else features_colgeom <- NULL
+    if (!is.null(annotGeometryName)) {
+        features_annotgeom <- localResultFeatures(sfe, type,
+                                                  annotGeometryName = annotGeometryName)
+        features_annotgeom <- intersect(features_annotgeom, features)
+    } else features_annotgeom <- NULL
+    out <- list(assay = features_assay,
+                colgeom = features_colgeom,
+                annotgeom = features_annotgeom)
+    other_features <- setdiff(features, Reduce(union, out))
+    if (length(other_features)) {
+        warning("Features ", paste(other_features, collapse = ", "),
+                " are absent in type ", type)
+    }
+    out
+}
+
+.get_localResult_attrs <- function(lrs, attribute) {
+    out <- lapply(lrs, function(l) {
+        if (is.atomic(l) && is.vector(l)) l
+        else {
+            l[,attribute]
+        }
+    })
+    out
+}
+
+.get_localResult_values <- function(sfe, type, features, attribute, sample_id,
+                                    colGeometryName = NULL,
+                                    annotGeometryName = NULL,
+                                    cbind_all = TRUE) {
+    features_list <- .check_features_lr(sfe, type, features, sample_id,
+                                        colGeometryName, annotGeometryName)
+    if (is.null(attribute)) {
+        attribute <- switch(type,
+                            localmoran = "Ii",
+                            localmoran_perm = "Ii",
+                            localC_perm = "localC",
+                            localG = "localG",
+                            localG_perm = "localG",
+                            LOSH = "Hi",
+                            LOSH.mc = "Hi",
+                            moran.plot = "wx")
+    }
+    values <- list()
+    sample_id_ind <- colData(sfe)$sample_id %in% sample_id
+    if (length(features_list[["assay"]])) {
+        lrs <- localResults(sfe, sample_id, type, features_list[["assay"]])
+        values[["assay"]] <- .get_localResult_attrs(lrs, attribute)
+    }
+    if (length(features_list[["colgeom"]])) {
+        lrs <- localResults(sfe, sample_id, type, features_list[["colgeom"]],
+                            colGeometryName = colGeometryName)
+        values[["colgeom"]] <- .get_localResult_attrs(lrs, attribute)
+    }
+    if (length(featuers_list[["annotgeom"]])) {
+        lrs <- localResults(sfe, sample_id, type, features_list[["annotgeom"]],
+                            annotGeometryName = annotGeometryName)
+        values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)
+    }
+    if (cbind_all) {
+        values <- .cbind_all(values)
     }
     values
 }
