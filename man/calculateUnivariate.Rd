@@ -186,7 +186,8 @@ parallelized with the argument \code{BPPARAM}. For genes, if the column
 "symbol" is present in \code{rowData} and the row names of the SFE object
 are Ensembl IDs, then the gene symbol can be used and converted to IDs
 behind the scene. However, if one symbol matches multiple IDs, a warning
-will be given and the first match will be used.}
+will be given and the first match will be used. Internally, the results are
+always stored by the Ensembl ID rather than symbol.}
 
 \item{colGraphName}{Name of the listw graph in the SFE object that
 corresponds to entities represented by columns of the gene count matrix.
