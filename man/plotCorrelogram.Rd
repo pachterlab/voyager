@@ -94,12 +94,14 @@ error bars are twice the standard deviation of the estimated Moran's I value.
 library(SpatialFeatureExperiment)
 library(SFEData)
 library(bluster)
+library(scater)
 sfe <- McKellarMuscleData("small")
+sfe <- logNormCounts(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 inds <- c(1,3,4,5)
 features <- rownames(sfe)[inds]
-sfe <- runCorrelogram(sfe, features = features, exprs_values = "counts",
-                      order = 5)
+sfe <- runUnivariate(sfe, type = "sp.correlogram", features = features,
+                     exprs_values = "counts", order = 5)
 clust <- clusterCorrelograms(sfe, features = features,
                              BLUSPARAM = KmeansParam(2))
 # Color by features

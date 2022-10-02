@@ -130,7 +130,7 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
   } else out <- out[[1]]
   if (show_symbol && any(features %in% rownames(sfe))) {
       ind <- features %in% rownames(sfe)
-      features[ind] <- rowData(sfe)[featurs[ind], "symbol"]
+      features[ind] <- rowData(sfe)[features[ind], "symbol"]
   }
   out
 }

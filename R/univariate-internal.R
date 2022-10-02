@@ -244,6 +244,7 @@
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, include_self = FALSE, ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        features <- .symbol2id(x, features)
         for (s in sample_id) {
             out <- calculateUnivariate(x, type, features, colGraphName, s,
                                        exprs_values, BPPARAM, zero.policy,

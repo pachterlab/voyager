@@ -129,12 +129,12 @@
 #' library(SingleCellExperiment)
 #' library(SFEData)
 #' library(bluster)
+#' library(scater)
 #' sfe <- McKellarMuscleData("full")
+#' sfe <- sfe[,colData(sfe)$in_tissue]
+#' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Compute Moran plot for vector or matrix
-#' foo <- calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-#' # Add results to rowData, features are genes
-#' sfe <- runMoranPlot(sfe, features = "Myh1", exprs_values = "counts")
+#' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
 #' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
 #' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[,1])
 moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
@@ -146,7 +146,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     use_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
-    if (use_geometry) features <- .symbol2id(sfe, features)
+    if (!use_geometry) feature <- .symbol2id(sfe, feature)
     mp <- localResult(sfe, type = "moran.plot", feature = feature,
                       sample_id = sample_id, colGeometryName = colGeometryName,
                       annotGeometryName = annotGeometryName)
@@ -295,12 +295,14 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
 #' library(bluster)
+#' library(scater)
 #' sfe <- McKellarMuscleData("small")
+#' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' inds <- c(1,3,4,5)
 #' features <- rownames(sfe)[inds]
-#' sfe <- runCorrelogram(sfe, features = features, exprs_values = "counts",
-#'                       order = 5)
+#' sfe <- runUnivariate(sfe, type = "sp.correlogram", features = features,
+#'                      exprs_values = "counts", order = 5)
 #' clust <- clusterCorrelograms(sfe, features = features,
 #'                              BLUSPARAM = KmeansParam(2))
 #' # Color by features
@@ -468,7 +470,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' sfe <- colDataMoranMC(sfe, "nCounts", nsim = 100)
+#' sfe <- colDataUnivariate(sfe, type = "moran.mc", "nCounts", nsim = 100)
 #' plotMoranMC(sfe, "nCounts")
 plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,

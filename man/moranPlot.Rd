@@ -86,12 +86,12 @@ library(SpatialFeatureExperiment)
 library(SingleCellExperiment)
 library(SFEData)
 library(bluster)
+library(scater)
 sfe <- McKellarMuscleData("full")
+sfe <- sfe[,colData(sfe)$in_tissue]
+sfe <- logNormCounts(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-# Compute Moran plot for vector or matrix
-foo <- calculateMoranPlot(colData(sfe)$nCounts, listw = colGraph(sfe, "visium"))
-# Add results to rowData, features are genes
-sfe <- runMoranPlot(sfe, features = "Myh1", exprs_values = "counts")
+sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
 clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
 moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[,1])
 }
