@@ -151,13 +151,16 @@ rowFeatureData <- function(sfe) {
     features_assay <- localResultFeatures(sfe, type) # includes colData
     features_assay <- intersect(features_assay, features)
     if (!is.null(colGeometryName)) {
-        features_colgeom <- localResultFeatures(sfe, type,
-                                                colGeometryName = colGeometryName)
+        # Because colGeometryName is also specified for plotting
+        features_colgeom <- tryCatch(localResultFeatures(sfe, type,
+                                         colGeometryName = colGeometryName),
+                 error = function(e) NULL)
         features_colgeom <- intersect(features_colgeom, features)
     } else features_colgeom <- NULL
     if (!is.null(annotGeometryName)) {
-        features_annotgeom <- localResultFeatures(sfe, type,
-                                                  annotGeometryName = annotGeometryName)
+        features_annotgeom <- tryCatch(localResultFeatures(sfe, type,
+                                         annotGeometryName = annotGeometryName),
+                 error = function(e) NULL)
         features_annotgeom <- intersect(features_annotgeom, features)
     } else features_annotgeom <- NULL
     out <- list(assay = features_assay,
@@ -178,13 +181,13 @@ rowFeatureData <- function(sfe) {
             l[,attribute]
         }
     })
-    out
+    data.frame(out)
 }
 
 .get_localResult_values <- function(sfe, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
-                                    cbind_all = TRUE) {
+                                    cbind_all = TRUE, show_symbol = TRUE) {
     features_list <- .check_features_lr(sfe, type, features, sample_id,
                                         colGeometryName, annotGeometryName)
     if (is.null(attribute)) {
@@ -202,6 +205,10 @@ rowFeatureData <- function(sfe) {
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
         lrs <- localResults(sfe, sample_id, type, features_list[["assay"]])
+        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
+            ind <- names(lrs) %in% rownames(sfe)
+            names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], "symbol"]
+        }
         values[["assay"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["colgeom"]])) {
@@ -209,7 +216,7 @@ rowFeatureData <- function(sfe) {
                             colGeometryName = colGeometryName)
         values[["colgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
-    if (length(featuers_list[["annotgeom"]])) {
+    if (length(features_list[["annotgeom"]])) {
         lrs <- localResults(sfe, sample_id, type, features_list[["annotgeom"]],
                             annotGeometryName = annotGeometryName)
         values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)

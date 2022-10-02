@@ -13,7 +13,7 @@
 #' \describe{
 #' \item{\code{localmoran} and \code{localmoran_perm}}{\code{Ii}, local Moran's
 #' I statistic at each location.}
-#' \item{\code{localC_perm}{\code{localC}, the local Geary C statistic at each
+#' \item{\code{localC_perm}}{\code{localC}, the local Geary C statistic at each
 #' location.}
 #' \item{\code{localG} and \code{localG_perm}}{\code{localG}, the local
 #' Getis-Ord Gi or Gi* statistic. If \code{include_self = TRUE} when
@@ -62,10 +62,12 @@
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
+#' library(scater)
 #' sfe <- McKellarMuscleData("small")
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' feature_use <- rownames(sfe)[1]
-#' sfe <- runUnivariate(sfe, "localmoran", feature_use, exprs_values = "counts")
+#' sfe <- logNormCounts(sfe)
+#' sfe <- runUnivariate(sfe, "localmoran", feature_use)
 #' # Which types of results are available?
 #' localResultNames(sfe)
 #' # Which features for localmoran?
@@ -76,16 +78,25 @@
 #'                 colGeometryName = "spotPoly")
 #'
 #' # For annotGeometry
-#' annotGraph(sfe, "tri2nb_myo") <-
-#'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
+#' # Make sure it's type POLYGON
+#' annotGeometry(sfe, "myofiber_simplified") <-
+#'     st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
+#' annotGraph(sfe, "poly2nb_myo") <-
+#'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
+#'                          method = "poly2nb", zero.policy = TRUE)
 #' sfe <- annotGeometryUnivariate(sfe, "localmoran", features = "area",
-#'                                annotGraphName = "tri2nb_myo")
+#'                                annotGraphName = "poly2nb_myo",
+#'                                annotGeometryName = "myofiber_simplified",
+#'                                zero.policy = TRUE)
 #' plotLocalResult(sfe, "localmoran", "area", "Ii",
 #'                 annotGeometryName = "myofiber_simplified",
 #'                 size = 0.3, color = "cyan")
+#' plotLocalResult(sfe, "localmoran", "area", "Z.Ii",
+#'                 annotGeometryName = "myofiber_simplified")
 #' # don't use annot_* arguments when annotGeometry is plotted without colGeometry
-plotLocalResult <- function(sfe, type, features, attribute = NULL,
+plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
+                            ncol = NULL, ncol_sample = NULL,
                             annot_aes = list(), annot_fixed = list(),
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
@@ -121,6 +132,6 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
                             size, shape, linetype, alpha,
                             color, fill, ncol, ncol_sample, divergent,
                             diverge_center, annot_divergent = FALSE,
-                            annot_diverge_center = NULL)
+                            annot_diverge_center = NULL, ...)
     }
 }
