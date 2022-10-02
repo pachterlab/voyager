@@ -10,6 +10,7 @@ plotColGraph(
   colGraphName = 1L,
   colGeometryName = NULL,
   sample_id = NULL,
+  weights = FALSE,
   segment_size = 0.5,
   geometry_size = 0.5,
   ncol = NULL
@@ -20,6 +21,7 @@ plotAnnotGraph(
   annotGraphName = 1L,
   annotGeometryName = 1L,
   sample_id = NULL,
+  weights = FALSE,
   segment_size = 0.5,
   geometry_size = 0.5,
   ncol = NULL
@@ -39,6 +41,9 @@ frames associated with cells/spots.}
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
 for each sample.}
+
+\item{weights}{Whether to plot weights. If \code{TRUE}, then transparency
+(alpha) of the segments will represent edge weights.}
 
 \item{segment_size}{Thickness of the segments that represent graph edges.}
 
