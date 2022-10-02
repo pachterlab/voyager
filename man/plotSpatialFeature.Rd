@@ -20,7 +20,6 @@ plotSpatialFeature(
   diverge_center = NULL,
   annot_divergent = FALSE,
   annot_diverge_center = NULL,
-  only_plot_expressed = FALSE,
   size = 0,
   shape = 16,
   linetype = 1,
@@ -88,9 +87,6 @@ case it's different.}
 
 \item{annot_diverge_center}{Just as \code{diverge_center}, but for the
 annotGeometry in case it's different.}
-
-\item{only_plot_expressed}{Logical, whether to only plot values > 0. This
-argument is only used when all values are non-negative.}
 
 \item{size}{Fixed size of points or width of lines, including outlines of
 polygons. For polygons, this defaults to 0, meaning no outlines. For points
