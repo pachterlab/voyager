@@ -18,7 +18,7 @@ clusterMoranPlot(
 \item{sfe}{A \code{SpatialFeatureExperiment} object with Moran plot computed
 for the feature of interest. If the Moran plot for that feature has not
 been computed for that feature in this sample_id, it will be calculated and
-stored in \code{rowData}. See \code{\link{calculateMoranPlot}}.}
+stored in \code{rowData}. See \code{\link{calculateUnivariate}}.}
 
 \item{features}{Features whose Moran plot are to be cluster. Features whose
 Moran plots have not been computed will be skipped, with a warning.}
@@ -33,6 +33,9 @@ for each sample.}
 
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
+
+\item{show_symbol}{Logical, whether to show gene symbol instead when Ensembl
+ID is supplied.}
 }
 \value{
 A \code{DataFrame} each column of which is a factor for cluster

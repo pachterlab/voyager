@@ -18,7 +18,6 @@ plotCorrelogram(
   p_adj_method = "BH",
   divergent = FALSE,
   diverge_center = NULL,
-  name = paste("sp.correlogram", method, sep = "_"),
   show_symbol = TRUE
 )
 }
@@ -82,7 +81,7 @@ A ggplot object.
 }
 \description{
 Use \code{ggplot2} to plot correlograms computed by
-\code{\link{runCorrelogram}}, pulling results from \code{rowData}.
+\code{\link{runUnivariate}}, pulling results from \code{rowData}.
 Correlograms of multiple genes with error bars can be plotted, and they can
 be colored by any numeric or categorical column in \code{rowData} or a vector
 with the same length as \code{nrow} of the SFE object. The coloring is useful

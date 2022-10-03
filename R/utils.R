@@ -97,11 +97,13 @@ rowFeatureData <- function(sfe) {
   int_metadata(sfe)$rowFeatureData
 }
 
-.cbind_all <- function(values) {
+.cbind_all <- function(values, features_list) {
     if (length(values) > 1L) {
         if (length(features_list[["annotgeom"]]))
             warning("annotGeometry values cannot be cbinded to other values.")
-        values <- do.call(cbind, values[c("assay", "coldata", "colgeom")])
+        values <-  values[c("assay", "coldata", "colgeom")]
+        values <- values[!vapply(values, is.null, FUN.VALUE = logical(1))]
+        values <- do.call(cbind, values)
     } else values <- values[[1]]
     values
 }
@@ -141,14 +143,16 @@ rowFeatureData <- function(sfe) {
                                                       drop = FALSE]
     }
     if (cbind_all) {
-        values <- .cbind_all(values)
+        values <- .cbind_all(values, features_list)
     }
     values
 }
 
+#' @importFrom SpatialFeatureExperiment localResultFeatures
 .check_features_lr <- function(sfe, type, features, sample_id, colGeometryName,
                                annotGeometryName) {
     features_assay <- localResultFeatures(sfe, type) # includes colData
+    features <- .symbol2id(sfe, features)
     features_assay <- intersect(features_assay, features)
     if (!is.null(colGeometryName)) {
         # Because colGeometryName is also specified for plotting
@@ -184,6 +188,18 @@ rowFeatureData <- function(sfe) {
     data.frame(out)
 }
 
+.get_default_attribute <- function(type) {
+    switch(type,
+           localmoran = "Ii",
+           localmoran_perm = "Ii",
+           localC_perm = "localC",
+           localG = "localG",
+           localG_perm = "localG",
+           LOSH = "Hi",
+           LOSH.mc = "Hi",
+           moran.plot = "wx")
+}
+
 .get_localResult_values <- function(sfe, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
@@ -191,15 +207,7 @@ rowFeatureData <- function(sfe) {
     features_list <- .check_features_lr(sfe, type, features, sample_id,
                                         colGeometryName, annotGeometryName)
     if (is.null(attribute)) {
-        attribute <- switch(type,
-                            localmoran = "Ii",
-                            localmoran_perm = "Ii",
-                            localC_perm = "localC",
-                            localG = "localG",
-                            localG_perm = "localG",
-                            LOSH = "Hi",
-                            LOSH.mc = "Hi",
-                            moran.plot = "wx")
+        attribute <- .get_default_attribute(type)
     }
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
@@ -222,7 +230,7 @@ rowFeatureData <- function(sfe) {
         values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (cbind_all) {
-        values <- .cbind_all(values)
+        values <- .cbind_all(values, features_list)
     }
     values
 }
@@ -298,4 +306,20 @@ rowFeatureData <- function(sfe) {
             " don't have the requested metadata.")
   }
   out
+}
+
+.local_type2title <- function(type, attribute) {
+    if (is.null(attribute)) attribute <- .get_default_attribute(type)
+    base <- switch (type,
+                    localmoran = "Local Moran's I",
+                    localmoran_perm = "Local Moran's I permutation testing",
+                    localC = "Local Geary's C",
+                    localC_perm = "Local Geary's C permutation testing",
+                    localG = "Getis-Ord Gi(*)",
+                    localG_perm = "Getis-Ord Gi(*) with permutation testing",
+                    LOSH = "Local spatial heteroscedasticity",
+                    LOSH.mc = "Local spatial heteroscedasticity permutation testing",
+                    moran.plot = "Moran plot"
+    )
+    paste0(base, " (", attribute, ")")
 }

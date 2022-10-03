@@ -46,10 +46,16 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
     }
     sample_ind <- colData(sfe)$sample_id %in% sample_id
     values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind,dims_use])
-    .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
-                        ncol_sample, annotGeometryName,
-                        annot_aes, annot_fixed, aes_use,
-                        divergent, diverge_center, annot_divergent,
-                        annot_diverge_center, size, shape, linetype,
-                        alpha, color, fill, show_symbol = FALSE,...)
+    out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
+                               ncol_sample, annotGeometryName,
+                               annot_aes, annot_fixed, aes_use,
+                               divergent, diverge_center, annot_divergent,
+                               annot_diverge_center, size, shape, linetype,
+                               alpha, color, fill, show_symbol = FALSE,...)
+    if (is(out, "patchwork")) {
+        out <- out + plot_annotation(title = dimred)
+    } else {
+        out <- out + ggtitle(dimred)
+    }
+    out
 }

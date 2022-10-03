@@ -37,7 +37,7 @@
 #'   of results have already been calculated.
 #' @param features Character vector of vectors. To see which features have the
 #'   results of a given type, see
-#'   \code{\link[SpatialFeatureExperiment]{localResultFeature}}.
+#'   \code{\link[SpatialFeatureExperiment]{localResultFeatures}}.
 #' @param attribute Which field in the local results of the type and features.
 #'   If the result of each feature is a vector, the this argument is ignored.
 #'   But if the result is a data frame or a matrix, then this is the column name
@@ -58,6 +58,8 @@
 #'   arguments for aesthetics as if it's for \code{colGeometry}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
+#' @importFrom ggplot2 ggtitle
+#' @importFrom patchwork plot_annotation
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
@@ -80,7 +82,7 @@
 #' # For annotGeometry
 #' # Make sure it's type POLYGON
 #' annotGeometry(sfe, "myofiber_simplified") <-
-#'     st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
+#'     sf::st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
 #' annotGraph(sfe, "poly2nb_myo") <-
 #'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
 #'                          method = "poly2nb", zero.policy = TRUE)
@@ -103,13 +105,14 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = N
                             annot_divergent = FALSE,
                             annot_diverge_center = NULL,
                             size = 0, shape = 16, linetype = 1, alpha = 1,
-                            color = NA, fill = "gray80",
+                            color = NA, fill = "gray80", show_symbol = TRUE,
                             ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_localResult_values(sfe, type, features, attribute,
                                       sample_id, colGeometryName,
-                                      annotGeometryName)
+                                      annotGeometryName,
+                                      show_symbol = show_symbol)
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
     # without specifying colGeometries.
@@ -117,21 +120,30 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = N
     # For now all panels must all use the same colGeometry
     # or the same annotGeometry.
     if (!is.null(colGeometryName)) {
-        .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
-                            ncol_sample, annotGeometryName, annot_aes,
-                            annot_fixed, aes_use, divergent,
-                            diverge_center, annot_divergent,
-                            annot_diverge_center, size, shape, linetype,
-                            alpha, color, fill, show_symbol,...)
+        out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id,
+                                   ncol,
+                                   ncol_sample, annotGeometryName, annot_aes,
+                                   annot_fixed, aes_use, divergent,
+                                   diverge_center, annot_divergent,
+                                   annot_diverge_center, size, shape, linetype,
+                                   alpha, color, fill, show_symbol,...)
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
     } else {
         df <- annotGeometry(sfe, annotGeometryName, sample_id)
-        .wrap_spatial_plots(df, annot_df = NULL, type_annot = NULL, values, aes_use,
-                            annot_aes = list(), annot_fixed = list(),
-                            size, shape, linetype, alpha,
-                            color, fill, ncol, ncol_sample, divergent,
-                            diverge_center, annot_divergent = FALSE,
-                            annot_diverge_center = NULL, ...)
+        out <- .wrap_spatial_plots(df, annot_df = NULL, type_annot = NULL,
+                                   values, aes_use,
+                                   annot_aes = list(), annot_fixed = list(),
+                                   size, shape, linetype, alpha,
+                                   color, fill, ncol, ncol_sample, divergent,
+                                   diverge_center, annot_divergent = FALSE,
+                                   annot_diverge_center = NULL, ...)
     }
+    # Add title to not to confuse with gene expression
+    if (is(out, "patchwork")) {
+        out <- out + plot_annotation(title = .local_type2title(type, attribute))
+    } else {
+        out <- out + ggtitle(.local_type2title(type, attribute))
+    }
+    out
 }

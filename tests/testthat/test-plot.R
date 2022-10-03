@@ -7,8 +7,8 @@ library(scater)
 library(Matrix)
 # Toy example
 sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
-sfe <- runMoranPlot(sfe, c("B", "H"), "visium", sample_id = "sample01",
-                    exprs_values = "counts")
+sfe <- runUnivariate(sfe, type = "moran.plot", c("B", "H"), "visium",
+                     sample_id = "sample01", exprs_values = "counts")
 
 test_that("Everything plotSpatialFeature", {
   #testthat::skip("Skipping plots that require sf")
@@ -68,19 +68,64 @@ test_that("Everything plotSpatialFeature", {
 library(SFEData)
 sfe_muscle <- McKellarMuscleData("small")
 colGraph(sfe_muscle, "visium") <- findVisiumGraph(sfe_muscle)
-# Actually, the toy example only has one gene.
+sfe_muscle <- logNormCounts(sfe_muscle)
+sfe_muscle <- runUnivariate(sfe_muscle, type = "localmoran", c("Myh1", "Myh2"),
+                            "visium")
+
+annotGeometry(sfe_muscle, "myofiber_simplified") <-
+    sf::st_buffer(annotGeometry(sfe_muscle, "myofiber_simplified"), 0)
+annotGraph(sfe_muscle, "poly2nb_myo") <-
+    findSpatialNeighbors(sfe_muscle, type = "myofiber_simplified", MARGIN = 3,
+                         method = "poly2nb", zero.policy = TRUE)
+sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localmoran", features = "area",
+                               annotGraphName = "poly2nb_myo",
+                               annotGeometryName = "myofiber_simplified",
+                               zero.policy = TRUE)
+test_that("Everything plotLocalResult", {
+    expect_doppelganger("Plot localmoran Ii for gene", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0)
+    })
+    expect_doppelganger("Plot Ii for gene on top of an annotation", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1",
+                        colGeometryName = "spotPoly",
+                        annotGeometryName = "tissueBoundary", divergent = TRUE,
+                        diverge_center = 0)
+    })
+    expect_doppelganger("Plot another column", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1", attribute = "Z.Ii",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0)
+    })
+    expect_doppelganger("Plot a categorical attribute", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1", attribute = "mean",
+                        colGeometryName = "spotPoly")
+    })
+    expect_doppelganger("Plot 2 features", {
+        plotLocalResult(sfe_muscle, "localmoran", c("Myh1", "Myh2"),
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0)
+    })
+    expect_doppelganger("Plot Ii for annotGeometry alone", {
+        plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
+                        annotGeometryName = "myofiber_simplified",
+                        size = 0.3, color = "cyan", divergent = TRUE,
+                        diverge_center = 0)
+    })
+})
+
 feature_use <- "Myh1"
-sfe_muscle <- runMoranPlot(sfe_muscle, colGraphName = "visium",
-                           features = feature_use, exprs_values = "counts")
-sfe_muscle <- colDataMoranPlot(sfe_muscle, colGraphName = "visium",
-                               features = "nCounts")
+sfe_muscle <- runUnivariate(sfe_muscle, type = "moran.plot",
+                            colGraphName = "visium", features = feature_use,
+                            exprs_values = "counts")
+sfe_muscle <- colDataUnivariate(sfe_muscle, type = "moran.plot",
+                                colGraphName = "visium", features = "nCounts")
 set.seed(29)
-colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle), replace = TRUE),
+colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
+                                                replace = TRUE),
                                          levels = as.character(1:5))
 
-# Problem: when you add new column to colData, the attributes are gone.
-# This is a property of S4 DataFrame
-# Maybe reimplement the featureData thing later.
 test_that("moranPlot, not filled, no color_by", {
   expect_warning(moranPlot(sfe, "B", "visium1", "sample01"),
                  "Too few points")
@@ -116,20 +161,24 @@ test_that("plotColGraph", {
 })
 
 sample_use <- "Vis5A"
-sfe_muscle <- runCorrelogram(sfe_muscle, features = feature_use,
-                           colGraphName = "visium", sample_id = sample_use,
-                           order = 5, zero.policy = TRUE, exprs_values = "counts")
-sfe_muscle <- runCorrelogram(sfe_muscle, features = feature_use,
-                           colGraphName = "visium", sample_id = sample_use,
-                           order = 5, zero.policy = TRUE,
-                           method = "corr", exprs_values = "counts")
-sfe_muscle <- runCorrelogram(sfe_muscle, features = feature_use,
-                           colGraphName = "visium", sample_id = sample_use,
-                           order = 5, zero.policy = TRUE,
-                           method = "C", exprs_values = "counts")
-sfe_muscle <- colDataCorrelogram(sfe_muscle, colGraphName = "visium", features = "nCounts",
-                               sample_id = sample_use, order = 5,
-                               zero.policy = TRUE)
+sfe_muscle <- runUnivariate(sfe_muscle, type = "sp.correlogram",
+                            features = feature_use, colGraphName = "visium",
+                            sample_id = sample_use,
+                            order = 5, zero.policy = TRUE, exprs_values = "counts")
+sfe_muscle <- runUnivariate(sfe_muscle, type = "sp.correlogram",
+                            features = feature_use, colGraphName = "visium",
+                            sample_id = sample_use, order = 5,
+                            zero.policy = TRUE, method = "corr",
+                            exprs_values = "counts")
+sfe_muscle <- runUnivariate(sfe_muscle, type = "sp.correlogram",
+                            features = feature_use, colGraphName = "visium",
+                            sample_id = sample_use, order = 5,
+                            zero.policy = TRUE, method = "C",
+                            exprs_values = "counts")
+sfe_muscle <- colDataUnivariate(sfe_muscle, type = "sp.correlogram",
+                                colGraphName = "visium", features = "nCounts",
+                                sample_id = sample_use, order = 5,
+                                zero.policy = TRUE)
 test_that("plotCorrelogram", {
   expect_doppelganger("plotCorrelogram, one gene, I",
                       plotCorrelogram(sfe_muscle, feature_use, sample_use))
@@ -154,7 +203,6 @@ test_that("plotCorrelogram", {
 # Need this because the spe toy dataset only has 1 gene
 # These functions are not specific to SFE, but I wrote them because I'm not
 # satisfied with existing plotting functions.
-logcounts(sfe_muscle) <- log1p(sweep(counts(sfe_muscle), 2, colData(sfe_muscle)$nCounts, "/")*1e5)
 sfe_muscle <- runPCA(sfe_muscle, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
 
 test_that("ElbowPlot for PCA", {
@@ -170,4 +218,12 @@ test_that("plotDimLoadings for PCA", {
                       plotDimLoadings(sfe_muscle, dims = 1:2))
   expect_doppelganger("plotDimLoadings, not balanced",
                       plotDimLoadings(sfe_muscle, 1:2, balanced = FALSE))
+})
+
+test_that("Everything spatialReducedDim", {
+    expect_doppelganger("Plot PCs in space", {
+        spatialReducedDim(sfe_muscle, "PCA", 2, "spotPoly",
+                          annotGeometryName = "tissueBoundary",
+                          divergent = TRUE, diverge_center = 0)
+    })
 })

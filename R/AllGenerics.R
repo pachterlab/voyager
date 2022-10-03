@@ -4,8 +4,8 @@ setGeneric("calculateUnivariate", function(x, ...) standardGeneric("calculateUni
 #' @export
 setGeneric("calculateMoransI", function(x, ...) standardGeneric("calculateMoransI"))
 
-#' @export
-setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
+# @export
+#setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
 
-#' @export
-setGeneric("calculateMultivariate", function(x, ...) standardGeneric("calculateMultivariate"))
+# @export
+#setGeneric("calculateMultivariate", function(x, ...) standardGeneric("calculateMultivariate"))

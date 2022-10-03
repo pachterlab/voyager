@@ -115,6 +115,9 @@
 #'   determine which points are singletons to plot differently on this plot.
 #' @param contour_color Color of the point density contours, which can be
 #'   changed so the contours stand out from the points.
+#' @param show_symbol Logical, whether to show human readable gene symbol on the
+#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
@@ -142,7 +145,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      name = "moran.plot", show_symbol = TRUE, ...) {
+                      show_symbol = TRUE, ...) {
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     use_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
@@ -255,7 +258,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' Plot correlogram
 #'
 #' Use \code{ggplot2} to plot correlograms computed by
-#' \code{\link{runCorrelogram}}, pulling results from \code{rowData}.
+#' \code{\link{runUnivariate}}, pulling results from \code{rowData}.
 #' Correlograms of multiple genes with error bars can be plotted, and they can
 #' be colored by any numeric or categorical column in \code{rowData} or a vector
 #' with the same length as \code{nrow} of the SFE object. The coloring is useful
@@ -317,13 +320,13 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            name = paste("sp.correlogram", method, sep = "_"),
                             show_symbol = TRUE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L)
         facet_by <- match.arg(facet_by)
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
+    name <- paste("sp.correlogram", method, sep = "_")
     df <- lapply(sample_id, function(s) {
         o <- .get_plot_correlogram_df(sfe, features, s, method, color_by,
                                       colGeometryName, annotGeometryName, name,
@@ -475,8 +478,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 plotMoranMC <- function(sfe, features, sample_id = NULL,
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
-                        name = "moran.mc", ptype = c("density", "histogram",
-                                                     "freqpoly"),
+                        ptype = c("density", "histogram", "freqpoly"),
                         show_symbol = TRUE, ...) {
     ptype <- match.arg(ptype)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -484,6 +486,7 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
         facet_by <- match.arg(facet_by)
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
+    name <- "moran.mc"
     group_sample <- !facet_sample && length(sample_id) > 1L
 
     dens_geom <- switch(ptype,

@@ -164,10 +164,17 @@ assay.}
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
 object.}
 
+\item{type}{An integer specifying the index or string specifying the name of
+the *Geometry to query or replace. If missing, then the first item in the
+*Geometries will be returned or replaced.}
+
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized.}
 
 \item{zero.policy}{default NULL, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
+
+\item{returnDF}{Logical, when the results are not added to a SFE object,
+whether the results should be formatted as a \code{DataFrame}.}
 
 \item{...}{Other arguments passed to S4 method (for convenience wrappers like
 \code{calculateMoransI}) or method used to compute metrics as specified by
@@ -201,6 +208,10 @@ for each sample.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
+
+\item{include_self}{Logical, whether the spatial neighborhood graph should
+include edges from each location to itself. This is for Getis-Ord Gi* as in
+\code{localG} and \code{localG_perm}, not to be used for any other method.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -256,8 +267,9 @@ frame called \code{featureData}, which is a DataFrame analogous to
 function.
 
 Local results are stored in the field \code{localResults} field of the SFE
-object, which can be accessed with \code{\link[SpatialFeatureExperiment]{localResults}}
-or \code{\link[SpatialFeatureExperiment]{localResult}}.
+object, which can be accessed with
+\code{\link[SpatialFeatureExperiment]{localResults}} or
+\code{\link[SpatialFeatureExperiment]{localResult}}.
 }
 \examples{
 library(SpatialFeatureExperiment)

@@ -33,10 +33,12 @@
 #' function.
 #'
 #' Local results are stored in the field \code{localResults} field of the SFE
-#' object, which can be accessed with \code{\link[SpatialFeatureExperiment]{localResults}}
-#' or \code{\link[SpatialFeatureExperiment]{localResult}}.
+#' object, which can be accessed with
+#' \code{\link[SpatialFeatureExperiment]{localResults}} or
+#' \code{\link[SpatialFeatureExperiment]{localResult}}.
 #'
 #' @inheritParams spdep::moran
+#' @inheritParams SpatialFeatureExperiment::localResults
 #' @param x A numeric matrix whose rows are features/genes, or a
 #'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 #'   assay.
@@ -79,6 +81,11 @@
 #' @param sample_id Sample(s) in the SFE object whose cells/spots to use. Can be
 #'   "all" to compute metric for all samples; the metric is computed separately
 #'   for each sample.
+#' @param returnDF Logical, when the results are not added to a SFE object,
+#'   whether the results should be formatted as a \code{DataFrame}.
+#' @param include_self Logical, whether the spatial neighborhood graph should
+#'   include edges from each location to itself. This is for Getis-Ord Gi* as in
+#'   \code{localG} and \code{localG_perm}, not to be used for any other method.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like
@@ -156,7 +163,7 @@ setMethod("calculateUnivariate", "ANY",
                    zero.policy = NULL, returnDF = TRUE, ...) {
               type <- match.arg(type)
               # I wrote a thin wrapper to make the argument names consistent
-              if (type == "sp.correlogram") fun <- .sp.correpogram
+              if (type == "sp.correlogram") fun <- .sp.correlogram
               else fun <- match.fun(type)
               local <- .is_local(type)
               obscure_args <- switch(type,
@@ -164,7 +171,7 @@ setMethod("calculateUnivariate", "ANY",
                                      geary = c("n", "n1", "S0"))
               defaults <- .obscure_arg_defaults(listw, type)
               other_args <- list(...)
-              defaults_use <- defaults[setdiff(names(defaults), other_args)]
+              defaults_use <- defaults[setdiff(names(defaults), names(other_args))]
               all_args <- list(x = x, listw = listw, fun = fun,
                                BPPARAM = BPPARAM, zero.policy = zero.policy)
               all_args <- c(all_args, other_args, defaults_use)

@@ -17,7 +17,6 @@ moranPlot(
   filled = FALSE,
   divergent = FALSE,
   diverge_center = NULL,
-  name = "moran.plot",
   show_symbol = TRUE,
   ...
 )

@@ -230,7 +230,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_fixed, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, show_symbol,...) {
+                                alpha, color, fill,...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
@@ -369,7 +369,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                       annot_fixed, aes_use, divergent,
                       diverge_center, annot_divergent,
                       annot_diverge_center, size, shape, linetype,
-                      alpha, color, fill, show_symbol,...)
+                      alpha, color, fill, ...)
 }
 
 .get_graph_df <- function(sfe, MARGIN, sample_id, graph_name, geometry) {
@@ -480,9 +480,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' ag <- ag[!st_is_empty(ag),]
 #' annotGeometry(sfe, "myofiber_simplified") <- ag
 #' annotGraph(sfe, "myofibers") <-
-#'   findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
+#'   findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
+#'                        method = "tri2nb", dist_type = "idw")
 #' plotAnnotGraph(sfe, annotGraphName = "myofibers",
-#'                annotGeometryName = "myofiber_simplified")
+#'                annotGeometryName = "myofiber_simplified",
+#'                weights = TRUE)
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
                          sample_id = NULL, weights = FALSE, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL) {

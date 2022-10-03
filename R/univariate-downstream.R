@@ -66,12 +66,14 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
 #' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
 #'   been computed for that feature in this sample_id, it will be calculated and
-#'   stored in \code{rowData}. See \code{\link{calculateMoranPlot}}.
+#'   stored in \code{rowData}. See \code{\link{calculateUnivariate}}.
 #' @param colGeometryName Name of colGeometry from which to look for features.
 #' @param annotGeometryName Name of annotGeometry from which to look for
 #'   features.
 #' @param features Features whose Moran plot are to be cluster. Features whose
 #'   Moran plots have not been computed will be skipped, with a warning.
+#' @param show_symbol Logical, whether to show gene symbol instead when Ensembl
+#'   ID is supplied.
 #' @return A \code{DataFrame} each column of which is a factor for cluster
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
@@ -128,7 +130,8 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
       }
     }
   } else out <- out[[1]]
-  if (show_symbol && any(features %in% rownames(sfe))) {
+  if (show_symbol && any(features %in% rownames(sfe)) &&
+      "symbol" %in% names(rowData(sfe))) {
       ind <- features %in% rownames(sfe)
       features[ind] <- rowData(sfe)[features[ind], "symbol"]
   }

@@ -12,7 +12,6 @@ plotMoranMC(
   ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
-  name = "moran.mc",
   ptype = c("density", "histogram", "freqpoly"),
   show_symbol = TRUE,
   ...

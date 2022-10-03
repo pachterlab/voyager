@@ -27,6 +27,7 @@ plotLocalResult(
   alpha = 1,
   color = NA,
   fill = "gray80",
+  show_symbol = TRUE,
   ...
 )
 }
@@ -39,7 +40,7 @@ of results have already been calculated.}
 
 \item{features}{Character vector of vectors. To see which features have the
 results of a given type, see
-\code{\link[SpatialFeatureExperiment]{localResultFeature}}.}
+\code{\link[SpatialFeatureExperiment]{localResultFeatures}}.}
 
 \item{attribute}{Which field in the local results of the type and features.
 If the result of each feature is a vector, the this argument is ignored.
@@ -115,6 +116,10 @@ specified or not applicable, or for \code{annotGeometry} if
 
 \item{fill}{Similar to \code{color}, but for fill.}
 
+\item{show_symbol}{Logical, whether to show human readable gene symbol on the
+plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
+be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
 \value{
@@ -188,7 +193,7 @@ plotLocalResult(sfe, "localmoran", feature_use, "Ii",
 # For annotGeometry
 # Make sure it's type POLYGON
 annotGeometry(sfe, "myofiber_simplified") <-
-    st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
+    sf::st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
 annotGraph(sfe, "poly2nb_myo") <-
     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
                          method = "poly2nb", zero.policy = TRUE)

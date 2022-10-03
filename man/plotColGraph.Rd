@@ -80,7 +80,9 @@ ag <- st_buffer(ag, 0)
 ag <- ag[!st_is_empty(ag),]
 annotGeometry(sfe, "myofiber_simplified") <- ag
 annotGraph(sfe, "myofibers") <-
-  findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3)
+  findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
+                       method = "tri2nb", dist_type = "idw")
 plotAnnotGraph(sfe, annotGraphName = "myofibers",
-               annotGeometryName = "myofiber_simplified")
+               annotGeometryName = "myofiber_simplified",
+               weights = TRUE)
 }

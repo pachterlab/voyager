@@ -19,7 +19,7 @@
     return(out)
 }
 
-.sp.correpogram <- function(x, listw, ...) {
+.sp.correlogram <- function(x, listw, ...) {
     sp.correlogram(neighbours = listw$neighbours, var = x, ...)
 }
 
