@@ -8,21 +8,32 @@
 # a feature is returned.
 .res2df <- function(out, type, local = FALSE, use_geometry = FALSE, ...) {
     if (local) {
-        fun_use <- if (type %in% c("localmoran", "localmoran_perm"))
+        fun_use <- if (type %in% c("localmoran", "localmoran_perm")) {
             .localmoran2df
-        else if (type %in% c("localG", "localG_perm")) .localG2df
-        else if (type == "localC_perm") .localCperm2df
-        else identity
+        } else if (type %in% c("localG", "localG_perm")) {
+            .localG2df
+        } else if (type == "localC_perm") {
+            .localCperm2df
+        } else {
+            identity
+        }
         out <- fun_use(out)
         out <- .value2df(out, use_geometry)
     } else {
-        fun_use <- if (type %in% c("moran", "geary")) .moran2df
-        else if (type %in% c("moran.mc", "geary.mc", "sp.mantel.mc", "EBImoran.mc",
-                             "lee.mc")) .mcsim2df
-        else if (type %in% c("moran.test", "geary.test", "globalG.test"))
+        fun_use <- if (type %in% c("moran", "geary")) {
+            .moran2df
+        } else if (type %in% c(
+            "moran.mc", "geary.mc", "sp.mantel.mc", "EBImoran.mc",
+            "lee.mc"
+        )) {
+            .mcsim2df
+        } else if (type %in% c("moran.test", "geary.test", "globalG.test")) {
             .htest2df
-        else if (type == "sp.correlogram") .correlogram2df
-        else .other2df
+        } else if (type == "sp.correlogram") {
+            .correlogram2df
+        } else {
+            .other2df
+        }
         out <- fun_use(out, type, ...)
     }
     out
@@ -55,12 +66,15 @@
     # When it's not also mc.sim
     names_use <- c("statistic", "p.value", "alternative", "data.name", "method")
     out <- lapply(out, function(o) {
-        o[names_use] <- lapply(o[names_use],
-                               function(n) {
-                                   if (is.matrix(n) && all(dim(n) == 1))
-                                       n <- as.vector(n)
-                                   n
-                               })
+        o[names_use] <- lapply(
+            o[names_use],
+            function(n) {
+                if (is.matrix(n) && all(dim(n) == 1)) {
+                    n <- as.vector(n)
+                }
+                n
+            }
+        )
         o <- c(o[names_use], as.list(o[["estimate"]]))
         DataFrame(unclass(o))
     })
@@ -73,8 +87,11 @@
 
 .correlogram2df <- function(out, name, ...) {
     other_args <- list(...)
-    if ("method" %in% names(other_args)) method <- other_args[["method"]]
-    else method <- "I" # My default set in .obscure_arg_defaults
+    if ("method" %in% names(other_args)) {
+        method <- other_args[["method"]]
+    } else {
+        method <- "I"
+    } # My default set in .obscure_arg_defaults
     name <- paste(name, method, sep = "_")
     if (method %in% c("I", "C")) {
         out <- lapply(out, function(o) {
@@ -115,7 +132,9 @@
             colnames(attr_mat)[1] <- type
             attr_mat
         })
-    } else out
+    } else {
+        out
+    }
 }
 
 .localG2df <- function(out) .attrmat2df(out, "internals", "localG")

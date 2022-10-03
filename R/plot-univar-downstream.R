@@ -2,20 +2,24 @@
                           color_by = NULL, plot_singletons = TRUE,
                           divergent = FALSE, diverge_center = NULL, ...) {
     if (!plot_singletons) {
-        mp <- mp[!is_singleton,]
+        mp <- mp[!is_singleton, ]
     }
     x <- wx <- is_inf <- NULL
     if (all(!is_singleton) && plot_singletons) plot_singletons <- FALSE
-    p <- ggplot(mp, aes(x=x, y=wx))
+    p <- ggplot(mp, aes(x = x, y = wx))
     if (plot_singletons) {
         # Need to use listw to check for singletons.
         p <- p +
-            geom_point(data = mp[is_singleton,], shape = 21, size = 5, fill = "gray",
-                       color = "black")
+            geom_point(
+                data = mp[is_singleton, ], shape = 21, size = 5, fill = "gray",
+                color = "black"
+            )
     }
     if (!is.null(color_by)) {
-        pal <- .get_pal(mp, list(color = color_by), option = 1,
-                        divergent = divergent, diverge_center = diverge_center)
+        pal <- .get_pal(mp, list(color = color_by),
+            option = 1,
+            divergent = divergent, diverge_center = diverge_center
+        )
         p <- p + pal
         pts <- geom_point(aes_string(shape = "is_inf", color = color_by))
     } else {
@@ -26,23 +30,27 @@
     # Unlikely in real data, but just in case
     # The error doesn't show up until the plot is built.
     p_test <- tryCatch(ggplot_build(p + stat_density2d(...)),
-                       error = function(e) {
-                           warning("Too few points for stat_density2d, not plotting contours.")
-                       },
-                       warning = function(w) {
-                           warning("Too few points for stat_density2d, not plotting contours.")
-                       })
-    if (is(p_test, "ggplot_built"))
+        error = function(e) {
+            warning("Too few points for stat_density2d, not plotting contours.")
+        },
+        warning = function(w) {
+            warning("Too few points for stat_density2d, not plotting contours.")
+        }
+    )
+    if (is(p_test, "ggplot_built")) {
         p <- p + geom_density2d(color = contour_color, ...)
+    }
     p <- p +
-        geom_smooth(formula=y ~ x, method="lm") +
-        geom_hline(yintercept=mean(mp$wx), lty=2, color = "gray") +
-        geom_vline(xintercept=mean(mp$x), lty=2, color = "gray") +
+        geom_smooth(formula = y ~ x, method = "lm") +
+        geom_hline(yintercept = mean(mp$wx), lty = 2, color = "gray") +
+        geom_vline(xintercept = mean(mp$x), lty = 2, color = "gray") +
         scale_shape_manual(values = c(1, 9)) +
         coord_equal() +
-        labs(x = feature,
-             y = paste("Spatially lagged", feature),
-             shape = "Influential")
+        labs(
+            x = feature,
+            y = paste("Spatially lagged", feature),
+            shape = "Influential"
+        )
     p
 }
 
@@ -50,38 +58,46 @@
                                  plot_singletons = TRUE, divergent = FALSE,
                                  diverge_center = NULL, ...) {
     if (!plot_singletons) {
-        mp <- mp[!is_singleton,]
+        mp <- mp[!is_singleton, ]
     }
     x <- wx <- is_inf <- NULL
-    p <- ggplot(mp, aes(x=x, y=wx)) +
+    p <- ggplot(mp, aes(x = x, y = wx)) +
         geom_density2d_filled(show.legend = FALSE, ...)
     if (plot_singletons) {
         p <- p +
-            geom_point(data = mp[is_singleton & mp$is_inf,], shape = 21, size = 5,
-                       fill = "blue", color = "cornflowerblue")
+            geom_point(
+                data = mp[is_singleton & mp$is_inf, ], shape = 21, size = 5,
+                fill = "blue", color = "cornflowerblue"
+            )
     }
-    mp_inf <- mp[mp$is_inf,]
+    mp_inf <- mp[mp$is_inf, ]
     if (!is.null(color_by)) {
-        pal <- .get_pal(mp_inf, list(color = color_by), option = 1,
-                        divergent = divergent, diverge_center = diverge_center)
+        pal <- .get_pal(mp_inf, list(color = color_by),
+            option = 1,
+            divergent = divergent, diverge_center = diverge_center
+        )
         p <- p + pal
-        pts <- geom_point(data = mp_inf, aes_string(color = color_by),
-                          shape = 9)
+        pts <- geom_point(
+            data = mp_inf, aes_string(color = color_by),
+            shape = 9
+        )
     } else {
         pts <- geom_point(data = mp_inf, shape = 9, color = "cornflowerblue")
     }
     p +
-        geom_smooth(formula=y ~ x, method="lm") +
-        geom_hline(yintercept=mean(mp$wx), lty=2, color = "cornflowerblue") +
-        geom_vline(xintercept=mean(mp$x), lty=2, color = "cornflowerblue") +
+        geom_smooth(formula = y ~ x, method = "lm") +
+        geom_hline(yintercept = mean(mp$wx), lty = 2, color = "cornflowerblue") +
+        geom_vline(xintercept = mean(mp$x), lty = 2, color = "cornflowerblue") +
         pts +
         scale_fill_viridis_d(option = "E") +
         coord_equal() +
         scale_x_continuous(expand = expansion()) +
         scale_y_continuous(expand = expansion()) +
-        labs(x = feature,
-             y = paste("Spatially lagged", feature),
-             shape = "Influential")
+        labs(
+            x = feature,
+            y = paste("Spatially lagged", feature),
+            shape = "Influential"
+        )
 }
 
 #' Use ggplot to plot the moran.plot results
@@ -134,12 +150,12 @@
 #' library(bluster)
 #' library(scater)
 #' sfe <- McKellarMuscleData("full")
-#' sfe <- sfe[,colData(sfe)$in_tissue]
+#' sfe <- sfe[, colData(sfe)$in_tissue]
 #' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
 #' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
-#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[,1])
+#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1])
 moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
@@ -150,12 +166,15 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     # Change as moran.plot has been moved to localResults.
     use_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
     if (!use_geometry) feature <- .symbol2id(sfe, feature)
-    mp <- localResult(sfe, type = "moran.plot", feature = feature,
-                      sample_id = sample_id, colGeometryName = colGeometryName,
-                      annotGeometryName = annotGeometryName)
+    mp <- localResult(sfe,
+        type = "moran.plot", feature = feature,
+        sample_id = sample_id, colGeometryName = colGeometryName,
+        annotGeometryName = annotGeometryName
+    )
     if (show_symbol && !use_geometry) {
-        if (feature %in% rownames(sfe))
+        if (feature %in% rownames(sfe)) {
             feature <- rowData(sfe)[feature, "symbol"]
+        }
     }
 
     if (isTRUE(is.na(mp))) stop("Moran plot has not been computed for this feature.")
@@ -172,57 +191,79 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
         if (length(color_by) == 1L && is.character(color_by)) {
             # name of something
             if (use_col) {
-                color_value <- .get_feature_values(sfe, color_by, sample_id,
-                                                   colGeometryName)
+                color_value <- .get_feature_values(
+                    sfe, color_by, sample_id,
+                    colGeometryName
+                )
             } else {
                 color_value <- st_drop_geometry(ag)[ag$sample_id == sample_id,
-                                                    color_by, drop = FALSE]
+                    color_by,
+                    drop = FALSE
+                ]
             }
         } else if (length(color_by) == length_ref) {
             color_value <- color_by
             color_by <- "color_value"
         } else {
-            stop("color_by must be either the name of a variable in sfe or a vector ",
-                 "the same length as the number of cells/spots in this sample_id.")
+            stop(
+                "color_by must be either the name of a variable in sfe or a vector ",
+                "the same length as the number of cells/spots in this sample_id."
+            )
         }
         mp <- cbind(mp, color_value)
     }
-    listw <- spatialGraph(sfe, type = graphName, MARGIN = mar, sample_id = sample_id)
+    listw <- spatialGraph(sfe, type = graphName, MARGIN = mar,
+                          sample_id = sample_id)
     is_singleton <- vapply(listw$neighbours, min, FUN.VALUE = integer(1)) == 0L
-    if (filled)
-        .moran_ggplot_filled(mp, feature, is_singleton, color_by, plot_singletons,
-                             divergent, diverge_center, ...)
-    else
-        .moran_ggplot(mp, feature, is_singleton, contour_color, color_by, plot_singletons, divergent,
-                      diverge_center, ...)
+    if (filled) {
+        .moran_ggplot_filled(
+            mp, feature, is_singleton, color_by, plot_singletons,
+            divergent, diverge_center, ...
+        )
+    } else {
+        .moran_ggplot(
+            mp, feature, is_singleton, contour_color, color_by, plot_singletons,
+            divergent, diverge_center, ...
+        )
+    }
 }
 
 .get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
                                      colGeometryName, annotGeometryName, name,
                                      show_symbol) {
-    ress <- .get_feature_metadata(sfe, features, name, sample_id, colGeometryName,
-                                  annotGeometryName, show_symbol)
+    ress <- .get_feature_metadata(
+        sfe, features, name, sample_id, colGeometryName,
+        annotGeometryName, show_symbol
+    )
     if (!is.null(color_by)) {
         # Different from moranPlot
         if (is.character(color_by) && length(color_by) == 1L) {
-            color_value <- .get_feature_metadata(sfe, features, color_by, sample_id,
-                                                 colGeometryName, annotGeometryName,
-                                                 show_symbol)
+            color_value <- .get_feature_metadata(
+                sfe, features, color_by, sample_id,
+                colGeometryName, annotGeometryName,
+                show_symbol
+            )
             color_value <- color_value[names(ress)]
         } else if (length(color_by) == length(features)) {
             if (is.null(names(color_by))) names(color_by) <- features
             color_value <- color_by[names(ress)]
         } else {
-            stop("color_by must be either the name of a feature in sfe or a vector ",
-                 "the same length as the number of the features argument.")
+            stop(
+                "color_by must be either the name of a feature in sfe or a vector ",
+                "the same length as the number of the features argument."
+            )
         }
     }
     if (method == "corr") {
         dfs <- lapply(seq_along(ress), function(i) {
             res <- ress[[i]]
-            if (isTRUE(is.na(res))) return(NA)
-            out <- data.frame(lags = seq_along(res),
-                              res = res)
+            if (isTRUE(is.na(res))) {
+                return(NA)
+            }
+            out <- data.frame(
+                lags = seq_along(res),
+                res = res
+            )
             if (length(ress) > 1L) out$feature <- names(ress)[i]
             if (!is.null(color_by)) out$color_by <- color_value[i]
             out
@@ -230,11 +271,13 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     } else {
         dfs <- lapply(seq_along(ress), function(i) {
             res <- ress[[i]]
-            if (isTRUE(is.na(res))) return(NA)
+            if (isTRUE(is.na(res))) {
+                return(NA)
+            }
             out <- as.data.frame(res)
             names(out)[names(out) == method] <- "res"
             out$lags <- seq_len(nrow(out))
-            out$sd2 <- 2*sqrt(out$variance)
+            out$sd2 <- 2 * sqrt(out$variance)
             out$ymin <- out$res - out$sd2
             out$ymax <- out$res + out$sd2
             if (length(features) > 1L) out$feature <- names(ress)[[i]]
@@ -242,14 +285,21 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
             out
         })
     }
-    is_na_dfs <- vapply(dfs, function(d) isTRUE(is.na(d)), FUN.VALUE = logical(1))
-    if (all(is_na_dfs))
-        stop("Correlogram has not been computed for any of the features specified ",
-             " with method ", method, " for sample ", sample_id)
-    if (any(is_na_dfs))
-        warning("Correlogram has not been computed for features ",
-                paste(features[is_na_dfs], sep = ", "), " with method ", method,
-                " for sample ", sample_id)
+    is_na_dfs <- vapply(dfs, function(d) isTRUE(is.na(d)),
+                        FUN.VALUE = logical(1))
+    if (all(is_na_dfs)) {
+        stop(
+            "Correlogram has not been computed for any of the features specified ",
+            " with method ", method, " for sample ", sample_id
+        )
+    }
+    if (any(is_na_dfs)) {
+        warning(
+            "Correlogram has not been computed for features ",
+            paste(features[is_na_dfs], sep = ", "), " with method ", method,
+            " for sample ", sample_id
+        )
+    }
 
     dfs <- dfs[!is_na_dfs]
     do.call(rbind, dfs)
@@ -302,12 +352,16 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' sfe <- McKellarMuscleData("small")
 #' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' inds <- c(1,3,4,5)
+#' inds <- c(1, 3, 4, 5)
 #' features <- rownames(sfe)[inds]
-#' sfe <- runUnivariate(sfe, type = "sp.correlogram", features = features,
-#'                      exprs_values = "counts", order = 5)
-#' clust <- clusterCorrelograms(sfe, features = features,
-#'                              BLUSPARAM = KmeansParam(2))
+#' sfe <- runUnivariate(sfe,
+#'     type = "sp.correlogram", features = features,
+#'     exprs_values = "counts", order = 5
+#' )
+#' clust <- clusterCorrelograms(sfe,
+#'     features = features,
+#'     BLUSPARAM = KmeansParam(2)
+#' )
 #' # Color by features
 #' plotCorrelogram(sfe, features)
 #' # Color by something else
@@ -315,35 +369,43 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' # Facet by features
 #' plotCorrelogram(sfe, features, facet_by = "features")
 plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
-                            color_by = NULL, facet_by = c("sample_id", "features"),
+                            color_by = NULL,
+                            facet_by = c("sample_id", "features"),
                             ncol = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
                             show_symbol = TRUE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    if (length(sample_id) > 1L || length(features) > 1L)
+    if (length(sample_id) > 1L || length(features) > 1L) {
         facet_by <- match.arg(facet_by)
+    }
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
     name <- paste("sp.correlogram", method, sep = "_")
     df <- lapply(sample_id, function(s) {
-        o <- .get_plot_correlogram_df(sfe, features, s, method, color_by,
-                                      colGeometryName, annotGeometryName, name,
-                                      show_symbol)
+        o <- .get_plot_correlogram_df(
+            sfe, features, s, method, color_by,
+            colGeometryName, annotGeometryName, name,
+            show_symbol
+        )
         o$sample_id <- s
         o
     })
     if (length(sample_id) > 1L) {
         df <- do.call(rbind, df)
-    } else df <- df[[1]]
+    } else {
+        df <- df[[1]]
+    }
     if (method %in% c("I", "C") && plot_signif) {
-        df$z <- (df$res - df$expectation)/sqrt(df$variance)
-        df$p <- 2*pnorm(abs(df$z), lower.tail = FALSE)
+        df$z <- (df$res - df$expectation) / sqrt(df$variance)
+        df$p <- 2 * pnorm(abs(df$z), lower.tail = FALSE)
         df$p_adj <- p.adjust(df$p, method = p_adj_method)
-        df$p_symbol <- format(symnum(df$p_adj, corr = FALSE, na = FALSE,
-                                     cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
-                                     symbols = c("***", "**", "*", ".", "")))
+        df$p_symbol <- format(symnum(df$p_adj,
+            corr = FALSE, na = FALSE,
+            cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+            symbols = c("***", "**", "*", ".", "")
+        ))
     }
     lags <- res <- feature <- expectation <- ymin <- ymax <- p_symbol <- NULL
     group_sample <- !facet_sample && length(sample_id) > 1L
@@ -351,72 +413,98 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
         if (is.null(color_by)) {
             if (group_sample) {
                 p <- ggplot(df, aes(lags, res, color = sample_id))
-                pal <- .get_pal(df, feature_aes = list(color = "sample_id"), option = 1,
-                                divergent, diverge_center)
+                pal <- .get_pal(df,
+                    feature_aes = list(color = "sample_id"), option = 1,
+                    divergent, diverge_center
+                )
             } else {
                 p <- ggplot(df, aes(lags, res, color = feature))
-                pal <- .get_pal(df, feature_aes = list(color = "feature"), option = 1,
-                                divergent, diverge_center)
+                pal <- .get_pal(df,
+                    feature_aes = list(color = "feature"), option = 1,
+                    divergent, diverge_center
+                )
             }
             p <- p + pal
             if (method %in% c("I", "C")) {
                 if (group_sample) {
-                    p <- p + geom_hline(aes(yintercept = expectation, color = sample_id),
-                                        linetype = 2, alpha = 0.7)
+                    p <- p + geom_hline(aes(yintercept = expectation,
+                                            color = sample_id),
+                        linetype = 2, alpha = 0.7
+                    )
                 } else {
-                    p <- p + geom_hline(aes(yintercept = expectation, color = feature),
-                                        linetype = 2, alpha = 0.7)
+                    p <- p + geom_hline(aes(yintercept = expectation,
+                                            color = feature),
+                        linetype = 2, alpha = 0.7
+                    )
                 }
             }
-        }
-        else {
-            if (group_sample)
-                p <- ggplot(df, aes(lags, res, color = color_by, linetype = sample_id))
-            else
-                p <- ggplot(df, aes(lags, res, color = color_by, group = feature))
-            if (method %in% c("I", "C"))
-                p <- p + geom_hline(aes(yintercept = expectation, color = color_by),
-                                    linetype = 2, alpha = 0.7)
+        } else {
+            if (group_sample) {
+                p <- ggplot(df, aes(lags, res, color = color_by,
+                                    linetype = sample_id))
+            } else {
+                p <- ggplot(df, aes(lags, res, color = color_by,
+                                    group = feature))
+            }
+            if (method %in% c("I", "C")) {
+                p <- p + geom_hline(aes(yintercept = expectation,
+                                        color = color_by),
+                    linetype = 2, alpha = 0.7
+                )
+            }
         }
     } else {
-        if (group_sample)
+        if (group_sample) {
             p <- ggplot(df, aes(lags, res, color = sample_id)) +
-                .get_pal(df, feature_aes = list(color = "sample_id"), option = 1,
-                         divergent, diverge_center)
-        else
+                .get_pal(df,
+                    feature_aes = list(color = "sample_id"), option = 1,
+                    divergent, diverge_center
+                )
+        } else {
             p <- ggplot(df, aes(lags, res))
+        }
         if (method %in% c("I", "C")) {
             if (group_sample) {
-                p <- p + geom_hline(aes(yintercept = expectation, color = sample_id),
-                                    linetype = 2, alpha = 0.7)
+                p <- p + geom_hline(aes(yintercept = expectation,
+                                        color = sample_id),
+                    linetype = 2, alpha = 0.7
+                )
             } else {
-                p <- p + geom_hline(aes(yintercept = expectation), linetype = 2, alpha = 0.7)
+                p <- p + geom_hline(aes(yintercept = expectation), linetype = 2,
+                                    alpha = 0.7)
             }
         }
     }
     p <- p +
         geom_line() + geom_point() +
-        scale_x_continuous(breaks = breaks_extended(n = min(max(df$lags), 10), Q = 1:5)) +
+        scale_x_continuous(breaks = breaks_extended(n = min(max(df$lags), 10),
+                                                    Q = 1:5)) +
         theme(panel.grid.minor.x = element_blank())
     if (method %in% c("I", "C")) {
         p <- p +
             geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.2)
-        if (plot_signif)
-            p <- p + geom_text(aes(y = ymax, label = p_symbol), vjust = 0,
-                               show.legend = FALSE)
+        if (plot_signif) {
+            p <- p + geom_text(aes(y = ymax, label = p_symbol),
+                vjust = 0,
+                show.legend = FALSE
+            )
+        }
     } else {
         p <- p + geom_hline(yintercept = 0, linetype = 2, alpha = 0.7)
     }
     if (!is.null(color_by) && length(features) > 1L) {
-        pal <- .get_pal(df, feature_aes = list(color = "color_by"), option = 1,
-                        divergent, diverge_center)
+        pal <- .get_pal(df,
+            feature_aes = list(color = "color_by"), option = 1,
+            divergent, diverge_center
+        )
         p <- p + pal
     }
     p <- p +
         labs(x = "Lags", y = switch(method,
-                                    corr = "Pearson correlation",
-                                    I = "Moran's I",
-                                    C = "Geary's C"))
+            corr = "Pearson correlation",
+            I = "Moran's I",
+            C = "Geary's C"
+        ))
     if (facet_feature) {
         p <- p + facet_wrap(~feature, ncol = ncol)
     }
@@ -430,20 +518,28 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                             colGeometryName, annotGeometryName, show_symbol) {
     # Ah, the weight of tradition. .get_feature_metadata only works for one sample at a time
     # As a result, this function deals with one sample at a time.
-    ress <- .get_feature_metadata(sfe, features, name = paste0(name, "_res"),
-                                  sample_id = sample_id, colGeometryName,
-                                  annotGeometryName, show_symbol)
-    res_stats <- .get_feature_metadata(sfe, features, name = paste0(name, "_statistic"),
-                                       sample_id = sample_id, colGeometryName,
-                                       annotGeometryName, show_symbol)
+    ress <- .get_feature_metadata(sfe, features,
+        name = paste0(name, "_res"),
+        sample_id = sample_id, colGeometryName,
+        annotGeometryName, show_symbol
+    )
+    res_stats <- .get_feature_metadata(sfe, features,
+        name = paste0(name, "_statistic"),
+        sample_id = sample_id, colGeometryName,
+        annotGeometryName, show_symbol
+    )
     dfs <- lapply(seq_along(ress), function(i) {
-        if (isTRUE(is.na(ress[[i]]))) return(NA)
+        if (isTRUE(is.na(ress[[i]]))) {
+            return(NA)
+        }
         res_use <- ress[[i]]
         res_use <- res_use[-length(res_use)]
-        data.frame(res = res_use,
-                   statistic = res_stats[[i]],
-                   feature = names(ress)[i],
-                   sample_id = sample_id)
+        data.frame(
+            res = res_use,
+            statistic = res_stats[[i]],
+            feature = names(ress)[i],
+            sample_id = sample_id
+        )
     })
     dfs <- dfs[!.is_na_list(dfs)]
     if (!length(dfs)) {
@@ -482,40 +578,51 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
                         show_symbol = TRUE, ...) {
     ptype <- match.arg(ptype)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    if (length(sample_id) > 1L || length(features) > 1L)
+    if (length(sample_id) > 1L || length(features) > 1L) {
         facet_by <- match.arg(facet_by)
+    }
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
     name <- "moran.mc"
     group_sample <- !facet_sample && length(sample_id) > 1L
 
     dens_geom <- switch(ptype,
-                        density = geom_density,
-                        histogram = geom_histogram,
-                        freqpoly = geom_freqpoly)
+        density = geom_density,
+        histogram = geom_histogram,
+        freqpoly = geom_freqpoly
+    )
 
-    df <- lapply(sample_id, function(s) .get_plot_mc_df(sfe, features, s, name,
-                                                        colGeometryName,
-                                                        annotGeometryName,
-                                                        show_symbol))
+    df <- lapply(sample_id, function(s) {
+        .get_plot_mc_df(
+            sfe, features, s, name,
+            colGeometryName,
+            annotGeometryName,
+            show_symbol
+        )
+    })
     if (length(sample_id) > 1L) {
         df <- do.call(rbind, df)
-    } else df <- df[[1]]
+    } else {
+        df <- df[[1]]
+    }
     p <- ggplot(df)
     statistic <- feature <- res <- NULL
     if ((length(sample_id) == 1L && (length(features) == 1L || facet_feature)) ||
         (length(features) == 1L && facet_sample)) {
-        p <- ggplot(df) + geom_vline(aes(xintercept = statistic))
+        p <- ggplot(df) +
+            geom_vline(aes(xintercept = statistic))
     }
     if (length(features) > 1L && (length(sample) == 1L || facet_sample)) {
-        if (ptype == "histogram")
+        if (ptype == "histogram") {
             stop("Histograms are not supported when multiple colors are used.")
+        }
         p <- ggplot(df, aes(color = feature)) +
             geom_vline(aes(xintercept = statistic, color = feature))
     }
     if (length(sample_id) > 1L && (length(features) == 1L || facet_feature)) {
-        if (ptype == "histogram")
+        if (ptype == "histogram") {
             stop("Histograms are not supported when multiple colors are used.")
+        }
         p <- ggplot(df, aes(color = sample_id)) +
             geom_vline(aes(xintercept = statistic, color = sample_id))
     }

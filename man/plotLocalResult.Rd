@@ -188,23 +188,30 @@ localResultFeatures(sfe, "localmoran")
 # Which columns does the localmoran results have?
 localResultAttrs(sfe, "localmoran", feature_use)
 plotLocalResult(sfe, "localmoran", feature_use, "Ii",
-                colGeometryName = "spotPoly")
+    colGeometryName = "spotPoly"
+)
 
 # For annotGeometry
 # Make sure it's type POLYGON
 annotGeometry(sfe, "myofiber_simplified") <-
     sf::st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
 annotGraph(sfe, "poly2nb_myo") <-
-    findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
-                         method = "poly2nb", zero.policy = TRUE)
-sfe <- annotGeometryUnivariate(sfe, "localmoran", features = "area",
-                               annotGraphName = "poly2nb_myo",
-                               annotGeometryName = "myofiber_simplified",
-                               zero.policy = TRUE)
+    findSpatialNeighbors(sfe,
+        type = "myofiber_simplified", MARGIN = 3,
+        method = "poly2nb", zero.policy = TRUE
+    )
+sfe <- annotGeometryUnivariate(sfe, "localmoran",
+    features = "area",
+    annotGraphName = "poly2nb_myo",
+    annotGeometryName = "myofiber_simplified",
+    zero.policy = TRUE
+)
 plotLocalResult(sfe, "localmoran", "area", "Ii",
-                annotGeometryName = "myofiber_simplified",
-                size = 0.3, color = "cyan")
+    annotGeometryName = "myofiber_simplified",
+    size = 0.3, color = "cyan"
+)
 plotLocalResult(sfe, "localmoran", "area", "Z.Ii",
-                annotGeometryName = "myofiber_simplified")
+    annotGeometryName = "myofiber_simplified"
+)
 # don't use annot_* arguments when annotGeometry is plotted without colGeometry
 }

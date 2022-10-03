@@ -130,8 +130,9 @@ sfe <- McKellarMuscleData("small")
 sfe <- logNormCounts(sfe)
 sfe <- runPCA(sfe, ncomponents = 2)
 spatialReducedDim(sfe, "PCA", 2, "spotPoly",
-                  annotGeometryName = "tissueBoundary",
-                  divergent = TRUE, diverge_center = 0)
+    annotGeometryName = "tissueBoundary",
+    divergent = TRUE, diverge_center = 0
+)
 # Basically PC1 separates spots not on tissue from those on tissue.
 }
 \seealso{

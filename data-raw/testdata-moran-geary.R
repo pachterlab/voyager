@@ -7,7 +7,7 @@ library(sf)
 data("visium_row_col")
 # First sample
 coords1 <- visium_row_col %>%
-  filter(col < 6, row < 6)
+    filter(col < 6, row < 6)
 coords1$row <- coords1$row * sqrt(3)
 
 set.seed(29)
@@ -19,7 +19,7 @@ colnames(mat) <- coords1$barcode
 
 # Second sample
 coords2 <- visium_row_col %>%
-  filter(between(col, 8, 13), between(row, 8, 12))
+    filter(between(col, 8, 13), between(row, 8, 12))
 coords2$row <- coords2$row * sqrt(3)
 
 col_inds <- sample(1:15, 15)
@@ -30,13 +30,17 @@ colnames(mat2) <- coords2$barcode
 
 rownames(mat) <- rownames(mat2) <- sample(LETTERS, 5)
 
-sfe1 <- SpatialFeatureExperiment(list(counts = mat), colData = coords1,
-                                 spatialCoordsNames = c("col", "row"),
-                                 spotDiameter = 0.7)
-sfe2 <- SpatialFeatureExperiment(list(counts = mat2), colData = coords2,
-                                 spatialCoordsNames = c("col", "row"),
-                                 sample_id = "sample02",
-                                 spotDiameter = 0.7)
+sfe1 <- SpatialFeatureExperiment(list(counts = mat),
+    colData = coords1,
+    spatialCoordsNames = c("col", "row"),
+    spotDiameter = 0.7
+)
+sfe2 <- SpatialFeatureExperiment(list(counts = mat2),
+    colData = coords2,
+    spatialCoordsNames = c("col", "row"),
+    sample_id = "sample02",
+    spotDiameter = 0.7
+)
 colGraph(sfe1, "visium") <- findVisiumGraph(sfe1)
 colGraph(sfe2, "visium") <- findVisiumGraph(sfe2)
 sfe <- cbind(sfe1, sfe2)
@@ -51,7 +55,7 @@ annot_geom <- df2sf(annot_coords)
 annot_geom <- st_buffer(annot_geom, runif(5, max = 0.5))
 annotGeometry(sfe, "annot", "sample01") <- annot_geom
 annotGraph(sfe, "annot_tri", "sample01") <-
-  findSpatialNeighbors(sfe, "sample01", type = "annot", MARGIN = 3)
+    findSpatialNeighbors(sfe, "sample01", type = "annot", MARGIN = 3)
 
 # Add geometry metadata
 set.seed(29)

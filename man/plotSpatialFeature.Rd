@@ -138,21 +138,27 @@ library(SFEData)
 library(sf)
 sfe <- McKellarMuscleData("small")
 # features can be genes or colData or colGeometry columns
-plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]), exprs_values = "counts",
-                   colGeometryName = "spotPoly",
-                   annotGeometryName = "tissueBoundary")
+plotSpatialFeature(sfe, c("nCounts", rownames(sfe)[1]),
+    exprs_values = "counts",
+    colGeometryName = "spotPoly",
+    annotGeometryName = "tissueBoundary"
+)
 # Change fixed aesthetics
-plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
-                   annotGeometryName = "tissueBoundary",
-                   annot_fixed = list(color = "blue", size = 0.3, fill = NA),
-                   alpha = 0.7)
+plotSpatialFeature(sfe, "nCounts",
+    colGeometryName = "spotPoly",
+    annotGeometryName = "tissueBoundary",
+    annot_fixed = list(color = "blue", size = 0.3, fill = NA),
+    alpha = 0.7
+)
 # Make the myofiber segmentations a valid POLYGON geometry
 ag <- annotGeometry(sfe, "myofiber_simplified")
 ag <- st_buffer(ag, 0)
-ag <- ag[!st_is_empty(ag),]
+ag <- ag[!st_is_empty(ag), ]
 annotGeometry(sfe, "myofiber_simplified") <- ag
 # Also plot an annotGeometry variable
-plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
-                   annotGeometryName = "myofiber_simplified",
-                   annot_aes = list(fill = "area"))
+plotSpatialFeature(sfe, "nCounts",
+    colGeometryName = "spotPoly",
+    annotGeometryName = "myofiber_simplified",
+    annot_aes = list(fill = "area")
+)
 }

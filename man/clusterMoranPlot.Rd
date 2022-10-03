@@ -54,8 +54,11 @@ library(bluster)
 sfe <- McKellarMuscleData("small")
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 # Compute moran plot
-sfe <- runUnivariate(sfe, type = "moran.plot", features = rownames(sfe)[1],
-                     exprs_values = "counts")
+sfe <- runUnivariate(sfe,
+    type = "moran.plot", features = rownames(sfe)[1],
+    exprs_values = "counts"
+)
 clusts <- clusterMoranPlot(sfe, rownames(sfe)[1],
-                           BLUSPARAM = KmeansParam(2))
+    BLUSPARAM = KmeansParam(2)
+)
 }

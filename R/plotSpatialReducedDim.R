@@ -23,8 +23,9 @@
 #' sfe <- logNormCounts(sfe)
 #' sfe <- runPCA(sfe, ncomponents = 2)
 #' spatialReducedDim(sfe, "PCA", 2, "spotPoly",
-#'                   annotGeometryName = "tissueBoundary",
-#'                   divergent = TRUE, diverge_center = 0)
+#'     annotGeometryName = "tissueBoundary",
+#'     divergent = TRUE, diverge_center = 0
+#' )
 #' # Basically PC1 separates spots not on tissue from those on tissue.
 spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
                               sample_id = NULL, ncol = NULL, ncol_sample = NULL,
@@ -45,13 +46,15 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
         dims_use <- ncomponents
     }
     sample_ind <- colData(sfe)$sample_id %in% sample_id
-    values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind,dims_use])
+    values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use])
     out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
-                               ncol_sample, annotGeometryName,
-                               annot_aes, annot_fixed, aes_use,
-                               divergent, diverge_center, annot_divergent,
-                               annot_diverge_center, size, shape, linetype,
-                               alpha, color, fill, show_symbol = FALSE,...)
+        ncol_sample, annotGeometryName,
+        annot_aes, annot_fixed, aes_use,
+        divergent, diverge_center, annot_divergent,
+        annot_diverge_center, size, shape, linetype,
+        alpha, color, fill,
+        show_symbol = FALSE, ...
+    )
     if (is(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)
     } else {

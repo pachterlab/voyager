@@ -115,88 +115,119 @@
 #' features_use <- rownames(sfe)[1:5]
 #'
 #' # Moran's I
-#' moran_results <- calculateMoransI(sfe, features = features_use,
-#'                                   colGraphName = "visium",
-#'                                   exprs_values = "counts")
+#' moran_results <- calculateMoransI(sfe,
+#'     features = features_use,
+#'     colGraphName = "visium",
+#'     exprs_values = "counts"
+#' )
 #'
 #' # This does not advocate for computing Moran's I on raw counts.
 #' # Just an example for function usage.
 #'
-#' sfe <- runMoransI(sfe, features = features_use, colGraphName = "visium",
-#'                   exprs_values = "counts")
+#' sfe <- runMoransI(sfe,
+#'     features = features_use, colGraphName = "visium",
+#'     exprs_values = "counts"
+#' )
 #' # Look at the results
 #' head(rowData(sfe))
 #'
 #' # Local Moran's I
-#' sfe <- runUnivariate(sfe, type = "localmoran", features = features_use,
-#'                      colGraphName = "visium", exprs_values = "counts")
+#' sfe <- runUnivariate(sfe,
+#'     type = "localmoran", features = features_use,
+#'     colGraphName = "visium", exprs_values = "counts"
+#' )
 #' head(localResult(sfe, "localmoran", features_use[1]))
 #'
 #' # For colData
-#' sfe <- colDataUnivariate(sfe, type = "localmoran", features = "nCounts",
-#'                          colGraphName = "visium")
+#' sfe <- colDataUnivariate(sfe,
+#'     type = "localmoran", features = "nCounts",
+#'     colGraphName = "visium"
+#' )
 #' head(localResult(sfe, "localmoran", "nCounts"))
 #'
 #' # For annotGeometries
 #' annotGraph(sfe, "myofiber_tri2nb") <-
-#'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3L,
-#'                          method = "tri2nb", dist_type = "idw",
-#'                          zero.policy = TRUE)
-#' sfe <- annotGeometryUnivariate(sfe, type = "localG", features = "area",
-#'                                annotGraphName = "myofiber_tri2nb",
-#'                                annotGeometryName = "myofiber_simplified",
-#'                                zero.policy = TRUE)
+#'     findSpatialNeighbors(sfe,
+#'         type = "myofiber_simplified", MARGIN = 3L,
+#'         method = "tri2nb", dist_type = "idw",
+#'         zero.policy = TRUE
+#'     )
+#' sfe <- annotGeometryUnivariate(sfe,
+#'     type = "localG", features = "area",
+#'     annotGraphName = "myofiber_tri2nb",
+#'     annotGeometryName = "myofiber_simplified",
+#'     zero.policy = TRUE
+#' )
 #' head(localResult(sfe, "localG", "area",
-#'                  annotGeometryName = "myofiber_simplified"))
+#'     annotGeometryName = "myofiber_simplified"
+#' ))
 NULL
 
 #' @rdname calculateUnivariate
 #' @export
-setMethod("calculateUnivariate", "ANY",
-          function(x, listw, type = c("moran", "geary", "moran.mc", "geary.mc",
-                                      "moran.test", "geary.test", "globalG.test",
-                                      "sp.correlogram", "moran.plot", "localmoran",
-                                      "localmoran_perm", "localC", "localC_perm",
-                                      "localG", "localG_perm", "LOSH", "LOSH.mc",
-                                      "gwss"),
-                   BPPARAM = SerialParam(),
-                   zero.policy = NULL, returnDF = TRUE, ...) {
-              type <- match.arg(type)
-              # I wrote a thin wrapper to make the argument names consistent
-              if (type == "sp.correlogram") fun <- .sp.correlogram
-              else fun <- match.fun(type)
-              local <- .is_local(type)
-              obscure_args <- switch(type,
-                                     moran = c("n", "S0"),
-                                     geary = c("n", "n1", "S0"))
-              defaults <- .obscure_arg_defaults(listw, type)
-              other_args <- list(...)
-              defaults_use <- defaults[setdiff(names(defaults), names(other_args))]
-              all_args <- list(x = x, listw = listw, fun = fun,
-                               BPPARAM = BPPARAM, zero.policy = zero.policy)
-              all_args <- c(all_args, other_args, defaults_use)
-              out <- do.call(.calc_univar, all_args)
-              if (returnDF) out <- .res2df(out, type, local, ...)
-              out
-          })
+setMethod(
+    "calculateUnivariate", "ANY",
+    function(x, listw, type = c(
+                 "moran", "geary", "moran.mc", "geary.mc",
+                 "moran.test", "geary.test", "globalG.test",
+                 "sp.correlogram", "moran.plot", "localmoran",
+                 "localmoran_perm", "localC", "localC_perm",
+                 "localG", "localG_perm", "LOSH", "LOSH.mc",
+                 "gwss"
+             ),
+             BPPARAM = SerialParam(),
+             zero.policy = NULL, returnDF = TRUE, ...) {
+        type <- match.arg(type)
+        # I wrote a thin wrapper to make the argument names consistent
+        if (type == "sp.correlogram") {
+            fun <- .sp.correlogram
+        } else {
+            fun <- match.fun(type)
+        }
+        local <- .is_local(type)
+        obscure_args <- switch(type,
+            moran = c("n", "S0"),
+            geary = c("n", "n1", "S0")
+        )
+        defaults <- .obscure_arg_defaults(listw, type)
+        other_args <- list(...)
+        defaults_use <- defaults[setdiff(names(defaults), names(other_args))]
+        all_args <- list(
+            x = x, listw = listw, fun = fun,
+            BPPARAM = BPPARAM, zero.policy = zero.policy
+        )
+        all_args <- c(all_args, other_args, defaults_use)
+        out <- do.call(.calc_univar, all_args)
+        if (returnDF) out <- .res2df(out, type, local, ...)
+        out
+    }
+)
 
 #' @rdname calculateUnivariate
 #' @export
-setMethod("calculateUnivariate", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun())
+setMethod(
+    "calculateUnivariate", "SpatialFeatureExperiment",
+    .calc_univar_sfe_fun()
+)
 
 #' @rdname calculateUnivariate
 #' @export
-setMethod("calculateMoransI", "ANY",
-          function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL)
-              calculateUnivariate(x, type = "moran", BPPARAM = BPPARAM,
-                                  zero.policy = zero.policy, ...)
-          )
+setMethod(
+    "calculateMoransI", "ANY",
+    function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL) {
+        calculateUnivariate(x,
+            type = "moran", BPPARAM = BPPARAM,
+            zero.policy = zero.policy, ...
+        )
+    }
+)
 
 #' @rdname calculateUnivariate
 #' @export
-setMethod("calculateMoransI", "SpatialFeatureExperiment",
-          .calc_univar_sfe_fun(type = "moran"))
+setMethod(
+    "calculateMoransI", "SpatialFeatureExperiment",
+    .calc_univar_sfe_fun(type = "moran")
+)
 
 #' @rdname calculateUnivariate
 #' @export

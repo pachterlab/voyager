@@ -77,26 +77,34 @@
 #' # Which columns does the localmoran results have?
 #' localResultAttrs(sfe, "localmoran", feature_use)
 #' plotLocalResult(sfe, "localmoran", feature_use, "Ii",
-#'                 colGeometryName = "spotPoly")
+#'     colGeometryName = "spotPoly"
+#' )
 #'
 #' # For annotGeometry
 #' # Make sure it's type POLYGON
 #' annotGeometry(sfe, "myofiber_simplified") <-
 #'     sf::st_buffer(annotGeometry(sfe, "myofiber_simplified"), 0)
 #' annotGraph(sfe, "poly2nb_myo") <-
-#'     findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3,
-#'                          method = "poly2nb", zero.policy = TRUE)
-#' sfe <- annotGeometryUnivariate(sfe, "localmoran", features = "area",
-#'                                annotGraphName = "poly2nb_myo",
-#'                                annotGeometryName = "myofiber_simplified",
-#'                                zero.policy = TRUE)
+#'     findSpatialNeighbors(sfe,
+#'         type = "myofiber_simplified", MARGIN = 3,
+#'         method = "poly2nb", zero.policy = TRUE
+#'     )
+#' sfe <- annotGeometryUnivariate(sfe, "localmoran",
+#'     features = "area",
+#'     annotGraphName = "poly2nb_myo",
+#'     annotGeometryName = "myofiber_simplified",
+#'     zero.policy = TRUE
+#' )
 #' plotLocalResult(sfe, "localmoran", "area", "Ii",
-#'                 annotGeometryName = "myofiber_simplified",
-#'                 size = 0.3, color = "cyan")
+#'     annotGeometryName = "myofiber_simplified",
+#'     size = 0.3, color = "cyan"
+#' )
 #' plotLocalResult(sfe, "localmoran", "area", "Z.Ii",
-#'                 annotGeometryName = "myofiber_simplified")
+#'     annotGeometryName = "myofiber_simplified"
+#' )
 #' # don't use annot_* arguments when annotGeometry is plotted without colGeometry
-plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = NULL,
+plotLocalResult <- function(sfe, type, features, attribute = NULL,
+                            sample_id = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
                             annot_aes = list(), annot_fixed = list(),
@@ -110,9 +118,10 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = N
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_localResult_values(sfe, type, features, attribute,
-                                      sample_id, colGeometryName,
-                                      annotGeometryName,
-                                      show_symbol = show_symbol)
+        sample_id, colGeometryName,
+        annotGeometryName,
+        show_symbol = show_symbol
+    )
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
     # without specifying colGeometries.
@@ -120,24 +129,28 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL, sample_id = N
     # For now all panels must all use the same colGeometry
     # or the same annotGeometry.
     if (!is.null(colGeometryName)) {
-        out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id,
-                                   ncol,
-                                   ncol_sample, annotGeometryName, annot_aes,
-                                   annot_fixed, aes_use, divergent,
-                                   diverge_center, annot_divergent,
-                                   annot_diverge_center, size, shape, linetype,
-                                   alpha, color, fill, show_symbol,...)
+        out <- .plotSpatialFeature(
+            sfe, values, colGeometryName, sample_id,
+            ncol,
+            ncol_sample, annotGeometryName, annot_aes,
+            annot_fixed, aes_use, divergent,
+            diverge_center, annot_divergent,
+            annot_diverge_center, size, shape, linetype,
+            alpha, color, fill, show_symbol, ...
+        )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
     } else {
         df <- annotGeometry(sfe, annotGeometryName, sample_id)
-        out <- .wrap_spatial_plots(df, annot_df = NULL, type_annot = NULL,
-                                   values, aes_use,
-                                   annot_aes = list(), annot_fixed = list(),
-                                   size, shape, linetype, alpha,
-                                   color, fill, ncol, ncol_sample, divergent,
-                                   diverge_center, annot_divergent = FALSE,
-                                   annot_diverge_center = NULL, ...)
+        out <- .wrap_spatial_plots(df,
+            annot_df = NULL, type_annot = NULL,
+            values, aes_use,
+            annot_aes = list(), annot_fixed = list(),
+            size, shape, linetype, alpha,
+            color, fill, ncol, ncol_sample, divergent,
+            diverge_center, annot_divergent = FALSE,
+            annot_diverge_center = NULL, ...
+        )
     }
     # Add title to not to confuse with gene expression
     if (is(out, "patchwork")) {

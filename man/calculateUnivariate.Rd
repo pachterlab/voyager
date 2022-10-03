@@ -280,37 +280,50 @@ colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 features_use <- rownames(sfe)[1:5]
 
 # Moran's I
-moran_results <- calculateMoransI(sfe, features = features_use,
-                                  colGraphName = "visium",
-                                  exprs_values = "counts")
+moran_results <- calculateMoransI(sfe,
+    features = features_use,
+    colGraphName = "visium",
+    exprs_values = "counts"
+)
 
 # This does not advocate for computing Moran's I on raw counts.
 # Just an example for function usage.
 
-sfe <- runMoransI(sfe, features = features_use, colGraphName = "visium",
-                  exprs_values = "counts")
+sfe <- runMoransI(sfe,
+    features = features_use, colGraphName = "visium",
+    exprs_values = "counts"
+)
 # Look at the results
 head(rowData(sfe))
 
 # Local Moran's I
-sfe <- runUnivariate(sfe, type = "localmoran", features = features_use,
-                     colGraphName = "visium", exprs_values = "counts")
+sfe <- runUnivariate(sfe,
+    type = "localmoran", features = features_use,
+    colGraphName = "visium", exprs_values = "counts"
+)
 head(localResult(sfe, "localmoran", features_use[1]))
 
 # For colData
-sfe <- colDataUnivariate(sfe, type = "localmoran", features = "nCounts",
-                         colGraphName = "visium")
+sfe <- colDataUnivariate(sfe,
+    type = "localmoran", features = "nCounts",
+    colGraphName = "visium"
+)
 head(localResult(sfe, "localmoran", "nCounts"))
 
 # For annotGeometries
 annotGraph(sfe, "myofiber_tri2nb") <-
-    findSpatialNeighbors(sfe, type = "myofiber_simplified", MARGIN = 3L,
-                         method = "tri2nb", dist_type = "idw",
-                         zero.policy = TRUE)
-sfe <- annotGeometryUnivariate(sfe, type = "localG", features = "area",
-                               annotGraphName = "myofiber_tri2nb",
-                               annotGeometryName = "myofiber_simplified",
-                               zero.policy = TRUE)
+    findSpatialNeighbors(sfe,
+        type = "myofiber_simplified", MARGIN = 3L,
+        method = "tri2nb", dist_type = "idw",
+        zero.policy = TRUE
+    )
+sfe <- annotGeometryUnivariate(sfe,
+    type = "localG", features = "area",
+    annotGraphName = "myofiber_tri2nb",
+    annotGeometryName = "myofiber_simplified",
+    zero.policy = TRUE
+)
 head(localResult(sfe, "localG", "area",
-                 annotGeometryName = "myofiber_simplified"))
+    annotGeometryName = "myofiber_simplified"
+))
 }

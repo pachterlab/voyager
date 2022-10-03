@@ -23,13 +23,14 @@ from \code{SingleCellExperiment}.}
 
 \item{nfeatures}{Number of genes to plot.}
 
-\item{show_symbol}{Logical; if the row names of the matrix are Ensembl accessions,
-indicate whether to show more human readable gene symbols in the plot instead.
-Ignored if the column specified in \code{symbol_col} is absent from rowData.}
+\item{show_symbol}{Logical; if the row names of the matrix are Ensembl
+accessions, indicate whether to show more human readable gene symbols in
+the plot instead. Ignored if the column specified in \code{symbol_col} is
+absent from rowData.}
 
-\item{symbol_col}{If the row names of the gene expression matrix are Ensembl accessions
-to avoid ambiguity in analysis. If not found in \code{rowData}, then rownames
-of the gene count matrix will be used.}
+\item{symbol_col}{If the row names of the gene expression matrix are Ensembl
+accessions to avoid ambiguity in analysis. If not found in \code{rowData},
+then rownames of the gene count matrix will be used.}
 
 \item{reduction}{Name of the dimension reduction to use. It must have an
 attribute called "percentVar". Defaults to "PCA".}
@@ -41,7 +42,7 @@ FALSE, returns the top genes ranked by the scores absolute values.}
 }
 \value{
 A ggplot object. Loadings for different PCs are plotted in different
-facets so one ggplot object is returned.
+  facets so one ggplot object is returned.
 }
 \description{
 Just like Seurat's VizDimLoadings function. I haven't found an equivalent for

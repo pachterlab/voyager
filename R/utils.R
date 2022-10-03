@@ -2,17 +2,17 @@
 #'   .warn_symbol_duplicate .symbol2id .check_sample_id .rm_empty_geometries
 
 .drop_null_list <- function(l) {
-  null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
-  l[!null_inds]
+    null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
+    l[!null_inds]
 }
 
 .is_discrete <- function(m) is.character(m) | is.factor(m) | is.logical(m)
 
 .add_sample_id <- function(name, sample_id) {
-  if (!grepl(sample_id, name)) {
-    name <- paste(name, sample_id, sep = "_")
-  }
-  name
+    if (!grepl(sample_id, name)) {
+        name <- paste(name, sample_id, sep = "_")
+    }
+    name
 }
 
 #' @importFrom SpatialFeatureExperiment sampleIDs annotGeometry annotGeometry<-
@@ -20,52 +20,63 @@
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
 .add_name_sample_id <- function(out, sample_id) {
-  names(out) <- vapply(names(out), .add_sample_id, sample_id = sample_id,
-                       FUN.VALUE = character(1))
-  out
+    names(out) <- vapply(names(out), .add_sample_id,
+        sample_id = sample_id,
+        FUN.VALUE = character(1)
+    )
+    out
 }
 
 #' @importFrom S4Vectors make_zero_col_DFrame
 #' @importFrom SingleCellExperiment int_metadata int_metadata<-
 .initialize_featureData <- function(df) {
-  if (is.null(attr(df, "featureData"))) {
-    fd <- make_zero_col_DFrame(nrow = ncol(df))
-    rownames(fd) <- colnames(df)
-    attr(df, "featureData") <- fd
-  }
-  df
+    if (is.null(attr(df, "featureData"))) {
+        fd <- make_zero_col_DFrame(nrow = ncol(df))
+        rownames(fd) <- colnames(df)
+        attr(df, "featureData") <- fd
+    }
+    df
 }
 
 .add_fd <- function(x, df, res, features, sample_id, name) {
-  res <- .add_name_sample_id(res, sample_id)
-  df <- .initialize_featureData(df)
-  fd <- attr(df, "featureData")
-  fd[features, names(res)] <- res
-  attr(df, "featureData") <- fd
-  df
+    res <- .add_name_sample_id(res, sample_id)
+    df <- .initialize_featureData(df)
+    fd <- attr(df, "featureData")
+    fd[features, names(res)] <- res
+    attr(df, "featureData") <- fd
+    df
 }
 
 .initialize_fd_dimData <- function(x, MARGIN) {
-  fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
-  if (is.null(int_metadata(x)[[fd_name]])) {
-    rownames_use <- switch(MARGIN, names(rowData(x)), names(colData(x)))
-    fd <- make_zero_col_DFrame(nrow = length(rownames_use))
-    rownames(fd) <- rownames_use
-    int_metadata(x)[[fd_name]] <- fd
-  }
-  x
+    fd_name <- switch(MARGIN,
+        "rowFeatureData",
+        "colFeatureData"
+    )
+    if (is.null(int_metadata(x)[[fd_name]])) {
+        rownames_use <- switch(MARGIN,
+            names(rowData(x)),
+            names(colData(x))
+        )
+        fd <- make_zero_col_DFrame(nrow = length(rownames_use))
+        rownames(fd) <- rownames_use
+        int_metadata(x)[[fd_name]] <- fd
+    }
+    x
 }
 
 # Because adding a new column to S4 DataFrame will remove the attributes
 # Put the featureData of colData and rowData in int_metadata instead
 .add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
-  res <- .add_name_sample_id(res, sample_id)
-  x <- .initialize_fd_dimData(x, MARGIN)
-  fd_name <- switch(MARGIN, "rowFeatureData", "colFeatureData")
-  fd <- int_metadata(x)[[fd_name]]
-  fd[features, names(res)] <- res
-  int_metadata(x)[[fd_name]] <- fd
-  x
+    res <- .add_name_sample_id(res, sample_id)
+    x <- .initialize_fd_dimData(x, MARGIN)
+    fd_name <- switch(MARGIN,
+        "rowFeatureData",
+        "colFeatureData"
+    )
+    fd <- int_metadata(x)[[fd_name]]
+    fd[features, names(res)] <- res
+    int_metadata(x)[[fd_name]] <- fd
+    x
 }
 
 #' Get metadata of colData and rowData
@@ -88,23 +99,26 @@
 #' sfe <- colDataMoransI(sfe, "nCounts")
 #' colFeatureData(sfe)
 colFeatureData <- function(sfe) {
-  int_metadata(sfe)$colFeatureData
+    int_metadata(sfe)$colFeatureData
 }
 
 #' @rdname colFeatureData
 #' @export
 rowFeatureData <- function(sfe) {
-  int_metadata(sfe)$rowFeatureData
+    int_metadata(sfe)$rowFeatureData
 }
 
 .cbind_all <- function(values, features_list) {
     if (length(values) > 1L) {
-        if (length(features_list[["annotgeom"]]))
+        if (length(features_list[["annotgeom"]])) {
             warning("annotGeometry values cannot be cbinded to other values.")
-        values <-  values[c("assay", "coldata", "colgeom")]
+        }
+        values <- values[c("assay", "coldata", "colgeom")]
         values <- values[!vapply(values, is.null, FUN.VALUE = logical(1))]
         values <- do.call(cbind, values)
-    } else values <- values[[1]]
+    } else {
+        values <- values[[1]]
+    }
     values
 }
 
@@ -117,7 +131,9 @@ rowFeatureData <- function(sfe) {
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
         values_assay <- assay(sfe, exprs_values)[features_list[["assay"]],
-                                                 sample_id_ind, drop = FALSE]
+            sample_id_ind,
+            drop = FALSE
+        ]
         # So symbol is shown instead of Ensembl ID
         if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
             rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
@@ -125,22 +141,26 @@ rowFeatureData <- function(sfe) {
         values_assay <- as.data.frame(as.matrix(t(values_assay)))
         values[["assay"]] <- values_assay
     }
-    if (length(features_list[["coldata"]]))
+    if (length(features_list[["coldata"]])) {
         values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
-                                                          features_list[["coldata"]],
-                                                          drop = FALSE])
+            features_list[["coldata"]],
+            drop = FALSE
+        ])
+    }
     if (length(features_list[["colgeom"]])) {
         cg <- colGeometry(sfe, colGeometryName, sample_id)
         values[["colgeom"]] <- st_drop_geometry(cg)[sample_id_ind,
-                                                    features_list[["colgeom"]],
-                                                    drop = FALSE]
+            features_list[["colgeom"]],
+            drop = FALSE
+        ]
     }
     if (length(features_list[["annotgeom"]])) {
         ag <- annotGeometry(sfe, annotGeometryName, sample_id)
         sample_id_ind2 <- ag$sample_id %in% sample_id
         values[["annotgeom"]] <- st_drop_geometry(ag)[sample_id_ind,
-                                                      features_list[["annotgeom"]],
-                                                      drop = FALSE]
+            features_list[["annotgeom"]],
+            drop = FALSE
+        ]
     }
     if (cbind_all) {
         values <- .cbind_all(values, features_list)
@@ -157,32 +177,45 @@ rowFeatureData <- function(sfe) {
     if (!is.null(colGeometryName)) {
         # Because colGeometryName is also specified for plotting
         features_colgeom <- tryCatch(localResultFeatures(sfe, type,
-                                         colGeometryName = colGeometryName),
-                 error = function(e) NULL)
+            colGeometryName = colGeometryName
+        ),
+        error = function(e) NULL
+        )
         features_colgeom <- intersect(features_colgeom, features)
-    } else features_colgeom <- NULL
+    } else {
+        features_colgeom <- NULL
+    }
     if (!is.null(annotGeometryName)) {
         features_annotgeom <- tryCatch(localResultFeatures(sfe, type,
-                                         annotGeometryName = annotGeometryName),
-                 error = function(e) NULL)
+            annotGeometryName = annotGeometryName
+        ),
+        error = function(e) NULL
+        )
         features_annotgeom <- intersect(features_annotgeom, features)
-    } else features_annotgeom <- NULL
-    out <- list(assay = features_assay,
-                colgeom = features_colgeom,
-                annotgeom = features_annotgeom)
+    } else {
+        features_annotgeom <- NULL
+    }
+    out <- list(
+        assay = features_assay,
+        colgeom = features_colgeom,
+        annotgeom = features_annotgeom
+    )
     other_features <- setdiff(features, Reduce(union, out))
     if (length(other_features)) {
-        warning("Features ", paste(other_features, collapse = ", "),
-                " are absent in type ", type)
+        warning(
+            "Features ", paste(other_features, collapse = ", "),
+            " are absent in type ", type
+        )
     }
     out
 }
 
 .get_localResult_attrs <- function(lrs, attribute) {
     out <- lapply(lrs, function(l) {
-        if (is.atomic(l) && is.vector(l)) l
-        else {
-            l[,attribute]
+        if (is.atomic(l) && is.vector(l)) {
+            l
+        } else {
+            l[, attribute]
         }
     })
     data.frame(out)
@@ -190,22 +223,25 @@ rowFeatureData <- function(sfe) {
 
 .get_default_attribute <- function(type) {
     switch(type,
-           localmoran = "Ii",
-           localmoran_perm = "Ii",
-           localC_perm = "localC",
-           localG = "localG",
-           localG_perm = "localG",
-           LOSH = "Hi",
-           LOSH.mc = "Hi",
-           moran.plot = "wx")
+        localmoran = "Ii",
+        localmoran_perm = "Ii",
+        localC_perm = "localC",
+        localG = "localG",
+        localG_perm = "localG",
+        LOSH = "Hi",
+        LOSH.mc = "Hi",
+        moran.plot = "wx"
+    )
 }
 
 .get_localResult_values <- function(sfe, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
                                     cbind_all = TRUE, show_symbol = TRUE) {
-    features_list <- .check_features_lr(sfe, type, features, sample_id,
-                                        colGeometryName, annotGeometryName)
+    features_list <- .check_features_lr(
+        sfe, type, features, sample_id,
+        colGeometryName, annotGeometryName
+    )
     if (is.null(attribute)) {
         attribute <- .get_default_attribute(type)
     }
@@ -221,12 +257,14 @@ rowFeatureData <- function(sfe) {
     }
     if (length(features_list[["colgeom"]])) {
         lrs <- localResults(sfe, sample_id, type, features_list[["colgeom"]],
-                            colGeometryName = colGeometryName)
+            colGeometryName = colGeometryName
+        )
         values[["colgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["annotgeom"]])) {
         lrs <- localResults(sfe, sample_id, type, features_list[["annotgeom"]],
-                            annotGeometryName = annotGeometryName)
+            annotGeometryName = annotGeometryName
+        )
         values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (cbind_all) {
@@ -236,90 +274,94 @@ rowFeatureData <- function(sfe) {
 }
 
 .is_na_list <- function(l) {
-  vapply(l, function(d) isTRUE(is.na(d)), logical(1))
+    vapply(l, function(d) isTRUE(is.na(d)), logical(1))
 }
 
 .get_not_na_items <- function(df, features, colname_use) {
-  if (is(df, "sf")) df <- st_drop_geometry(df)
-  if (!colname_use %in% names(df)) return(NULL)
-  out <- setNames(df[features, colname_use], features)
-  out[!.is_na_list(out)]
+    if (is(df, "sf")) df <- st_drop_geometry(df)
+    if (!colname_use %in% names(df)) {
+        return(NULL)
+    }
+    out <- setNames(df[features, colname_use], features)
+    out[!.is_na_list(out)]
 }
 
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
                                   show_symbol) {
-  colname_use <- .add_sample_id(name, sample_id)
-  out_rd <- out_cd <- out_cg <- out_ag <- NULL
-  features_rd <- intersect(features, rownames(sfe))
-  if (!length(features_rd) && "symbol" %in% names(rowData(sfe))) {
-    features_symbol <- intersect(features, rowData(sfe)$symbol)
-    .warn_symbol_duplicate(sfe, features_rd)
-    features <- setdiff(features, features_symbol)
-    features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)$symbol)]
-    if (all(is.na(features_rd))) features_rd <- NULL
-  }
-  if (length(features_rd)) {
-    out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
-    features <- setdiff(features, names(out_rd))
-    if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-      names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
-      .warn_symbol_duplicate(sfe, names(out_rd))
+    colname_use <- .add_sample_id(name, sample_id)
+    out_rd <- out_cd <- out_cg <- out_ag <- NULL
+    features_rd <- intersect(features, rownames(sfe))
+    if (!length(features_rd) && "symbol" %in% names(rowData(sfe))) {
+        features_symbol <- intersect(features, rowData(sfe)$symbol)
+        .warn_symbol_duplicate(sfe, features_rd)
+        features <- setdiff(features, features_symbol)
+        features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)$symbol)]
+        if (all(is.na(features_rd))) features_rd <- NULL
     }
-  }
-  features_cd <- intersect(features, names(colData(sfe)))
-  if (length(features_cd)) {
-    fd <- colFeatureData(sfe)
-    if (!is.null(fd)) {
-      out_cd <- .get_not_na_items(fd, features_cd, colname_use)
-      features <- setdiff(features, names(out_cd))
+    if (length(features_rd)) {
+        out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
+        features <- setdiff(features, names(out_rd))
+        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
+            names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
+            .warn_symbol_duplicate(sfe, names(out_rd))
+        }
     }
-  }
-  if (!is.null(colGeometryName)) {
-    cg <- colGeometry(sfe, colGeometryName, sample_id)
-    features_cg <- intersect(features, names(cg))
-    if (length(features_cg)) {
-      fd <- attr(cg, "featureData")
-      if (!is.null(fd)) {
-        out_cg <- .get_not_na_items(fd, features_cg, colname_use)
-        features <- setdiff(features, names(out_cg))
-      }
+    features_cd <- intersect(features, names(colData(sfe)))
+    if (length(features_cd)) {
+        fd <- colFeatureData(sfe)
+        if (!is.null(fd)) {
+            out_cd <- .get_not_na_items(fd, features_cd, colname_use)
+            features <- setdiff(features, names(out_cd))
+        }
     }
-  }
-  if (!is.null(annotGeometryName)) {
-    ag <- annotGeometry(sfe, annotGeometryName, sample_id)
-    features_ag <- intersect(features, names(ag))
-    if (length(features_ag)) {
-      fd <- attr(ag, "featureData")
-      if (!is.null(fd)) {
-        out_ag <- .get_not_na_items(fd, features_ag, colname_use)
-        features <- setdiff(features, names(out_ag))
-      }
+    if (!is.null(colGeometryName)) {
+        cg <- colGeometry(sfe, colGeometryName, sample_id)
+        features_cg <- intersect(features, names(cg))
+        if (length(features_cg)) {
+            fd <- attr(cg, "featureData")
+            if (!is.null(fd)) {
+                out_cg <- .get_not_na_items(fd, features_cg, colname_use)
+                features <- setdiff(features, names(out_cg))
+            }
+        }
     }
-  }
-  out <- c(out_rd, out_cd, out_cg, out_ag)
-  if (!length(out)) {
-    stop("None of the features has the requested metadata.")
-  }
-  if (length(features)) {
-    warning("Features ", paste(features, collapse = ", "),
-            " don't have the requested metadata.")
-  }
-  out
+    if (!is.null(annotGeometryName)) {
+        ag <- annotGeometry(sfe, annotGeometryName, sample_id)
+        features_ag <- intersect(features, names(ag))
+        if (length(features_ag)) {
+            fd <- attr(ag, "featureData")
+            if (!is.null(fd)) {
+                out_ag <- .get_not_na_items(fd, features_ag, colname_use)
+                features <- setdiff(features, names(out_ag))
+            }
+        }
+    }
+    out <- c(out_rd, out_cd, out_cg, out_ag)
+    if (!length(out)) {
+        stop("None of the features has the requested metadata.")
+    }
+    if (length(features)) {
+        warning(
+            "Features ", paste(features, collapse = ", "),
+            " don't have the requested metadata."
+        )
+    }
+    out
 }
 
 .local_type2title <- function(type, attribute) {
     if (is.null(attribute)) attribute <- .get_default_attribute(type)
-    base <- switch (type,
-                    localmoran = "Local Moran's I",
-                    localmoran_perm = "Local Moran's I permutation testing",
-                    localC = "Local Geary's C",
-                    localC_perm = "Local Geary's C permutation testing",
-                    localG = "Getis-Ord Gi(*)",
-                    localG_perm = "Getis-Ord Gi(*) with permutation testing",
-                    LOSH = "Local spatial heteroscedasticity",
-                    LOSH.mc = "Local spatial heteroscedasticity permutation testing",
-                    moran.plot = "Moran plot"
+    base <- switch(type,
+        localmoran = "Local Moran's I",
+        localmoran_perm = "Local Moran's I permutation testing",
+        localC = "Local Geary's C",
+        localC_perm = "Local Geary's C permutation testing",
+        localG = "Getis-Ord Gi(*)",
+        localG_perm = "Getis-Ord Gi(*) with permutation testing",
+        LOSH = "Local spatial heteroscedasticity",
+        LOSH.mc = "Local spatial heteroscedasticity permutation testing",
+        moran.plot = "Moran plot"
     )
     paste0(base, " (", attribute, ")")
 }

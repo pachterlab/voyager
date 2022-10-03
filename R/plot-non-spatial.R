@@ -25,8 +25,10 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
     percent_var <- attr(reducedDim(sce, reduction), "percentVar")
     if (length(percent_var) < ndims) ndims <- length(percent_var)
     inds <- seq_len(ndims)
-    df <- data.frame(PC = inds,
-                     pct_var = percent_var[inds])
+    df <- data.frame(
+        PC = inds,
+        pct_var = percent_var[inds]
+    )
     PC <- pct_var <- NULL
     ggplot(df, aes(PC, pct_var)) +
         geom_point() +
@@ -38,13 +40,13 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 .get_top_loading_genes <- function(df, nfeatures, balanced) {
     # df has columns gene_show and value
     if (balanced) {
-        n2 <- floor(nfeatures/2)
+        n2 <- floor(nfeatures / 2)
         ord_plus <- order(df$value, decreasing = TRUE)
         ord_minus <- order(df$value, decreasing = FALSE)
-        out <- rbind(df[ord_plus[seq_len(n2)],], df[ord_minus[seq_len(n2)],])
+        out <- rbind(df[ord_plus[seq_len(n2)], ], df[ord_minus[seq_len(n2)], ])
     } else {
         ord <- order(abs(df$value), decreasing = TRUE)
-        out <- df[ord[seq_len(nfeatures)],]
+        out <- df[ord[seq_len(nfeatures)], ]
     }
     return(out)
 }
@@ -60,17 +62,18 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' @inheritParams ElbowPlot
 #' @param dims Numeric vector specifying which PCs to plot.
 #' @param nfeatures Number of genes to plot.
-#' @param show_symbol Logical; if the row names of the matrix are Ensembl accessions,
-#' indicate whether to show more human readable gene symbols in the plot instead.
-#' Ignored if the column specified in \code{symbol_col} is absent from rowData.
-#' @param symbol_col If the row names of the gene expression matrix are Ensembl accessions
-#' to avoid ambiguity in analysis. If not found in \code{rowData}, then rownames
-#' of the gene count matrix will be used.
+#' @param show_symbol Logical; if the row names of the matrix are Ensembl
+#'   accessions, indicate whether to show more human readable gene symbols in
+#'   the plot instead. Ignored if the column specified in \code{symbol_col} is
+#'   absent from rowData.
+#' @param symbol_col If the row names of the gene expression matrix are Ensembl
+#'   accessions to avoid ambiguity in analysis. If not found in \code{rowData},
+#'   then rownames of the gene count matrix will be used.
 #' @param balanced Return an equal number of genes with + and - scores. If
 #'   FALSE, returns the top genes ranked by the scores absolute values.
 #' @param ncol Number of columns in the facetted plot.
 #' @return A ggplot object. Loadings for different PCs are plotted in different
-#' facets so one ggplot object is returned.
+#'   facets so one ggplot object is returned.
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom ggplot2 facet_wrap scale_y_discrete
 #' @importFrom stats reorder
@@ -90,14 +93,15 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     is_ensembl <- all(grepl("^ENS", rownames(sce)))
     if (!is_ensembl) show_symbol <- FALSE # I mean, irrelevant
     loading_cols <- paste0("PC", dims)
-    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),]), loadings[,loading_cols])
+    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings), ]),
+                loadings[, loading_cols])
     if (!symbol_col %in% names(df) || !show_symbol) {
         df$gene_show <- rownames(loadings)
     } else {
         df$gene_show <- df[[symbol_col]]
     }
     df_plt <- lapply(loading_cols, function(p) {
-        df_use <- df[,c("gene_show", p)]
+        df_use <- df[, c("gene_show", p)]
         names(df_use)[2] <- "value"
         out <- .get_top_loading_genes(df_use, nfeatures, balanced)
         out$PC <- p
@@ -114,7 +118,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
         geom_segment(aes(yend = gene), xend = 0, show.legend = FALSE) +
         geom_point(color = "blue") +
         geom_vline(xintercept = 0, linetype = 2) +
-        facet_wrap(~ PC, scales = "free_y", ncol = 2) +
+        facet_wrap(~PC, scales = "free_y", ncol = 2) +
         scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
         labs(x = "Loading", y = "Gene")
 }

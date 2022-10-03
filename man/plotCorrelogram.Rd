@@ -97,12 +97,16 @@ library(scater)
 sfe <- McKellarMuscleData("small")
 sfe <- logNormCounts(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-inds <- c(1,3,4,5)
+inds <- c(1, 3, 4, 5)
 features <- rownames(sfe)[inds]
-sfe <- runUnivariate(sfe, type = "sp.correlogram", features = features,
-                     exprs_values = "counts", order = 5)
-clust <- clusterCorrelograms(sfe, features = features,
-                             BLUSPARAM = KmeansParam(2))
+sfe <- runUnivariate(sfe,
+    type = "sp.correlogram", features = features,
+    exprs_values = "counts", order = 5
+)
+clust <- clusterCorrelograms(sfe,
+    features = features,
+    BLUSPARAM = KmeansParam(2)
+)
 # Color by features
 plotCorrelogram(sfe, features)
 # Color by something else
