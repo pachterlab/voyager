@@ -90,10 +90,8 @@ library(SFEData)
 sfe_muscle <- McKellarMuscleData("small")
 colGraph(sfe_muscle, "visium") <- findVisiumGraph(sfe_muscle)
 sfe_muscle <- logNormCounts(sfe_muscle)
-sfe_muscle <- runUnivariate(sfe_muscle,
-    type = "localmoran", c("Myh1", "Myh2"),
-    "visium"
-)
+sfe_muscle <- runUnivariate(sfe_muscle, type = "localmoran",
+                            c("Myh1", "Myh2"), "visium")
 
 annotGeometry(sfe_muscle, "myofiber_simplified") <-
     sf::st_buffer(annotGeometry(sfe_muscle, "myofiber_simplified"), 0)
@@ -108,6 +106,13 @@ sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localmoran",
     annotGeometryName = "myofiber_simplified",
     zero.policy = TRUE
 )
+sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localG",
+                                      features = "area",
+                                      annotGraphName = "poly2nb_myo",
+                                      annotGeometryName = "myofiber_simplified",
+                                      zero.policy = TRUE, include_self = TRUE
+)
+
 test_that("Everything plotLocalResult", {
     expect_doppelganger("Plot localmoran Ii for gene", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
@@ -147,6 +152,11 @@ test_that("Everything plotLocalResult", {
             size = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
         )
+    })
+    expect_doppelganger("Plot a type in annotGeometry but not assay or colData", {
+        plotLocalResult(sfe_muscle, "localG", "area",
+                        annotGeometryName = "myofiber_simplified",
+                        divergent = TRUE, diverge_center = 0)
     })
 })
 

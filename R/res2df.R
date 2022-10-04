@@ -133,7 +133,7 @@
             attr_mat
         })
     } else {
-        out
+        lapply(out, as.vector)
     }
 }
 

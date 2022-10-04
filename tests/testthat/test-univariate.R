@@ -190,7 +190,7 @@ names_expect_lg <- c(
     "Pr(z != E(Gi)) Sim", "Pr(folded) Sim", "Skewness",
     "Kurtosis"
 )
-test_that("DataFrame output for localG", {
+test_that("DataFrame output for localG_perm", {
     out <- calculateUnivariate(mat1,
         listw = colGraph(sfe, "visium", sample_id = "sample01"),
         type = "localG_perm"
@@ -198,6 +198,17 @@ test_that("DataFrame output for localG", {
     expect_s4_class(out, "DFrame")
     expect_true(all(vapply(out, is.matrix, FUN.VALUE = logical(1))))
     expect_equal(colnames(out[[1]]), names_expect_lg)
+    expect_equal(names(out), rownames(mat1))
+    expect_equal(nrow(out), ncol(mat1))
+})
+
+test_that("DataFrame output for localG, not perm", {
+    out <- calculateUnivariate(mat1,
+                               listw = colGraph(sfe, "visium", "sample01"),
+                               type = "localG")
+    expect_s4_class(out, "DFrame")
+    expect_true(all(vapply(out, function(o) is.atomic(o) & is.vector(o) &
+                               is.numeric(o), FUN.VALUE = logical(1))))
     expect_equal(names(out), rownames(mat1))
     expect_equal(nrow(out), ncol(mat1))
 })
