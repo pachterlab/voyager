@@ -65,4 +65,4 @@ annotGeometry(sfe, "annot", "all")$bar <- rnorm(5)
 colGeometry(sfe, "centroids", "all") <- suppressWarnings(st_centroid(spotPoly(sfe, "all")))
 colGeometry(sfe, "centroids", "all")$category <- sample(LETTERS[22:26], ncol(sfe), replace = TRUE)
 
-saveRDS(sfe, "inst/testdata/sfe.rds")
+saveRDS(sfe, "inst/extdata/sfe.rds")

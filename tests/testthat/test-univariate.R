@@ -2,7 +2,7 @@ library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
 library(Matrix)
 library(bluster)
-sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
+sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 set.seed(29)
 mat <- assay(sfe, "counts")
 mat1 <- mat[, colData(sfe)$sample_id == "sample01"]

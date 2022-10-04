@@ -6,7 +6,7 @@ library(vdiffr)
 library(scater)
 library(Matrix)
 # Toy example
-sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
+sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
     type = "moran.plot", c("B", "H"), "visium",
     sample_id = "sample01", exprs_values = "counts"

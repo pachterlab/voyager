@@ -2,7 +2,7 @@ library(SpatialFeatureExperiment)
 library(SingleCellExperiment)
 library(bluster)
 
-sfe <- readRDS(system.file("testdata/sfe.rds", package = "Voyager"))
+sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
     type = "moran.plot", colGraphName = "visium",
     features = c("B", "H"), sample_id = "sample01",
