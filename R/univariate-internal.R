@@ -44,7 +44,7 @@
                         sample_id = NULL,
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, returnDF = TRUE,
-                        include_self = FALSE, ...) {
+                        include_self = FALSE, p.adjust.method = "BH", ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         out <- lapply(sample_id, function(s) {
@@ -59,7 +59,7 @@
                 type = type,
                 BPPARAM = BPPARAM,
                 zero.policy = zero.policy,
-                returnDF = returnDF, ...
+                returnDF = returnDF, p.adjust.method = p.adjust.method, ...
             )
             o
         })
@@ -73,11 +73,11 @@
         function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, returnDF = TRUE,
-                 include_self = FALSE, ...) {
+                 include_self = FALSE, p.adjust.method = "BH",...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
                 exprs_values, BPPARAM, zero.policy, returnDF,
-                include_self, ...
+                include_self, p.adjust.method, ...
             )
         }
     }
@@ -145,7 +145,7 @@
 .coldata_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, ...) {
+                        include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
@@ -156,7 +156,7 @@
             res <- calculateUnivariate(colData(x)[colData(x)$sample_id == s,
                                                   features, drop = FALSE],
                 listw_use, type, BPPARAM, zero.policy,
-                returnDF = TRUE, ...
+                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
             if (local) {
@@ -172,10 +172,10 @@
     } else {
         function(x, features, colGraphName = 1L, sample_id = NULL,
                  BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, ...) {
+                 include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, ...
             )
         }
     }
@@ -185,7 +185,7 @@
     fun_use <- function(x, type, features, colGeometryName = 1L,
                         colGraphName = 1L, sample_id = NULL,
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, ...) {
+                        include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
@@ -196,7 +196,7 @@
             cg <- colGeometry(x, type = colGeometryName, sample_id = s)
             res <- calculateUnivariate(cg[, features, drop = FALSE], listw_use,
                 type, BPPARAM, zero.policy,
-                returnDF = TRUE, ...
+                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
             if (local) {
@@ -218,10 +218,10 @@
     } else {
         function(x, features, colGeometryName = 1L, colGraphName = 1L,
                  sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, ...) {
+                 include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGeometryName, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, ...
             )
         }
     }
@@ -231,7 +231,7 @@
     fun_use <- function(x, type, features, annotGeometryName = 1L,
                         annotGraphName = 1L, sample_id = NULL,
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, ...) {
+                        include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         for (s in sample_id) {
             listw_use <- annotGraph(x, type = annotGraphName, sample_id = s)
@@ -243,7 +243,7 @@
             ag <- .rm_empty_geometries(ag, MARGIN = 3)
             res <- calculateUnivariate(ag[, features, drop = FALSE], listw_use,
                 type, BPPARAM, zero.policy,
-                returnDF = TRUE, ...
+                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
             if (local) {
@@ -266,10 +266,10 @@
     } else {
         function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
                  sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, ...) {
+                 include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, annotGeometryName, annotGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, ...
             )
         }
     }
@@ -278,14 +278,16 @@
 .sfe_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
-                        zero.policy = NULL, include_self = FALSE, ...) {
+                        zero.policy = NULL, include_self = FALSE, 
+                        p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         features <- .symbol2id(x, features)
         for (s in sample_id) {
             out <- calculateUnivariate(x, type, features, colGraphName, s,
                 exprs_values, BPPARAM, zero.policy,
                 returnDF = TRUE,
-                include_self = include_self, ...
+                include_self = include_self, p.adjust.method = p.adjust.method, 
+                ...
             )
             local <- .is_local(type)
             if (local) {
@@ -306,10 +308,12 @@
     } else {
         function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
-                 zero.policy = NULL, include_self = FALSE, ...) {
+                 zero.policy = NULL, include_self = FALSE, 
+                 p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
-                exprs_values, BPPARAM, zero.policy, include_self, ...
+                exprs_values, BPPARAM, zero.policy, include_self, 
+                p.adjust.method, ...
             )
         }
     }

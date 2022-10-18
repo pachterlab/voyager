@@ -27,6 +27,7 @@
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -41,6 +42,7 @@
   zero.policy = NULL,
   returnDF = TRUE,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -56,6 +58,7 @@
   zero.policy = NULL,
   returnDF = TRUE,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -68,6 +71,7 @@ colDataUnivariate(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -79,6 +83,7 @@ colDataMoransI(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -92,6 +97,7 @@ colGeometryUnivariate(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -104,6 +110,7 @@ colGeometryMoransI(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -117,6 +124,7 @@ annotGeometryUnivariate(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -129,6 +137,7 @@ annotGeometryMoransI(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -142,6 +151,7 @@ runUnivariate(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 
@@ -154,6 +164,7 @@ runMoransI(
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
+  p.adjust.method = "BH",
   ...
 )
 }
@@ -176,6 +187,10 @@ and how computing the metric for numerous genes shall be parallelized.}
 
 \item{returnDF}{Logical, when the results are not added to a SFE object,
 whether the results should be formatted as a \code{DataFrame}.}
+
+\item{p.adjust.method}{Method to correct for multiple testing, passed to
+\code{\link[spdep]{p.adjustSP}}. Methods allowed are in
+\code{\link{p.adjust.methods}}.}
 
 \item{...}{Other arguments passed to S4 method (for convenience wrappers like
 \code{calculateMoransI}) or method used to compute metrics as specified by
@@ -272,9 +287,8 @@ object, which can be accessed with
 \code{\link[SpatialFeatureExperiment]{localResults}} or
 \code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
 p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-Note that in the multiple testing correction, the number of tests is the
-number of cells/spots, not accounting for multiple features for which the
-p-values have been computed.
+Note that in the multiple testing correction, \code{\link[spdep]{p.adjustSP}}
+is used.
 }
 \examples{
 library(SpatialFeatureExperiment)
