@@ -397,7 +397,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
                 diverge_center = 0)
 ```
 
-It seems that regions with higher Myh2 expression also have stronger spatial autocorrelation. It would be interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean gene expression level.
+It seems that regions with higher Myh2 expression also have stronger spatial autocorrelation. It would be interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean in the expression of each gene, which usually indicates overdispersion compared to Poisson in scRNA-seq and Visium data.
 
 ```{r}
 qplot(logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
@@ -420,7 +420,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
                 diverge_center = -log10(0.05))
 ```
 
-In this plot, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the bluish spots are significant. 
+In this plot and all following plots of p-values, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the bluish spots are significant while a dark brown means _really_ not significant.
 
 The "pysal" column indicates the quadrant relative the the means in the Moran plot. The result is similar to that from k-means clustering above.
 ```{r}
@@ -461,6 +461,8 @@ plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2",
                 diverge_center = -log10(0.05))
 ```
 
+The hotspots are as expected.
+
 Local results can also be computed for annotation geometries.
 ```{r}
 annotGraph(sfe_tissue, "myofiber_poly2nb_B") <- 
@@ -488,6 +490,8 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
+The hotspots and coldspots are as expected.
+
 #### Local spatial heteroscedasticity (LOSH)
 LOSH is defined as
 
@@ -512,9 +516,13 @@ plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2",
                 colGeometryName = "spotPoly")
 ```
 
+For this gene, it isn't clear whether LOSH relates to gene expression levels.
+
 ```{r}
 localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2")
 ```
+
+While `Voyager` does wrap `LOSH.mc` to perform permutation testing of LOSH, this is very time consuming. A Chi-square approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs`.
 
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
@@ -522,11 +530,13 @@ plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2",
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
+For this gene, the local conditions are mostly homogenous, with a few exceptions around the edge of the tissue.
+
 # Limitations
 1. In the first version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
-2. The plotting functions don't plot the H&E image in the background. 
+2. The plotting functions don't plot the H&E image in the background. This is not implemented in the first version since when the Visium spots are plotted, they block out the H&E image anyway. Also, the plots are small and not interactive, which is good enough for visualizing gene expression on Visium spots, while the H&E image would be more informative when more zoomed in. Interactive data visualization is beyond the scope of this package.
 3. It's more convoluted to trick `geom_sf` into flipping the y axis, since the coordinates are in pixels in full resolution image and the image has the origin at the top left.
-4. Only 2D data is supported at present.
+4. Only 2D data is supported at present, although in principle, `sf` and `GEOS` support 3D data.
 
 # Session info
 ```{r}
