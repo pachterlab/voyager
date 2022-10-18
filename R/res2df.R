@@ -14,12 +14,12 @@
     if (any(ind_sim)) {
       col_use <- colnames(out)[ind_sim][1]
       out <- cbind(out, `-log10p Sim` = -log10(out[,col_use]),
-                   `-log10p_BH Sim` = -log10(p.adjustSP(out[,col_use],nb, 
+                   `-log10p_adj Sim` = -log10(p.adjustSP(out[,col_use],nb, 
                                                         method = p.adjust.method)))
     } else if (any(ind)) {
       col_use <- colnames(out)[ind][1]
       out <- cbind(out, `-log10p` = -log10(out[,col_use]),
-                   `-log10p_BH` = -log10(p.adjustSP(out[,col_use], nb, 
+                   `-log10p_adj` = -log10(p.adjustSP(out[,col_use], nb, 
                                                     method = p.adjust.method)))
     }
   }
