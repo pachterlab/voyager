@@ -19,8 +19,8 @@
 #' getDivergeRange(v, diverge_center = 0)
 getDivergeRange <- function(values, diverge_center = 0) {
     rg <- range(values, na.rm = TRUE)
+    rg_centered <- abs(rg - diverge_center)
     if (!(diverge_center >= rg[1] && diverge_center <= rg[2])) {
-        rg_centered <- abs(rg - diverge_center)
         if (diverge_center < rg[1]) {
             pal_begin <- 0.5 + (rg_centered[1]/rg_centered[2])/2
             pal_end <- 1
