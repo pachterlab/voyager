@@ -31,7 +31,9 @@
             .localG2df
         } else if (type == "localC_perm") {
             .localCperm2df
-        } else {
+        } else if (type %in% c("LOSH.mc", "LOSH.cs")) {
+            .LOSHmc2df
+        } else{
             identity
         }
         out <- fun_use(out)
@@ -157,3 +159,5 @@
 .localG2df <- function(out) .attrmat2df(out, "internals", "localG")
 
 .localCperm2df <- function(out) .attrmat2df(out, "pseudo-p", "localC")
+
+.LOSHmc2df <- function(out) lapply(out, .add_log_p)
