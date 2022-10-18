@@ -230,6 +230,7 @@ rowFeatureData <- function(sfe) {
         localG_perm = "localG",
         LOSH = "Hi",
         LOSH.mc = "Hi",
+        LOSH.cs = "Hi",
         moran.plot = "wx"
     )
 }
