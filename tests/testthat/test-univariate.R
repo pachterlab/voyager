@@ -171,7 +171,7 @@ test_that("DataFrame output for globalG.test, or htest in general", {
 
 names_expect_lm <- c(
     "Ii", "E.Ii", "Var.Ii", "Z.Ii", "Pr(z != E(Ii))", "mean",
-    "median", "pysal"
+    "median", "pysal", "-log10p"
 )
 test_that("DataFrame output for localmoran", {
     out <- calculateUnivariate(mat1,
@@ -188,7 +188,7 @@ test_that("DataFrame output for localmoran", {
 names_expect_lg <- c(
     "localG", "Gi", "E.Gi", "Var.Gi", "Pr(z != E(Gi))",
     "Pr(z != E(Gi)) Sim", "Pr(folded) Sim", "Skewness",
-    "Kurtosis"
+    "Kurtosis", "-log10p Sim"
 )
 test_that("DataFrame output for localG_perm", {
     out <- calculateUnivariate(mat1,

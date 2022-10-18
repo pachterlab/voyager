@@ -6,6 +6,21 @@
 # a matrix or data frame if necessary,
 # and a DataFrame or data.frame (for geometries) each column of which is for
 # a feature is returned.
+.add_log_p <- function(out) {
+  if (!is.vector(out)) {
+    ind_sim <- grepl("^Pr\\(z.+Sim$", colnames(out))
+    ind <- grepl("^Pr\\(", colnames(out))
+    if (any(ind_sim)) {
+      col_use <- colnames(out)[ind_sim][1]
+      out <- cbind(out, `-log10p Sim` = -log10(out[,col_use]))
+    } else if (any(ind)) {
+      col_use <- colnames(out)[ind][1]
+      out <- cbind(out, `-log10p` = -log10(out[,col_use]))
+    }
+  }
+  out
+}
+
 .res2df <- function(out, type, local = FALSE, use_geometry = FALSE, ...) {
     if (local) {
         fun_use <- if (type %in% c("localmoran", "localmoran_perm")) {
@@ -119,7 +134,7 @@
     out <- lapply(out, function(o) {
         o1 <- as.data.frame(o)
         quadr <- attr(o, "quadr")
-        I(cbind(o1, quadr))
+        I(.add_log_p(cbind(o1, quadr)))
     })
     out
 }
@@ -130,7 +145,7 @@
             attr_mat <- attr(o, attr_name)
             attr_mat <- cbind(o, attr_mat)
             colnames(attr_mat)[1] <- type
-            attr_mat
+            .add_log_p(attr_mat)
         })
     } else {
         lapply(out, as.vector)

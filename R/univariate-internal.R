@@ -109,7 +109,8 @@
 # localG_perm: class localG, vector with attributes which includes a matrix.
 # I think I'll add that vector to that matrix.
 # LOSH: matrix, no class
-# LOSH.mc: matrix, class LOSH and mc.sim but very different from moran.mc results
+# LOSH.mc: matrix, class LOSH and mc.sim but very different from moran.mc results,
+# with simulated p-values
 # skater: list, class skater
 # Also some stuff from GWmodel
 # gwss: list, class lss, SDF sp component for the results. For each type, should be vector.
