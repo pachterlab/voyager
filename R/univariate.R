@@ -37,9 +37,8 @@
 #' \code{\link[SpatialFeatureExperiment]{localResults}} or
 #' \code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
 #' p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-#' Note that in the multiple testing correction, the number of tests is the
-#' number of cells/spots, not accounting for multiple features for which the
-#' p-values have been computed.
+#' Note that in the multiple testing correction, \code{\link[spdep]{p.adjustSP}}
+#' is used.
 #'
 #' @inheritParams spdep::moran
 #' @inheritParams SpatialFeatureExperiment::localResults
@@ -90,6 +89,9 @@
 #' @param include_self Logical, whether the spatial neighborhood graph should
 #'   include edges from each location to itself. This is for Getis-Ord Gi* as in
 #'   \code{localG} and \code{localG_perm}, not to be used for any other method.
+#' @param p.adjust.method Method to correct for multiple testing, passed to
+#'   \code{\link[spdep]{p.adjustSP}}. Methods allowed are in
+#'   \code{\link{p.adjust.methods}}.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like
@@ -180,7 +182,7 @@ setMethod(
                  "gwss"
              ),
              BPPARAM = SerialParam(),
-             zero.policy = NULL, returnDF = TRUE, ...) {
+             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH", ...) {
         type <- match.arg(type)
         # I wrote a thin wrapper to make the argument names consistent
         if (type == "sp.correlogram") {
@@ -202,7 +204,8 @@ setMethod(
         )
         all_args <- c(all_args, other_args, defaults_use)
         out <- do.call(.calc_univar, all_args)
-        if (returnDF) out <- .res2df(out, type, local, ...)
+        if (returnDF) out <- .res2df(out, type, local, nb = listw$neighbours,
+                                     p.adjust.method = p.adjust.method, ...)
         out
     }
 )
