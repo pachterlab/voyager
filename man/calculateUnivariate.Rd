@@ -269,7 +269,11 @@ function.
 Local results are stored in the field \code{localResults} field of the SFE
 object, which can be accessed with
 \code{\link[SpatialFeatureExperiment]{localResults}} or
-\code{\link[SpatialFeatureExperiment]{localResult}}.
+\code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
+p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
+Note that in the multiple testing correction, the number of tests is the
+number of cells/spots, not accounting for multiple features for which the
+p-values have been computed.
 }
 \examples{
 library(SpatialFeatureExperiment)

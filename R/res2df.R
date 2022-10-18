@@ -12,10 +12,12 @@
     ind <- grepl("^Pr\\(", colnames(out))
     if (any(ind_sim)) {
       col_use <- colnames(out)[ind_sim][1]
-      out <- cbind(out, `-log10p Sim` = -log10(out[,col_use]))
+      out <- cbind(out, `-log10p Sim` = -log10(out[,col_use]),
+                   `-log10p_BH Sim` = -log10(p.adjust(out[,col_use], method = "BH")))
     } else if (any(ind)) {
       col_use <- colnames(out)[ind][1]
-      out <- cbind(out, `-log10p` = -log10(out[,col_use]))
+      out <- cbind(out, `-log10p` = -log10(out[,col_use]),
+                   `-log10p_BH` = -log10(p.adjust(out[,col_use], method = "BH")))
     }
   }
   out
