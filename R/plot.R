@@ -20,15 +20,22 @@
 getDivergeRange <- function(values, diverge_center = 0) {
     rg <- range(values, na.rm = TRUE)
     if (!(diverge_center >= rg[1] && diverge_center <= rg[2])) {
-        warning("diverge_center must be between the minimum and maximum of the metric.")
-    }
-    rg_centered <- abs(rg - diverge_center)
-    if (rg_centered[1] < rg_centered[2]) {
-        pal_begin <- (rg_centered[2] - rg_centered[1]) / rg_centered[2] / 2
-        pal_end <- 1
+        rg_centered <- abs(rg - diverge_center)
+        if (diverge_center < rg[1]) {
+            pal_begin <- 0.5 + (rg_centered[1]/rg_centered[2])/2
+            pal_end <- 1
+        } else {
+            pal_begin <- 0
+            pal_end <- 0.5 - (rg_centered[2]/diverge_center)/2
+        }
     } else {
-        pal_begin <- 0
-        pal_end <- 1 - (rg_centered[1] - rg_centered[2]) / rg_centered[1] / 2
+        if (rg_centered[1] < rg_centered[2]) {
+            pal_begin <- (rg_centered[2] - rg_centered[1]) / rg_centered[2] / 2
+            pal_end <- 1
+        } else {
+            pal_begin <- 0
+            pal_end <- 1 - (rg_centered[1] - rg_centered[2]) / rg_centered[1] / 2
+        }
     }
     c(pal_begin, pal_end)
 }
