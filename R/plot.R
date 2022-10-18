@@ -20,7 +20,7 @@
 getDivergeRange <- function(values, diverge_center = 0) {
     rg <- range(values, na.rm = TRUE)
     if (!(diverge_center >= rg[1] && diverge_center <= rg[2])) {
-        stop("diverge_center must be between the minimum and maximum of the metric.")
+        warning("diverge_center must be between the minimum and maximum of the metric.")
     }
     rg_centered <- abs(rg - diverge_center)
     if (rg_centered[1] < rg_centered[2]) {
