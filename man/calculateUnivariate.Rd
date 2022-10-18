@@ -22,7 +22,8 @@
   listw,
   type = c("moran", "geary", "moran.mc", "geary.mc", "moran.test", "geary.test",
     "globalG.test", "sp.correlogram", "moran.plot", "localmoran", "localmoran_perm",
-    "localC", "localC_perm", "localG", "localG_perm", "LOSH", "LOSH.mc", "gwss"),
+    "localC", "localC_perm", "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
+    "gwss"),
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
@@ -255,8 +256,8 @@ The following methods are local, meaning each location has its own results:
 \code{\link[spdep]{localmoran_perm}}, \code{\link[spdep]{localC}},
 \code{\link[spdep]{localC_perm}}, \code{\link[spdep]{localG}},
 \code{\link[spdep]{localG_perm}}, \code{\link[spdep]{LOSH}},
-\code{\link[spdep]{LOSH.mc}}. The \code{GWmodel::gwss} method will be
-supported soon, but is not supported yet.
+\code{\link[spdep]{LOSH.mc}}, \code{\link[spdep]{LOSH.cs}}. The
+\code{GWmodel::gwss} method will be supported soon, but is not supported yet.
 
 Global results for genes are stored in \code{rowData}. For \code{colGeometry}
 and \code{annotGeometry}, the results are added to an attribute of the data
