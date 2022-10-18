@@ -386,6 +386,7 @@ sfe_tissue <- runUnivariate(sfe_tissue, type = "localmoran", features = "Myh2",
                             colGraphName = "visium")
 ```
 
+Plot the log normalized Myh2 gene expression as context to interpret the local results
 ```{r}
 plotSpatialFeature(sfe_tissue, features = "Myh2", colGeometryName = "spotPoly")
 ```
@@ -398,16 +399,28 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 
 It seems that regions with higher Myh2 expression also have stronger spatial autocorrelation. It would be interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean gene expression level.
 
+```{r}
+qplot(logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
+      localResult(sfe_tissue, "localmoran", "Myh2")[,"Ii"],
+      xlab = "Myh2 (log counts)", ylab = "localmoran", alpha = I(0.3))
+```
+
+For this gene, Visium spots with higher expression also tend to have higher local Moran's I, but this may or may not apply to other genes.
+
 Local spatial analyses often return a matrix or data frame as the results. The `plotLocalResult` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
 ```{r}
 localResultAttrs(sfe_tissue, "localmoran", "Myh2")
 ```
 
+Some local spatial methods return p-values at each location, in a column with name like `Pr(z != E(Ii))`, where the test is two sided (default, can be changed with the `alternative` argument in `runUnivariate` which is passed to the relevant underlying function in `spdep`). Negative log of the p-value is computed to facilitate visualization, and the p-value is corrected for multiple hypothesis testing with `p.adjustSP` in `spdep`, where the number of tests is the number of neighbors of each location rather than the total number of locations (`-log10p_adj`).
+
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
-                colGeometryName = "spotPoly", attribute = "-log10p_BH", divergent = TRUE,
+                colGeometryName = "spotPoly", attribute = "-log10p_adj", divergent = TRUE,
                 diverge_center = -log10(0.05))
 ```
+
+In this plot, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the bluish spots are significant. 
 
 The "pysal" column indicates the quadrant relative the the means in the Moran plot. The result is similar to that from k-means clustering above.
 ```{r}
@@ -440,13 +453,15 @@ High values of Gi\* indicate hotspots, while low values of Gi\* indicate coldspo
 localResultAttrs(sfe_tissue, "localG_perm", "Myh2")
 ```
 
+Plot the pseudo-p-values from the simulation
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2", 
-                attribute = "-log10p_BH Sim",
+                attribute = "-log10p_adj Sim",
                 colGeometryName = "spotPoly", divergent = TRUE,
                 diverge_center = -log10(0.05))
 ```
 
+Local results can also be computed for annotation geometries.
 ```{r}
 annotGraph(sfe_tissue, "myofiber_poly2nb_B") <- 
   findSpatialNeighbors(sfe_tissue, type = "myofiber_simplified", MARGIN = 3,
@@ -469,7 +484,7 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", "area", 
                 annotGeometryName = "myofiber_simplified",
-                attribute = "-log10p_BH Sim",
+                attribute = "-log10p_adj Sim",
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
@@ -503,7 +518,7 @@ localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2")
 
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
-                attribute = "-log10p_BH", colGeometryName = "spotPoly",
+                attribute = "-log10p_adj", colGeometryName = "spotPoly",
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
