@@ -2,7 +2,7 @@
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
-    branches: [devel]
+    branches: [documentation]
   release:
     types: [published]
   workflow_dispatch:
@@ -33,10 +33,6 @@ jobs:
       - name: Install Bioc devel
         run: install.packages("BiocManager"); BiocManager::install(version = "devel", ask = FALSE)
         shell: Rscript {0}
-      - name: Install SFEData
-        run: pak::pkg_install("pachterlab/SFEData")
-      - name: Install SFE
-        run: pak::pkg_install("pachterlab/SpatialFeatureExperiment")
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
