@@ -361,6 +361,7 @@ rowFeatureData <- function(sfe) {
         localG_perm = "Getis-Ord Gi(*) with permutation testing",
         LOSH = "Local spatial heteroscedasticity",
         LOSH.mc = "Local spatial heteroscedasticity permutation testing",
+        LOSH.cs = "Local spatial heteroscedasticity Chi-square test",
         moran.plot = "Moran plot"
     )
     paste0(base, " (", attribute, ")")
