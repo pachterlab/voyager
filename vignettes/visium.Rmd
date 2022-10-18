@@ -405,10 +405,9 @@ localResultAttrs(sfe_tissue, "localmoran", "Myh2")
 
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
-                colGeometryName = "spotPoly", attribute = "Pr(z != E(Ii))")
+                colGeometryName = "spotPoly", attribute = "-log10p", divergent = TRUE,
+                diverge_center = -log10(0.05))
 ```
-
-to do: in res2df functions, add column for -log p values since those would be more informative when plotted.
 
 The "pysal" column indicates the quadrant relative the the means in the Moran plot. The result is similar to that from k-means clustering above.
 ```{r}
@@ -438,6 +437,17 @@ plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2",
 High values of Gi\* indicate hotspots, while low values of Gi\* indicate coldspots.
 
 ```{r}
+localResultAttrs(sfe_tissue, "localG_perm", "Myh2")
+```
+
+```{r}
+plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2", 
+                attribute = "-log10p Sim",
+                colGeometryName = "spotPoly", divergent = TRUE,
+                diverge_center = -log10(0.05))
+```
+
+```{r}
 annotGraph(sfe_tissue, "myofiber_poly2nb_B") <- 
   findSpatialNeighbors(sfe_tissue, type = "myofiber_simplified", MARGIN = 3,
                        method = "poly2nb", zero.policy = TRUE, style = "B")
@@ -454,6 +464,13 @@ sfe_tissue <- annotGeometryUnivariate(sfe_tissue, "localG_perm", "area",
 plotLocalResult(sfe_tissue, "localG_perm", "area", 
                 annotGeometryName = "myofiber_simplified",
                 divergent = TRUE, diverge_center = 0)
+```
+
+```{r}
+plotLocalResult(sfe_tissue, "localG_perm", "area", 
+                annotGeometryName = "myofiber_simplified",
+                attribute = "-log10p Sim",
+                divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
 #### Local spatial heteroscedasticity (LOSH)
@@ -479,6 +496,9 @@ plotLocalResult(sfe_tissue, "LOSH", features = "Myh2",
                 colGeometryName = "spotPoly")
 ```
 
+```{r}
+localResultAttrs(sfe_tissue, "LOSH", "Myh2")
+```
 
 # Limitations
 1. In the first version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
