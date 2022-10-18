@@ -405,7 +405,7 @@ localResultAttrs(sfe_tissue, "localmoran", "Myh2")
 
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
-                colGeometryName = "spotPoly", attribute = "-log10p", divergent = TRUE,
+                colGeometryName = "spotPoly", attribute = "-log10p_BH", divergent = TRUE,
                 diverge_center = -log10(0.05))
 ```
 
@@ -442,7 +442,7 @@ localResultAttrs(sfe_tissue, "localG_perm", "Myh2")
 
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2", 
-                attribute = "-log10p Sim",
+                attribute = "-log10p_BH Sim",
                 colGeometryName = "spotPoly", divergent = TRUE,
                 diverge_center = -log10(0.05))
 ```
@@ -469,8 +469,7 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", "area", 
                 annotGeometryName = "myofiber_simplified",
-                attribute = "-log10p Sim",
-                divergent = TRUE, diverge_center = -log10(0.05))
+                attribute = "-log10p_BH Sim")
 ```
 
 #### Local spatial heteroscedasticity (LOSH)
@@ -488,7 +487,8 @@ $$
 
 By default, $a = 2$ so LOSH is like a local variance. See the [2012 LOSH paper](https://www.researchgate.net/publication/227581869_Local_spatial_heteroscedasticity_LOSH) for more details and interpretation. 
 ```{r}
-sfe_tissue <- runUnivariate(sfe_tissue, "LOSH", "Myh2", colGraphName = "visium")
+sfe_tissue <- runUnivariate(sfe_tissue, "LOSH", "Myh2", 
+                            colGraphName = "visium")
 ```
 
 ```{r}
@@ -499,6 +499,7 @@ plotLocalResult(sfe_tissue, "LOSH", features = "Myh2",
 ```{r}
 localResultAttrs(sfe_tissue, "LOSH", "Myh2")
 ```
+
 
 # Limitations
 1. In the first version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
