@@ -133,7 +133,7 @@
 .is_local <- function(type) {
     if (type %in% c(
         "localmoran", "localmoran_perm", "localC", "localC_perm",
-        "localG", "localG_perm", "LOSH", "LOSH.mc", "gwss",
+        "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs", "gwss",
         "lee", "localmoran_bv", "moran.plot"
     )) {
         TRUE
