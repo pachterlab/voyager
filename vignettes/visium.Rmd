@@ -1,6 +1,12 @@
 ---
 title: "ESDA with Visium mouse skeletal muscle dataset"
-output: rmarkdown::html_vignette
+output: rmarkdown:
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{ESDA with Visium mouse skeletal muscle dataset}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,7 +21,7 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction
-In single cell RNA-seq (scRNA-seq), data and metadata can be represented with `SingleCellExperiment` or `Seurat` objects, and basic exploratory data analyses and visualization performed with `scater`, `scran`, and `scuttle`, or `Seurat`. The `SpatialFeatureExperiment` package and S4 class extending `SpatialExperiment` and `SingleCellExperiment` brings EDA methods for vector spatial data to spatial transcriptomics. `Voyager` to `SpatialFeatureExperiment` is just like `scater`, `scran`, and `scuttle` to `SingleCellExperiment`, implementing basic exploratory spatial data analysis (ESDA) and visualization methods. 
+In single cell RNA-seq (scRNA-seq), data and metadata can be represented with [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) or [`Seurat`](https://satijalab.org/seurat/index.html) objects, and basic exploratory data analyses and visualization performed with [`scater`](https://bioconductor.org/packages/release/bioc/html/scater.html), [`scran`](https://bioconductor.org/packages/release/bioc/html/scran.html), and [`scuttle`](https://bioconductor.org/packages/release/bioc/html/scuttle.html), or `Seurat`. The [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) package and S4 class extending [`SpatialExperiment`](https://bioconductor.org/packages/release/bioc/html/SpatialExperiment.html) and `SingleCellExperiment` brings EDA methods for vector spatial data to spatial transcriptomics. `Voyager` to `SpatialFeatureExperiment` is just like `scater`, `scran`, and `scuttle` to `SingleCellExperiment`, implementing basic exploratory spatial data analysis (ESDA) and visualization methods. 
 
 Tobler's first law of geography:
 
@@ -23,7 +29,7 @@ Tobler's first law of geography:
 
 Non-spatial statistical methods often assume that the samples (cells, spots) are independent, which is not the case in spatial data, where nearby samples tend to be more similar (i.e. positive spatial autocorrelation; negative spatial autocorrelation is when nearby samples tend to be more dissimilar, like a checkered pattern). Much of ESDA is dedicated to spatial autocorrelation, such as finding whether it is present, and if so what's its length scale. 
 
-This part of the workshop gives an overview of some ESDA methods, functionalities of the `Voyager` package, and applications of the `SpatialFeatureExperiment` class with a published Visium dataset.
+This vignette gives an overview of some ESDA methods, functionalities of the `Voyager` package, and applications of the `SpatialFeatureExperiment` class with a published Visium dataset.
 
 ```{r setup}
 library(Voyager)
@@ -41,11 +47,11 @@ theme_set(theme_bw(10))
 ```
 
 # Dataset
-The dataset used in this vignette comes from [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x). Notexin was injected into the tibialis anterior muscle to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium. The dataset here is from the 2 day timepoint. The dataset is in a `SpatialFeatureExperiment` (SFE) object.
+The dataset used in this vignette comes from [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x) [@McKellar2021-ek]. Notexin was injected into the tibialis anterior muscle to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium. The dataset here is from the 2 day timepoint. The dataset is in a `SpatialFeatureExperiment` (SFE) object.
 
 The gene count matrix was directly downloaded from GEO. All 4992 spots, whether in tissue or not, are included. The H&E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. 
 
-Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See the vignette of the `SpatialFeatureExperiment` for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package.
+Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See [the vignette of `SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html) for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package.
 
 ```{r}
 (sfe <- McKellarMuscleData("full"))
@@ -87,7 +93,7 @@ annotGeometryNames(sfe_tissue)
 ```
 
 ### From myofibers and nuclei to Visium spots
-The `plotSpatialFeature` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields in the SFE object. For `rowGeometries` and `colGeometries`, such columns associated with the `sf` data frames rather than `rowData` or `colData` are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish from the column associated values. 
+The `plotSpatialFeature()` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields in the SFE object. For `rowGeometries` and `colGeometries`, such columns associated with the `sf` data frames rather than `rowData` or `colData` are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish from the column associated values. 
 
 Here, from the `annotGeometries`, the myofiber polygons are plotted, colored by cross section area as observed in this tissue section. The `aes_use` argument is set to `color` rather than `fill` (default for polygons) to only plot the Visium spot outlines to make the myofiber polygons more visible. The `fill` argument is set to `NA` to make the Visium spots look hollow, and the `size` argument controls the thickness of the outlines. The `annot_aes` argument specifies which column in the `annotGeometry` to use to specify the values of an aesthstic, just like `aes` in `ggplot2` (`aes_string` to be precise, since `tidyeval` is not used here). The `annot_fixed` argument (not used here) can set the fixed size, alpha, color, and etc. for the `annotGeometry`. 
 ```{r, fig.alt="Plot of Visium spots in tissue and myofiber polygons in physical space. Visium spots are colored by nCounts, and myofibers are colored by area."}
@@ -100,7 +106,7 @@ plotSpatialFeature(sfe_tissue, features = "nCounts",
 
 The larger myofibers seem to have fewer total counts, possibly because the larger size of these myofibers dilute the transcripts. If this is the case, then data normalization would be relevant to correct for this. 
 
-With `SpatialFeatureExperiment`, we can find the number of myofibers and nuclei that intersect each Visium spot. The predicate can be [anything implemented in `sf`](https://r-spatial.github.io/sf/reference/geos_binary_pred.html), so for example, the number of nuclei fully covered by each Visium spot can also be found. The default predicate is `st_intersects`.
+With `SpatialFeatureExperiment`, we can find the number of myofibers and nuclei that intersect each Visium spot. The predicate can be [anything implemented in `sf`](https://r-spatial.github.io/sf/reference/geos_binary_pred.html), so for example, the number of nuclei fully covered by each Visium spot can also be found. The default predicate is `st_intersects()`.
 ```{r}
 colData(sfe_tissue)$n_myofibers <- 
   annotNPred(sfe_tissue, colGeometryName = "spotPoly",
@@ -112,7 +118,7 @@ plotSpatialFeature(sfe_tissue, features = "n_myofibers",
                    colGeometryName = "spotPoly")
 ```
 
-There is no one to one mapping between Visium spots and myofibers. However, we may want to relate attributes of myofibers to gene expression detected at the Visium spots. One way to do so is to summarize the attributes of all myofibers that intersect (or choose another better predicate implemented in `sf`) each spot, such as to calculate the mean, median, or sum. This can be done with the `annotSummary` function in `SpatialFeatureExperiment`. The default predicate is `st_intersects`, and the default summary function is `mean`.
+There is no one to one mapping between Visium spots and myofibers. However, we may want to relate attributes of myofibers to gene expression detected at the Visium spots. One way to do so is to summarize the attributes of all myofibers that intersect (or choose another better predicate implemented in `sf`) each spot, such as to calculate the mean, median, or sum. This can be done with the `annotSummary()` function in `SpatialFeatureExperiment`. The default predicate is `st_intersects()`, and the default summary function is `mean()`.
 ```{r}
 colData(sfe_tissue)$mean_myofiber_area <- 
   annotSummary(sfe_tissue, "spotPoly", "myofiber_simplified", 
@@ -129,12 +135,12 @@ Now we can see how the mean area of myofibers intersecting each Visium spot rela
 The NAs are for spots not intersecting any myofibers, e.g. those in the inflammatory region. 
 
 ### Myofiber types
-Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic), Myh1 (Type IIx, fast twitch, anaerobic), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/)
+Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic), Myh1 (Type IIx, fast twitch, anaerobic), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/) [@Wang2017-li]
 ```{r}
 markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
 ```
 
-First look at Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature` function and other functions in `Voyager`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
+First look at Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature()` function and other functions in `Voyager`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
 
 The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. This default may or may not be best practice given that total UMI counts may have biological relevance in spatial data. Therefore we are plotting both the raw counts and the log normalized counts here.
 ```{r}
@@ -178,7 +184,7 @@ plotColData(sfe_tissue, x = "mean_myofiber_area", y = "prop_mito",
 Plotting proportion of mitochondrial counts vs. mean myofiber area, we see two clusters, one with higher proportion of mitochondrial counts and smaller area, and another with lower proportion of mitochondrial counts and on average slightly larger area. Type IIa myofibers tend to have smaller area and larger proportion of mitochondrial counts.
 
 # Spatial neighborhood graphs
-A spatial neighborhood graph is required to compute spatial dependency metrics such as Moran's I and Geary's C. The `SpatialFeatureExperiment` package wraps methods in `spdep` to find spatial neighborhood graphs, which are stored within the SFE object (see `spdep` documentation for [`gabrielneigh`](https://r-spatial.github.io/spdep/reference/graphneigh.html), [`knearneigh`](https://r-spatial.github.io/spdep/reference/knearneigh.html), [`poly2nb`](https://r-spatial.github.io/spdep/reference/poly2nb.html), and [`tri2nb`](https://r-spatial.github.io/spdep/reference/tri2nb.html)). The `Voyager` package then uses these graphs for spatial dependency analyses, again based on `spdep` in this first version, but methods from other geospatial packages, some of which also use the spatial neighborhood graphs, may be added later as needed.
+A spatial neighborhood graph is required to compute spatial dependency metrics such as Moran's I and Geary's C. The `SpatialFeatureExperiment` package wraps methods in `spdep` to find spatial neighborhood graphs, which are stored within the SFE object (see `spdep` documentation for `gabrielneigh()`, `knearneigh()`, `poly2nb()`, and `tri2nb()`). The `Voyager` package then uses these graphs for spatial dependency analyses, again based on `spdep` in this first version, but methods from other geospatial packages, some of which also use the spatial neighborhood graphs, may be added later as needed.
 
 For Visium, where the spots are in a hexagonal grid, the spatial neighborhood graph is straightforward. However, for spatial technologies with single cell resolution (e.g. MERFISH) and in this dataset, the myofibers and nuclei, many different methods can be used to find the spatial neighborhood graph. Here for myofibers, the method "poly2nb" identifies myofiber polygons that physically touch each other. `zero.policy = TRUE` will allow singletons, i.e. nodes without neighbors in the graph; in the inflamed region, there are more singletons. We have not yet benchmarked which spatial neighborhood method is the "best" in which situation; the particular method used here is for demonstration purpose and may or may not be best practice. 
 
@@ -189,12 +195,12 @@ annotGraph(sfe_tissue, "myofiber_poly2nb") <-
                        method = "poly2nb", zero.policy = TRUE)
 ```
 
-The `plotColGraph` function plots the graph in space associated with a `colGeometry`, along with the geometry of interest.
+The `plotColGraph()` function plots the graph in space associated with a `colGeometry`, along with the geometry of interest.
 ```{r, fig.alt="Spatial neighborhood graph of Visium spots that intersect tissue."}
 plotColGraph(sfe_tissue, colGraphName = "visium", colGeometryName = "spotPoly")
 ```
 
-Similarly, the `plotAnnotGraph` function plots the graph associated with an `annotGeometry`, along with the geometry of interest. 
+Similarly, the `plotAnnotGraph()` function plots the graph associated with an `annotGeometry`, along with the geometry of interest. 
 ```{r, fig.alt="Spatial neighborhood graph of myofibers, where each edge connects two myofibers that touch."}
 plotAnnotGraph(sfe_tissue, annotGraphName = "myofiber_poly2nb", 
                annotGeometryName = "myofiber_simplified")
@@ -203,10 +209,10 @@ plotAnnotGraph(sfe_tissue, annotGraphName = "myofiber_poly2nb",
 There is no `plotRowGraph` yet since we haven't worked with a dataset where spatial graphs related to genes are relevant, although the SFE object supports row graphs.
 
 # Exploratory _spatial_ data analysis
-All spatial autocorrelation metrics in this package can be computed directly on a vector or a matrix rather than an SFE object. The user interface emulates those of dimension reductions in the `scater` package (e.g. `calculateUMAP` that takes in a matrix or SCE object and returns a matrix, and `runUMAP` that takes in an SCE object and adds the results to the `reducedDims` field of the SCE object). So `calculate*` functions take in a matrix or an SFE object and directly return the results (format of the results depends on the structure of the results), while `run*` functions take in an SFE object and add the results to the object. In addition, `colData*` functions compute the metrics for numeric variables in `colData`. `colGeometry*` functions compute the metrics for numeric columns in a `colGeometry`. `annotGeometry*` functions compute the metrics for numeric columns in a `annotGeometry`. 
+All spatial autocorrelation metrics in this package can be computed directly on a vector or a matrix rather than an SFE object. The user interface emulates those of dimension reductions in the `scater` package (e.g. `calculateUMAP()` that takes in a matrix or SCE object and returns a matrix, and `runUMAP()` that takes in an SCE object and adds the results to the `reducedDims` field of the SCE object). So `calculate*` functions take in a matrix or an SFE object and directly return the results (format of the results depends on the structure of the results), while `run*` functions take in an SFE object and add the results to the object. In addition, `colData*` functions compute the metrics for numeric variables in `colData`. `colGeometry*` functions compute the metrics for numeric columns in a `colGeometry`. `annotGeometry*` functions compute the metrics for numeric columns in a `annotGeometry`. 
 
 ## Univariate
-In this first version, `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions. The functions `calculateUnivariate`, `runUnivariate`, `colDataUnivariate`, `colGeometryUnivariate`, and `annotGeometryUnivariate` compute univariate spatial statistics. All univariate methods implemented in the R package `spdep` are supported here. The argument `type`, which indicates the corresponding function names in `spdep`, determines which spatial statistics are computed. 
+In this first version, `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions. The functions `calculateUnivariate()`, `runUnivariate()`, `colDataUnivariate()`, `colGeometryUnivariate()`, and `annotGeometryUnivariate()` compute univariate spatial statistics. All univariate methods implemented in the R package `spdep` are supported here. The argument `type`, which indicates the corresponding function names in `spdep`, determines which spatial statistics are computed. 
 
 To demonstrate spatial autocorrelation in gene expression, top highly variable genes (HVGs) are used. The HVGs are found with the `scran` method.
 ```{r}
@@ -367,7 +373,7 @@ This can also be done for `colData`, `annotGeometry`, and etc. as in Moran's I a
 Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
 
 #### Local Moran's I
-To recap, global Moran's I is defined as
+To recap, global Moran's I [@Anselin2010-cs] is defined as
 
 $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
@@ -429,7 +435,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 ```
 
 #### Getis-Ord Gi\*
-Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x), the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) and derived in the 1992 paper above.
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis2010-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord2010-we] and derived in the 1992 paper above.
 
 Binary weights are recommended for Getis-Ord Gi\*.
 ```{r}
@@ -493,7 +499,7 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
 The hotspots and coldspots are as expected.
 
 #### Local spatial heteroscedasticity (LOSH)
-LOSH is defined as
+LOSH [@Ord2012-qi] is defined as
 
 $$
 H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
