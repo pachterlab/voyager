@@ -373,7 +373,7 @@ This can also be done for `colData`, `annotGeometry`, and etc. as in Moran's I a
 Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
 
 #### Local Moran's I
-To recap, global Moran's I [@Anselin2010-cs] is defined as
+To recap, global Moran's I [@Anselin1995-cs] is defined as
 
 $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
@@ -435,7 +435,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 ```
 
 #### Getis-Ord Gi\*
-Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis2010-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord2010-we] and derived in the 1992 paper above.
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in the 1992 paper above.
 
 Binary weights are recommended for Getis-Ord Gi\*.
 ```{r}
@@ -511,7 +511,7 @@ $$
 \bar{x}_j = \frac{\sum_j w_{jk}x_k}{\sum_j w_{jk}}.
 $$
 
-By default, $a = 2$ so LOSH is like a local variance. See the [2012 LOSH paper](https://www.researchgate.net/publication/227581869_Local_spatial_heteroscedasticity_LOSH) for more details and interpretation. 
+By default, $a = 2$ so LOSH is like a local variance. See [@Ord2012-qi] for more details and interpretation. 
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, "LOSH.cs", "Myh2", 
                             colGraphName = "visium")
