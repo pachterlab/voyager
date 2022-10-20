@@ -83,6 +83,7 @@ sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
 ```{r}
 clusters <- quickCluster(sfe_tissue)
 sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
 sfe_tissue <- logNormCounts(sfe_tissue)
 ```
 
@@ -133,6 +134,15 @@ plotSpatialFeature(sfe_tissue, "mean_myofiber_area", "spotPoly")
 Now we can see how the mean area of myofibers intersecting each Visium spot relates to other aspects of the spots such as total counts and gene expression.
 
 The NAs are for spots not intersecting any myofibers, e.g. those in the inflammatory region. 
+
+In the [Basic Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium_basic.html), we encountered the mysterious two branches and two clusters in the nGenes vs. nCounts plot and the proportion of mitochondrial counts vs. nCounts plot. The two clusters seem to be related to myofiber size.
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "nGenes", color_by = "mean_myofiber_area")
+```
+
+```{r}
+plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", color_by = "mean_myofiber_area")
+```
 
 ### Myofiber types
 Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic), Myh1 (Type IIx, fast twitch, anaerobic), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/) [@Wang2017-li]
@@ -211,7 +221,7 @@ There is no `plotRowGraph` yet since we haven't worked with a dataset where spat
 # Exploratory _spatial_ data analysis
 All spatial autocorrelation metrics in this package can be computed directly on a vector or a matrix rather than an SFE object. The user interface emulates those of dimension reductions in the `scater` package (e.g. `calculateUMAP()` that takes in a matrix or SCE object and returns a matrix, and `runUMAP()` that takes in an SCE object and adds the results to the `reducedDims` field of the SCE object). So `calculate*` functions take in a matrix or an SFE object and directly return the results (format of the results depends on the structure of the results), while `run*` functions take in an SFE object and add the results to the object. In addition, `colData*` functions compute the metrics for numeric variables in `colData`. `colGeometry*` functions compute the metrics for numeric columns in a `colGeometry`. `annotGeometry*` functions compute the metrics for numeric columns in a `annotGeometry`. 
 
-## Univariate
+# Univariate global
 In this first version, `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions. The functions `calculateUnivariate()`, `runUnivariate()`, `colDataUnivariate()`, `colGeometryUnivariate()`, and `annotGeometryUnivariate()` compute univariate spatial statistics. All univariate methods implemented in the R package `spdep` are supported here. The argument `type`, which indicates the corresponding function names in `spdep`, determines which spatial statistics are computed. 
 
 To demonstrate spatial autocorrelation in gene expression, top highly variable genes (HVGs) are used. The HVGs are found with the `scran` method.
@@ -220,10 +230,9 @@ dec <- modelGeneVar(sfe_tissue)
 hvgs <- getTopHVGs(dec, n = 50)
 ```
 
-### Global
 A global statistic yields one result for the entire dataset.
 
-#### Moran's I
+## Moran's I
 There are several ways to quantify spatial autocorrelation, the most common of which is Moran's I:
 
 $$
@@ -244,7 +253,7 @@ calculateUnivariate(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]),
                     listw = colGraph(sfe_tissue, "visium"))
 ```
 
-I is Moran's I, and K is sample kurtosis.
+"moran" is Moran's I, and K is sample kurtosis.
 
 To add the results to the SFE object, specifically for colData:
 ```{r}
@@ -266,9 +275,9 @@ sfe_tissue <- annotGeometryUnivariate(sfe_tissue, type = "moran",
 head(attr(annotGeometry(sfe_tissue, "myofiber_simplified"), "featureData"))
 ```
 
-For a non-geometry column in a `colGeometry`, `colGeometryUnivariate` is like `annotGeometryUnivariate` here, but none of the `colGeometries` in this dataset has extra columns.
+For a non-geometry column in a `colGeometry`, `colGeometryUnivariate()` is like `annotGeometryUnivariate()` here, but none of the `colGeometries` in this dataset has extra columns.
 
-For gene expression, the `logcounts` assay is used by default (use the `exprs_values` argument to change the assay), though this may or may not be best practice. If the metrics are computed for a large number of features, parallel computing is supported, with `BiocParallel`, with the `BPPARAM` argument.
+For gene expression, the `logcounts` assay is used by default (use the `exprs_values` argument to change the assay), though this may or may not be best practice. If the metrics are computed for a large number of features, parallel computing is supported, with [`BiocParallel`](https://bioconductor.org/packages/release/bioc/html/BiocParallel.html), with the `BPPARAM` argument.
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, type = "moran", features = hvgs, 
                             colGraphName = "visium", 
@@ -276,7 +285,7 @@ sfe_tissue <- runUnivariate(sfe_tissue, type = "moran", features = hvgs,
 rowData(sfe_tissue)[head(hvgs),]
 ```
 
-#### Geary's C
+## Geary's C
 Another spatial autocorrelation metric is Geary's C, defined as:
 
 $$
@@ -296,8 +305,8 @@ There's only one column for K since it's the same for Moran's I and Geary's C. H
 
 Other univariate global methods, including permutation testing for Moran's I and Geary's C, correlograms, and Moran scatter plot can also be called with functions such as `runUnivariate`, by specifying the `type` argument. See documentation of `runUnivariate` to see the available methods and see documentation of the corresponding `spdep` functions to see the extra arguments required for each method.
 
-#### Permutation testing
-Is the spatial autocorrelation statistically significant? The `moran.test` function in `spdep` can give an analytic p-value but the p-value would not be accurate if the data is not normally distributed. As gene expression data is generally not normally distributed and data normalization doesn't necessarily make the data that close to a normal distribution, permutation testing is used in this package to test the significance of Moran's I and Geary's C, wrapping [`moran.mc` in `spdep`](https://r-spatial.github.io/spdep/reference/moran.mc.html). Just like Moran's I, there's `calculateMoranMC` and `calculateGearyMC` functions to directly return the results, and `colDataMoranMC`, `colGeometryMoranMC`, `annotGeometryMoranMC`, and `runMoranMC` to add the results to the SFE object. MC stands for Monte Carlo. The `nsim` argument specifies the number of simulations. 
+## Permutation testing
+Is the spatial autocorrelation statistically significant? The `moran.test()` function in `spdep` can give an analytic p-value but the p-value would not be accurate if the data is not normally distributed. As gene expression data is generally not normally distributed and data normalization doesn't necessarily make the data that close to a normal distribution, permutation testing is used in this package to test the significance of Moran's I and Geary's C, wrapping `moran.mc()` in `spdep`. The "mc" stands for Monte Carlo. The `nsim` argument specifies the number of simulations. 
 
 Add the results to the SFE object
 ```{r}
@@ -315,11 +324,11 @@ The results can be plotted:
 plotMoranMC(sfe_tissue, c("nCounts", "nGenes"))
 ```
 
-By default, the colorblind friendly palette from `dittoSeq` is used for categorical variables. The density is of Moran's I from the simulations where the values are permuted and disconnected from spatial locations, and the vertical line is the actual Moran's I value. The simulation indicates that the spatial autocorrelation is significant. 
+By default, the colorblind friendly palette from [`dittoSeq`](https://bioconductor.org/packages/release/bioc/html/dittoSeq.html) is used for categorical variables. The density is of Moran's I from the simulations where the values are permuted and disconnected from spatial locations, and the vertical line is the actual Moran's I value. The simulation indicates that the spatial autocorrelation is significant. 
 
 Use `type = "geary.mc"` for permutation testing for Geary's C.
 
-#### Correlogram
+## Correlogram
 What's the length scale of the spatial autocorrelation? In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. 
 
 For `colData`, Moran's I correlogram:
@@ -333,11 +342,11 @@ The results can be plotted with `plotCorrelogram`
 plotCorrelogram(sfe_tissue, hvgs[1:2])
 ```
 
-The error bars are twice the standard deviation of the Moran's I value. The standard deviation and p-values (null hypothesis is that Moran's I is 0) come from `moran.test` (for Geary's C correlogram, `geary.test`); these should be taken with a grain of salt for data that is not normally distributed. The p-values have been corrected for multiple hypothesis testing across all orders and features. As usual, . means p < 0.1, \* means p < 0.05, \*\* means p < 0.01, and \*\*\* means p < 0.001. 
+The error bars are twice the standard deviation of the Moran's I value. The standard deviation and p-values (null hypothesis is that Moran's I is 0) come from `moran.test()` (for Geary's C correlogram, `geary.test()`); these should be taken with a grain of salt for data that is not normally distributed. The p-values have been corrected for multiple hypothesis testing across all orders and features. As usual, . means p < 0.1, \* means p < 0.05, \*\* means p < 0.01, and \*\*\* means p < 0.001. 
 
 Again, this can be done for Geary's C, `colData`, `annotGeometry`, and etc.
 
-#### Moran scatter plot
+## Moran scatter plot
 In the Moran scatter plot, the x axis is the value itself and the y axis is the average value of the neighbors. The slope of the fitted line is Moran's I. Sometimes clusters appear in this plot, showing different kinds of neighborhoods for this value. 
 
 For gene expression, to use one gene (log normalized value) to demonstrate:
@@ -369,10 +378,10 @@ plotSpatialFeature(sfe_tissue, "Myh2_moranPlot_clust", colGeometryName = "spotPo
 
 This can also be done for `colData`, `annotGeometry`, and etc. as in Moran's I and permutation testing. 
 
-### Local
+# Univariate local
 Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
 
-#### Local Moran's I
+## Local Moran's I
 To recap, global Moran's I [@Anselin1995-cs] is defined as
 
 $$
@@ -413,12 +422,12 @@ qplot(logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
 
 For this gene, Visium spots with higher expression also tend to have higher local Moran's I, but this may or may not apply to other genes.
 
-Local spatial analyses often return a matrix or data frame as the results. The `plotLocalResult` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
+Local spatial analyses often return a matrix or data frame as the results. The `plotLocalResult()` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
 ```{r}
 localResultAttrs(sfe_tissue, "localmoran", "Myh2")
 ```
 
-Some local spatial methods return p-values at each location, in a column with name like `Pr(z != E(Ii))`, where the test is two sided (default, can be changed with the `alternative` argument in `runUnivariate` which is passed to the relevant underlying function in `spdep`). Negative log of the p-value is computed to facilitate visualization, and the p-value is corrected for multiple hypothesis testing with `p.adjustSP` in `spdep`, where the number of tests is the number of neighbors of each location rather than the total number of locations (`-log10p_adj`).
+Some local spatial methods return p-values at each location, in a column with name like `Pr(z != E(Ii))`, where the test is two sided (default, can be changed with the `alternative` argument in `runUnivariate()` which is passed to the relevant underlying function in `spdep`). Negative log of the p-value is computed to facilitate visualization, and the p-value is corrected for multiple hypothesis testing with `p.adjustSP()` in `spdep`, where the number of tests is the number of neighbors of each location rather than the total number of locations (`-log10p_adj`).
 
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
@@ -434,7 +443,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
                 colGeometryName = "spotPoly", attribute = "pysal")
 ```
 
-#### Getis-Ord Gi\*
+## Getis-Ord Gi\*
 Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in the 1992 paper above.
 
 Binary weights are recommended for Getis-Ord Gi\*.
@@ -498,7 +507,7 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
 
 The hotspots and coldspots are as expected.
 
-#### Local spatial heteroscedasticity (LOSH)
+## Local spatial heteroscedasticity (LOSH)
 LOSH [@Ord2012-qi] is defined as
 
 $$
@@ -528,7 +537,7 @@ For this gene, it isn't clear whether LOSH relates to gene expression levels.
 localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2")
 ```
 
-While `Voyager` does wrap `LOSH.mc` to perform permutation testing of LOSH, this is very time consuming. A Chi-square approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs`.
+While `Voyager` does wrap `LOSH.mc()` to perform permutation testing of LOSH, this is very time consuming. A Chi-square approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs()`.
 
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
@@ -548,3 +557,5 @@ For this gene, the local conditions are mostly homogenous, with a few exceptions
 ```{r}
 sessionInfo()
 ```
+
+# References
