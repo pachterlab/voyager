@@ -346,7 +346,65 @@ spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
 
 It's aRt!
 
+```{r}
+set.seed(29)
+sfe <- runUMAP(sfe, dimred = "PCA", n_dimred = 15)
+```
+
+Non-spatial clustering and locating the clusters in space
+```{r}
+colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
+                                    BLUSPARAM = SNNGraphParam(
+                                        cluster.fun = "leiden",
+                                        cluster.args = list(
+                                            resolution_parameter = 0.5,
+                                            objective_function = "modularity")))
+```
+
+```{r, fig.height=8, fig.width=8}
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
+    geom_density2d()
+```
+
+```{r}
+plotUMAP(sfe, colour_by = "cluster")
+```
+
+```{r}
+plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
+```
+
+Another piece of aRt! I really want to print it out, frame it, and put it on the wall.
+
+
+
 # Differential expression
+Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
+```{r}
+markers <- findMarkers(sfe, groups = colData(sfe)$cluster,
+                       test.type = "wilcox", pval.type = "all", direction = "up")
+```
+
+It's already sorted by p-values
+```{r}
+markers[[6]]
+```
+
+Get the the significant marker for each cluster to plot
+```{r}
+genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
+plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster")
+```
+
+```{r, fig.width=6, fig.height=6}
+genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
+plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
+```
+
+Plot those genes in space
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg")
+```
 
 # Session Info
 
