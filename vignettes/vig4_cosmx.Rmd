@@ -1,0 +1,353 @@
+---
+title: "CosMX non-small cell lung cancer data"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{cosmx}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+Nanostring GeoMX DSP is a popular spatial transcriptomics technology for formalin fixed paraffin embedded (FFPE) tissues even though it doesn't have single cell resolution. More recently, Nanostring developed a single cell resolution single molecule FISH based technology for FFPE tissue called CosMX, which is described in [@He2021-oy]. FFPE is a common way to preserve and archive tissue, and in some cases, the only samples available may all be FFPE. 
+
+The CosMX dataset for non-small cell lung cancer is also described in [@He2021-oy]. The processed data is available to download from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/). The gene count matrix, cell metadata, and cell segmentation polygon coordinates were downloaded from the Nanostring website as CSV files and read into R as data frames. The gene count matrix was then converted to a sparse matrix. The cell metadata contains centroid coordinates of the cells. The cell polygon data frames was converted into an `sf` data frame with the `df2sf()` function in `SpatialFeatureExperiment` (SFE). These were then used to construct an SFE object. Cell segmentation is only available in one z-plane.
+
+```{r setup}
+library(Voyager)
+library(SFEData)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(scater)
+library(scran)
+library(bluster)
+library(ggplot2)
+library(patchwork)
+library(stringr)
+library(spdep)
+library(BiocParallel)
+library(BiocSingular)
+theme_set(theme_void())
+```
+
+```{r}
+(sfe <- HeNSCLCData())
+```
+
+```{r}
+sfe
+```
+
+Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
+```{r}
+ggplot(cellSeg(sfe)) + geom_sf(size = 0.1)
+```
+
+With single cell resolution, a lot of the details can be seen, although there's some artifact from borders of fields of view (FOVs).
+
+# Quality control (QC)
+## Cells
+
+Single cell RNA-seq (scRNA-seq) technologies typically don't quantify cell morphology, and gene expression in Visium doesn't have single cell resolution. Here for single cell resolution smFISH based data, each cell not only has gene expression and related QC metrics such as total number of transcripts detected and number of genes detected, but also cell morphology such as area (in the z-plane where the segmentation polygons are provided) and aspect ratio. Area is relevant to QC since it can flag falsely undersegmented cells, i.e. several cells falsely considered as one by the cell segmentation program. However, since a pre-defined gene panel is used and mitochondrially encoded genes are not quantified, the scRNA-seq QC metric of proportion of mitochondrially encoded counts is not applicable. 
+
+Some QC metrics are precomputed and are stored in `colData`
+
+```{r}
+names(colData(sfe))
+```
+Cell area, aspect ratio, marker and stain intensities, i.e. all columns before "sample_id" come from Nanostring's website. The `sf` package can compute areas of the cell polygons. In R, the `EBImage` package can compute more morphological metrics such as aspect ratio, eccentricity, orientation, and etc., but it requires the data to be converted to raster. OpenCV can compute more morphological metrics for polygons without converting to raster, but it needs to be called from Python or C++. Since the math behind many basic morphological metrics is pretty simple, we may add those to `Voyager` in a future version.
+
+```{r}
+# Function to plot violin plot for distribution and spatial at once
+plot_violin_spatial <- function(sfe, feature) {
+    violin <- plotColData(sfe, feature)
+    spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "cellSeg")
+    violin + spatial +
+        plot_layout(widths = c(1, 2))
+}
+```
+
+Number of transcript spots detected per cell
+```{r, fig.width=8, fig.height=4}
+plot_violin_spatial(sfe, "nCounts")
+```
+
+```{r}
+summary(sfe$nCounts)
+```
+
+Number of genes (out of 980) detected per cell
+```{r, fig.width=8, fig.height=4}
+plot_violin_spatial(sfe, "nGenes")
+```
+
+```{r}
+summary(sfe$nGenes)
+```
+
+Based on the spatial plot, it seems that nCounts and nGenes are biologically relevant, but there are cells with no transcripts detected. 
+
+How nCounts relates to nGenes
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(nCounts, nGenes)) +
+    geom_bin2d(bins = 100) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw()
+```
+
+What's the nature of the cells without transcripts?
+```{r}
+colData(sfe)$is_empty <- colData(sfe)$nCounts < 1
+```
+
+```{r}
+plotSpatialFeature(sfe, "is_empty", "cellSeg")
+```
+
+The cells without transcripts are in the central cavity.
+```{r}
+plotColData(sfe, x = "Area", y = "is_empty")
+```
+
+The "empty" cells tend to be smaller than other cells but there are also some really large ones. 
+
+Cell area distribution
+```{r, fig.width=8, fig.height=4}
+plot_violin_spatial(sfe, "Area")
+```
+
+Larger cells are more likely to be found in certain areas of the tissue. It could be biological, or that under-segmentation is more likely for that cell type or that tissue region.
+
+How does area relate to total counts?
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(nCounts, Area)) +
+    geom_bin2d(bins = 100) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw()
+```
+
+While there may vaguely seem that cells with more total counts tend to be larger (at least in this z-plane), there are some cells that are large but have low total counts.
+
+Negative control probes are used in this dataset for QC. Here we calculate the proportion of transcripts attributed to the negative controls.
+```{r}
+neg_inds <- str_detect(rownames(sfe), "^NegPrb")
+# Number of negative control probes
+sum(neg_inds)
+colData(sfe)$prop_neg <- colSums(counts(sfe)[neg_inds,])/colData(sfe)$nCounts
+```
+
+```{r, fig.width=8, fig.height=4}
+plot_violin_spatial(sfe, "prop_neg")
+```
+
+The NA's are empty cells, and the proportion is very low except for a few outliers. How does prop_neg relate to nCounts?
+```{r}
+plotColData(sfe, x = "nCounts", y = "prop_neg")
+```
+
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(nCounts, prop_neg)) +
+    geom_bin2d(bins = 100) +
+    scale_fill_viridis_c(trans = "log10") +
+    theme_bw()
+```
+
+This looks kind of like the proportion of mitochondrial counts vs. nCounts plot for scRNA-seq, where cells with fewer total counts tend to have higher proportion of mitochondrial counts.
+```{r}
+# The zeros are removed
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_neg)) +
+    geom_histogram(bins = 100) +
+    scale_x_log10() +
+    annotation_logticks(sides = "b") +
+    theme_bw()
+```
+
+The distribution is not obviously bimodal, and since the x-axis is log transformed to better visualize the distribution, the 0's have been removed. It's kind of arbitrary; for now we'll remove cells with more than 10% of transcripts from negative controls.
+
+```{r}
+# Remove low quality cells
+(sfe <- sfe[,!sfe$is_empty & sfe$prop_neg < 0.1])
+```
+
+After removing the low quality cells, there are 100,095 cells left.
+
+## Genes
+```{r}
+rowData(sfe)$means <- rowMeans(counts(sfe))
+rowData(sfe)$vars <- rowVars(counts(sfe))
+```
+
+```{r}
+as.data.frame(rowData(sfe)) |> 
+    ggplot(aes(means, vars)) +
+    geom_bin2d(bins = 50) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+The red line $y = x$ is expected from Poisson data. Gene expression in this dataset has more variance than expected from Poisson, even for gene with lower expression. How about for the negative controls?
+
+```{r}
+as.data.frame(rowData(sfe)[neg_inds,]) |> 
+    ggplot(aes(means, vars)) +
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+Among the "high quality" cells, the negative controls still have higher variance relative to mean compared to Poisson. 
+
+Negative controls vs. real genes
+```{r}
+rowData(sfe)$is_neg <- neg_inds
+plotRowData(sfe, x = "means", y = "is_neg") +
+    scale_y_log10() +
+    annotation_logticks(sides = "b")
+```
+
+The negative controls have lower mean "expression" than the vast majority of real genes.
+
+## Spatial autocorrelation in QC metrics
+A spatial neighborhood graph is required for spatial dependence analyses. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()` and `dnearneigh()` are not recommended for larger datasets. Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
+
+```{r}
+system.time(
+    colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
+                                                  dist_type = "idw", k = 5, 
+                                                  style = "W")
+    )
+```
+
+It took about a minute, not bad. Now compute Moran's I for some cell QC metrics
+```{r}
+features_use <- c("nCounts", "nGenes", "Area", "AspectRatio")
+sfe <- colDataMoransI(sfe, features_use, colGraphName = "knn5")
+```
+
+```{r}
+colFeatureData(sfe)[features_use,]
+```
+
+Positive spatial autocorrelation is suggested, which is stronger in nCounts and nGenes.
+
+What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.
+```{r}
+system.time(
+    sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
+                         colGraphName = "knn5", order = 6, zero.policy = TRUE,
+                         BPPARAM = MulticoreParam(2))
+)
+```
+
+```{r}
+plotCorrelogram(sfe, features_use) +
+    theme_bw()
+```
+
+They seem to have similar length scales, but aspect ratios tend to decay more quickly.
+
+Moran's scatter plot for nCounts. 
+```{r}
+sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
+```
+
+```{r}
+moranPlot(sfe, "nCounts") + theme_bw()
+```
+
+There are no obvious clusters in this plot.
+
+Local Moran's I for nCounts
+```{r}
+sfe <- colDataUnivariate(sfe, "localmoran", "nCounts", colGraphName = "knn5")
+```
+
+```{r}
+plotLocalResult(sfe, "localmoran", "nCounts", colGeometryName = "cellSeg",
+                divergent = TRUE, diverge_center = 0)
+```
+
+Cool, it appears that some histological regions tend to be more homogenous in nCounts.
+
+# Data normalization
+Given that there may be some relationship between cell size and total counts, and that total counts may be biological and thus not purely treated as technical, questions are raised about data normalization and how it should be different from the standard scRNA-seq practices. For instance, what are technical contributions to total counts for this kind of data? Furthermore, what to do with cell area, since part of it is technical, in where the z-plane of cell segmentation polygons intersects each cell, but for some cell types, it could be biological? Also, how would different methods of data normalization affect spatial autocorrelation? Should spatial autocorrelation be used in some ways when normalizing data? Besides correcting for technical effects and making gene expression in cells with different total counts more comparable, data normalization stabilizes variance and tries to make the data more normally distributed since many statistical methods assume normally distributed data. So while we don't know the best practice to normalize this kind of data, we will still normalize the data for downstream analyses.
+
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
+# Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
+# to show progress bar.
+sfe <- runMoransI(sfe, features = rownames(sfe), 
+                  BPPARAM = MulticoreParam(2, progressbar = TRUE))
+```
+
+
+Do real genes tend to have more spatial autocorrelation than negative controls?
+```{r}
+plotRowData(sfe, x = "moran_sample01", y = "is_neg")
+```
+
+It seems that at least at the shorter length scale captured by the k nearest neighbor graph, most genes don't have strong spatial autocorrelation while some have strong positive spatial autocorrelation. In contrast, Moran's I for the negative controls is closely packed around 0, indicating lack of spatial autocorrelation, which is a good sign, that there is no evidence of a technical artifact that manifests as a spatial trend manifest in the negative controls.
+
+What are the genes with the highest Moran's I?
+```{r, fig.width=9, fig.height=8}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
+plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
+```
+
+They all highlight the same histological regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
+
+# Non-spatial dimension reduction and clustering
+```{r}
+set.seed(29)
+sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
+```
+
+```{r}
+ElbowPlot(sfe, ndims = 30) + theme_bw()
+```
+
+```{r}
+plotDimLoadings(sfe) + theme_bw()
+```
+
+```{r, fig.width=9, fig.height=9}
+spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
+                  diverge_center = 0, ncol = 2)
+```
+
+It's aRt!
+
+# Differential expression
+
+# Session Info
+
+# References
