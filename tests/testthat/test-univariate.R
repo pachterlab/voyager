@@ -16,6 +16,21 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
     expect_equal(rownames(out_m), rownames(mat1))
 })
 
+test_that("Correctly add results to rowData when features = NULL", {
+    sfe <- runUnivariate(sfe, type = "geary", features = NULL, 
+                         colGraphName = "visium", sample_id = "sample01",
+                         exprs_values = "counts")
+    expect_true(is.numeric(rowData(sfe)$geary_sample01))
+    expect_true(all(!is.na(rowData(sfe)$geary_sample01)))
+})
+
+test_that("Correctly add results to rowData when features = NULL with Moran's I wrapper", {
+    sfe <- runMoransI(sfe, features = NULL, colGraphName = "visium", 
+                      sample_id = "sample01", exprs_values = "counts")
+    expect_true(is.numeric(rowData(sfe)$moran_sample01))
+    expect_true(all(!is.na(rowData(sfe)$moran_sample01)))
+})
+
 test_that("Correct structure of colDataMoransI output", {
     out <- colDataMoransI(sfe, "nCounts", "visium", sample_id = "sample01")
     expect_s4_class(out, "SpatialFeatureExperiment")

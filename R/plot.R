@@ -62,7 +62,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     fixed_applicable
 }
 
-.get_pal <- function(df, feature_aes, option, divergent, diverge_center) {
+.get_pal <- function(df, feature_aes, option, divergent, diverge_center, 
+                     name = waiver()) {
     feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color")]
     if (length(feature_aes)) {
         # color_by is set to NULL if fill_by is applicable and present
@@ -80,7 +81,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             fill = scale_fill_manual,
             color = scale_color_manual
         )
-        pal <- pal_fun(values = .pal, na.value = "gray")
+        pal <- pal_fun(values = .pal, na.value = "gray", name = name)
     } else {
         if (divergent) {
             if (!is.null(diverge_center)) {
@@ -102,7 +103,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             )
             pal <- pal_fun(
                 palette = .pal, begin = pal_begin,
-                end = pal_end, na.value = "gray"
+                end = pal_end, na.value = "gray", name = name
             )
         } else {
             pal_fun <- switch(.aes,
@@ -113,7 +114,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 "Blues",
                 "PuRd"
             )
-            pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1)
+            pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1,
+                           name = name)
         }
     }
     pal
@@ -137,7 +139,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom sf st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot aes_string geom_sf scale_fill_manual
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
-#' geom_segment stat_density2d
+#' geom_segment stat_density2d waiver
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
@@ -159,7 +161,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
         pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_divergent,
                               annot_diverge_center)
     }
-
+    # Deal with gene symbols that are not legal R object names
+    df_names_orig <- names(df)
+    names(df) <- make.names(names(df))
+    feature_aes <- lapply(feature_aes, make.names)
+    name_fix <- setdiff(df_names_orig, names(df))
+    if (length(name_fix)) name_show <- name_fix else name_show <- waiver()
+    
     p <- ggplot()
     # Filled polygon annotations go beneath feature plot
     is_annot_filled <- !is.null(annot_df) &&
@@ -188,7 +196,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     p <- p + geom_use
 
     # Palette
-    pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center)
+    pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center,
+                    name = name_show)
     if (!is.null(pal)) p <- p + pal
 
     # Line and point annotations go above feature plot
