@@ -376,7 +376,11 @@ plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
 
 Another piece of aRt! I really want to print it out, frame it, and put it on the wall.
 
+Further analyses that can be done at this stage:
 
+* Which and how many cell types are in the neighborhood of each cell?
+* Which cell types tend to co-localize?
+* Find spatial regions based on cell type colocalization, which can be done with the R package [`spicyR`](https://bioconductor.org/packages/release/bioc/html/spicyR.html) [@Canete2022-tz]
 
 # Differential expression
 Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
@@ -396,16 +400,25 @@ genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1
 plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster")
 ```
 
+Plot more top marker genes in a heatmap
 ```{r, fig.width=6, fig.height=6}
 genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
 plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
 ```
 
 Plot those genes in space
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg")
+```{r, fig.width=6, fig.height=10}
+plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
+```
+Moran's I of these marker genes
+```{r}
+rowData(sfe)[genes_use, "moran_sample01"]
 ```
 
+
 # Session Info
+```{r}
+sessionInfo()
+```
 
 # References
