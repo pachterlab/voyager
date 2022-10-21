@@ -285,6 +285,10 @@ plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly")
 
 While spatial information is not explicitly used, due to spatial autocorrelation of gene expression and the histological regions, some of these clusters are somewhat spatially contiguous. There are many methods to find spatially informed clusters, such as [`BayesSpace`](https://bioconductor.org/packages/release/bioc/html/BayesSpace.html) [@Zhao2021-vb], which is on Bioconductor.
 
+Remark on spatial regions: In geographical space, there usually is no one single way to define spatial regions. For example, influenced by both sociology and geology, LA county can be partitioned into regions such as Eastside, Westside, San Fernado Valley, San Gabriel Valley, Pomona Valley, Gateway Cities, South Bay, and etc., each containing multiple smaller cities or parts of LA City, each of which can be further divided into many neighborhoods, such as downtown LA, Koreatown, Highland Park, and etc. Definitions of some of these regions are subject to dispute. Meanwhile, LA county can also be partitioned into watersheds of the LA River, San Gabriel River, Ballona Creek, and etc., as well as different rock formations. Which kind of spatial region at which resolution is relevant depends on the question asked. 
+
+In contrast, in spatial transcriptomics, methods identifying spatial regions generally only aim to give one result, while multiple results at different resolutions depending on the question asked can be relevant. Also, just like how the definition of Eastside is subject to a lot of dispute, it would be great if spatial region methods for spatial -omics can give uncertainty in assignment of cells or Visium spots to spatial regions.
+
 # Non-spatial differential expression
 Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
 ```{r}
@@ -369,6 +373,8 @@ plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") 
 ```
 
 These genes do indeed look like spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran's I, such as [`SpatialDE`](https://bioconductor.org/packages/release/bioc/html/spatialDE.html) [@Svensson2018-sx]. However, such methods usually don't account for the histological regions, except for `C-SIDE` [@Cable2022-ma], which identifies spatially variable genes within cell types. But then what do we really mean by "cell type"? It remains to see whether spatial methods made specifically for identifying spatially variable genes compare with methods that don't explicitly use spatial information but simply performs DE between cell types which often are in spatially defined histological regions. 
+
+Further considerations on Moran's I: strength of spatial autocorrelation can vary in space. What if a gene has strong spatial autocorrelation in one region, but is more like salt and pepper in another? Should the different histological regions be analyzed separately in some cases? 
 
 There are ways to see whether Moran's I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in [the ESDA Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium.htil). 
 
