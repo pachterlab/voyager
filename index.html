@@ -34,7 +34,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
     
     <a class="navbar-brand me-2" href="index.html">Voyager</a>
 
@@ -53,7 +53,8 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/visium.html">ESDA with Visium mouse skeletal muscle dataset</a>
+    <a class="dropdown-item" href="articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
+    <a class="dropdown-item" href="articles/vig2_visium.html">ESDA with Visium mouse skeletal muscle dataset</a>
   </div>
 </li>
 <li class="nav-item">
@@ -82,6 +83,14 @@
 <div class="page-header"><h1 id="from-geospatial-to-spatial-transcriptomics">From geospatial to spatial transcriptomics<a class="anchor" aria-label="anchor" href="#from-geospatial-to-spatial-transcriptomics"></a>
 </h1></div>
 <!-- badges: start -->
+<p>Rules of the <code>documentation</code> branch:</p>
+<ul>
+<li>The purpose of this branch is to make a <code>pkgdown</code> website with longer and detailed vignettes that would make the installed size of this package way too large to comply with Bioconductor’s 5 MB rule.</li>
+<li>Don’t change anything outside the <code>vignettes</code> directory in this branch. If the code doesn’t work, change in the <code>main</code> or <code>devel</code> branch and merge into this branch. This way the large vignettes won’t get into the <code>main</code> branch and the code is kept consistent, which is important since the <code>pkgdown</code> website also documents all the functions of this package.</li>
+<li>Exception to the previous rule: you may add packages to the Suggests field in DESCRIPTION for extra packages used in the vignettes.</li>
+<li>To trigger a new GitHub Action build of the website, add a tag with <code>git tag &lt;tag name&gt;</code> and push it. The Action will only be run if a tag is pushed. The tag name can be something like “update_visium”. To push the tag, use <code>git push origin &lt;tag name&gt;</code> in addition to <code>git push origin documentation</code>.</li>
+<li>The file <code>vignettes/ref.bib</code> is automatically synced from Paperpile. Don’t edit by hand.</li>
+</ul>
 <p>This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as <code>spdep</code> and <code>adespatial</code> to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
