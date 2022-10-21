@@ -144,7 +144,7 @@ annotGeometryMoransI(
 runUnivariate(
   x,
   type,
-  features,
+  features = NULL,
   colGraphName = 1L,
   sample_id = NULL,
   exprs_values = "logcounts",

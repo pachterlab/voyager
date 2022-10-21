@@ -276,11 +276,12 @@
 }
 
 .sfe_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
+    fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = NULL,
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, include_self = FALSE, 
                         p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        if (is.null(features)) features <- rownames(x)
         features <- .symbol2id(x, features)
         for (s in sample_id) {
             out <- calculateUnivariate(x, type, features, colGraphName, s,
