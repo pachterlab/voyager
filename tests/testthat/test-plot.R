@@ -14,6 +14,7 @@ sfe <- runUnivariate(sfe,
 
 test_that("Everything plotSpatialFeature", {
     # testthat::skip("Skipping plots that require sf")
+    skip_on_ci()
     expect_doppelganger(
         "Plot gene expression",
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
@@ -114,6 +115,7 @@ sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localG",
 )
 
 test_that("Everything plotLocalResult", {
+    skip_on_ci()
     expect_doppelganger("Plot localmoran Ii for gene", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly", divergent = TRUE,
@@ -178,6 +180,7 @@ levels = as.character(1:5)
 )
 
 test_that("moranPlot, not filled, no color_by", {
+    skip_on_ci()
     expect_warning(
         moranPlot(sfe, "B", "visium1", "sample01"),
         "Too few points"
@@ -193,6 +196,7 @@ test_that("moranPlot, not filled, no color_by", {
 })
 
 test_that("moranPlot, not filled, with color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, not filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -202,6 +206,7 @@ test_that("moranPlot, not filled, with color_by", {
 })
 
 test_that("moranPlot, filled, no color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, filled",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -211,6 +216,7 @@ test_that("moranPlot, filled, no color_by", {
 })
 
 test_that("moranPlot, filled, with color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -220,6 +226,7 @@ test_that("moranPlot, filled, with color_by", {
 })
 
 test_that("plotColGraph", {
+    skip_on_ci()
     expect_doppelganger(
         "plotColGraph toy example",
         plotColGraph(sfe,
@@ -258,6 +265,7 @@ sfe_muscle <- colDataUnivariate(sfe_muscle,
     zero.policy = TRUE
 )
 test_that("plotCorrelogram", {
+    skip_on_ci()
     expect_doppelganger(
         "plotCorrelogram, one gene, I",
         plotCorrelogram(sfe_muscle, feature_use, sample_use)
@@ -300,6 +308,7 @@ test_that("plotCorrelogram", {
 sfe_muscle <- runPCA(sfe_muscle, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
 
 test_that("ElbowPlot for PCA", {
+    skip_on_ci()
     expect_doppelganger("ElbowPlot, default", ElbowPlot(sfe_muscle))
     expect_doppelganger(
         "ElbowPlot, with 10 of the 20 PCs",
@@ -312,6 +321,7 @@ test_that("ElbowPlot for PCA", {
 })
 
 test_that("plotDimLoadings for PCA", {
+    skip_on_ci()
     expect_doppelganger(
         "plotDimLoadings, balanced",
         plotDimLoadings(sfe_muscle, dims = 1:2)
@@ -323,6 +333,7 @@ test_that("plotDimLoadings for PCA", {
 })
 
 test_that("Everything spatialReducedDim", {
+    skip_on_ci()
     expect_doppelganger("Plot PCs in space", {
         spatialReducedDim(sfe_muscle, "PCA", 2, "spotPoly",
             annotGeometryName = "tissueBoundary",
