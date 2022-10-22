@@ -1,5 +1,7 @@
 ---
 title: "Basic Visium exploratory data analysis"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
 output: 
   html_document:
   toc: true
@@ -22,12 +24,14 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Many spatial transcriptomics technologies have been developed, and at present, Visium is by far the most popular technology. Hence this introductory vignette uses a Visium dataset to demonstrate a basic exploratory data analysis (EDA) of a spatial transcriptomics dataset.
+Many spatial transcriptomics technologies have been developed, and at present, Visium is by far the most popular technology [@Moses2022-xz]. Hence this introductory vignette uses a Visium dataset to demonstrate a basic exploratory data analysis (EDA) of a spatial transcriptomics dataset.
 ```{r, echo = FALSE, fig.alt="Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium (category NGS barcoding) is used by over 100 institutions, far more than any other method. Following Visium are GeoMX DSP and GeoMX WTA (category ROI selection), used by over 20 institutions. 2016 ST and some other ROI selection methods follow, then ISS, then Stereo-seq and slide-seq2 (both NGS barcoding), then a number of smFISH based methods such as Molecular Cartography and MERFISH."}
 knitr::include_graphics("https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png")
 ```
 
 Here the data is represented in the [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) (SFE) format, and `Voyager` is used to perform spatial analysis with methods borrowed from the geospatial field. [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) (SCE) is a data structure for scRNA-seq, an alternative to the popular `Seurat` package. [`SpatialExperiment`](https://bioconductor.org/packages/release/bioc/html/SpatialExperiment.html) (SPE) is an existing class inheriting from SCE, for spatial -omics data, and SFE inherits from SPE and hence also SCE. As SFE inherits from SCE, non-spatial scRNA-seq EDA methods such as dimension reduction, clustering, and many plotting functions can be applied to SFE. In this vignette, we perform some non-spatial scRNA-seq EDA on the Visium data, and a primer on spatial analysis. See [the ESDA Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium.htil) for a more in depth introduction to univariate spatial analyses on the same dataset. 
+
+Here we load the packages used in this vignette.
 ```{r setup}
 library(Voyager)
 library(SpatialFeatureExperiment)
@@ -62,26 +66,31 @@ dir <- system.file(
 sample_ids <- c("section1", "section2")
 (samples <- file.path(dir, sample_ids, "outs"))
 ```
+
 The results for each tissue capture are should be in the `outs` directory. Inside the `outs` directory are two directories: `raw_reature_bc_matrix` has the unfiltered gene count matrix, and `spatial` has the spatial information. 
+
 ```{r}
 list.files(samples[1])
 ```
 
 The [`DropletUtils`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html) package has a function `read10xCounts()` which reads the gene count matrix. SPE reads in the spatial information, and SFE uses the spatial information to construct Visium spot polygons and spatial neighborhood graphs. Inside the `spatial` directory:
+
 ```{r}
 list.files(file.path(samples[1], "spatial"))
 ```
 
 `tissue_lowres_image.png` is a low re
 Inside the `scalefactors_json.json` file:
+
 ```{r}
 fromJSON(file = file.path(samples[1], "spatial", "scalefactors_json.json"))
 ```
+
 `spot_diameter_fullres` is the diameter of each Visium spot in the full resolution H&E image in pixels. `tissue_hires_scalef` and `tissue_lowres_scalef` are the ratio of the size of the high resolution (but not full resolution) and low resolution H&E image to the full resolution image. `fiducial_diameter_fullres` is the diameter of each fiducial spot used to align the spots to the H&E image in pixels in the full resolution image.
 
 The `tissue_positions_list.csv` file contains information for the spatial coordinates of the spots and whether each spot is in tissue as automatically detected by Space Ranger or manually annotated in the Loupe browser. If the polygon of the tissue boundary is available, whether from image processing or manual annotation, geometric operations as supported by the SFE package, which is based on the `sf` package, can be used to find which spots intersect with the tissue and which spots are contained in the tissue. Geometric operations can also find the polygons of the intersections between spots and the tissue, but the results can get messy since the intersections can have not only polygons but also points and lines. 
 
-Now read in the toy data that is in the Space Ranger output format. The `load` argument indicates whether the images should be loaded into memory. The SFE package does not work with the image at present, so `load = FALSE`.
+Now we read in the toy data that is in the Space Ranger output format. The `load` argument indicates whether the images should be loaded into memory. The SFE package does not work with the image at present, so `load = FALSE`.
 
 ```{r}
 (sfe3 <- read10xVisiumSFE(samples, sample_ids, type = "sparse", data = "raw",
@@ -93,16 +102,16 @@ Space Ranger output includes the gene count matrix, spot coordinates, and spot d
 ## Mouse skeletal muscle dataset
 The dataset used in this vignette comes from [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x) [@McKellar2021-ek]. Notexin was injected into the tibialis anterior muscle to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium. The dataset here is from the 2 day timepoint. The dataset was originally not in the Space Ranger output format, but is already in a `SpatialFeatureExperiment` (SFE) object.
 
-The gene count matrix was directly downloaded from GEO. All 4992 spots, whether in tissue or not, are included. The H&E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. The tissue boundary was found by thresholding in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The `in_tissue` column in `colData` indicates which spot polygons intersect the tissue polygons, and is based on `st_intersects()`.
+The gene count matrix was directly downloaded [from GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4904759). All 4992 spots, whether in tissue or not, are included. The H&E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. The tissue boundary was found by thresholding in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The `in_tissue` column in `colData` indicates which spot polygons intersect the tissue polygons, and is based on `st_intersects()`.
 
-Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See [the vignette of `SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html) for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package. 
+Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See [the vignette of `SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html) for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package. Here we download the data and load it into R.
 
 ```{r}
 (sfe <- McKellarMuscleData("full"))
 ```
 
-The H&E image of this section:
-```{r, echo=FALSE, out.width = "100%", fig.cap="Low resolution H&E image of the tissue section", fig.alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."}
+The authors provided the full resolution hematoxylin and eosin (H&E) image on GEO, which we downsized to more quickly show online. This is what it looks like:
+```{r, echo=FALSE, out.width = "100%", fig.alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."}
 knitr::include_graphics("tissue_lowres_5a.jpeg")
 ```
 
@@ -114,7 +123,7 @@ Here we plot the quality control (QC) metrics both as violin plots and in space.
 names(colData(sfe))
 ```
 
-Total number of UMI detected per spot
+Here we plot the total UMI counts per spot. The commented out line of code shows how to compute total UMI counts.
 ```{r}
 # colData(sfe)$nCounts <- colSums(counts(sfe))
 violin <- plotColData(sfe, "nCounts", x = "in_tissue", colour_by = "in_tissue") +
@@ -127,7 +136,7 @@ violin + spatial
 
 Some spots in the injury site with leukocyte infiltration have high total counts. Spatial autocorrelation of the total counts is apparent, which will be discussed in a later section of this vignette.
 
-Number of genes detected per spot
+Here we find number of genes detected per spot. The commented out line of code shows how to find the number of genes detected.
 ```{r}
 # colData(sfe)$nGenes <- colSums(counts(sfe) > 0)
 violin <- plotColData(sfe, "nGenes", x = "in_tissue", colour_by = "in_tissue") +
@@ -138,14 +147,14 @@ spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "spotPoly",
 violin + spatial
 ```
 
-nCounts vs. nGenes, as commonly plotted for scRNA-seq
+As commonly done for scRNA-seq data, here we plot nCounts vs. nGenes
 ```{r}
 plotColData(sfe, x = "nCounts", y = "nGenes", colour_by = "in_tissue")
 ```
 
-This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See [the ESDA Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium.htil).
+This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See [the exploratory spatial data analysis (ESDA) Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil).
 
-Proportion of mitochondrially encoded UMI counts
+As commonly done for scRNA-seq data, we plot the proportion of mitochondrially encoded counts. The commented out code shows how to find this proportion.
 ```{r}
 # mito_ind <- str_detect(rowData(sfe)$symbol, "^Mt-")
 # colData(sfe)$prop_mito <- colSums(counts(sfe)[mito_ind,]) / colData(sfe)$nCounts
@@ -159,12 +168,12 @@ violin + spatial
 
 As expected, spots outside tissue have higher proportion of mitochondrial counts, because when the tissue is lysed, mitochondrial transcripts are protected by a double membrane so are less likely to degrade than cytosolic transcripts. However, spots on myofibers also have high proportion of mitochondrial counts, because of the function of myofibers. The injury site with leukocyte infiltration has lower proportion of mitochondrial counts.
 
-How does proportion of mitochondrial counts relate to total UMI counts?
+Here we plot the proportion of mitochondrial counts relate to total UMI counts, as commonly done for scRNA-seq to identify low quality cells with low UMI counts and high proportion of mitochondrial counts.
 ```{r}
 plotColData(sfe, x = "nCounts", y = "prop_mito", colour_by = "in_tissue")
 ```
 
-There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See [the ESDA Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium.htil).
+There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See [the ESDA Visium vignette](https://pachterlab.github.io/Voyager/articles/vig2_visium.htil). 
 
 So far we haven't seen spots that are obvious outliers in these QC metrics
 
@@ -177,7 +186,7 @@ sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
 ## Genes
 Like in scRNA-seq, gene expression in Visium is overdispersed compared to Poisson.
 
-Mean and variance of each gene
+Here we compute the mean, variance, and coefficient of variance (CV2) for each gene among spots in tissue.
 ```{r}
 rowData(sfe_tissue)$means <- rowMeans(counts(sfe_tissue))
 rowData(sfe_tissue)$vars <- rowVars(counts(sfe_tissue))
@@ -185,6 +194,7 @@ rowData(sfe_tissue)$vars <- rowVars(counts(sfe_tissue))
 rowData(sfe_tissue)$cv2 <- rowData(sfe_tissue)$vars/rowData(sfe_tissue)$means^2
 ```
 
+To avoid overplotting and better show point density on the plot, we use a 2D histogram. The color of each bin indicates the number of points in that bin.
 ```{r}
 as.data.frame(rowData(sfe_tissue)) |> 
     ggplot(aes(means, vars)) +
@@ -210,7 +220,8 @@ as.data.frame(rowData(sfe_tissue)) |>
 ```
 
 # Normalize data
-While `scran` [@Lun2016-yq] is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don't know what the best practice really should be. As seen in the `nCounts` plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts to adjacent spots and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. 
+
+While `scran` [@Lun2016-yq] is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don't know what the best practice really should be. As seen in the `nCounts` plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. 
 ```{r}
 clusters <- quickCluster(sfe_tissue)
 sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)

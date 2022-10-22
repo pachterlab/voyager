@@ -261,7 +261,7 @@ What are the length scales of spatial autocorrelation for these QC metrics? It w
 system.time(
     sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
                          colGraphName = "knn5", order = 6, zero.policy = TRUE,
-                         BPPARAM = MulticoreParam(2))
+                         BPPARAM = SnowParam(2))
 )
 ```
 
@@ -306,7 +306,7 @@ sfe <- logNormCounts(sfe)
 # Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
 # to show progress bar.
 sfe <- runMoransI(sfe, features = rownames(sfe), 
-                  BPPARAM = MulticoreParam(2, progressbar = TRUE))
+                  BPPARAM = SnowParam(2))
 ```
 
 
@@ -407,10 +407,12 @@ plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_
 ```
 
 Plot those genes in space
-```{r, fig.width=6, fig.height=10}
+```{r, fig.width=8, fig.height=12}
 plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
 ```
+
 Moran's I of these marker genes
+
 ```{r}
 rowData(sfe)[genes_use, "moran_sample01"]
 ```

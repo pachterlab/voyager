@@ -1,5 +1,7 @@
 ---
-title: "ESDA with Visium mouse skeletal muscle dataset"
+title: "Spatial Visium exploratory data analysis"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
 output: 
   html_document:
   toc: true
@@ -8,7 +10,7 @@ output:
   toc_depth: 3
 bibliography: ref.bib
 vignette: >
-  %\VignetteIndexEntry{ESDA with Visium mouse skeletal muscle dataset}
+  %\VignetteIndexEntry{Spatial Visium exploratory data analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,13 +23,6 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction
-In single cell RNA-seq (scRNA-seq), data and metadata can be represented with [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) or [`Seurat`](https://satijalab.org/seurat/index.html) objects, and basic exploratory data analyses and visualization performed with [`scater`](https://bioconductor.org/packages/release/bioc/html/scater.html), [`scran`](https://bioconductor.org/packages/release/bioc/html/scran.html), and [`scuttle`](https://bioconductor.org/packages/release/bioc/html/scuttle.html), or `Seurat`. The [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) package and S4 class extending [`SpatialExperiment`](https://bioconductor.org/packages/release/bioc/html/SpatialExperiment.html) and `SingleCellExperiment` brings EDA methods for vector spatial data to spatial transcriptomics. `Voyager` to `SpatialFeatureExperiment` is just like `scater`, `scran`, and `scuttle` to `SingleCellExperiment`, implementing basic exploratory spatial data analysis (ESDA) and visualization methods. 
-
-Tobler's first law of geography:
-
-> Everything is related to everything else. But near things are more related than distant things.
-
-Non-spatial statistical methods often assume that the samples (cells, spots) are independent, which is not the case in spatial data, where nearby samples tend to be more similar (i.e. positive spatial autocorrelation; negative spatial autocorrelation is when nearby samples tend to be more dissimilar, like a checkered pattern). Much of ESDA is dedicated to spatial autocorrelation, such as finding whether it is present, and if so what's its length scale. 
 
 This vignette gives an overview of some ESDA methods, functionalities of the `Voyager` package, and applications of the `SpatialFeatureExperiment` class with a published Visium dataset.
 
@@ -367,7 +362,7 @@ clusts <- clusterMoranPlot(sfe_tissue, "Myh2", BLUSPARAM = KmeansParam(2))
 ```
 
 ```{r, fig.alt="Moran scatter plot of log normalized value of Myh1, colored by 2 k-means clusters, which correspond to the high-high and low-low spots."}
-moranPlot(sfe_tissue, "Myh2", graphName = "visium", colour_by = clusts$ENSMUSG00000033196)
+moranPlot(sfe_tissue, "Myh2", graphName = "visium", color_by = clusts$ENSMUSG00000033196)
 ```
 
 Plot the clusters in space
