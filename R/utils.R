@@ -218,7 +218,7 @@ rowFeatureData <- function(sfe) {
             l[, attribute]
         }
     })
-    data.frame(out)
+    data.frame(out, check.names = FALSE)
 }
 
 .get_default_attribute <- function(type) {
