@@ -233,7 +233,7 @@ plotRowData(sfe, x = "means", y = "is_neg") +
 
 The negative controls have lower mean "expression" than the vast majority of real genes.
 
-## Spatial autocorrelation in QC metrics
+# Spatial autocorrelation in QC metrics
 A spatial neighborhood graph is required for spatial dependence analyses. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()` and `dnearneigh()` are not recommended for larger datasets. Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
 
 ```{r}
@@ -264,6 +264,8 @@ system.time(
                          BPPARAM = SnowParam(2))
 )
 ```
+
+These warnings only occur in `ShowParam()`, but not in `MulticoreParam()`, and they don't seem to affect the results. `ShowParam()` is used here since `MulticoreParam()` doesn't work on Windows, although this vignette itself was built on Linux. We did not notice significant performance differences between `ShowParam()` and `MulticoreParam()` in this context.
 
 ```{r}
 plotCorrelogram(sfe, features_use) +
@@ -303,13 +305,13 @@ sfe <- logNormCounts(sfe)
 ```
 
 ```{r}
-# Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
-# to show progress bar.
+# Note: on your computer, you can put progressbar = TRUE inside SnowParam()
+# to show progress bar. This applies to any BiocParallParam.
 sfe <- runMoransI(sfe, features = rownames(sfe), 
                   BPPARAM = SnowParam(2))
 ```
 
-
+# Moran's I
 Do real genes tend to have more spatial autocorrelation than negative controls?
 ```{r}
 plotRowData(sfe, x = "moran_sample01", y = "is_neg")
@@ -406,6 +408,7 @@ genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
 plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
 ```
 
+# Local spatial statistics of marker genes
 Plot those genes in space
 ```{r, fig.width=8, fig.height=12}
 plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
@@ -414,9 +417,33 @@ plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
 Moran's I of these marker genes
 
 ```{r}
-rowData(sfe)[genes_use, "moran_sample01"]
+rowData(sfe)[genes_use, "moran_sample01", drop = FALSE]
 ```
 
+Local Moran's I of these marker genes
+```{r}
+sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = SnowParam(2))
+```
+
+```{r, fig.width=8, fig.height=12}
+plotLocalResult(sfe, type = "localmoran", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 2, divergent = TRUE,
+                diverge_center = 0)
+```
+
+It seems that some histological regions tend to be more spatially homogenous in gene expression than others.
+
+LOSH for these marker genes
+```{r}
+sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = SnowParam(2))
+```
+
+```{r, fig.width=8, fig.height=12}
+plotLocalResult(sfe, type = "LOSH", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 2)
+```
 
 # Session Info
 ```{r}

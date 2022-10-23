@@ -8,6 +8,8 @@
 [![BioC status](http://www.bioconductor.org/shields/build/devel/bioc/Voyager.svg)](https://bioconductor.org/checkResults/devel/bioc-LATEST/Voyager)
 <!-- badges: end -->
 
+<img src="vignettes/voyager_schematics.png" width="1024"/>
+
 Tobler's first law of geography:
 
 > Everything is related to everything else. But near things are more related than distant things.
@@ -16,6 +18,6 @@ In single cell RNA-seq (scRNA-seq), data and metadata can be represented with [`
 
 Non-spatial statistical methods often assume that the samples (cells, spots) are independent, which is not the case in spatial data, where nearby samples tend to be more similar (i.e. positive spatial autocorrelation; negative spatial autocorrelation is when nearby samples tend to be more dissimilar, like a checkered pattern). Much of ESDA is dedicated to spatial autocorrelation, such as finding whether it is present, and if so what's its length scale, and how it may vary locally in space.
 
-<img src="vignettes/voyager_schematics.png" width="1024"/>
-
 Please open a [GitHub issue](https://github.com/pachterlab/Voyager/issues) if you have questions or suggestions or encountered problems with this package.
+
+<!--- About the banner: N San Gabriel Canyon Rd, along north fork San Gabriel River, north of Glendora, LA county --->
