@@ -30,7 +30,7 @@ library(Matrix)
 
 # Visium Space Ranger output
 
-Space Ranger output can be read in a similar manner as in `SpatialExperiment`; the returned `SpatialFeatureExperiment` SFE object has the `spotPoly` column geometry for the spot polygons. If the filtered matrix (i.e. only spots in tissue) is read in, then a column graph called `visium` will also be present, for the spatial neighborhood graph of the Visium spots on tissue. The graph is not computed if all spots are read in regardless of whether they are on tissue.
+10x Genomics Space Ranger output from a Visium experiment can be read in a similar manner as in `SpatialExperiment`; the `SpatialFeatureExperiment` SFE object has the `spotPoly` column geometry for the spot polygons. If the filtered matrix (i.e. only spots in the tissue) is read in, then a column graph called `visium` will also be present for the spatial neighborhood graph of the Visium spots on the tissue. The graph is not computed if all spots are read in regardless of whether they are on tissue.
 
 ```{r}
 # Example from SpatialExperiment
@@ -42,7 +42,7 @@ sample_ids <- c("section1", "section2")
 (samples <- file.path(dir, sample_ids, "outs"))
 ```
 
-The results for each tissue capture are should be in the `outs` directory. Inside the `outs` directory are two directories: `raw_reature_bc_matrix` has the unfiltered gene count matrix, and `spatial` has the spatial information. 
+The results for each tissue capture should be in the `outs` directory. Inside the `outs` directory there are two directories: `raw_reature_bc_matrix` has the unfiltered gene count matrix, and `spatial` has the spatial information. 
 
 ```{r}
 list.files(samples[1])
@@ -92,7 +92,7 @@ colnames(mat) <- coords1$barcode
 rownames(mat) <- sample(LETTERS, 5)
 ```
 
-That should be sufficient to create an SPE object, and an SFE object, even though no `sf` data frame was constructed for the geometries. The constructor behaves similarly to the SPE constructor. The centroid coordinates of the Visium spots in the toy example can be converted into spot polygons with the `spotDiameter` argument, which can also be relevant to other technologies with round spots or beads, such as Slide-seq. Spot diameter in pixels in full resolution image can be found in the `scalefactors_json.json` file in Space Ranger output.
+This should be sufficient to create an SPE object, and an SFE object, even though no `sf` data frame was constructed for the geometries. The constructor behaves similarly to the SPE constructor. The centroid coordinates of the Visium spots in the example can be converted into spot polygons with the `spotDiameter` argument, which can also be relevant to other technologies with round spots or beads, such as Slide-seq. Spot diameter in pixels in full resolution images can be found in the `scalefactors_json.json` file in Space Ranger output.
 ```{r}
 sfe3 <- SpatialFeatureExperiment(list(counts = mat), colData = coords1,
                                 spatialCoordsNames = c("col", "row"),
@@ -117,7 +117,7 @@ For Vizgen MERFISH, the first column is cell ID but doesn't have have a column n
 
 **Note that Xenium is in Beta and this might soon change**
 
-For 10X's new single cell resolution technology Xenium, the gene count matrix is a `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
+For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
 ```{r, eval=FALSE}
 library(DropletUtils)
 library(arrow)
