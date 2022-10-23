@@ -1,0 +1,194 @@
+---
+title: "Create a `SpatialFeatureExperiment` object"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{create_sfe}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Voyager)
+library(SpatialFeatureExperiment)
+library(rjson)
+library(Matrix)
+```
+
+# Visium Space Ranger output
+
+10x Genomics Space Ranger output from a Visium experiment can be read in a similar manner as in `SpatialExperiment`; the `SpatialFeatureExperiment` SFE object has the `spotPoly` column geometry for the spot polygons. If the filtered matrix (i.e. only spots in the tissue) is read in, then a column graph called `visium` will also be present for the spatial neighborhood graph of the Visium spots on the tissue. The graph is not computed if all spots are read in regardless of whether they are on tissue.
+
+```{r}
+# Example from SpatialExperiment
+dir <- system.file(
+  file.path("extdata", "10xVisium"), 
+  package = "SpatialExperiment")
+  
+sample_ids <- c("section1", "section2")
+(samples <- file.path(dir, sample_ids, "outs"))
+```
+
+The results for each tissue capture should be in the `outs` directory. Inside the `outs` directory there are two directories: `raw_reature_bc_matrix` has the unfiltered gene count matrix, and `spatial` has the spatial information. 
+
+```{r}
+list.files(samples[1])
+```
+
+The [`DropletUtils`](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html) package has a function `read10xCounts()` which reads the gene count matrix. SPE reads in the spatial information, and SFE uses the spatial information to construct Visium spot polygons and spatial neighborhood graphs. Inside the `spatial` directory:
+
+```{r}
+list.files(file.path(samples[1], "spatial"))
+```
+
+`tissue_lowres_image.png` is a low re
+Inside the `scalefactors_json.json` file:
+
+```{r}
+fromJSON(file = file.path(samples[1], "spatial", "scalefactors_json.json"))
+```
+
+`spot_diameter_fullres` is the diameter of each Visium spot in the full resolution H&E image in pixels. `tissue_hires_scalef` and `tissue_lowres_scalef` are the ratio of the size of the high resolution (but not full resolution) and low resolution H&E image to the full resolution image. `fiducial_diameter_fullres` is the diameter of each fiducial spot used to align the spots to the H&E image in pixels in the full resolution image.
+
+The `tissue_positions_list.csv` file contains information for the spatial coordinates of the spots and whether each spot is in tissue as automatically detected by Space Ranger or manually annotated in the Loupe browser. If the polygon of the tissue boundary is available, whether from image processing or manual annotation, geometric operations as supported by the SFE package, which is based on the `sf` package, can be used to find which spots intersect with the tissue and which spots are contained in the tissue. Geometric operations can also find the polygons of the intersections between spots and the tissue, but the results can get messy since the intersections can have not only polygons but also points and lines. 
+
+Now we read in the toy data that is in the Space Ranger output format. The `load` argument indicates whether the images should be loaded into memory. The SFE package does not work with the image at present, so `load = FALSE`.
+
+```{r}
+(sfe3 <- read10xVisiumSFE(samples, sample_ids, type = "sparse", data = "raw",
+                         load = FALSE))
+```
+
+Space Ranger output includes the gene count matrix, spot coordinates, and spot diameter. The Space Ranger output does NOT include nuclei segmentation or pathologist annotation of histological regions. Extra image processing, such as with ImageJ and QuPath, are required for those geometries.
+
+# Create SFE object from scratch
+An SFE object can be constructed from scratch with the assay matrices and metadata. In this toy example, `dgCMatrix` is used, but since SFE inherits from SingleCellExperiment (SCE), other types of arrays supported by SCE such as delayed arrays should also work.
+```{r}
+# Visium barcode location from Space Ranger
+data("visium_row_col")
+coords1 <- visium_row_col[visium_row_col$col < 6 & visium_row_col$row < 6,]
+coords1$row <- coords1$row * sqrt(3)
+
+# Random toy sparse matrix
+set.seed(29)
+col_inds <- sample(1:13, 13)
+row_inds <- sample(1:5, 13, replace = TRUE)
+values <- sample(1:5, 13, replace = TRUE)
+mat <- sparseMatrix(i = row_inds, j = col_inds, x = values)
+colnames(mat) <- coords1$barcode
+rownames(mat) <- sample(LETTERS, 5)
+```
+
+This should be sufficient to create an SPE object, and an SFE object, even though no `sf` data frame was constructed for the geometries. The constructor behaves similarly to the SPE constructor. The centroid coordinates of the Visium spots in the example can be converted into spot polygons with the `spotDiameter` argument, which can also be relevant to other technologies with round spots or beads, such as Slide-seq. Spot diameter in pixels in full resolution images can be found in the `scalefactors_json.json` file in Space Ranger output.
+```{r}
+sfe3 <- SpatialFeatureExperiment(list(counts = mat), colData = coords1,
+                                spatialCoordsNames = c("col", "row"),
+                                spotDiameter = 0.7)
+```
+
+More geometries and spatial graphs can be added after calling the constructor.
+
+Geometries can also be supplied in the constructor. 
+```{r}
+# Convert regular data frame with coordinates to sf data frame
+cg <- df2sf(coords1[,c("col", "row")], c("col", "row"), spotDiameter = 0.7)
+rownames(cg) <- colnames(mat)
+sfe3 <- SpatialFeatureExperiment(list(counts = mat), colGeometries = list(foo = cg))
+```
+
+## Technology specific notes
+### Gene count matrix and cell metadata
+The gene count matrix and cell metadata (including cell centroid coordinates) from example datasets for technologies such as CosMX and Vizgen are CSV files. We recommend the [`vroom`](https://vroom.r-lib.org/) package to quickly read in large CSV files. The CSV files are read in as data frames. For the gene count matrix, this can be converted to a matrix and then a sparse `dgCMatrix`. The matrix may need to be transposed so the genes are in rows and cells are in columns. While smFISH based data tend to be less sparse than scRNA-seq data, using sparse matrix is worthwhile since the matrix is still about 50% zero.
+
+For Vizgen MERFISH, the first column is cell ID but doesn't have have a column name. The cell IDs are numbers over 30 digits long. If it's read as numbers, its values will change as R doesn't support long integers, so it should instead be read as character. An example to do so: `mat <- vroom("Liver1Slice1_cell_by_gene.csv", col_types = cols(...1 = "c"))`, as `...1` is the name `vroom` gives to the first column that doesn't have a column name, and "c" specifies type character.
+
+**Note that Xenium is in Beta and this might soon change**
+
+For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
+```{r, eval=FALSE}
+library(DropletUtils)
+library(arrow)
+sce <- read10xCounts("Xenium_FFPE_Human_Breast_Cancer_Rep2_cell_feature_matrix.h5")
+cell_info <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep2_cells.parquet")
+# Add the centroid coordinates to colData
+colData(sce) <- cbind(colData(sce), cell_info[,-1])
+spe <- toSpatialExperiment(sce, spatialCoordsNames = c("x_centroid", "y_centroid"))
+sfe <- toSpatialFeatureExperiment(spe)
+```
+
+### Cell polygons
+File format of cell polygons (if available) is in different formats in different technology. The cell polygons should be [`sf`](https://r-spatial.github.io/sf/) data frames to put into `colGeometries()` of the SFE object. This section explains how to do that for a number of smFISH-based technologies.
+
+**Note that Xenium is in Beta and this might soon change**
+
+In Xenium, the cell polygons come in CSV or parquet files that can be directly read into R as a data frame, with 2 columns for x and y coordinates, and one indicating which cell the coordinates belong to. Change the name of the cell ID column into "ID", and use `SpatialFeatureExperiment::df2sf()` to convert the data frame into an `sf` data frame with `POLYGON` geometry. Example code:
+
+```{r, eval=FALSE}
+library(arrow)
+cell_poly <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep2_cell_boundaries.parquet")
+# Here the first column is cell ID
+names(cell_poly)[1] <- "ID"
+# "vertex_x" and "vertex_y" are the column names for coordinates here
+cell_sf <- df2sf(cell_poly, c("vertex_x", "vertex_y"), geometryType = "POLYGON")
+```
+
+In CoxMX, cell polygons are in CSV files. Besides the two coordinates columns, there's a column for field of view (FOV) and another for cell ID. However, unlike in Xenium, the cell IDs are only unique in each FOV, so they should be concatenated to FOV to make them unique. Then `df2sf()` can also be used to convert the regular data frame into `sf`. Example code:
+
+```{r, eval=FALSE}
+library(vroom)
+library(tidyr)
+cell_poly <- vroom("Lung5_Rep1-polygons.csv")
+cell_poly <- cell_poly |> 
+    unite("ID", fov:cellID)
+cell_sf <- df2sf(cell_poly, spatialCoordsNames = c("x_global_px", "y_global_px"),
+                 geometryType = "POLYGON")
+```
+
+In Vizgen MERFISH, cell polygons are in HDF5 files, with one HDF5 file per FOV. The HDF5 file seems to contain 7 z-planes, but at least for the mouse liver MERFISH dataset in `SFEData`, all 7 z-planes have the same polygons so in effect the cell segmentation is only available in one z-plane. Example code to convert this into `sf`:
+
+```{r, eval=FALSE}
+library(rhdf5)
+library(dplyr)
+library(BiocParallel)
+h52poly_fov <- function(fn, i) {
+    l <- rhdf5::h5dump(fn)[[1]]
+    cell_ids <- names(l)
+    geometries <- lapply(l, function(m)
+        sf::st_polygon(list(t(m[["zIndex_0"]]$p_0$coordinates[,,1]))))
+    df <- data.frame(geometry = sf::st_sfc(geometries),
+                     ID = cell_ids,
+                     fov = i)
+    sf::st_sf(df)
+}
+# Those hdf5 files are in the directory cell_boundaries
+fns <- list.files("cell_boundaries", "*.hdf5", full.names = TRUE)
+# Multicore as there're over 1000 FOVs in this dataset
+# I ran this on a server. 
+# Use parallel::detectCores() to find how many CPU cores you have.
+cell_sfs <- bpmapply(h52poly_fov, fn = fns, i = seq_along(fns), SIMPLIFY = FALSE, 
+                     BPPARAM = SnowParam(20, progressbar = TRUE))
+# dplyr::bind_rows is much faster than base R's rbind
+cell_sf <- do.call(bind_rows, cell_sfs)
+```
+
+See [the code used to construct the example datasets in `SFEData`](https://github.com/pachterlab/SFEData/blob/main/inst/scripts/make-data.R) for more examples. 
+
+Use `sf::st_is_valid()` to check if the polygons are valid. Polygons with self-intersection are not valid, and will throw an error in geometric operations. A common reason why polygons are invalid is a protruding line, which can be eliminated with `sf::st_buffer(cell_sf, dist = 0)`. Use `sf::st_is_valid(cell_sf, reason = TRUE)`, and plot the invalid polygons, to find why some polygons are not valid. 
+
+# Session info
+```{r}
+sessionInfo()
+```
