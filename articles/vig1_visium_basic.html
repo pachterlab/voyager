@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,14 +36,18 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
+  <a class="nav-link" href="../articles/install.html">Install</a>
 </li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
     <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig2_visium.html">ESDA with Visium mouse skeletal muscle dataset</a>
+    <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
+    <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../reference/index.html">Functions</a>
 </li>
 <li class="nav-item">
   <a class="nav-link" href="../news/index.html">Changelog</a>
@@ -73,7 +77,9 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Basic Visium exploratory data analysis</h1>
+                        <h4 data-toc-skip class="author">Lambda Moses</h4>
             
+            <h4 data-toc-skip class="date">2022-10-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/Voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -84,19 +90,9 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>A working definition of “spatial transcriptomics” is any attempt to quantify the transcripts of more genes than can be done in one round of fluorescent <em>in situ</em> hybridization (FISH) while preserving the spatial context of the gene expression in the tissue. Since 2018, interest in spatial transcriptomics – in both data collection and data analysis – has grown drastically.</p>
-<div class="figure">
-<img src="https://pachterlab.github.io/LP_2021/07-current_analysis_files/figure-html/analysis-current-1.png" alt="Number of publications on spatial transcriptomics over time are shown as curves. The x axis is date published, and the y axis is number of publication in each 120 day time bin. The blue curve is for data collection papers, and the y axis is for data analysis papers. Both curves rise sharply since 2018."><p class="caption">
-Number of publication over time for current era data collection and data analysis. Bin width is 120 days. The x-shaped points show the number of publications from the last bin, which is not yet full.
-</p>
-</div>
-Many spatial transcriptomics technologies have been developed, and at present, Visium is by far the most popular technology. Hence this introductory vignette uses a Visium dataset to demonstrate a basic exploratory data analysis (EDA) of a spatial transcriptomics dataset.
-<div class="figure">
-<img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt="Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium (category NGS barcoding) is used by over 100 institutions, far more than any other method. Following Visium are GeoMX DSP and GeoMX WTA (category ROI selection), used by over 20 institutions. 2016 ST and some other ROI selection methods follow, then ISS, then Stereo-seq and slide-seq2 (both NGS barcoding), then a number of smFISH based methods such as Molecular Cartography and MERFISH."><p class="caption">
-Techniques used by at least 3 institutions and the number of institutions that have used them.
-</p>
-</div>
-<p>Here the data is represented in the <a href="https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html" class="external-link"><code>SpatialFeatureExperiment</code></a> (SFE) format, and <code>Voyager</code> is used to perform spatial analysis with methods borrowed from the geospatial field. <a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link"><code>SingleCellExperiment</code></a> (SCE) is a data structure for scRNA-seq, an alternative to the popular <code>Seurat</code> package. <a href="https://bioconductor.org/packages/release/bioc/html/SpatialExperiment.html" class="external-link"><code>SpatialExperiment</code></a> (SPE) is an existing class inheriting from SCE, for spatial -omics data, and SFE inherits from SPE and hence also SCE. As SFE inherits from SCE, non-spatial scRNA-seq EDA methods such as dimension reduction, clustering, and many plotting functions can be applied to SFE. In this vignette, we perform some non-spatial scRNA-seq EDA on the Visium data, and a primer on spatial analysis. See <a href="https://pachterlab.github.io/Voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a> for a more in depth introduction to univariate spatial analyses on the same dataset.</p>
+<p>Many spatial transcriptomics technologies have been developed, and at present, Visium is by far the most popular technology <span class="citation">(Moses and Pachter 2022)</span>. Hence this introductory vignette uses a Visium dataset to demonstrate a basic exploratory data analysis (EDA) of a spatial transcriptomics dataset. <img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt="Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium (category NGS barcoding) is used by over 100 institutions, far more than any other method. Following Visium are GeoMX DSP and GeoMX WTA (category ROI selection), used by over 20 institutions. 2016 ST and some other ROI selection methods follow, then ISS, then Stereo-seq and slide-seq2 (both NGS barcoding), then a number of smFISH based methods such as Molecular Cartography and MERFISH."></p>
+<p>Here the data is represented in the <a href="https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html" class="external-link"><code>SpatialFeatureExperiment</code></a> (SFE) format, and <code>Voyager</code> is used to perform spatial analysis with methods borrowed from the geospatial field. <a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link"><code>SingleCellExperiment</code></a> (SCE) is a data structure for scRNA-seq, an alternative to the popular <code>Seurat</code> package. <a href="https://bioconductor.org/packages/release/bioc/html/SpatialExperiment.html" class="external-link"><code>SpatialExperiment</code></a> (SPE) is an existing class inheriting from SCE, for spatial -omics data, and SFE inherits from SPE and hence also SCE. As SFE inherits from SCE, non-spatial scRNA-seq EDA methods such as dimension reduction, clustering, and many plotting functions can be applied to SFE. In this vignette, we perform some non-spatial scRNA-seq EDA on the Visium data, and a primer on spatial analysis. See <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a> for a more in depth introduction to univariate spatial analyses on the same dataset.</p>
+<p>Here we load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/Voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
@@ -219,7 +215,7 @@ Techniques used by at least 3 institutions and the number of institutions that h
 <span><span class="co">#&gt; [1] 0.05103343</span></span></code></pre></div>
 <p><code>spot_diameter_fullres</code> is the diameter of each Visium spot in the full resolution H&amp;E image in pixels. <code>tissue_hires_scalef</code> and <code>tissue_lowres_scalef</code> are the ratio of the size of the high resolution (but not full resolution) and low resolution H&amp;E image to the full resolution image. <code>fiducial_diameter_fullres</code> is the diameter of each fiducial spot used to align the spots to the H&amp;E image in pixels in the full resolution image.</p>
 <p>The <code>tissue_positions_list.csv</code> file contains information for the spatial coordinates of the spots and whether each spot is in tissue as automatically detected by Space Ranger or manually annotated in the Loupe browser. If the polygon of the tissue boundary is available, whether from image processing or manual annotation, geometric operations as supported by the SFE package, which is based on the <code>sf</code> package, can be used to find which spots intersect with the tissue and which spots are contained in the tissue. Geometric operations can also find the polygons of the intersections between spots and the tissue, but the results can get messy since the intersections can have not only polygons but also points and lines.</p>
-<p>Now read in the toy data that is in the Space Ranger output format. The <code>load</code> argument indicates whether the images should be loaded into memory. The SFE package does not work with the image at present, so <code>load = FALSE</code>.</p>
+<p>Now we read in the toy data that is in the Space Ranger output format. The <code>load</code> argument indicates whether the images should be loaded into memory. The SFE package does not work with the image at present, so <code>load = FALSE</code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/read10xVisiumSFE.html" class="external-link">read10xVisiumSFE</a></span><span class="op">(</span><span class="va">samples</span>, <span class="va">sample_ids</span>, type <span class="op">=</span> <span class="st">"sparse"</span>, data <span class="op">=</span> <span class="st">"raw"</span>,</span>
 <span>                         load <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
@@ -256,8 +252,8 @@ Techniques used by at least 3 institutions and the number of institutions that h
 <h3 id="mouse-skeletal-muscle-dataset">Mouse skeletal muscle dataset<a class="anchor" aria-label="anchor" href="#mouse-skeletal-muscle-dataset"></a>
 </h3>
 <p>The dataset used in this vignette comes from <a href="https://doi.org/10.1038/s42003-021-02810-x" class="external-link">Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration</a> <span class="citation">(McKellar et al. 2021)</span>. Notexin was injected into the tibialis anterior muscle to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium. The dataset here is from the 2 day timepoint. The dataset was originally not in the Space Ranger output format, but is already in a <code>SpatialFeatureExperiment</code> (SFE) object.</p>
-<p>The gene count matrix was directly downloaded from GEO. All 4992 spots, whether in tissue or not, are included. The H&amp;E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. The tissue boundary was found by thresholding in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The <code>in_tissue</code> column in <code>colData</code> indicates which spot polygons intersect the tissue polygons, and is based on <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">st_intersects()</a></code>.</p>
-<p>Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as <code>sf</code> data frames in the SFE object. See <a href="https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html" class="external-link">the vignette of <code>SpatialFeatureExperiment</code></a> for more details on the structure of the SFE object. The SFE object of this dataset is provided in the <code>SFEData</code> package.</p>
+<p>The gene count matrix was directly downloaded <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4904759" class="external-link">from GEO</a>. All 4992 spots, whether in tissue or not, are included. The H&amp;E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. The tissue boundary was found by thresholding in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The <code>in_tissue</code> column in <code>colData</code> indicates which spot polygons intersect the tissue polygons, and is based on <code><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">st_intersects()</a></code>.</p>
+<p>Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as <code>sf</code> data frames in the SFE object. See <a href="https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html" class="external-link">the vignette of <code>SpatialFeatureExperiment</code></a> for more details on the structure of the SFE object. The SFE object of this dataset is provided in the <code>SFEData</code> package. Here we download the data and load it into R.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"full"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; snapshotDate(): 2022-10-17</span></span>
@@ -285,12 +281,7 @@ Techniques used by at least 3 institutions and the number of institutions that h
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Graphs:</span></span>
 <span><span class="co">#&gt; Vis5A:</span></span></code></pre></div>
-The H&amp;E image of this section:
-<div class="figure">
-<img src="tissue_lowres_5a.jpeg" alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers." width="100%"><p class="caption">
-Low resolution H&amp;E image of the tissue section
-</p>
-</div>
+<p>The authors provided the full resolution hematoxylin and eosin (H&amp;E) image on GEO, which we downsized to more quickly show online. This is what it looks like: <img src="tissue_lowres_5a.jpeg" alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers." width="100%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -304,7 +295,7 @@ Low resolution H&amp;E image of the tissue section
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "barcode"   "col"       "row"       "x"         "y"         "dia"      </span></span>
 <span><span class="co">#&gt;  [7] "tissue"    "sample_id" "nCounts"   "nGenes"    "prop_mito" "in_tissue"</span></span></code></pre></div>
-<p>Total number of UMI detected per spot</p>
+<p>Here we plot the total UMI counts per spot. The commented out line of code shows how to compute total UMI counts.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># colData(sfe)$nCounts &lt;- colSums(counts(sfe))</span></span>
 <span><span class="va">violin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, x <span class="op">=</span> <span class="st">"in_tissue"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -313,9 +304,9 @@ Low resolution H&amp;E image of the tissue section
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>Some spots in the injury site with leukocyte infiltration have high total counts. Spatial autocorrelation of the total counts is apparent, which will be discussed in a later section of this vignette.</p>
-<p>Number of genes detected per spot</p>
+<p>Here we find number of genes detected per spot. The commented out line of code shows how to find the number of genes detected.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># colData(sfe)$nGenes &lt;- colSums(counts(sfe) &gt; 0)</span></span>
 <span><span class="va">violin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nGenes"</span>, x <span class="op">=</span> <span class="st">"in_tissue"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -324,13 +315,13 @@ Low resolution H&amp;E image of the tissue section
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
-<p>nCounts vs. nGenes, as commonly plotted for scRNA-seq</p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p>As commonly done for scRNA-seq data, here we plot nCounts vs. nGenes</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"nGenes"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
-<p>This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See <a href="https://pachterlab.github.io/Voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a>.</p>
-<p>Proportion of mitochondrially encoded UMI counts</p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p>This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.htil">the exploratory spatial data analysis (ESDA) Visium vignette</a>.</p>
+<p>As commonly done for scRNA-seq data, we plot the proportion of mitochondrially encoded counts. The commented out code shows how to find this proportion.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># mito_ind &lt;- str_detect(rowData(sfe)$symbol, "^Mt-")</span></span>
 <span><span class="co"># colData(sfe)$prop_mito &lt;- colSums(counts(sfe)[mito_ind,]) / colData(sfe)$nCounts</span></span>
@@ -340,13 +331,13 @@ Low resolution H&amp;E image of the tissue section
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>As expected, spots outside tissue have higher proportion of mitochondrial counts, because when the tissue is lysed, mitochondrial transcripts are protected by a double membrane so are less likely to degrade than cytosolic transcripts. However, spots on myofibers also have high proportion of mitochondrial counts, because of the function of myofibers. The injury site with leukocyte infiltration has lower proportion of mitochondrial counts.</p>
-<p>How does proportion of mitochondrial counts relate to total UMI counts?</p>
+<p>Here we plot the proportion of mitochondrial counts relate to total UMI counts, as commonly done for scRNA-seq to identify low quality cells with low UMI counts and high proportion of mitochondrial counts.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"prop_mito"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
-<p>There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See <a href="https://pachterlab.github.io/Voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a>.</p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p>There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See <a href="https://pachterlab.github.io/Voyager/articles/vig2_visium.htil" class="external-link">the ESDA Visium vignette</a>.</p>
 <p>So far we haven’t seen spots that are obvious outliers in these QC metrics</p>
 <p>The following analyses would only use spots in tissue.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -357,12 +348,13 @@ Low resolution H&amp;E image of the tissue section
 <h3 id="genes">Genes<a class="anchor" aria-label="anchor" href="#genes"></a>
 </h3>
 <p>Like in scRNA-seq, gene expression in Visium is overdispersed compared to Poisson.</p>
-<p>Mean and variance of each gene</p>
+<p>Here we compute the mean, variance, and coefficient of variance (CV2) for each gene among spots in tissue.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowVars.html" class="external-link">rowVars</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># Coefficient of variance</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">cv2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">vars</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">means</span><span class="op">^</span><span class="fl">2</span></span></code></pre></div>
+<p>To avoid overplotting and better show point density on the plot, we use a 2D histogram. The color of each bin indicates the number of points in that bin.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">means</span>, <span class="va">vars</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -372,7 +364,7 @@ Low resolution H&amp;E image of the tissue section
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>The red line, <span class="math inline">\(y = x\)</span>, is expected for Poisson distributed data, but here the variance is higher for more highly expressed genes than expected from Poisson. The CV2 gives the same picture.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -383,13 +375,13 @@ Low resolution H&amp;E image of the tissue section
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="normalize-data">Normalize data<a class="anchor" aria-label="anchor" href="#normalize-data"></a>
 </h2>
-<p>While <code>scran</code> <span class="citation">(Lun, Bach, and Marioni 2016)</span> is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don’t know what the best practice really should be. As seen in the <code>nCounts</code> plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts to adjacent spots and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods.</p>
+<p>While <code>scran</code> <span class="citation">(Lun, Bach, and Marioni 2016)</span> is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don’t know what the best practice really should be. As seen in the <code>nCounts</code> plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/quickCluster.html" class="external-link">quickCluster</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/computeSumFactors.html" class="external-link">computeSumFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, clusters<span class="op">=</span><span class="va">clusters</span><span class="op">)</span></span>
@@ -410,17 +402,17 @@ Low resolution H&amp;E image of the tissue section
 <span>                     scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># scale as in Seurat</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
 <p>The principal components (PCs) can be plotted in space. Due to spatial autocorrelation of many genes and spatial regions of different histological characters, even though spatial information is not used in PCA, the PCs may show spatial structure.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, </span>
 <span>                  colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                  diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-26-1.png" width="576"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-25-1.png" width="576"></p>
 <p>PC1, which explains far more variance than PC2, separates the injury site myofibers close to the site from the visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.</p>
 <p>Also run UMAP based on PCA</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
@@ -436,15 +428,17 @@ Low resolution H&amp;E image of the tissue section
 <span>                                                   objective_function <span class="op">=</span> <span class="st">"modularity"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ncomponents <span class="op">=</span> <span class="fl">3</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-29-1.png" width="672"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-28-1.png" width="672"></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plot_reddim.html" class="external-link">plotUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
 <p>Where are the clusters in space?</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
 <p>While spatial information is not explicitly used, due to spatial autocorrelation of gene expression and the histological regions, some of these clusters are somewhat spatially contiguous. There are many methods to find spatially informed clusters, such as <a href="https://bioconductor.org/packages/release/bioc/html/BayesSpace.html" class="external-link"><code>BayesSpace</code></a> <span class="citation">(Zhao et al. 2021)</span>, which is on Bioconductor.</p>
+<p>Remark on spatial regions: In geographical space, there usually is no one single way to define spatial regions. For example, influenced by both sociology and geology, LA county can be partitioned into regions such as Eastside, Westside, San Fernado Valley, San Gabriel Valley, Pomona Valley, Gateway Cities, South Bay, and etc., each containing multiple smaller cities or parts of LA City, each of which can be further divided into many neighborhoods, such as downtown LA, Koreatown, Highland Park, and etc. Definitions of some of these regions are subject to dispute. Meanwhile, LA county can also be partitioned into watersheds of the LA River, San Gabriel River, Ballona Creek, and etc., as well as different rock formations. Which kind of spatial region at which resolution is relevant depends on the question asked.</p>
+<p>In contrast, in spatial transcriptomics, methods identifying spatial regions generally only aim to give one result, while multiple results at different resolutions depending on the question asked can be relevant. Also, just like how the definition of Eastside is subject to a lot of dispute, it would be great if spatial region methods for spatial -omics can give uncertainty in assignment of cells or Visium spots to spatial regions.</p>
 </div>
 <div class="section level2">
 <h2 id="non-spatial-differential-expression">Non-spatial differential expression<a class="anchor" aria-label="anchor" href="#non-spatial-differential-expression"></a>
@@ -488,12 +482,12 @@ Low resolution H&amp;E image of the tissue section
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotExpression.html" class="external-link">plotExpression</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="va">genes_use</span>, <span class="st">"symbol"</span><span class="op">]</span>, x <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>               colour_by <span class="op">=</span> <span class="st">"cluster"</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
 <p>Plot those genes in space</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-35-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="morans-i">Moran’s I<a class="anchor" aria-label="anchor" href="#morans-i"></a>
@@ -583,9 +577,10 @@ I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-41-1.png" width="700"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
 <p>These genes do indeed look like spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran’s I, such as <a href="https://bioconductor.org/packages/release/bioc/html/spatialDE.html" class="external-link"><code>SpatialDE</code></a> <span class="citation">(Svensson, Teichmann, and Stegle 2018)</span>. However, such methods usually don’t account for the histological regions, except for <code>C-SIDE</code> <span class="citation">(Cable et al. 2022)</span>, which identifies spatially variable genes within cell types. But then what do we really mean by “cell type”? It remains to see whether spatial methods made specifically for identifying spatially variable genes compare with methods that don’t explicitly use spatial information but simply performs DE between cell types which often are in spatially defined histological regions.</p>
-<p>There are ways to see whether Moran’s I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in <a href="https://pachterlab.github.io/Voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a>.</p>
+<p>Further considerations on Moran’s I: strength of spatial autocorrelation can vary in space. What if a gene has strong spatial autocorrelation in one region, but is more like salt and pepper in another? Should the different histological regions be analyzed separately in some cases?</p>
+<p>There are ways to see whether Moran’s I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.htil">the ESDA Visium vignette</a>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -614,16 +609,16 @@ I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] sparseMatrixStats_1.8.0         stringr_1.4.1                  </span></span>
 <span><span class="co">#&gt;  [3] rjson_0.2.21                    BiocParallel_1.30.4            </span></span>
-<span><span class="co">#&gt;  [5] SFEData_0.99.5                  bluster_1.7.0                  </span></span>
+<span><span class="co">#&gt;  [5] SFEData_0.99.5                  bluster_1.6.0                  </span></span>
 <span><span class="co">#&gt;  [7] patchwork_1.1.2                 scran_1.24.1                   </span></span>
 <span><span class="co">#&gt;  [9] scater_1.24.0                   ggplot2_3.3.6                  </span></span>
 <span><span class="co">#&gt; [11] scuttle_1.7.4                   SpatialExperiment_1.6.1        </span></span>
 <span><span class="co">#&gt; [13] SingleCellExperiment_1.18.1     SummarizedExperiment_1.26.1    </span></span>
 <span><span class="co">#&gt; [15] Biobase_2.57.1                  GenomicRanges_1.48.0           </span></span>
-<span><span class="co">#&gt; [17] GenomeInfoDb_1.33.13            IRanges_2.31.2                 </span></span>
+<span><span class="co">#&gt; [17] GenomeInfoDb_1.33.14            IRanges_2.31.2                 </span></span>
 <span><span class="co">#&gt; [19] S4Vectors_0.35.4                BiocGenerics_0.43.4            </span></span>
 <span><span class="co">#&gt; [21] MatrixGenerics_1.9.1            matrixStats_0.62.0             </span></span>
-<span><span class="co">#&gt; [23] SpatialFeatureExperiment_0.99.8 Voyager_0.99.5                 </span></span>
+<span><span class="co">#&gt; [23] SpatialFeatureExperiment_0.99.9 Voyager_0.99.7                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] snow_0.4-4                    AnnotationHub_3.5.2          </span></span>
@@ -710,6 +705,9 @@ Lun, Aaron T L, Karsten Bach, and John C Marioni. 2016. <span>“Pooling Across 
 </div>
 <div id="ref-McKellar2021-ek" class="csl-entry">
 McKellar, David W, Lauren D Walter, Leo T Song, Madhav Mantri, Michael F Z Wang, Iwijn De Vlaminck, and Benjamin D Cosgrove. 2021. <span>“Large-Scale Integration of Single-Cell Transcriptomic Data Captures Transitional Progenitor States in Mouse Skeletal Muscle Regeneration.”</span> <em>Commun Biol</em> 4 (1): 1280.
+</div>
+<div id="ref-Moses2022-xz" class="csl-entry">
+Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction: Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5): 628.
 </div>
 <div id="ref-Svensson2018-sx" class="csl-entry">
 Svensson, Valentine, Sarah A Teichmann, and Oliver Stegle. 2018. <span>“<span>SpatialDE</span>: Identification of Spatially Variable Genes.”</span> <em>Nat. Methods</em> 15 (5): 343–46.
