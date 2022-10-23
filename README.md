@@ -1,5 +1,5 @@
 
-<img src="vignettes/voyager.jpg" width="1024"/>
+<img src="https://github.com/pachterlab/Voyager/raw/documentation/vignettes/voyager.jpg" width="1024"/>
 
 # From geospatial to spatial-omics
 
@@ -8,7 +8,7 @@
 [![BioC status](http://www.bioconductor.org/shields/build/devel/bioc/Voyager.svg)](https://bioconductor.org/checkResults/devel/bioc-LATEST/Voyager)
 <!-- badges: end -->
 
-<img src="vignettes/voyager_schematics.png" width="1024"/>
+<img src="https://github.com/pachterlab/Voyager/raw/documentation/vignettes/voyager_schematics.png" width="1024"/>
 
 Tobler's first law of geography:
 
