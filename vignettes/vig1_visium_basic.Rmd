@@ -270,13 +270,13 @@ plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly") &
 ```
 
 # Moran's I
-Tobler's first law of geography:
+Tobler's first law of geography states that
 
 > Everything is related to everything else. But near things are more related than distant things.
 
-This is what spatial autocorrelation basically is. In positive spatial autocorrelation, nearby things tend to be more similar, such as that weather in Pasadena and downtoan Los Angeles tend to be more similar than weather in Pasadena and San Francisco. There can also be negative spatial autocorrelation, where nearby things tend to be more dissimilar, like a checkerboard. Spatial autocorrelation can be caused by an intrinsic process such as diffusion or communication by physical contact, or by another covariate that has such an intrinsic process. 
+This observation motivates the examination of spatial autocorrelation. Positive spatial autocorrelation is evident when nearby things tend to be similar, such as that weather in Pasadena and downtown Los Angeles (as opposed to the weather in Pasadena and San Francisco). Negative spatial autocorrelation is evident when nearby things tend to be more dissimilar, like squares on a chessboard. Spatial autocorrelation can be arise from an intrinsic process such as diffusion or communication by physical contact, or result from a covariate that has such an intrinsic process. 
 
-The most commonly used metric of spatial autocorrelation is Moran's I, defined as
+The most commonly used measure of spatial autocorrelation is Moran's I, defined as
 
 $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
@@ -284,7 +284,7 @@ $$
 
 where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood. 
 
-Moran's I looks kind of like Pearson correlation between the value at each location and the average value at its neighbors. Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
+Moran's I can be understood as the Pearson correlation between the value at each location and the average value at its neighbors. Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
 
 Spatial dependence analysis in `spdep` requires a spatial neighborhood graph. The graph for adjacent Visium spot can be found with
 ```{r}
@@ -292,7 +292,7 @@ colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
 ```
 
 
-We mentioned that spatial autocorrelation is apparent in total UMI counts. Here's what Moran's I has to say:
+We mentioned that spatial autocorrelation is apparent in total UMI counts. Here's what Moran's I shows:
 ```{r}
 calculateMoransI(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]), 
                  listw = colGraph(sfe_tissue, "visium"))
@@ -301,7 +301,7 @@ calculateMoransI(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]),
 K means kurtosis. The positive values of Moran's I indicate positive spatial autocorrelation.
 
 ## Spatially variable genes
-A spatially variable gene is a gene whose expression depends on spatial locations, rather than being scatter around like salt and pepper. Then spatial variable genes would have spatial autocorrelation, and sometimes Moran's I is used to compare and validate the spatially variable genes identified with different methods. Seurat ranks Moran's I to identify spatially variable genes. This can also be done with `Voyager`. Here `BPPARAM` is used to parallelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
+A spatially variable gene is a gene whose expression depends on spatial locations, rather than being spatially random, like salt grains spread on a soup. Spatially variable genes can be identified by spatial autocorrelation signatures, and sometimes Moran's I is used to compare and assess spatially variable genes identified with different methods. Below `BPPARAM` is used to parallelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
 
 ```{r}
 sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, colGraphName = "visium",
@@ -313,7 +313,7 @@ The results are stored in `rowData`
 rowData(sfe_tissue)
 ```
 
-The `NA`'s are for genes that are not highly variable and Moran's I was not computed for those genes. Now we rank the genes by Moran's I and plot them in space.
+The `NA`'s are for genes that are not highly variable and Moran's I was not computed for those genes. We rank the genes by Moran's I and plot them in space as follows:
 
 ```{r}
 df <- rowData(sfe_tissue)[hvgs,]
@@ -321,17 +321,17 @@ ord <- order(df$moran_Vis5A, decreasing = TRUE)
 df[ord, c("symbol", "moran_Vis5A")]
 ```
 
-Here we see some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation. Plot the genes with the strongest positive spatial autocorrelation in space
+We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation. We can plot the genes with the strongest positive spatial autocorrelation in space:
 ```{r}
 plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") &
     theme_void()
 ```
 
-These genes do indeed look like spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran's I, such as [`SpatialDE`](https://bioconductor.org/packages/release/bioc/html/spatialDE.html) [@Svensson2018-sx]. However, such methods usually don't account for the histological regions, except for `C-SIDE` [@Cable2022-ma], which identifies spatially variable genes within cell types. But then what do we really mean by "cell type"? It remains to see whether spatial methods made specifically for identifying spatially variable genes compare with methods that don't explicitly use spatial information but simply performs DE between cell types which often are in spatially defined histological regions. 
+These genes do indeed look spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran's I, such as [`SpatialDE`](https://bioconductor.org/packages/release/bioc/html/spatialDE.html) [@Svensson2018-sx]. However, such methods usually don't account for the histological regions, except for `C-SIDE` [@Cable2022-ma], which identifies spatially variable genes within cell types. This leads to the question of what is really meant by "cell type". It remains to see how spatial methods made specifically for identifying spatially variable genes compare with methods that don't explicitly use spatial information but simply perform differential analysis between cell types which often are in spatially defined histological regions. 
 
-Further considerations on Moran's I: strength of spatial autocorrelation can vary in space. What if a gene has strong spatial autocorrelation in one region, but is more like salt and pepper in another? Should the different histological regions be analyzed separately in some cases? 
+Another consideration in using Moran's I is the extent to which the strength of spatial autocorrelation varies in space. What if a gene exhibits strong spatial autocorrelation in one region, but not in another? Should the different histological regions be analyzed separately in some cases? 
 
-There are ways to see whether Moran's I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in [the ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil). 
+There are ways to see whether Moran's I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in the more advanced [ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil). 
 
 # Session Info
 ```{r}
