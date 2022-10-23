@@ -1,6 +1,6 @@
 
 <img src="https://github.com/pachterlab/Voyager/raw/documentation/vignettes/voyager.jpg" width="1024"/>
- P
+
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![BioC status](http://www.bioconductor.org/shields/build/devel/bioc/Voyager.svg)](https://bioconductor.org/checkResults/devel/bioc-LATEST/Voyager)
