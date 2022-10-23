@@ -1,5 +1,7 @@
 ---
 title: "CosMX non-small cell lung cancer data"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
 output: 
   html_document:
   toc: true
@@ -244,7 +246,7 @@ system.time(
     )
 ```
 
-It took about a minute, not bad. Now compute Moran's I for some cell QC metrics
+Now compute Moran's I for some cell QC metrics
 ```{r}
 features_use <- c("nCounts", "nGenes", "Area", "AspectRatio")
 sfe <- colDataMoransI(sfe, features_use, colGraphName = "knn5")
@@ -256,7 +258,7 @@ colFeatureData(sfe)[features_use,]
 
 Positive spatial autocorrelation is suggested, which is stronger in nCounts and nGenes.
 
-What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.
+What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run, but not as long as a typical song. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.
 ```{r}
 system.time(
     sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
