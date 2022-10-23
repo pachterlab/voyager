@@ -41,6 +41,7 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
+    <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
     <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
@@ -77,7 +78,9 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>CosMX non-small cell lung cancer data</h1>
+                        <h4 data-toc-skip class="author">Lambda Moses</h4>
             
+            <h4 data-toc-skip class="date">2022-10-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/Voyager/blob/HEAD/vignettes/vig4_cosmx.Rmd" class="external-link"><code>vignettes/vig4_cosmx.Rmd</code></a></small>
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -316,7 +319,7 @@
 <span><span class="co"># Number of negative control probes</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">neg_inds</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 20</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">prop_neg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">neg_inds</span>,<span class="op">]</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">nCounts</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">prop_neg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">neg_inds</span>,<span class="op">]</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">nCounts</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">plot_violin_spatial</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"prop_neg"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 142 rows containing non-finite values (stat_ydensity).</span></span>
@@ -377,7 +380,7 @@
 <h3 id="genes">Genes<a class="anchor" aria-label="anchor" href="#genes"></a>
 </h3>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowVars.html" class="external-link">rowVars</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -425,8 +428,8 @@
 <span><span class="co">#&gt; Warning in knearneigh(coords, k = k, use_kd_tree = use_kd_tree, longlat =</span></span>
 <span><span class="co">#&gt; FALSE): dnearneigh: longlat argument overrides object</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 207.734   0.012 207.761</span></span></code></pre></div>
-<p>It took about a minute, not bad. Now compute Moran’s I for some cell QC metrics</p>
+<span><span class="co">#&gt; 269.720   0.063 269.848</span></span></code></pre></div>
+<p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">features_use</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -440,7 +443,7 @@
 <span><span class="co">#&gt; Area              0.198180    8.96966</span></span>
 <span><span class="co">#&gt; AspectRatio       0.256196   43.05666</span></span></code></pre></div>
 <p>Positive spatial autocorrelation is suggested, which is stronger in nCounts and nGenes.</p>
-<p>What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in <code><a href="https://r-spatial.github.io/spdep/reference/sp.correlogram.html" class="external-link">spdep::sp.correlogram()</a></code> called behind the scene here. This takes a few minutes to run. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.</p>
+<p>What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in <code><a href="https://r-spatial.github.io/spdep/reference/sp.correlogram.html" class="external-link">spdep::sp.correlogram()</a></code> called behind the scene here. This takes a few minutes to run, but not as long as a typical song. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"sp.correlogram"</span>, features <span class="op">=</span> <span class="va">features_use</span>,</span>
@@ -448,7 +451,7 @@
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 240.214   1.712 244.337</span></span></code></pre></div>
+<span><span class="co">#&gt; 670.379   5.106 341.193</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See <code><a href="https://rdrr.io/pkg/BiocParallel/man/BiocParallelParam-class.html" class="external-link">?BiocParallelParam</a></code> for the available parallel processing backends. We did not notice significant performance differences between <code>ShowParam()</code> and <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> in this context.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotCorrelogram.html">plotCorrelogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">features_use</span><span class="op">)</span> <span class="op">+</span></span>
@@ -625,9 +628,7 @@
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">2</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in .check_features_lr(sfe, type, features, sample_id, colGeometryName, :</span></span>
-<span><span class="co">#&gt; Features HLA-DPA1 are absent in type localmoran</span></span></code></pre></div>
+<span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig4_cosmx_files/figure-html/unnamed-chunk-56-1.png" width="768"></p>
 <p>It seems that some histological regions tend to be more spatially homogenous in gene expression than others.</p>
 <p>LOSH for these marker genes</p>
@@ -636,9 +637,7 @@
 <span>                     BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"LOSH"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
-<span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in .check_features_lr(sfe, type, features, sample_id, colGeometryName, :</span></span>
-<span><span class="co">#&gt; Features HLA-DPA1 are absent in type LOSH</span></span></code></pre></div>
+<span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig4_cosmx_files/figure-html/unnamed-chunk-58-1.png" width="768"></p>
 </div>
 <div class="section level2">
@@ -665,20 +664,20 @@
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_0.99.9 BiocSingular_1.13.1            </span></span>
-<span><span class="co">#&gt;  [3] BiocParallel_1.30.4             spdep_1.2-7                    </span></span>
-<span><span class="co">#&gt;  [5] sf_1.0-8                        spData_2.2.0                   </span></span>
-<span><span class="co">#&gt;  [7] sp_1.5-0                        stringr_1.4.1                  </span></span>
-<span><span class="co">#&gt;  [9] patchwork_1.1.2                 bluster_1.6.0                  </span></span>
-<span><span class="co">#&gt; [11] scran_1.24.1                    scater_1.24.0                  </span></span>
-<span><span class="co">#&gt; [13] ggplot2_3.3.6                   scuttle_1.7.4                  </span></span>
-<span><span class="co">#&gt; [15] SpatialExperiment_1.6.1         SingleCellExperiment_1.18.1    </span></span>
-<span><span class="co">#&gt; [17] SummarizedExperiment_1.26.1     Biobase_2.57.1                 </span></span>
-<span><span class="co">#&gt; [19] GenomicRanges_1.48.0            GenomeInfoDb_1.33.14           </span></span>
-<span><span class="co">#&gt; [21] IRanges_2.31.2                  S4Vectors_0.35.4               </span></span>
-<span><span class="co">#&gt; [23] BiocGenerics_0.43.4             MatrixGenerics_1.9.1           </span></span>
-<span><span class="co">#&gt; [25] matrixStats_0.62.0              SFEData_0.99.5                 </span></span>
-<span><span class="co">#&gt; [27] Voyager_0.99.7                 </span></span>
+<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_0.99.10 BiocSingular_1.13.1             </span></span>
+<span><span class="co">#&gt;  [3] BiocParallel_1.30.4              spdep_1.2-7                     </span></span>
+<span><span class="co">#&gt;  [5] sf_1.0-8                         spData_2.2.0                    </span></span>
+<span><span class="co">#&gt;  [7] sp_1.5-0                         stringr_1.4.1                   </span></span>
+<span><span class="co">#&gt;  [9] patchwork_1.1.2                  bluster_1.6.0                   </span></span>
+<span><span class="co">#&gt; [11] scran_1.24.1                     scater_1.24.0                   </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.3.6                    scuttle_1.7.4                   </span></span>
+<span><span class="co">#&gt; [15] SpatialExperiment_1.6.1          SingleCellExperiment_1.18.1     </span></span>
+<span><span class="co">#&gt; [17] SummarizedExperiment_1.26.1      Biobase_2.57.1                  </span></span>
+<span><span class="co">#&gt; [19] GenomicRanges_1.48.0             GenomeInfoDb_1.33.14            </span></span>
+<span><span class="co">#&gt; [21] IRanges_2.31.2                   S4Vectors_0.35.4                </span></span>
+<span><span class="co">#&gt; [23] BiocGenerics_0.43.4              MatrixGenerics_1.9.1            </span></span>
+<span><span class="co">#&gt; [25] matrixStats_0.62.0               SFEData_0.99.5                  </span></span>
+<span><span class="co">#&gt; [27] Voyager_0.99.7                  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.0               </span></span>

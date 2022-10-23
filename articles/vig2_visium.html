@@ -41,6 +41,7 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
+    <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
     <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
@@ -225,7 +226,7 @@ Low resolution H&amp;E image of the tissue section
 <p>While <code>scran</code> is used for data normalization here for demonstration purposes and to make the data more normally distributed, we do not mean that it is the best practice in normalizing spatial transcriptomics data, as we don’t know what the best practice really should be. As seen in the <code>nCounts</code> plot in space above, spatial autocorrelation is evident. In Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Then artifacts introduced from the amplification step would not be spatial. Spatial artifacts may arise from diffusion of transcripts to adjacent spots and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span>
-<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
+<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/quickCluster.html" class="external-link">quickCluster</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/computeSumFactors.html" class="external-link">computeSumFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, clusters<span class="op">=</span><span class="va">clusters</span><span class="op">)</span></span>
@@ -755,17 +756,17 @@ H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] bluster_1.6.0                   BiocParallel_1.30.4            </span></span>
-<span><span class="co">#&gt;  [3] patchwork_1.1.2                 scales_1.2.1                   </span></span>
-<span><span class="co">#&gt;  [5] sf_1.0-8                        SFEData_0.99.5                 </span></span>
-<span><span class="co">#&gt;  [7] scran_1.24.1                    scater_1.24.0                  </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.3.6                   scuttle_1.7.4                  </span></span>
-<span><span class="co">#&gt; [11] SingleCellExperiment_1.18.1     SummarizedExperiment_1.26.1    </span></span>
-<span><span class="co">#&gt; [13] Biobase_2.57.1                  GenomicRanges_1.48.0           </span></span>
-<span><span class="co">#&gt; [15] GenomeInfoDb_1.33.14            IRanges_2.31.2                 </span></span>
-<span><span class="co">#&gt; [17] S4Vectors_0.35.4                BiocGenerics_0.43.4            </span></span>
-<span><span class="co">#&gt; [19] MatrixGenerics_1.9.1            matrixStats_0.62.0             </span></span>
-<span><span class="co">#&gt; [21] SpatialFeatureExperiment_0.99.9 Voyager_0.99.7                 </span></span>
+<span><span class="co">#&gt;  [1] bluster_1.6.0                    BiocParallel_1.30.4             </span></span>
+<span><span class="co">#&gt;  [3] patchwork_1.1.2                  scales_1.2.1                    </span></span>
+<span><span class="co">#&gt;  [5] sf_1.0-8                         SFEData_0.99.5                  </span></span>
+<span><span class="co">#&gt;  [7] scran_1.24.1                     scater_1.24.0                   </span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.3.6                    scuttle_1.7.4                   </span></span>
+<span><span class="co">#&gt; [11] SingleCellExperiment_1.18.1      SummarizedExperiment_1.26.1     </span></span>
+<span><span class="co">#&gt; [13] Biobase_2.57.1                   GenomicRanges_1.48.0            </span></span>
+<span><span class="co">#&gt; [15] GenomeInfoDb_1.33.14             IRanges_2.31.2                  </span></span>
+<span><span class="co">#&gt; [17] S4Vectors_0.35.4                 BiocGenerics_0.43.4             </span></span>
+<span><span class="co">#&gt; [19] MatrixGenerics_1.9.1             matrixStats_0.62.0              </span></span>
+<span><span class="co">#&gt; [21] SpatialFeatureExperiment_0.99.10 Voyager_0.99.7                  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] AnnotationHub_3.5.2           BiocFileCache_2.4.0          </span></span>
