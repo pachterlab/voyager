@@ -261,11 +261,11 @@ What are the length scales of spatial autocorrelation for these QC metrics? It w
 system.time(
     sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
                          colGraphName = "knn5", order = 6, zero.policy = TRUE,
-                         BPPARAM = SnowParam(2))
+                         BPPARAM = MulticoreParam(2))
 )
 ```
 
-These warnings only occur in `ShowParam()`, but not in `MulticoreParam()`, and they don't seem to affect the results. `ShowParam()` is used here since `MulticoreParam()` doesn't work on Windows, although this vignette itself was built on Linux. We did not notice significant performance differences between `ShowParam()` and `MulticoreParam()` in this context.
+Note that `MulticoreParam()` doesn't work on Windows; this vignette was built on Linux. Use `SnowParam()` or `DoparParam()` for Windows. See `?BiocParallelParam` for the available parallel processing backends. We did not notice significant performance differences between `ShowParam()` and `MulticoreParam()` in this context.
 
 ```{r}
 plotCorrelogram(sfe, features_use) +
@@ -305,10 +305,10 @@ sfe <- logNormCounts(sfe)
 ```
 
 ```{r}
-# Note: on your computer, you can put progressbar = TRUE inside SnowParam()
+# Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
 # to show progress bar. This applies to any BiocParallParam.
 sfe <- runMoransI(sfe, features = rownames(sfe), 
-                  BPPARAM = SnowParam(2))
+                  BPPARAM = MulticoreParam(2))
 ```
 
 # Moran's I
@@ -423,7 +423,7 @@ rowData(sfe)[genes_use, "moran_sample01", drop = FALSE]
 Local Moran's I of these marker genes
 ```{r}
 sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "knn5",
-                     BPPARAM = SnowParam(2))
+                     BPPARAM = MulticoreParam(2))
 ```
 
 ```{r, fig.width=8, fig.height=12}
@@ -437,7 +437,7 @@ It seems that some histological regions tend to be more spatially homogenous in 
 LOSH for these marker genes
 ```{r}
 sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
-                     BPPARAM = SnowParam(2))
+                     BPPARAM = MulticoreParam(2))
 ```
 
 ```{r, fig.width=8, fig.height=12}
