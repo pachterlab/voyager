@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-To install the release version of Voyager from Bioconductor, make sure that your Bioconductor version is 3.16 or higher, which requires R 4.2. 
+To install the release version of Voyager from Bioconductor, make sure that your Bioconductor installation is version 3.16 or higher (this will require an R installation of version 4.2 or higher). 
 
 ```{r}
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
@@ -23,14 +23,14 @@ BiocManager::install(version = "3.16") # Or a higher version in the future
 BiocManager::install("Voyager")
 ```
 
-While Voyager itself does not require compilation, some of its dependencies such as [`sf`](https://r-spatial.github.io/sf/) do, and require some system dependencies to compile. See the [Installation page of `sf`](https://r-spatial.github.io/sf/) for instructions to install the system dependencies.
+While Voyager itself does not require compilation, some of its dependencies, such as [`sf`](https://r-spatial.github.io/sf/), must be compiled and rely on system dependencies. See the [Installation page of `sf`](https://r-spatial.github.io/sf/) for instructions on how to install the system dependencies.
 
-Development version of Voyager can be installed from Bioconductor:
+The development version of Voyager can be installed from Bioconductor
 ```{r}
 BiocManager::install("Voyager", version = "devel")
 ```
 
-Or from GitHub:
+or directly from GitHub:
 ```{r}
 if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
 remotes::install_github("pachterlab/Voyager", ref = "devel")
