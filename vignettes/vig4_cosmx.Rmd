@@ -230,6 +230,19 @@ The distribution is not obviously bimodal, and since the x-axis is log transform
 
 After removing the low quality cells, there are 100,095 cells left.
 
+### Markers
+Nanostring provides some cell stain and marker intensities in the cell metadata.
+```{r}
+names(colData(sfe))
+```
+
+Here we plot aspect ratio and mean intensity of cells stains and markers, which have not been plotted before. PanCK is a marker for epithelial cells. CD45 is a leukocyte marker. CD3 is a T cell marker.
+```{r, fig.width=6, fig.height=6}
+plotSpatialFeature(sfe, c("AspectRatio", "Mean.DAPI", "Mean.MembraneStain", 
+                          "Mean.PanCK", "Mean.CD45", "Mean.CD3"),
+                   colGeometryName = "cellSeg", ncol = 2)
+```
+
 ## Genes
 ```{r}
 rowData(sfe)$means <- rowMeans(counts(sfe))
@@ -272,8 +285,6 @@ plotRowData(sfe, x = "means", y = "is_neg") +
 ```
 
 The negative controls have lower mean "expression" than the vast majority of real genes.
-
-Remember DAPI and the other markers in colData
 
 # Spatial autocorrelation in QC metrics
 A spatial neighborhood graph is required for spatial dependence analyses. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()` and `dnearneigh()` are not recommended for larger datasets. Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
@@ -367,7 +378,7 @@ top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)
 plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
 ```
 
-They all highlight the same histological regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
+They all highlight the same epithelial regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
 
 # Non-spatial dimension reduction and clustering
 ```{r}
@@ -474,7 +485,7 @@ plotLocalResult(sfe, type = "localmoran", features = genes_use,
                 diverge_center = 0)
 ```
 
-It seems that some histological regions tend to be more spatially homogenous in gene expression than others.
+It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous.
 
 LOSH for these marker genes
 ```{r}
