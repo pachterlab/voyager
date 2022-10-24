@@ -18,7 +18,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE
 )
 ```
 
@@ -32,6 +33,8 @@ library(SpatialExperiment)
 library(ggplot2)
 library(stringr)
 library(scater)
+library(scuttle)
+library(ggforce)
 theme_set(theme_void())
 ```
 
@@ -49,44 +52,7 @@ ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
     scale_y_continuous(expand = expansion())
 ```
 
-# Quality control
-Some QC metrics are precomputed and are stored in `colData`
-
-```{r}
-names(colData(sfe))
-```
-
-Since there're more cells, it would be better to plot the tissue larger, so we'll plot the histogram of QC metrics and the spatial plots separately, unlike in the CosMx vignette.
-
-Cell area
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nCounts/313)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-Here we divided nCounts by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. (to do: do the same for CosMX, but I just came up with this idea)
-
-```{r}
-plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
-```
-
-There seems to be FOV artifacts. However, the cell ID and FOV information is unavailable. 
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nGenes/313)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-I wonder why some numbers are less represented, at a regular interval. Probably because of the selection of marker genes for different cell types in the probe panel. (I think I should eventually put the QC functions I developed in the vignettes into the package.)
-
-```{r}
-plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
-```
-
+Plot cell density
 ```{r}
 as.data.frame(spatialCoords(sfe)) |> 
     ggplot(aes(x_centroid, y_centroid)) +
@@ -97,7 +63,50 @@ as.data.frame(spatialCoords(sfe)) |>
     scale_y_continuous(expand = expansion())
 ```
 
-To do: Use KernSmooth for kernel density of cells in space. Problem: It will return a raster. Then I can use the centroids coordinates to extrac the raster values, and then that local density can be used as a covariate of sorts for downstream analyses. Maybe also an EDA tool to help finding an appropriate k in k nearest neighbors and d in distance based neighbors. And how about Ripley's K function? The density from KernSmooth could be used to partition the tissue into high and low density regions. There's also the spatstat method. Though so far, given the tissue structures, I don't yet see a more interesting use the spatial point process analysis at the cell level. Maybe eventually I can come up with one. I didn't read that huge book in vain.
+# Quality control
+Some QC metrics are precomputed and are stored in `colData`
+
+```{r}
+names(colData(sfe))
+```
+
+Since there're more cells, it would be better to plot the tissue larger, so we'll plot the histogram of QC metrics and the spatial plots separately, unlike in the CosMx vignette.
+
+```{r}
+n_panel <- 313
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Here we divided nCounts by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. 
+
+```{r}
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
+```
+
+There seems to be FOV artifacts. However, the cell ID and FOV information is unavailable. 
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+I wonder why some numbers are less represented, at a regular interval. Probably because of the selection of marker genes for different cell types in the probe panel.
+
+Compared to the FFPE CosMX non-small cell lung cancer dataset, more transcript per gene on average and a larger proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX. 
+
+```{r}
+plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
+```
+
+
 ```{r}
 # I think the function to plot density2d rather than points should go into the package
 as.data.frame(colData(sfe)) |> 
@@ -117,7 +126,7 @@ as.data.frame(colData(sfe)) |>
     theme_bw()
 ```
 
-I think that's in pixels
+I think that's in pixels. There's a very long tail.
 
 ```{r}
 plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg")
@@ -140,7 +149,7 @@ Probably an outlier
 plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "cellSeg")
 ```
 
-Ah, that's the outlier, throwing off the dynamic range. But it's still visible that cells in the dense, gland like region tend to have larger nuclei.
+Ah, that's the outlier, throwing off the dynamic range. Upon inspection of the H&E image, that outlier is a bit of debris that doesn't look like a cell. But it's still visible that cells in the dense, gland like region tend to have larger nuclei.
 
 How does cell area relate to nuclei area?
 ```{r}
@@ -173,6 +182,29 @@ plotSpatialFeature(sfe, "prop_nuc", colGeometryName = "cellSeg")
 
 aRt! 
 
+How does the proportion of cell area occupied by the nucleus relate to cell area?
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc, cell_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+Smaller cells tend to have higher proportion occupied by the nucleus. This can be related to cell type, or limitation to how small the nuclei can be in this tissue.
+
+And nucleus area?
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc, nucleus_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+This is all over the place. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
+
+## Negative controls
 Find what the negative control probes are called
 ```{r}
 head(rownames(sfe))
@@ -190,47 +222,11 @@ is_blank <- str_detect(rownames(sfe), "^BLANK_")
 sum(is_blank)
 ```
 
-```{r}
-colData(sfe)$prop_blank <- colSums(counts(sfe)[is_blank,])/sfe$nCounts
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_blank)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-Mostly very small, except for an outlier somewhere
-
-```{r}
-plotSpatialFeature(sfe, "prop_blank", colGeometryName = "cellSeg")
-```
-
-The NA's also have 0 total counts. If I can see that outlier, it, and the empty cells, are in the sparse region.
-
 I think this is number 1, the probe control
 ```{r}
 is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
 sum(is_neg)
 ```
-
-```{r}
-colData(sfe)$prop_neg <- colSums(counts(sfe)[is_neg,])/sfe$nCounts
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_neg)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-Mostly very small, except for an outlier somewhere
-
-```{r}
-plotSpatialFeature(sfe, "prop_neg", colGeometryName = "cellSeg")
-```
-
-Again, the outlier is in the sparse region.
 
 I think this is number 2, the decoding control
 ```{r}
@@ -244,5 +240,98 @@ is_anti <- str_detect(rownames(sfe), "^antisense")
 sum(is_anti)
 ```
 
+```{r}
+sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
+                                               negProbe = is_neg,
+                                               negCodeword = is_neg2,
+                                               anti = is_anti))
+```
+
+```{r}
+names(colData(sfe))
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_blank_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+Mostly very small, except for an outlier somewhere. Only plot the part >0
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_blank_percent > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_blank_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+It's interesting that this distribution has a peak somewhat away from 0.
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_negProbe_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+Mostly very small, except for an outlier somewhere
+
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_negProbe_percent > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_negProbe_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_negCodeword_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_negCodeword_percent > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_negCodeword_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_anti_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_anti_percent > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_anti_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+
+```{r}
+plotSpatialFeature(sfe, "prop_anti", colGeometryName = "cellSeg")
+```
+
+The outlier is yet another cell. I sort of wonder what those outliers look like in H&E. So it would still be nice to be able to plot the H&E image, if only cropped bits when zooming in. I can try SpatialOmicsOverlay, though I kind of wonder if it works for non-Nanostring datasets. But here, upon inspection, the H&E image doesn't cover the top part the tissue here so I can't inspect these outliers.
+
 The paper does not explain in detail how those control probes were designed, nor explain what the blank probes are. But the blank probes can be used as a negative control.
 
+These proportions can be calculated with scuttle.
+
+Now we have identified the outliers. We will remove the outliers and empty cells before proceeding to further analyses.
+
+
+```{r}
+ggplot(as.data.frame(colData(sfe))) +
+    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 100) +
+    geom_autodensity() +
+    scale_fill_viridis_c() +
+    facet_matrix(vars(ends_with("")), layer.diag = 2) +
+    theme_bw()
+```
+
+
+So scuttle says anything above 0 is an outlier. But I think it makes sense to allow a small proportion of negative controls. I think I'll use the distribution just for cells with >0 negative control counts to find outliers. This distribution has a very long tail. When plotting, it should be after removing outliers. 
