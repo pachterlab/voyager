@@ -1,0 +1,248 @@
+---
+title: "xenium"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{xenium}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+```{r setup}
+library(Voyager)
+library(SFEData)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(ggplot2)
+library(stringr)
+library(scater)
+theme_set(theme_void())
+```
+
+```{r}
+sfe <- JanesickBreastData(dataset = "rep2")
+sfe
+```
+
+This is what the tissue, with the cell outlines, looks like
+
+```{r}
+ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
+    theme_bw() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
+```
+
+# Quality control
+Some QC metrics are precomputed and are stored in `colData`
+
+```{r}
+names(colData(sfe))
+```
+
+Since there're more cells, it would be better to plot the tissue larger, so we'll plot the histogram of QC metrics and the spatial plots separately, unlike in the CosMx vignette.
+
+Cell area
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts/313)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Here we divided nCounts by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. (to do: do the same for CosMX, but I just came up with this idea)
+
+```{r}
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
+```
+
+There seems to be FOV artifacts. However, the cell ID and FOV information is unavailable. 
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/313)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+I wonder why some numbers are less represented, at a regular interval. Probably because of the selection of marker genes for different cell types in the probe panel. (I think I should eventually put the QC functions I developed in the vignettes into the package.)
+
+```{r}
+plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
+```
+
+```{r}
+as.data.frame(spatialCoords(sfe)) |> 
+    ggplot(aes(x_centroid, y_centroid)) +
+    geom_hex(bins = 200) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw() + coord_equal() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
+```
+
+To do: Use KernSmooth for kernel density of cells in space. Problem: It will return a raster. Then I can use the centroids coordinates to extrac the raster values, and then that local density can be used as a covariate of sorts for downstream analyses. Maybe also an EDA tool to help finding an appropriate k in k nearest neighbors and d in distance based neighbors. And how about Ripley's K function? The density from KernSmooth could be used to partition the tissue into high and low density regions. There's also the spatstat method. Though so far, given the tissue structures, I don't yet see a more interesting use the spatial point process analysis at the cell level. Maybe eventually I can come up with one. I didn't read that huge book in vain.
+```{r}
+# I think the function to plot density2d rather than points should go into the package
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts, nGenes)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+There appear to be two branches. I wonder if they're related to the sparse vs. dense regions. They probably are. 
+
+Cell area
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(cell_area)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+I think that's in pixels
+
+```{r}
+plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg")
+```
+
+Cells in the sparse region tend to be larger than those in the dense region
+
+Nuclei area
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nucleus_area)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Probably an outlier
+
+```{r}
+plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "cellSeg")
+```
+
+Ah, that's the outlier, throwing off the dynamic range. But it's still visible that cells in the dense, gland like region tend to have larger nuclei.
+
+How does cell area relate to nuclei area?
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(cell_area, nucleus_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+Again, there are two branches, probably related to cell density. That nucleus outlier also has large cell area, though not as much an outlier in cell area.
+
+How about proportion of cell in this z-plane taken up by the nucleus?
+```{r}
+colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Not sure if this distribution could have been generated from two peaks added up.
+
+```{r}
+plotSpatialFeature(sfe, "prop_nuc", colGeometryName = "cellSeg")
+```
+
+aRt! 
+
+Find what the negative control probes are called
+```{r}
+head(rownames(sfe))
+tail(rownames(sfe))
+```
+
+According to the Xenium paper, there are 3 types of controls:
+
+> 1) probe controls to assess non-specific binding to RNA, 
+2) decoding controls to assess misassigned genes, and 
+3) genomic DNA (gDNA) controls to ensure the signal is from RNA.
+
+```{r}
+is_blank <- str_detect(rownames(sfe), "^BLANK_")
+sum(is_blank)
+```
+
+```{r}
+colData(sfe)$prop_blank <- colSums(counts(sfe)[is_blank,])/sfe$nCounts
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_blank)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+Mostly very small, except for an outlier somewhere
+
+```{r}
+plotSpatialFeature(sfe, "prop_blank", colGeometryName = "cellSeg")
+```
+
+The NA's also have 0 total counts. If I can see that outlier, it, and the empty cells, are in the sparse region.
+
+I think this is number 1, the probe control
+```{r}
+is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
+sum(is_neg)
+```
+
+```{r}
+colData(sfe)$prop_neg <- colSums(counts(sfe)[is_neg,])/sfe$nCounts
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_neg)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+Mostly very small, except for an outlier somewhere
+
+```{r}
+plotSpatialFeature(sfe, "prop_neg", colGeometryName = "cellSeg")
+```
+
+Again, the outlier is in the sparse region.
+
+I think this is number 2, the decoding control
+```{r}
+is_neg2 <- str_detect(rownames(sfe), "^NegControlCodeword")
+sum(is_neg2)
+```
+
+This must be number 3, gDNA control
+```{r}
+is_anti <- str_detect(rownames(sfe), "^antisense")
+sum(is_anti)
+```
+
+The paper does not explain in detail how those control probes were designed, nor explain what the blank probes are. But the blank probes can be used as a negative control.
+
