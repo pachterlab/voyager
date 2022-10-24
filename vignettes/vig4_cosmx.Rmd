@@ -54,10 +54,24 @@ sfe
 
 Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
 ```{r}
-ggplot(cellSeg(sfe)) + geom_sf(size = 0.1)
+ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
+    theme_bw() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
 ```
 
 With single cell resolution, a lot of the details can be seen, although there's some artifact from borders of fields of view (FOVs).
+
+Plot cell density
+```{r}
+as.data.frame(spatialCoords(sfe)) |> 
+    ggplot(aes(CenterX_global_px, CenterY_global_px)) +
+    geom_hex(bins = 200) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw() + coord_equal() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
+```
 
 # Quality control (QC)
 ## Cells
@@ -90,6 +104,21 @@ plot_violin_spatial(sfe, "nCounts")
 summary(sfe$nCounts)
 ```
 
+To make nCounts and nGenes more comparable across datasets, we divide them by the number of genes probed. In this dataset, there are 960 genes, and 20 negative controls. However, because different genes may be probed in different datasets, which can be from different tissues, this does not make nCounts and nGenes completely comparable across datasets. However, it may still be somewhat comparable, since genes highly expressed in major cell types in the tissue tend to be selected for the gene panel.
+
+```{r}
+n_panel <- 960
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+This means the cells mostly have less than 1 transcript count per gene on average, which is not surprising since not all cells express all genes.
+
 Number of genes (out of 980) detected per cell
 ```{r, fig.width=8, fig.height=4}
 plot_violin_spatial(sfe, "nGenes")
@@ -100,6 +129,15 @@ summary(sfe$nGenes)
 ```
 
 Based on the spatial plot, it seems that nCounts and nGenes are biologically relevant, but there are cells with no transcripts detected. 
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+This means most cells are detected to express less than 30% of all genes probed.
 
 How nCounts relates to nGenes
 ```{r}
@@ -235,6 +273,8 @@ plotRowData(sfe, x = "means", y = "is_neg") +
 
 The negative controls have lower mean "expression" than the vast majority of real genes.
 
+Remember DAPI and the other markers in colData
+
 # Spatial autocorrelation in QC metrics
 A spatial neighborhood graph is required for spatial dependence analyses. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()` and `dnearneigh()` are not recommended for larger datasets. Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
 
@@ -258,7 +298,7 @@ colFeatureData(sfe)[features_use,]
 
 Positive spatial autocorrelation is suggested, which is stronger in nCounts and nGenes.
 
-What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run, but not as long as a typical song. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.
+What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run, but not as long as a typical song. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods since `geom_bin2d()` and `geom_hex()` in `ggplot2` run pretty fast even for large datasets.
 ```{r}
 system.time(
     sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
