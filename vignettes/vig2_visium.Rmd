@@ -89,9 +89,9 @@ annotGeometryNames(sfe_tissue)
 ```
 
 ### From myofibers and nuclei to Visium spots
-The `plotSpatialFeature()` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields in the SFE object. For `rowGeometries` and `colGeometries`, such columns associated with the `sf` data frames rather than `rowData` or `colData` are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish it from the column associated values. 
+The `plotSpatialFeature()` function can also be used to plot attributes of geometries, i.e. the non-geometry columns in the `sf` data frames in the `rowGeometries`, `colGeometries`, or `annotGeometries` fields of the SFE object. For `rowGeometries` and `colGeometries`, such columns which are associated with the `sf` data frames rather than `rowData` or `colData`, are allowed because one can specify how these columns associate with the geometries (see [`st_agr`](https://r-spatial.github.io/sf/reference/st_agr.html) and [documentation of `st_sf`](https://r-spatial.github.io/sf/reference/sf.html#details-1)). When an attribute of an `annotGeometry` is plotted along side gene expression or `colData` or `colGeometry` attribute, the `annotGeometry` attribute is plotted with a different color palette to distinguish it from the column associated values. 
 
-The myofiber polygons from `annotGeometries` can be plotted as shown below, colored by cross section area as observed in this tissue section. The `aes_use` argument is set to `color` rather than `fill` (default for polygons) to only plot the Visium spot outlines to make the myofiber polygons more visible. The `fill` argument is set to `NA` to make the Visium spots look hollow, and the `size` argument controls the thickness of the outlines. The `annot_aes` argument specifies which column in the `annotGeometry` to use to specify the values of an aesthstic, just like `aes` in `ggplot2` (`aes_string` to be precise, since `tidyeval` is not used here). The `annot_fixed` argument (not used here) can set the fixed size, alpha, color, and etc. for the `annotGeometry`. 
+The myofiber polygons from `annotGeometries` can be plotted as shown below, colored by cross section area as observed in the tissue section. The `aes_use` argument is set to `color` rather than `fill` (default for polygons) to only plot the Visium spot outlines to make the myofiber polygons more visible. The `fill` argument is set to `NA` to make the Visium spots look hollow, and the `size` argument controls the thickness of the outlines. The `annot_aes` argument specifies which column in the `annotGeometry` to use to specify the values of an aesthstic, just like `aes` in `ggplot2` (`aes_string` to be precise, since `tidyeval` is not used here). The `annot_fixed` argument (not used here) can set the fixed size, alpha, color, and etc. for the `annotGeometry`. 
 ```{r, fig.alt="Plot of Visium spots in tissue and myofiber polygons in physical space. Visium spots are colored by nCounts, and myofibers are colored by area."}
 plotSpatialFeature(sfe_tissue, features = "nCounts", 
                    colGeometryName = "spotPoly",
@@ -145,9 +145,9 @@ Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, 
 markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
 ```
 
-First look at Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs, to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases in symbol. However, gene symbols are shorter and more human readable than Ensembl IDs, and are nice to show on plots.  In the `plotSpatialFeature()` function and other functions in `Voyager`, even when the actual row names are Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
+We first examine the Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs in order to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases. However, gene symbols are shorter and more human readable than Ensembl IDs, and are better suited to display on plots.  In the `plotSpatialFeature()` function and other functions in `Voyager`, even when the row names are recorded as Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
 
-The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. This default may or may not be best practice given that total UMI counts may have biological relevance in spatial data. Therefore we are plotting both the raw counts and the log normalized counts here.
+The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. This default may or may not be suitable in practice given that total UMI counts may have biological relevance in spatial data. Therefore, we plot both the raw counts and the log normalized counts:
 ```{r}
 # Function specific for this vignette, with some hard coded values
 plot_counts_logcounts <- function(sfe, feature) {
@@ -172,26 +172,26 @@ plot_counts_logcounts <- function(sfe, feature) {
 plot_counts_logcounts(sfe_tissue, markers["I"])
 ```
 
-Marker gene for type IIa myofibers is shown here. Those interested may change the code to plot markers for tyle IIb and IIx myofibers.
+A marker genes for type IIa myofibers is shown above. It is straightforward to modify the plotting to display markers for type IIb and type IIx myofibers:
 ```{r, fig.alt="Raw and log normalized counts of Myh2, marker gene of type IIa myofiber, plotted side by side on Visium spots in space, with myofiber polygons colored by myofiber cross section area plotted in the background. Visium spots expressing Myh2 concentrate in the lower left and upper left parts of the tissue where the myofibers tend to be smaller. Log normalized counts show a wider region with higher expression."}
 plot_counts_logcounts(sfe_tissue, markers["IIa"])
 ```
 
 Type IIa myofibers also tend to be clustered together on left side of the tissue.
 
-As SFE inherits from SCE, the non-spatial EDA plots from the `scater` package can still be used.
+As SFE inherits from SCE, the non-spatial EDA plots from the `scater` package can also be used:
 ```{r, fig.alt="Scatter plot of mean area of myofibers intersecting each Visium spot in the x axis and proportion of mitochondrially encoded counts per spot in the y axis, with points colored by expression of Myh2."}
 gene_id <- rownames(sfe_tissue)[rowData(sfe_tissue)$symbol == markers["IIa"]]
 plotColData(sfe_tissue, x = "mean_myofiber_area", y = "prop_mito", 
             colour_by = gene_id, by_exprs_values = "logcounts")
 ```
 
-Plotting proportion of mitochondrial counts vs. mean myofiber area, we see two clusters, one with higher proportion of mitochondrial counts and smaller area, and another with lower proportion of mitochondrial counts and on average slightly larger area. Type IIa myofibers tend to have smaller area and larger proportion of mitochondrial counts.
+Plotting proportion of mitochondrial counts vs. mean myofiber area, we see two clusters, one with higher proportion of mitochondrial counts and smaller area, and another with lower proportion of mitochondrial counts and on average slightly larger area. Type IIa myofibers tend to have smaller area and a larger proportion of mitochondrial counts.
 
 # Spatial neighborhood graphs
-A spatial neighborhood graph is required to compute spatial dependency metrics such as Moran's I and Geary's C. The `SpatialFeatureExperiment` package wraps methods in `spdep` to find spatial neighborhood graphs, which are stored within the SFE object (see `spdep` documentation for `gabrielneigh()`, `knearneigh()`, `poly2nb()`, and `tri2nb()`). The `Voyager` package then uses these graphs for spatial dependency analyses, again based on `spdep` in this first version, but methods from other geospatial packages, some of which also use the spatial neighborhood graphs, may be added later as needed.
+A spatial neighborhood graph is required to compute spatial dependency metrics such as Moran's I and Geary's C. The `SpatialFeatureExperiment` package wraps methods in `spdep` to find spatial neighborhood graphs, which are stored within the SFE object (see `spdep` documentation for `gabrielneigh()`, `knearneigh()`, `poly2nb()`, and `tri2nb()`). The `Voyager` package then uses these graphs for spatial dependency analyses, again based on `spdep` in this first version, but methods from other geospatial packages, some of which also use the spatial neighborhood graphs, may be added later.
 
-For Visium, where the spots are in a hexagonal grid, the spatial neighborhood graph is straightforward. However, for spatial technologies with single cell resolution (e.g. MERFISH) and in this dataset, the myofibers and nuclei, many different methods can be used to find the spatial neighborhood graph. Here for myofibers, the method "poly2nb" identifies myofiber polygons that physically touch each other. `zero.policy = TRUE` will allow singletons, i.e. nodes without neighbors in the graph; in the inflamed region, there are more singletons. We have not yet benchmarked which spatial neighborhood method is the "best" in which situation; the particular method used here is for demonstration purpose and may or may not be best practice. 
+For Visium, where the spots are in a hexagonal grid, the spatial neighborhood graph is straightforward. However, for spatial technologies with single cell resolution, e.g. MERFISH, different methods can be used to find the spatial neighborhood graph. In this example, the method "poly2nb" was used for myofibers, and it identifies myofiber polygons that physically touch each other. `zero.policy = TRUE` will allow for singletons, i.e. nodes without neighbors in the graph; in the inflamed region, there are more singletons. We have not yet benchmarked spatial neighborhood construction methods to determine which is the "best" for different technologies; the particular method used here is for demonstration purposes and may not be the best in practice: 
 
 ```{r}
 colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
@@ -217,7 +217,7 @@ There is no `plotRowGraph` yet since we haven't worked with a dataset where spat
 All spatial autocorrelation metrics in this package can be computed directly on a vector or a matrix rather than an SFE object. The user interface emulates those of dimension reductions in the `scater` package (e.g. `calculateUMAP()` that takes in a matrix or SCE object and returns a matrix, and `runUMAP()` that takes in an SCE object and adds the results to the `reducedDims` field of the SCE object). So `calculate*` functions take in a matrix or an SFE object and directly return the results (format of the results depends on the structure of the results), while `run*` functions take in an SFE object and add the results to the object. In addition, `colData*` functions compute the metrics for numeric variables in `colData`. `colGeometry*` functions compute the metrics for numeric columns in a `colGeometry`. `annotGeometry*` functions compute the metrics for numeric columns in a `annotGeometry`. 
 
 # Univariate global
-In this first version, `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions. The functions `calculateUnivariate()`, `runUnivariate()`, `colDataUnivariate()`, `colGeometryUnivariate()`, and `annotGeometryUnivariate()` compute univariate spatial statistics. All univariate methods implemented in the R package `spdep` are supported here. The argument `type`, which indicates the corresponding function names in `spdep`, determines which spatial statistics are computed. 
+Currently `Voyager` only supports univariate global spatial autocorrelation implemented in `spdep` for ESDA: Moran's I and Geary's C, permutation testing for Moran's I and Geary's C, Moran plot, and correlograms. In addition, beyond `spdep`, `Voyager` can cluster Moran plots and correlograms. Plotting functions taking in SFE objects are implemented to plot the results with `ggplot2` and with more customization options than `spdep` plotting functions. The functions `calculateUnivariate()`, `runUnivariate()`, `colDataUnivariate()`, `colGeometryUnivariate()`, and `annotGeometryUnivariate()` compute univariate spatial statistics. All univariate methods implemented in the R package `spdep` are supported here. The argument `type`, which indicates the corresponding function names in `spdep`, determines which spatial statistics are computed. 
 
 To demonstrate spatial autocorrelation in gene expression, top highly variable genes (HVGs) are used. The HVGs are found with the `scran` method.
 ```{r}
@@ -234,9 +234,9 @@ $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
 $$
 
-where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The `spdep` package uses the neighborhood. 
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood. 
 
-Moran's I takes values between -1 and 1 for row normalized spatial weights. For positive spatial autocorrelation, i.e. nearby spots tend to be more similar, Moran's I will be positive. For negative spatial autocorrelation, i.e. nearby spots tend to be more dissimilar, Moran's I will be negative. When the variable is distributed in space randomly like salt and pepper, then Moran's I will be around 0. Positive Moran's I indicates global structure, while negative Moran's I indicates local structure.
+Moran's I can be understood as the Pearson correlation between the value at each location and the average value at its neighbors. Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
 
 Upon visual inspection, total UMI counts per spot seem to have spatial autocorrelation. A spatial neighborhood graph is required to compute Moran's I, and is specified with the `listw` argument. 
 
@@ -287,9 +287,9 @@ $$
 C = \frac{(n-1)}{2\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij}(x_i - x_j)^2}{{\sum_{i=1}^n (x_i - \bar{x})^2}}
 $$
 
-Geary's C well below 1 indicates positive spatial autocorrelation, and above 1 indicates negative spatial autocorrelation.
+Geary's C  below 1 indicates positive spatial autocorrelation, and above 1 indicates negative spatial autocorrelation.
 
-Simply replace `type = "moran"` in the previous section with `type = "geary"` to compute Geary's C for features of interest and add the results to the SFE object. For example, for `colData`
+To compute Geary's C for features of interest replace `type = "moran"` in the previous section with `type = "geary"`, and add the results to the SFE object. For example, for `colData`
 ```{r}
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"),
                                 colGraphName = "visium", type = "geary")
@@ -301,9 +301,9 @@ There's only one column for K since it's the same for Moran's I and Geary's C. H
 Other univariate global methods, including permutation testing for Moran's I and Geary's C, correlograms, and Moran scatter plot can also be called with functions such as `runUnivariate`, by specifying the `type` argument. See documentation of `runUnivariate` to see the available methods and see documentation of the corresponding `spdep` functions to see the extra arguments required for each method.
 
 ## Permutation testing
-Is the spatial autocorrelation statistically significant? The `moran.test()` function in `spdep` can give an analytic p-value but the p-value would not be accurate if the data is not normally distributed. As gene expression data is generally not normally distributed and data normalization doesn't necessarily make the data that close to a normal distribution, permutation testing is used in this package to test the significance of Moran's I and Geary's C, wrapping `moran.mc()` in `spdep`. The "mc" stands for Monte Carlo. The `nsim` argument specifies the number of simulations. 
+To establish whether the spatial autocorrelation is statistically significant, the `moran.test()` function in `spdep` can be used. It provides a p-value, but the p-value may not be accurate if the data is not normally distributed. As gene expression data is generally not normally distributed and data normalization doesn't always work well, we use permutation testing to test the significance of Moran's I and Geary's C, wrapping `moran.mc()` in `spdep`. The "mc" stands for Monte Carlo. The `nsim` argument specifies the number of simulations. 
 
-Add the results to the SFE object
+The following adds the results to the SFE object:
 ```{r}
 set.seed(29)
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"), 
@@ -324,15 +324,15 @@ By default, the colorblind friendly palette from [`dittoSeq`](https://bioconduct
 Use `type = "geary.mc"` for permutation testing for Geary's C.
 
 ## Correlogram
-What's the length scale of the spatial autocorrelation? In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. 
+In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. 
 
-For `colData`, Moran's I correlogram:
+For `colData`, Moran's I correlogram is computed with
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, hvgs[1:2], colGraphName = "visium", 
                             order = 10, type = "sp.correlogram")
 ```
 
-The results can be plotted with `plotCorrelogram`
+The results can be plotted with `plotCorrelogram`:
 ```{r, fig.alt="Line plot with order of neighbors (lags) in the x axis and Moran's I value at each lag in the y axis. The x axis ranges from 1 to 10, and the y axis ranges from 0 to 0.8. The lines show trends of decay of spatial autocorrelation with increasing distance of neighbors. Two genes, Car3 and Mb, are shown. Moran's I of both genes decay somewhat linearly from lag 1 to 10. Car3 decays from around 0.75 to around 0.23. Mb decays from around 0.7 to around 0.13. At each lag the error bars are tight (see next paragraph in the main text) and the p-values are less than 0.001 after Benjamini-Hochberg multiple testing correction over the 2 genes and 10 lags."}
 plotCorrelogram(sfe_tissue, hvgs[1:2])
 ```
@@ -342,7 +342,7 @@ The error bars are twice the standard deviation of the Moran's I value. The stan
 Again, this can be done for Geary's C, `colData`, `annotGeometry`, and etc.
 
 ## Moran scatter plot
-In the Moran scatter plot, the x axis is the value itself and the y axis is the average value of the neighbors. The slope of the fitted line is Moran's I. Sometimes clusters appear in this plot, showing different kinds of neighborhoods for this value. 
+In the Moran scatter plot, the x axis is the value at a spot, and the y axis is the average value of the neighbors. The slope of the fitted line is Moran's I. Sometimes clusters appear in this plot, showing different kinds of neighborhoods. 
 
 For gene expression, to use one gene (log normalized value) to demonstrate:
 ```{r}
@@ -354,7 +354,7 @@ sfe_tissue <- runUnivariate(sfe_tissue, "Myh2", colGraphName = "visium",
 moranPlot(sfe_tissue, "Myh2", graphName = "visium")
 ```
 
-The dashed lines mark the mean in Myh2 and spatially lagged Myh2. There are no singletons here. Some Visium spots with lower Myh2 expression have neighbors that don't express Myh2 but spots that don't express Myh2 usually have at least some neighbors that do. There are 2 main clusters for spots whose neighbors do express Myh2: those with high (above average) expression whose neighbors also have high expression, and those with low expression whose neighbors also have low expression. Other features may show different kinds of clusters. We can use k-means clustering to identify clusters, though any clustering method supported by the `bluster` package can be used.
+The dashed lines mark the mean in Myh2 and spatially lagged Myh2. There are no singletons here. Some Visium spots with lower Myh2 expression have neighbors that don't express Myh2 but spots that don't express Myh2 usually have at least some neighbors that do. There are twp main clusters for spots whose neighbors do express Myh2: those with high (above average) expression whose neighbors also have high expression, and those with low expression whose neighbors also have low expression. Other features may show different kinds of clusters. We can use k-means clustering to identify clusters, though any clustering method supported by the `bluster` package can be used.
 
 ```{r}
 set.seed(29)
@@ -396,7 +396,7 @@ sfe_tissue <- runUnivariate(sfe_tissue, type = "localmoran", features = "Myh2",
                             colGraphName = "visium")
 ```
 
-Plot the log normalized Myh2 gene expression as context to interpret the local results
+It is useful to plot the log normalized Myh2 gene expression as context to interpret the local results:
 ```{r}
 plotSpatialFeature(sfe_tissue, features = "Myh2", colGeometryName = "spotPoly")
 ```
@@ -407,7 +407,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
                 diverge_center = 0)
 ```
 
-It seems that regions with higher Myh2 expression also have stronger spatial autocorrelation. It would be interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean in the expression of each gene, which usually indicates overdispersion compared to Poisson in scRNA-seq and Visium data.
+We see that regions with higher Myh2 expression also have stronger spatial autocorrelation. It is interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean in the expression of each gene, which usually indicates overdispersion compared to Poisson in scRNA-seq and Visium data:
 
 ```{r}
 qplot(logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
@@ -417,7 +417,7 @@ qplot(logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
 
 For this gene, Visium spots with higher expression also tend to have higher local Moran's I, but this may or may not apply to other genes.
 
-Local spatial analyses often return a matrix or data frame as the results. The `plotLocalResult()` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
+Local spatial analyses often return a matrix or data frame. The `plotLocalResult()` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
 ```{r}
 localResultAttrs(sfe_tissue, "localmoran", "Myh2")
 ```
@@ -532,7 +532,7 @@ For this gene, it isn't clear whether LOSH relates to gene expression levels.
 localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2")
 ```
 
-While `Voyager` does wrap `LOSH.mc()` to perform permutation testing of LOSH, this is very time consuming. A Chi-square approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs()`.
+While `Voyager` does wrap `LOSH.mc()` to perform permutation testing of LOSH, this is very time consuming. A chi-squared approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs()`.
 
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
@@ -543,7 +543,7 @@ plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2",
 For this gene, the local conditions are mostly homogenous, with a few exceptions around the edge of the tissue.
 
 # Limitations
-1. In the first version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
+1. In the current version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
 2. The plotting functions don't plot the H&E image in the background. This is not implemented in the first version since when the Visium spots are plotted, they block out the H&E image anyway. Also, the plots are small and not interactive, which is good enough for visualizing gene expression on Visium spots, while the H&E image would be more informative when more zoomed in. Interactive data visualization is beyond the scope of this package.
 3. It's more convoluted to trick `geom_sf` into flipping the y axis, since the coordinates are in pixels in full resolution image and the image has the origin at the top left.
 4. Only 2D data is supported at present, although in principle, `sf` and `GEOS` support 3D data.
