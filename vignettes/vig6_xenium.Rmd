@@ -25,6 +25,12 @@ knitr::opts_chunk$set(
 
 # Introduction
 
+Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The first Xenium dataset is for formalin fixed paraffin embedded (FFPE) human breast tumor, reported in [@Janesick2022-rp] and downloaded from the [10X website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast). This might not be representative of Xenium data after the formal release in late 2022.
+
+The gene count matrix was downloaded as an HDF5 file and read into R as a `SingleCellExperiment` (SCE) object with `DropletUtils::read10xCounts()`. The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with `arrow::read_parquet()`. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
+
+Here we load the packages used in this vignette.
+
 ```{r setup}
 library(Voyager)
 library(SFEData)
@@ -62,7 +68,7 @@ ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
     scale_y_continuous(expand = expansion())
 ```
 
-Plot cell density
+Plot cell density in space
 ```{r}
 as.data.frame(spatialCoords(sfe)) |> 
     ggplot(aes(x_centroid, y_centroid)) +
@@ -548,6 +554,7 @@ By default, for gene experssion, the log normalized counts are used in spatial a
 sfe <- logNormCounts(sfe)
 ```
 
+Somehow while thre're fewer genes in this dataset compared to the CosMX dataset and not too many more cells, running Moran's I for all genes took much longer. Use more cores if available to speed this up.
 ```{r}
 system.time(
     sfe <- runMoransI(sfe, colGraphName = "knn5", BPPARAM = MulticoreParam(2))
@@ -653,7 +660,7 @@ markers[[6]]
 Get the the significant marker for each cluster to plot
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster", point_size = 0)
+plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
