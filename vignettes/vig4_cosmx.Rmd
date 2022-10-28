@@ -352,7 +352,7 @@ sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 moranPlot(sfe, "nCounts") + theme_bw()
 ```
 
-There are no obvious clusters in this plot.
+There are no obvious clusters in this plot but the clusters may be obscured by overplotting.
 
 Local Moran's I for nCounts
 ```{r}
@@ -373,6 +373,9 @@ Given that there may be some relationship between cell size and total counts, an
 sfe <- logNormCounts(sfe)
 ```
 
+# Moran's I
+
+Here we run global Moran's I on log normalized gene expression.
 ```{r}
 # Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
 # to show progress bar. This applies to any BiocParallParam.
@@ -380,7 +383,6 @@ sfe <- runMoransI(sfe, features = rownames(sfe),
                   BPPARAM = MulticoreParam(2))
 ```
 
-# Moran's I
 Do real genes tend to have more spatial autocorrelation than negative controls?
 ```{r}
 plotRowData(sfe, x = "moran_sample01", y = "is_neg")
@@ -415,7 +417,7 @@ spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
                   diverge_center = 0, ncol = 2)
 ```
 
-The first PC highlights the epithelium. PC2 highlights T cells. PC4 might highlight other leikocytes. Need to check the genes with the highest loadings to find what the other PCs mean.
+The first PC highlights the epithelium. PC2 highlights T cells. PC4 might highlight other leukocytes. Need to check the genes with the highest loadings to find what the other PCs mean.
 
 ```{r}
 set.seed(29)
@@ -466,7 +468,7 @@ markers[[6]]
 Get the the significant marker for each cluster to plot
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster")
+plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster", point_size = 0)
 ```
 
 Plot more top marker genes in a heatmap
