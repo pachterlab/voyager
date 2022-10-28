@@ -35,12 +35,22 @@ library(stringr)
 library(scater)
 library(scuttle)
 library(ggforce)
+library(tidyselect)
+library(BiocParallel)
+library(BiocSingular)
+library(bluster)
+library(scran)
 theme_set(theme_void())
 ```
 
 ```{r}
 sfe <- JanesickBreastData(dataset = "rep2")
 sfe
+```
+
+The SFE object doesn't have column names (i.e. cell IDs). Here we assign cell IDs.
+```{r}
+colnames(sfe) <- seq_len(ncol(sfe))
 ```
 
 This is what the tissue, with the cell outlines, looks like
@@ -64,6 +74,7 @@ as.data.frame(spatialCoords(sfe)) |>
 ```
 
 # Quality control
+## Cells
 Some QC metrics are precomputed and are stored in `colData`
 
 ```{r}
@@ -160,7 +171,7 @@ as.data.frame(colData(sfe)) |>
     theme_bw()
 ```
 
-Again, there are two branches, probably related to cell density. That nucleus outlier also has large cell area, though not as much an outlier in cell area.
+Again, there are two branches, probably related to cell density or cell type. That nucleus outlier also has large cell area, though not as much an outlier in cell area.
 
 How about proportion of cell in this z-plane taken up by the nucleus?
 ```{r}
@@ -217,6 +228,8 @@ According to the Xenium paper, there are 3 types of controls:
 2) decoding controls to assess misassigned genes, and 
 3) genomic DNA (gDNA) controls to ensure the signal is from RNA.
 
+The paper does not explain in detail how those control probes were designed, nor explain what the blank probes are. But the blank probes can be used as a negative control.
+
 ```{r}
 is_blank <- str_detect(rownames(sfe), "^BLANK_")
 sum(is_blank)
@@ -241,16 +254,45 @@ sum(is_anti)
 ```
 
 ```{r}
+is_any_neg <- is_blank | is_neg | is_neg2 | is_anti
+```
+
+```{r}
 sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
                                                negProbe = is_neg,
                                                negCodeword = is_neg2,
-                                               anti = is_anti))
+                                               anti = is_anti,
+                                               any_neg = is_any_neg))
 ```
 
 ```{r}
 names(colData(sfe))
 ```
 
+Negative controls over all
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_any_neg_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_any_neg_percent > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_any_neg_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+
+```{r}
+as.data.frame(colData(sfe)[sfe$subsets_any_neg_detected > 0 & sfe$nCounts > 0,]) |> 
+    ggplot(aes(subsets_any_neg_detected)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+
+The counts are low. Then the 50% monstrosity must have very low total real transcript counts to begin with.
 ```{r}
 as.data.frame(colData(sfe)) |> 
     ggplot(aes(subsets_blank_percent)) +
@@ -311,27 +353,357 @@ as.data.frame(colData(sfe)[sfe$subsets_anti_percent > 0 & sfe$nCounts > 0,]) |>
 ```
 
 
-```{r}
-plotSpatialFeature(sfe, "prop_anti", colGeometryName = "cellSeg")
-```
+Scuttle says anything above 0 is an outlier, since they are over 3 MADs away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But I think it makes sense to allow a small proportion of negative controls. I think I'll use the distribution just for cells with >0 negative control counts to find outliers. This distribution has a very long tail and some definite outliers.
 
-The outlier is yet another cell. I sort of wonder what those outliers look like in H&E. So it would still be nice to be able to plot the H&E image, if only cropped bits when zooming in. I can try SpatialOmicsOverlay, though I kind of wonder if it works for non-Nanostring datasets. But here, upon inspection, the H&E image doesn't cover the top part the tissue here so I can't inspect these outliers.
-
-The paper does not explain in detail how those control probes were designed, nor explain what the blank probes are. But the blank probes can be used as a negative control.
-
-These proportions can be calculated with scuttle.
-
-Now we have identified the outliers. We will remove the outliers and empty cells before proceeding to further analyses.
-
+Are cells that are outliers in one type of negative control also outliers in other negative controls?
 
 ```{r}
 ggplot(as.data.frame(colData(sfe))) +
-    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 100) +
+    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
     geom_autodensity() +
     scale_fill_viridis_c() +
-    facet_matrix(vars(ends_with("")), layer.diag = 2) +
+    facet_matrix(vars(ends_with("_percent")), layer.diag = 2) +
     theme_bw()
 ```
 
+It seems that sometimes yes, but largely no, hence the bins along x = 0 and y = 0. 
 
-So scuttle says anything above 0 is an outlier. But I think it makes sense to allow a small proportion of negative controls. I think I'll use the distribution just for cells with >0 negative control counts to find outliers. This distribution has a very long tail. When plotting, it should be after removing outliers. 
+Here we get those outliers, based only on cells with at least 1 negative control count
+
+```{r}
+get_neg_ctrl_outliers <- function(col, sfe) {
+    inds <- colData(sfe)$nCounts > 0 & colData(sfe)[[col]] > 0
+    df <- colData(sfe)[inds,]
+    outlier_inds <- isOutlier(df[[col]], type = "higher")
+    outliers <- rownames(df)[outlier_inds]
+    col2 <- str_remove(col, "^subsets_")
+    col2 <- str_remove(col2, "_percent$")
+    new_colname <- paste("is", col2, "outlier", sep = "_")
+    colData(sfe)[[new_colname]] <- colnames(sfe) %in% outliers
+    sfe
+}
+```
+
+```{r}
+cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
+for (n in cols_use) {
+    sfe <- get_neg_ctrl_outliers(n, sfe)
+}
+```
+
+```{r}
+names(colData(sfe))
+```
+
+See where the outliers are located in space
+```{r}
+plotSpatialFeature(sfe, "is_blank_outlier", colGeometryName = "cellSeg")
+```
+
+They're kind of hard to see. I wonder if they tend to be smaller.
+```{r}
+plotColData(sfe, y = "is_blank_outlier", x = "cell_area")
+```
+
+They do seem to be smaller. Outliers for negative probe control and negative codeword control are also hard to see on the plot, so their plots are skipped here. But one region in the tissue tends to have more counts from antisense controls. 
+```{r}
+plotSpatialFeature(sfe, "is_anti_outlier", colGeometryName = "cellSeg")
+```
+
+Now we have identified the outliers. We will remove the outliers and empty cells before proceeding to further analyses.
+
+```{r}
+inds_keep <- sfe$nCounts > 0 & sfe$nucleus_area < 400 & !sfe$is_anti_outlier &
+    !sfe$is_blank_outlier & !sfe$is_negCodeword_outlier & !sfe$is_negProbe_outlier
+(sfe <- sfe[,inds_keep])
+```
+
+Over 1000 cells were removed.
+```{r}
+ggplot(as.data.frame(colData(sfe))) +
+    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
+    geom_autodensity() +
+    scale_fill_viridis_c() +
+    facet_matrix(vars(ends_with("_percent")), layer.diag = 2) +
+    theme_bw()
+```
+
+How many negative control features are detected per cell?
+```{r}
+table(sfe$subsets_anti_detected)
+```
+
+```{r}
+table(sfe$subsets_blank_detected)
+```
+
+```{r}
+table(sfe$subsets_negCodeword_detected)
+```
+
+```{r}
+table(sfe$subsets_negProbe_detected)
+```
+
+So at most 3. Hence those rays in the matrix plot. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
+
+## Genes
+```{r}
+rowData(sfe)$means <- rowMeans(counts(sfe))
+rowData(sfe)$vars <- rowVars(counts(sfe))
+```
+
+```{r}
+as.data.frame(rowData(sfe)) |> 
+    ggplot(aes(means, vars)) +
+    geom_bin2d(bins = 50) +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+```{r}
+as.data.frame(rowData(sfe)[is_any_neg,]) |> 
+    ggplot(aes(means, vars)) +
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+Unlike in the CosMX dataset, the negative controls don't seem overdispersed, except for one outlier. Which is:
+```{r}
+rowData(sfe)[rowData(sfe)$means < 2e-4 & rowData(sfe)$vars > 2e-4,]
+```
+
+```{r}
+rowData(sfe)$is_neg <- is_any_neg
+plotRowData(sfe, x = "means", y = "is_neg") +
+    scale_y_log10() +
+    annotation_logticks(sides = "b")
+```
+
+# Spatial autocorrelation of QC metrics
+
+There's a sparse and a dense region. Then what kind of neighborhood graph shall I use? What does "neighbor" mean here? Should cells in the sparse region just be singletons? What's the lengthscale of their influence? It might depends on the cell type and how contact and secreted signals are used in the cell type, and length scale of influence. If k nearest neighbors are used, then the neighbors in the dense region are much closer together than those in the sparse region. If distance based neighbors are used, then cells in the dense region will have more neighbors than cells in the sparse region, and the sparse region can break into multiple compartments if the distance cutoff is not long enough. 
+
+For the purpose of demonstration, we use k nearest neighbors with $k = 5$, with inverse distance weighting. Having more neighbors will slow down computation of spatial autocorrelation metrics.
+
+```{r}
+system.time(
+    colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
+                                                  dist_type = "idw", k = 5, 
+                                                  style = "W")
+)
+```
+
+```{r}
+sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                      colGraphName = "knn5")
+```
+
+```{r}
+colFeatureData(sfe)[c("nCounts", "nGenes", "cell_area", "nucleus_area"),]
+```
+
+Global Moran's I indicate positive spatial autocorrelation. As the strength of spatial autocorrelation can vary spatially, we also run local Moran's I.
+
+```{r}
+sfe <- colDataUnivariate(sfe, type = "localmoran", 
+                         features = c("nCounts", "nGenes", "cell_area", 
+                                      "nucleus_area"),
+                         colGraphName = "knn5", BPPARAM = MulticoreParam(2))
+```
+
+```{r, fig.width=9, fig.height=6}
+plotLocalResult(sfe, "localmoran",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg",
+                divergent = TRUE, diverge_center = 0)
+```
+
+Interestingly, nCounts is more homogenous in the interior of the dense region, while nGenes is more homogenous by the edge of the dense region. As expected, cell area is more homogenous in the sparse region. However, the nucleus area is more homogenous in the interior of the dense region. 
+
+Moran plot for nCounts
+```{r}
+sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
+```
+
+```{r}
+moranPlot(sfe, "nCounts") + theme_bw()
+```
+
+There are no obvious clusters here.
+
+# Moran's I
+
+By default, for gene experssion, the log normalized counts are used in spatial autocorrelation metrics, so before running Moran's I, we normalize the data.
+
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
+system.time(
+    sfe <- runMoransI(sfe, colGraphName = "knn5", BPPARAM = MulticoreParam(2))
+)
+```
+
+```{r}
+rowData(sfe)$is_neg <- is_any_neg
+```
+
+```{r}
+plotRowData(sfe, x = "moran_sample01", y = "is_neg")
+```
+
+As expected, generally the negative controls are tightly clustered around 0, while the real genes have positive Moran's I, which means there is generally no technical artifact spatial trend. No significantly negative Moran's I is observed. Why is negative spatial autocorrelation so rare in gene expression?
+
+What are the two negative controls with a sizable Moran's I?
+```{r, fig.width=9, fig.height=3}
+ord <- order(rowData(sfe)$moran_sample01[is_any_neg], decreasing = TRUE)[1:2]
+top_neg <- rownames(sfe)[is_any_neg][ord]
+plotSpatialFeature(sfe, top_neg, colGeometryName = "cellSeg")
+```
+
+There is somewhat a spatial trend for that antisense probe, with more detected in the upper left. However, this might not significantly affect other results since there are at most 2 counts and at most about 1% of all counts in each cell. The negative control codeword has at most 1 count per cell and the cells with this negative control detected seem to be few and far between. 
+
+These are the most detected negative controls, and the most detected one is also the one with the highest Moran's I among negative controls. However, the other negative control with higher Moran's I is not among the most detected.
+```{r}
+head(sort(rowData(sfe)$means[is_any_neg], decreasing = TRUE), 15)
+```
+
+What are the genes with the highest Moran's I?
+```{r, fig.width=9, fig.height=6}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
+plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
+```
+
+They all highlight the same histological regions. How does Moran's I relate to gene expression level?
+```{r}
+plotRowData(sfe, x = "means", y = "moran_sample01")
+```
+
+Very highly expressed genes have higher Moran's I, but there are some less expressed genes with higher Moran's I as well.
+
+# Non-spatial dimension reduction and clustering
+```{r}
+set.seed(29)
+sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
+```
+
+```{r}
+ElbowPlot(sfe, ndims = 30) + theme_bw()
+```
+
+```{r}
+plotDimLoadings(sfe, dims = 1:6) + theme_bw()
+```
+
+```{r, fig.width=9, fig.height=9}
+spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
+                  diverge_center = 0, ncol = 2)
+```
+
+```{r}
+set.seed(29)
+sfe <- runUMAP(sfe, dimred = "PCA", n_dimred = 15)
+```
+
+Non-spatial clustering and locating the clusters in space
+```{r}
+colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
+                                    BLUSPARAM = SNNGraphParam(
+                                        cluster.fun = "leiden",
+                                        cluster.args = list(
+                                            resolution_parameter = 0.5,
+                                            objective_function = "modularity")))
+```
+
+```{r, fig.height=8, fig.width=8}
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
+    geom_density2d()
+```
+
+```{r}
+plotUMAP(sfe, colour_by = "cluster")
+```
+
+```{r}
+plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
+```
+
+# Differential expression
+Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
+```{r}
+markers <- findMarkers(sfe, groups = colData(sfe)$cluster,
+                       test.type = "wilcox", pval.type = "all", direction = "up")
+```
+
+It's already sorted by p-values
+```{r}
+markers[[6]]
+```
+
+Get the the significant marker for each cluster to plot
+```{r}
+genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
+plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster", point_size = 0)
+```
+
+Plot more top marker genes in a heatmap
+```{r, fig.width=6, fig.height=6}
+genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
+plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
+```
+
+# Local spatial statistics of marker genes
+Plot those genes in space
+```{r, fig.width=9, fig.height=9}
+plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 3,
+                   size = 0.1)
+```
+
+Moran's I of these marker genes
+
+```{r}
+setNames(rowData(sfe)[genes_use, "moran_sample01"], genes_use)
+```
+
+Local Moran's I of these marker genes
+```{r}
+sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = MulticoreParam(2))
+```
+
+```{r, fig.width=9, fig.height=9}
+plotLocalResult(sfe, type = "localmoran", features = genes_use, 
+                colGeometryName = "centroids", ncol = 3, divergent = TRUE,
+                diverge_center = 0, size = 0)
+```
+
+It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous.
+
+Run local spatial heteroscdasticity (LOSH) for these marker genes to find local heterogeneity
+```{r}
+sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5")
+```
+
+```{r, fig.width=9, fig.height=9}
+plotLocalResult(sfe, type = "LOSH", features = genes_use, 
+                colGeometryName = "centroids", ncol = 3, size = 0.1)
+```
+
+Again, just like in the CosMX dataset, LOSH is higher where the gene is more highly expressed in some but not all cases.
+
+# Session info
+```{r}
+sessionInfo()
+```
+
+# References
