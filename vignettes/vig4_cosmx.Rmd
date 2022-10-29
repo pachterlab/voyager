@@ -32,7 +32,7 @@ library(Voyager)
 library(SFEData)
 library(SingleCellExperiment)
 library(SpatialExperiment)
-library(scater)
+library(scater) # devel version of plotExpression
 library(scran)
 library(bluster)
 library(ggplot2)
@@ -465,10 +465,10 @@ It's already sorted by p-values
 markers[[6]]
 ```
 
-Get the the significant marker for each cluster to plot
+Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points.
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", colour_by = "cluster", point_size = 0)
+plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
