@@ -364,6 +364,41 @@ It's not too bad, not taking longer than a song.
 
 Try annoy and hnsw
 
-Moran's I. OK, I have the code now. I should add it before the first release. 
+I should also try poly2nb (pretty fast) to find a more appropriate k
+
+Moran's I. OK, I have the code now. I should add it to the package and just say this vignette is for devel version.
+
+```{r}
+system.time(
+    sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
+                          colGraphName = "knn5")
+)
+```
+
+Not nearly as bad as I thought
+```{r}
+colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),]
+```
+
+Ah, I finally see a sizable negative Moran's I!
+
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
+sfe <- runMoransI(sfe, BPPARAM = MulticoreParam(2, progressbar = TRUE))
+```
+
+It's actually not as slow as I thought for almost 400,000 cells.
+
+```{r}
+plotRowData(sfe, x = "moran_sample01", y = "is_blank") +
+    geom_hline(yintercept = 0, linetype = 2)
+```
+
+The blanks are clustered tightly around 0. The vast majority of real genes have positive spatial autocorrelation, some quite strong. But some genes have negative spatial autocorrelation.
+
+Plot the top genes with positive spatial autocorrelation (devel version of Voyager)
 
 
