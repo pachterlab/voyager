@@ -46,6 +46,9 @@ library(BiocParallel)
 library(BiocSingular)
 library(bluster)
 library(scran)
+library(dplyr)
+library(tidyr)
+library(ggnewscale)
 theme_set(theme_void())
 ```
 
@@ -108,127 +111,12 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
 
 There seems to be FOV artifacts. However, the cell ID and FOV information is unavailable. 
 
+Since there are only a few hundred genes plus negative control probes, all row names of the SFE object can be printed out to find what the negative control probes are called.
 ```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nGenes/n_panel)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
+rownames(sfe)
 ```
 
-I wonder why some numbers are less represented, at a regular interval. Probably because of the selection of marker genes for different cell types in the probe panel.
-
-Compared to the FFPE CosMX non-small cell lung cancer dataset, more transcript per gene on average and a larger proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX. 
-
-```{r}
-plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
-```
-
-
-```{r}
-# I think the function to plot density2d rather than points should go into the package
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nCounts, nGenes)) +
-    geom_hex(bins = 150) +
-    scale_fill_viridis_c() +
-    theme_bw()
-```
-
-There appear to be two branches. I wonder if they're related to the sparse vs. dense regions. They probably are. 
-
-Cell area
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(cell_area)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-I think that's in pixels. There's a very long tail.
-
-```{r}
-plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg")
-```
-
-Cells in the sparse region tend to be larger than those in the dense region
-
-Nuclei area
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nucleus_area)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-Probably an outlier
-
-```{r}
-plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "cellSeg")
-```
-
-Ah, that's the outlier, throwing off the dynamic range. Upon inspection of the H&E image, that outlier is a bit of debris that doesn't look like a cell. But it's still visible that cells in the dense, gland like region tend to have larger nuclei.
-
-How does cell area relate to nuclei area?
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(cell_area, nucleus_area)) +
-    geom_hex(bins = 150) +
-    scale_fill_viridis_c() +
-    theme_bw()
-```
-
-Again, there are two branches, probably related to cell density or cell type. That nucleus outlier also has large cell area, though not as much an outlier in cell area.
-
-How about proportion of cell in this z-plane taken up by the nucleus?
-```{r}
-colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_nuc)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-Not sure if this distribution could have been generated from two peaks added up.
-
-```{r}
-plotSpatialFeature(sfe, "prop_nuc", colGeometryName = "cellSeg")
-```
-
-aRt! 
-
-How does the proportion of cell area occupied by the nucleus relate to cell area?
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_nuc, cell_area)) +
-    geom_hex(bins = 150) +
-    scale_fill_viridis_c() +
-    theme_bw()
-```
-
-Smaller cells tend to have higher proportion occupied by the nucleus. This can be related to cell type, or limitation to how small the nuclei can be in this tissue.
-
-And nucleus area?
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_nuc, nucleus_area)) +
-    geom_hex(bins = 150) +
-    scale_fill_viridis_c() +
-    theme_bw()
-```
-
-This is all over the place. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
-
-## Negative controls
-Find what the negative control probes are called
-```{r}
-head(rownames(sfe))
-tail(rownames(sfe))
-```
-
-According to the Xenium paper, there are 3 types of controls:
+According to the Xenium paper [@Janesick2022-rp], there are 3 types of controls:
 
 > 1) probe controls to assess non-specific binding to RNA, 
 2) decoding controls to assess misassigned genes, and 
@@ -241,13 +129,13 @@ is_blank <- str_detect(rownames(sfe), "^BLANK_")
 sum(is_blank)
 ```
 
-I think this is number 1, the probe control
+This should be number 1, the probe control
 ```{r}
 is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
 sum(is_neg)
 ```
 
-I think this is number 2, the decoding control
+This should be number 2, the decoding control
 ```{r}
 is_neg2 <- str_detect(rownames(sfe), "^NegControlCodeword")
 sum(is_neg2)
@@ -259,10 +147,134 @@ is_anti <- str_detect(rownames(sfe), "^antisense")
 sum(is_anti)
 ```
 
+Also make an indicator of whether a feature is any sort of negative control
 ```{r}
 is_any_neg <- is_blank | is_neg | is_neg2 | is_anti
 ```
 
+Here we plot the number of genes detected per cell
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Compared to the [FFPE CosMX non-small cell lung cancer dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#cells), more transcripts per gene on average and a larger proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX. 
+
+```{r}
+plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
+```
+
+How does nCounts relate to nGenes?
+```{r}
+# I think the function to plot density2d rather than points should go into the package
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts, nGenes)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+There appear to be two branches. I wonder if they're related to the sparse vs. dense regions. They probably are. 
+
+Here we plot the distribution of cell area
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(cell_area)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+That's should be in pixels. There's a very long tail.
+
+How is cell area distributed in space?
+```{r}
+plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg")
+```
+
+Cells in the sparse region tend to be larger than those in the dense region. This may be biological or an artifact of the cell segmentation algorithm or both.
+
+Here we plot the distribution of nucleus area
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nucleus_area)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+There seems to be an outlier. Here we locate the outlier in space.
+
+```{r}
+plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "cellSeg")
+```
+
+That's the outlier near the right edge of the section, throwing off the dynamic range of this plot. Upon inspection of the H&E image, that outlier is a bit of tissue debris that doesn't look like a cell. But we can still that cells in the dense, gland like regions tend to have larger nuclei. This may be biological, or that nuclei are so densely packed in those regions that they are more likely to be undersegmented, i.e. when multiple nuclei are counted as one by the nuclei segmentation program, or both.
+
+How does cell area relate to nuclei area?
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(cell_area, nucleus_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+Again, there are two branches, probably related to cell density and cell type. That nucleus outlier also has large cell area, though not as much an outlier in cell area. However, it is a spatial outlier as it's unusually large compared to its neighbors (scroll up two plots back). 
+
+How about proportion of cell in this z-plane taken up by the nucleus? Here we calculate this proportion and then plot its distribution.
+```{r}
+colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+This distribution could have been generated from two peaks added up. From the histogram, there seems not to be cells without nuclei or segmentation artifacts where the nucleus is larger than the cell. However, since there are so many cells in this dataset that just a few cells would not be visible on this histogram, here we double check:
+```{r}
+# No nucleus
+sum(sfe$nucleus_area < 1)
+# Nucleus larger than cell
+sum(sfe$nucleus_area > sfe$cell_area)
+```
+
+So there are no cells without nuclei or nuclei larger than their cells. Here we plot the nuclei proportion in space:
+```{r}
+plotSpatialFeature(sfe, "prop_nuc", colGeometryName = "cellSeg")
+```
+
+Cells in some histological regions have larger proportions occupied by the nuclei. It would be interesting to see, controlling for cell type, how cell area, nucleus area, and proportion of cell occupied by nucleus relate to gene expression. However, a problem here is that cell segmentation is only available for one z-plane here and these areas also relate to where this z-plane intersects each cell. 
+
+How does the proportion of cell area occupied by the nucleus relate to cell area? Here we plot a 2D histogram to better show the density of point on this plot and avoid overplotting.
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc, cell_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+Smaller cells tend to have higher proportion occupied by the nucleus. This can be related to cell type, or limitation to how small the nuclei can be in this tissue.
+
+How does nucleus area relate the proportion of cell occupied by the nucleus?
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(prop_nuc, nucleus_area)) +
+    geom_hex(bins = 150) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+This is all over the place. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
+
+## Negative controls
+
+The `addPerCellQCMetrics()` function in the `scuttle` package can conveniently add transcript counts, proportion of total counts, and number of features detected for any subset of features to the SCE object. Here we do this for the SFE object, as SFE inherits from SCE. 
 ```{r}
 sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
                                                negProbe = is_neg,
@@ -275,91 +287,52 @@ sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
 names(colData(sfe))
 ```
 
-Negative controls over all
+Here we plot the proportion of transcript counts coming from any negative control. But first, we use Tidyverse to reshape the percentage columns for the different types of negative controls into the long form to plot them in different panels of the same plot.
+
+```{r}
+negs_long <- as.data.frame(colData(sfe)) |> 
+    select(ends_with("_percent")) |> 
+    pivot_longer(cols = ends_with("_percent"), names_to = "variable", 
+                 values_to = "value")
+```
+
+```{r}
+ggplot(negs_long, aes(value)) +
+    geom_histogram(bins = 100) +
+    theme_bw() +
+    facet_wrap(~ variable)
+```
+
+The histogram is dominated by the bin at 0. We also plot the histogram only for cells with at least 1 count from a negative control. The NA's come from cells that got segmented but have no transcripts detected.
+```{r}
+negs_long |> 
+    filter(value > 0, !is.na(value)) |> 
+    ggplot(aes(value)) +
+    geom_histogram(bins = 100) +
+    theme_bw() +
+    facet_wrap(~ variable)
+```
+
+The vast majority of these cells have a small percentage of transcript counts from negative controls, but there are outliers with up to 50%. 
+
+Here we plot the distribution of the number of negative control counts per cell:
 ```{r}
 as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_any_neg_percent)) +
+    select(ends_with("_detected")) |> 
+    pivot_longer(cols = ends_with("_detected"), names_to = "variable", 
+                 values_to = "value") |> 
+    filter(value > 0) |> 
+    ggplot(aes(value)) +
     geom_histogram(bins = 100) +
-    theme_bw()
-```
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_any_neg_percent > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_any_neg_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_any_neg_detected > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_any_neg_detected)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
+    scale_x_continuous(breaks = scales::breaks_width(1)) +
+    theme_bw() +
+    theme(panel.grid.minor.x = element_blank()) +
+    facet_wrap(~ variable)
 ```
 
+The counts are low, mostly only 1, but there are outliers with up to 10 counts. Then the outlier with 50% of counts from negative controls must have very low total real transcript counts to begin with.
 
-The counts are low. Then the 50% monstrosity must have very low total real transcript counts to begin with.
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_blank_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-Mostly very small, except for an outlier somewhere. Only plot the part >0
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_blank_percent > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_blank_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-It's interesting that this distribution has a peak somewhat away from 0.
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_negProbe_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-Mostly very small, except for an outlier somewhere
-
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_negProbe_percent > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_negProbe_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_negCodeword_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_negCodeword_percent > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_negCodeword_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_anti_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-```{r}
-as.data.frame(colData(sfe)[sfe$subsets_anti_percent > 0 & sfe$nCounts > 0,]) |> 
-    ggplot(aes(subsets_anti_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-
-Scuttle says anything above 0 is an outlier, since they are over 3 MADs away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But I think it makes sense to allow a small proportion of negative controls. I think I'll use the distribution just for cells with >0 negative control counts to find outliers. This distribution has a very long tail and some definite outliers.
+The `scuttle` package can detect outliers, but by default it says anything above 0 is an outlier, since they are over 3 median absolute deviations (MADs) away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But it makes sense to allow a small proportion of negative controls. Here we use the distribution just for cells with at least 1 negative control count to find outliers. This distribution has a very long tail and some definite outliers.
 
 Are cells that are outliers in one type of negative control also outliers in other negative controls?
 
@@ -372,7 +345,7 @@ ggplot(as.data.frame(colData(sfe))) +
     theme_bw()
 ```
 
-It seems that sometimes yes, but largely no, hence the bins along x = 0 and y = 0. 
+It seems that sometimes yes, but largely no, hence the bins along x = 0 and y = 0 outside the last row and column (sum of all types of negative controls).
 
 Here we get those outliers, based only on cells with at least 1 negative control count
 
@@ -408,7 +381,9 @@ plotSpatialFeature(sfe, "is_blank_outlier", colGeometryName = "cellSeg")
 
 They're kind of hard to see. I wonder if they tend to be smaller.
 ```{r}
-plotColData(sfe, y = "is_blank_outlier", x = "cell_area")
+plotColData(sfe, y = "is_blank_outlier", x = "cell_area", 
+            # to not to plot points, only in devel version of scater
+            point_fun = function(...) list()) 
 ```
 
 They do seem to be smaller. Outliers for negative probe control and negative codeword control are also hard to see on the plot, so their plots are skipped here. But one region in the tissue tends to have more counts from antisense controls. 
@@ -424,7 +399,7 @@ inds_keep <- sfe$nCounts > 0 & sfe$nucleus_area < 400 & !sfe$is_anti_outlier &
 (sfe <- sfe[,inds_keep])
 ```
 
-Over 1000 cells were removed.
+Over 1000 cells were removed. Among non-outliers, how to counts from different types of negative controls relate to each other?
 ```{r}
 ggplot(as.data.frame(colData(sfe))) +
     geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
@@ -433,6 +408,8 @@ ggplot(as.data.frame(colData(sfe))) +
     facet_matrix(vars(ends_with("_percent")), layer.diag = 2) +
     theme_bw()
 ```
+
+The bin with the highest counts (yellow) is at the origin, the plot shows rays, possibly from the small number of counts.
 
 How many negative control features are detected per cell?
 ```{r}
@@ -451,42 +428,11 @@ table(sfe$subsets_negCodeword_detected)
 table(sfe$subsets_negProbe_detected)
 ```
 
-So at most 3. Hence those rays in the matrix plot. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
+There are at most 3 count per cell per type. Hence those rays in the matrix plot. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
 
 ## Genes
-```{r}
-rowData(sfe)$means <- rowMeans(counts(sfe))
-rowData(sfe)$vars <- rowVars(counts(sfe))
-```
 
-```{r}
-as.data.frame(rowData(sfe)) |> 
-    ggplot(aes(means, vars)) +
-    geom_bin2d(bins = 50) +
-    geom_abline(slope = 1, intercept = 0, color = "red") +
-    scale_x_log10() + scale_y_log10() +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
-    annotation_logticks() +
-    coord_equal() +
-    theme_bw()
-```
-
-```{r}
-as.data.frame(rowData(sfe)[is_any_neg,]) |> 
-    ggplot(aes(means, vars)) +
-    geom_point() +
-    geom_abline(slope = 1, intercept = 0, color = "red") +
-    scale_x_log10() + scale_y_log10() +
-    annotation_logticks() +
-    coord_equal() +
-    theme_bw()
-```
-
-Unlike in the CosMX dataset, the negative controls don't seem overdispersed, except for one outlier. Which is:
-```{r}
-rowData(sfe)[rowData(sfe)$means < 2e-4 & rowData(sfe)$vars > 2e-4,]
-```
-
+Real genes generally have higher mean expression across cells than negative controls.
 ```{r}
 rowData(sfe)$is_neg <- is_any_neg
 plotRowData(sfe, x = "means", y = "is_neg") +
@@ -494,11 +440,37 @@ plotRowData(sfe, x = "means", y = "is_neg") +
     annotation_logticks(sides = "b")
 ```
 
+Here we look at the mean and variance of each gene
+```{r}
+rowData(sfe)$means <- rowMeans(counts(sfe))
+rowData(sfe)$vars <- rowVars(counts(sfe))
+```
+
+Here the real genes and negative controls are plotted in different colors
+```{r}
+as.data.frame(rowData(sfe)) |> 
+    ggplot(aes(means, vars)) +
+    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[!is_any_neg,])) +
+    scale_fill_distiller(palette = "Blues", direction = 1,
+                         name = "Counts (real genes)") +
+    new_scale_fill() +
+    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[is_any_neg,])) +
+    scale_fill_distiller(palette = "Reds", direction = 1,
+                         name = "Counts (negative controls)") +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed.
+
 # Spatial autocorrelation of QC metrics
 
-There's a sparse and a dense region. Then what kind of neighborhood graph shall I use? What does "neighbor" mean here? Should cells in the sparse region just be singletons? What's the lengthscale of their influence? It might depends on the cell type and how contact and secreted signals are used in the cell type, and length scale of influence. If k nearest neighbors are used, then the neighbors in the dense region are much closer together than those in the sparse region. If distance based neighbors are used, then cells in the dense region will have more neighbors than cells in the sparse region, and the sparse region can break into multiple compartments if the distance cutoff is not long enough. 
+There's a sparse and a dense region. Then what kind of neighborhood graph shall I use? What does "neighbor" mean here? Should cells in the sparse region just be singletons? What's the length scale of their influence? It might depends on the cell type and how contact and secreted signals are used in the cell type, and length scale of influence. If k nearest neighbors are used, then the neighbors in the dense region are much closer together than those in the sparse region. If distance based neighbors are used, then cells in the dense region will have more neighbors than cells in the sparse region, and the sparse region can break into multiple compartments if the distance cutoff is not long enough. 
 
-For the purpose of demonstration, we use k nearest neighbors with $k = 5$, with inverse distance weighting. Having more neighbors will slow down computation of spatial autocorrelation metrics.
+For the purpose of demonstration, we use k nearest neighbors with $k = 5$, with inverse distance weighting. Having more neighbors will lead to longer computation time of spatial autocorrelation metrics.
 
 ```{r}
 system.time(
@@ -591,7 +563,7 @@ top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)
 plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
 ```
 
-They all highlight the same histological regions. How does Moran's I relate to gene expression level?
+They all highlight the same histological regions, as in the [CosMX vignette](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#morans-i). How does Moran's I relate to gene expression level?
 ```{r}
 plotRowData(sfe, x = "means", y = "moran_sample01")
 ```
@@ -599,6 +571,8 @@ plotRowData(sfe, x = "means", y = "moran_sample01")
 Very highly expressed genes have higher Moran's I, but there are some less expressed genes with higher Moran's I as well.
 
 # Non-spatial dimension reduction and clustering
+
+Here we run non-spatial PCA as for scRNA-seq data
 ```{r}
 set.seed(29)
 sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
@@ -616,6 +590,8 @@ plotDimLoadings(sfe, dims = 1:6) + theme_bw()
 spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
                   diverge_center = 0, ncol = 2)
 ```
+
+While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types.
 
 ```{r}
 set.seed(29)
@@ -641,6 +617,7 @@ plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
 plotUMAP(sfe, colour_by = "cluster")
 ```
 
+Plot the location of the clusters in space
 ```{r}
 plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
 ```
@@ -670,17 +647,20 @@ plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_
 ```
 
 # Local spatial statistics of marker genes
-Plot those genes in space
+
+First we plot those genes in space as a reference
 ```{r, fig.width=9, fig.height=9}
 plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 3,
                    size = 0.1)
 ```
 
-Moran's I of these marker genes
+Global Moran's I of these marker genes
 
 ```{r}
 setNames(rowData(sfe)[genes_use, "moran_sample01"], genes_use)
 ```
+
+All these marker genes have positive spatial autocorrelation, but some stronger than others.
 
 Local Moran's I of these marker genes
 ```{r}
@@ -694,7 +674,7 @@ plotLocalResult(sfe, type = "localmoran", features = genes_use,
                 diverge_center = 0, size = 0)
 ```
 
-It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous.
+It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous. For some genes, regions with higher expression also have higher local Moran's I, such as FOXA1 and GATA3, while for some genes, this is not the case, such as FGL2 and LUM. 
 
 Run local spatial heteroscdasticity (LOSH) for these marker genes to find local heterogeneity
 ```{r}
@@ -706,7 +686,7 @@ plotLocalResult(sfe, type = "LOSH", features = genes_use,
                 colGeometryName = "centroids", ncol = 3, size = 0.1)
 ```
 
-Again, just like in the CosMX dataset, LOSH is higher where the gene is more highly expressed in some but not all cases.
+Again, just like in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes), LOSH is higher where the gene is more highly expressed in some (e.g. CD3E, LUM, TENT5C) but not all cases (e.g. FOXA1, GATA3). This may be due to spatial distribution of different cell types.
 
 # Session info
 ```{r}

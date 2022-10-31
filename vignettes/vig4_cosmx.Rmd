@@ -391,7 +391,7 @@ plotRowData(sfe, x = "moran_sample01", y = "is_neg")
 It seems that at least at the shorter length scale captured by the k nearest neighbor graph, most genes don't have strong spatial autocorrelation while some have strong positive spatial autocorrelation. In contrast, Moran's I for the negative controls is closely packed around 0, indicating lack of spatial autocorrelation, which is a good sign, that there is no evidence of a technical artifact that manifests as a spatial trend manifest in the negative controls.
 
 What are the genes with the highest Moran's I?
-```{r, fig.width=9, fig.height=8}
+```{r, fig.width=9, fig.height=7}
 top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
 plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
 ```
