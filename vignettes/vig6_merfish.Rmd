@@ -1,0 +1,404 @@
+---
+title: "MERFISH mouse liver dataset and considerations of large data"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{merfish}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+# Introduction
+
+The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally developed around a relatively small Visium dataset as a proof of concept, and were hence not originally optimized for very large datasets. However, those larger smFISH datasets with hundreds of thousands, sometimes over a million cells, are certainly coming. Among studies using smFISH-based spatial transcriptomics technologies that reported the number of cells per dataset, the number of cells per dataset has increased in the past years [@Moses2022-xz].
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png")
+```
+
+In this vignette, we use a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false&pli=1) to preview some features to come in later versions of `Voyager` relevant to larger datasets and some smaller ones as well. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` dataframe is not trivial. See the [vignette on creating an SFE object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. 
+
+Here we load the packages used 
+```{r setup}
+library(Voyager)
+library(SFEData)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(scater) # devel version of plotExpression
+library(scran)
+library(bluster)
+library(ggplot2)
+library(patchwork)
+library(stringr)
+library(spdep)
+library(BiocParallel)
+library(BiocSingular)
+library(gstat)
+library(scattermore)
+theme_set(theme_void())
+```
+
+```{r}
+(sfe <- VizgenLiverData())
+```
+
+There are 395215 cells in this dataset
+```{r, fig.width=9, fig.height=6}
+ggplot(colGeometry(sfe, "cellSeg")) + geom_sf(size = 0.1) +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion()) +
+    theme_bw()
+```
+
+```{r, fig.width=9, fig.height=6}
+ggplot(as.data.frame(spatialCoords(sfe))) +
+    geom_hex(aes(center_x, center_y), bins = 300) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion()) +
+    theme_bw() + coord_equal()
+```
+
+Cell density is pretty homogenous but shows some structure with denser regions that seem to relate to the blood vessels.
+
+# Quality control
+```{r}
+names(colData(sfe))
+```
+
+Plotting almost 400,000 polygons is kind of slow but doable
+```{r}
+system.time(
+    print(plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg"))
+)
+```
+
+Here nCounts kind of looks like salt and pepper. Using the [`scattermore`](https://github.com/exaexa/scattermore) package can speed up plotting a large number of points. In this non-interactive plot, the cell polygons are too small to see anyway, so plotting cell centroid points should be fine. In the next version ov Voyager, we will add arguments to select a bounding box to zoom into a smaller region of the tissue when making non-interactive plots. 
+
+```{r}
+coldata_scattermore <- function(sfe, feature) {
+    df <- as.data.frame(spatialCoords(sfe))
+    df <- cbind(df, colData(sfe))
+    nms <- spatialCoordsNames(sfe)
+    ggplot(df) +
+        geom_scattermore(aes_string(nms[1], nms[2], color = feature)) +
+        scale_color_distiller(palette = "Blues", direction = 1) +
+        coord_equal()
+}
+```
+
+```{r}
+system.time({
+    print(coldata_scattermore(sfe, "nCounts"))
+})
+```
+
+When run on our server, plotting almost 400,000 polygons took almost 22 seconds, while using `geom_scattermore()` took less than one second. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `Voyager`. This would especially help when plotting multiple genes in space. However, note that `geom_scattermore()` is fast because it rasterizes the plot, so the plot will be pixelated when enlarged.
+
+Since there aren't too many genes, all genes and negative control probes can be shown
+```{r}
+rownames(sfe)
+```
+
+The number of real genes is 347
+
+```{r}
+n_panel <- 347
+```
+
+Plot the distribution of nCounts, divided by the number of genes in the panel, so this distribution is more comparable across datasets with different numbers of genes.
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Also plot the number of genes detected per cell, with `geom_scattermore()`
+```{r}
+coldata_scattermore(sfe, "nGenes")
+```
+
+Plot the distribution of nGenes, divided by number of genes in the panel
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Distribution of cell volume in space
+```{r}
+coldata_scattermore(sfe, "volume")
+```
+
+How does nCounts relate to nGenes?
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(nCounts, nGenes)) +
+    geom_bin2d(bins = 200) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw()
+```
+
+There're two branches. Interesting.
+
+How does cell size relate to nCounts?
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(volume, nCounts)) +
+    geom_bin2d(bins = 200) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw()
+```
+
+Again, 2 branches.
+
+### Negative controls
+```{r}
+is_blank <- str_detect(rownames(sfe), "^Blank-")
+```
+
+```{r}
+sfe <- addPerCellQCMetrics(sfe, subset = list(blank = is_blank))
+```
+
+```{r}
+names(colData(sfe))
+```
+
+Total transcript counts from the blank probes
+```{r}
+coldata_scattermore(sfe, "subsets_blank_sum")
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_blank_sum)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Number of blank features detected per cell
+```{r}
+coldata_scattermore(sfe, "subsets_blank_detected")
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_blank_detected)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+Percentage oof blank features per cell
+```{r}
+coldata_scattermore(sfe, "subsets_blank_percent")
+```
+
+The percentage is more interesting: within the tissue, cells with high percentage of blank counts are scattered like salt and pepper, but more of these cells are on the left edge of the tissue, the edges of FOVs, where the tissue itself doesn't end. 
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(subsets_blank_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+The NA's are cells without any transcript detected. Also plot this histogram only for cells with at least one blank count.
+```{r}
+mean(sfe$subsets_blank_sum > 0)
+```
+
+```{r}
+summary(sfe$subsets_blank_percent)
+```
+
+Unlike in the Xenium dataset, here most cells have at least one blank count.
+```{r}
+as.data.frame(colData(sfe)[sfe$nCounts > 0 & sfe$subsets_blank_sum > 0,]) |> 
+    ggplot(aes(subsets_blank_percent)) +
+    geom_histogram(bins = 100) +
+    theme_bw() +
+    scale_x_log10() +
+    annotation_logticks(sides = "b")
+```
+
+A small percentage of blank counts is acceptable. So we will remove the outlier based on the distribution of the percentage when it's greater than 0.
+
+```{r}
+colData(sfe) |> 
+    as.data.frame() |> 
+    ggplot(aes(nCounts, subsets_blank_percent)) +
+    geom_bin2d(bins = 200) +
+    scale_fill_viridis_c() +
+    theme_bw()
+```
+
+The outliers in percentage of blank counts have low total counts. But some seemingly real cells with sizable nCounts also have not so low percentage of blank counts. Since the distribution of this percentage has a very long tail, we log transform it when finding outliers.
+```{r}
+get_neg_ctrl_outliers <- function(col, sfe, nmads = 3, log = FALSE) {
+    inds <- colData(sfe)$nCounts > 0 & colData(sfe)[[col]] > 0
+    df <- colData(sfe)[inds,]
+    outlier_inds <- isOutlier(df[[col]], type = "higher", nmads = nmads, log = log)
+    outliers <- rownames(df)[outlier_inds]
+    col2 <- str_remove(col, "^subsets_")
+    col2 <- str_remove(col2, "_percent$")
+    new_colname <- paste("is", col2, "outlier", sep = "_")
+    colData(sfe)[[new_colname]] <- colnames(sfe) %in% outliers
+    sfe
+}
+```
+
+```{r}
+sfe <- get_neg_ctrl_outliers("subsets_blank_percent", sfe, log = TRUE)
+```
+
+What proportion of all cells are outliers?
+```{r}
+mean(sfe$is_blank_outlier)
+```
+
+What's the cutoff for outlier?
+```{r}
+min(sfe$subsets_blank_percent[sfe$is_blank_outlier])
+```
+
+Remove the outliers and empty cells
+```{r}
+(sfe <- sfe[, !sfe$is_blank_outlier & sfe$nCounts > 0])
+```
+
+There're still over 390,000 cells left.
+
+## Genes
+Here we look at the mean and variance of each gene
+```{r}
+rowData(sfe)$means <- rowMeans(counts(sfe))
+rowData(sfe)$vars <- rowVars(counts(sfe))
+```
+
+Real genes generally have higher mean expression across cells than negative controls.
+```{r}
+rowData(sfe)$is_blank <- is_blank
+plotRowData(sfe, x = "means", y = "is_blank") +
+    scale_y_log10() +
+    annotation_logticks(sides = "b")
+```
+
+Most real genes have higher mean expression than blanks, but there's considerable overlap in the distribution, probably because some genes expressed at lower levels or in fewer cells are included.
+
+Here the real genes and negative controls are plotted in different colors
+```{r}
+as.data.frame(rowData(sfe)) |> 
+    ggplot(aes(means, vars)) +
+    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[!is_blank,])) +
+    scale_fill_distiller(palette = "Blues", direction = 1,
+                         name = "Counts (real genes)") +
+    new_scale_fill() +
+    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[is_blank,])) +
+    scale_fill_distiller(palette = "Reds", direction = 1,
+                         name = "Counts (negative controls)") +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed.
+```{r}
+as.data.frame(rowData(sfe)[is_blank,]) |> 
+    ggplot(aes(means, vars)) +
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    scale_x_log10() + scale_y_log10() +
+    annotation_logticks() +
+    coord_equal() +
+    theme_bw()
+```
+
+When zoomed in, the blanks are also somewhat overdispersed.
+
+# Spatial autocorrelation of QC metrics
+```{r}
+bbox_use <- st_as_sfc(st_bbox(c(xmin = 2000, xmax = 2500, ymin = 2000, ymax = 2500)))
+```
+
+```{r}
+g <- colGeometry(sfe, "cellSeg")[bbox_use,]
+```
+
+```{r}
+ggplot(g) + geom_sf()
+```
+
+There're quite a few cells that are not contiguous to any other cell, so purely using poly2nb is probably not good. I tried it before; making snap too large doesn't work.
+
+```{r}
+system.time(
+    colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
+                                                  dist_type = "idw", k = 5, 
+                                                  style = "W")
+)
+```
+
+It's not too bad, not taking longer than a song. 
+
+Try annoy and hnsw
+
+I should also try poly2nb (pretty fast) to find a more appropriate k
+
+Moran's I. OK, I have the code now. I should add it to the package and just say this vignette is for devel version.
+
+```{r}
+system.time(
+    sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
+                          colGraphName = "knn5")
+)
+```
+
+Not nearly as bad as I thought
+```{r}
+colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),]
+```
+
+Ah, I finally see a sizable negative Moran's I!
+
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
+sfe <- runMoransI(sfe, BPPARAM = MulticoreParam(2, progressbar = TRUE))
+```
+
+It's actually not as slow as I thought for almost 400,000 cells.
+
+```{r}
+plotRowData(sfe, x = "moran_sample01", y = "is_blank") +
+    geom_hline(yintercept = 0, linetype = 2)
+```
+
+The blanks are clustered tightly around 0. The vast majority of real genes have positive spatial autocorrelation, some quite strong. But some genes have negative spatial autocorrelation.
+
+Plot the top genes with positive spatial autocorrelation (devel version of Voyager)
+
+

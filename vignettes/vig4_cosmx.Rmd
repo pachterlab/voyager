@@ -1,5 +1,7 @@
 ---
 title: "CosMX non-small cell lung cancer data"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
 output: 
   html_document:
   toc: true
@@ -21,16 +23,16 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction
-Nanostring GeoMX DSP is a popular spatial transcriptomics technology for formalin fixed paraffin embedded (FFPE) tissues even though it doesn't have single cell resolution. More recently, Nanostring developed a single cell resolution single molecule FISH based technology for FFPE tissue called CosMX, which is described in [@He2021-oy]. FFPE is a common way to preserve and archive tissue, and in some cases, the only samples available may all be FFPE. 
+Nanostring GeoMX DSP is a popular spatial transcriptomics technology for formalin fixed paraffin embedded (FFPE) tissues, but it doesn't have single cell resolution. The CosMX FISH based technology for FFPE tissue [@He2021-oy] does have single cell resolution, and this vignette provides an example of how to analyze CosMX data with voyager. Note that FFPE is a common way to preserve and archive tissue, and in some cases, the only samples available may be FFPE. 
 
-The CosMX dataset for non-small cell lung cancer is also described in [@He2021-oy]. The processed data is available to download from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/). The gene count matrix, cell metadata, and cell segmentation polygon coordinates were downloaded from the Nanostring website as CSV files and read into R as data frames. The gene count matrix was then converted to a sparse matrix. The cell metadata contains centroid coordinates of the cells. The cell polygon data frames was converted into an `sf` data frame with the `df2sf()` function in `SpatialFeatureExperiment` (SFE). These were then used to construct an SFE object. Cell segmentation is only available in one z-plane.
+The CosMX dataset for non-small cell lung cancer that we used is described in [@He2021-oy]. The processed data is available for download from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/). The gene count matrix, cell metadata, and cell segmentation polygon coordinates were downloaded from the Nanostring website as CSV files and read into R as data frames. The gene count matrix was then converted to a sparse matrix. The cell metadata contains centroid coordinates of the cells. The cell polygon data frames were converted into an `sf` data frame with the `df2sf()` function in `SpatialFeatureExperiment` (SFE). These were then used to construct an SFE object. Cell segmentation is only available in one z-plane.
 
 ```{r setup}
 library(Voyager)
 library(SFEData)
 library(SingleCellExperiment)
 library(SpatialExperiment)
-library(scater)
+library(scater) # devel version of plotExpression
 library(scran)
 library(bluster)
 library(ggplot2)
@@ -52,10 +54,24 @@ sfe
 
 Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
 ```{r}
-ggplot(cellSeg(sfe)) + geom_sf(size = 0.1)
+ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
+    theme_bw() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
 ```
 
 With single cell resolution, a lot of the details can be seen, although there's some artifact from borders of fields of view (FOVs).
+
+Plot cell density
+```{r}
+as.data.frame(spatialCoords(sfe)) |> 
+    ggplot(aes(CenterX_global_px, CenterY_global_px)) +
+    geom_hex(bins = 200) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    theme_bw() + coord_equal() +
+    scale_x_continuous(expand = expansion()) +
+    scale_y_continuous(expand = expansion())
+```
 
 # Quality control (QC)
 ## Cells
@@ -88,6 +104,21 @@ plot_violin_spatial(sfe, "nCounts")
 summary(sfe$nCounts)
 ```
 
+To make nCounts and nGenes more comparable across datasets, we divide them by the number of genes probed. In this dataset, there are 960 genes, and 20 negative controls. However, because different genes may be probed in different datasets, which can be from different tissues, this does not make nCounts and nGenes completely comparable across datasets. However, it may still be somewhat comparable, since genes highly expressed in major cell types in the tissue tend to be selected for the gene panel.
+
+```{r}
+n_panel <- 960
+```
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nCounts/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+This means the cells mostly have less than 1 transcript count per gene on average, which is not surprising since not all cells express all genes.
+
 Number of genes (out of 980) detected per cell
 ```{r, fig.width=8, fig.height=4}
 plot_violin_spatial(sfe, "nGenes")
@@ -98,6 +129,15 @@ summary(sfe$nGenes)
 ```
 
 Based on the spatial plot, it seems that nCounts and nGenes are biologically relevant, but there are cells with no transcripts detected. 
+
+```{r}
+as.data.frame(colData(sfe)) |> 
+    ggplot(aes(nGenes/n_panel)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+```
+
+This means most cells are detected to express less than 30% of all genes probed.
 
 How nCounts relates to nGenes
 ```{r}
@@ -190,6 +230,19 @@ The distribution is not obviously bimodal, and since the x-axis is log transform
 
 After removing the low quality cells, there are 100,095 cells left.
 
+### Markers
+Nanostring provides some cell stain and marker intensities in the cell metadata.
+```{r}
+names(colData(sfe))
+```
+
+Here we plot aspect ratio and mean intensity of cells stains and markers, which have not been plotted before. PanCK is a marker for epithelial cells. CD45 is a leukocyte marker. CD3 is a T cell marker. This plot takes a while to show since it would take any program quite a while to plot over 100,000 polygons 6 times.
+```{r, fig.width=6, fig.height=6}
+plotSpatialFeature(sfe, c("AspectRatio", "Mean.DAPI", "Mean.MembraneStain", 
+                          "Mean.PanCK", "Mean.CD45", "Mean.CD3"),
+                   colGeometryName = "cellSeg", ncol = 2)
+```
+
 ## Genes
 ```{r}
 rowData(sfe)$means <- rowMeans(counts(sfe))
@@ -233,9 +286,24 @@ plotRowData(sfe, x = "means", y = "is_neg") +
 
 The negative controls have lower mean "expression" than the vast majority of real genes.
 
-## Spatial autocorrelation in QC metrics
-A spatial neighborhood graph is required for spatial dependence analyses. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()` and `dnearneigh()` are not recommended for larger datasets. Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
+# Spatial autocorrelation in QC metrics
+A spatial neighborhood graph is required for spatial dependence analyses with `spdep`. Without a benchmark, we don't yet know which type of neighborhood graph is the best for which purpose. 
 
+Methods to find spatial neighborhood graphs in `spdep` other than `knearneigh()`, `dnearneigh()`, and `poly2nb()` (only for polygon data where contiguity is relevant) are not recommended for larger datasets. Delaunay triangulation with the `deldir` package, which is used by `spdep` (`tri2nb()`), takes 4 to 5 minutes for a dataset of this size, but the runtime increases much more drastically than linearly as the number of cells increases. Sphere of Interest (SOI) graph (`soi.graph()`) prunes edges from triangulation that are too long, and does not take long itself. So triangulation and SOI graph, while slower than `knearneigh()`, `dnearneigh()`, and `poly2nb()`, are somewhat practical considerations. The implementation of `gabrielneigh()` and `relativeneigh()` take impracticably long (over an hour and I terminated the R session out of impatience) for this dataset so are not recommended.
+
+Methods to find approximate nearest neighbors such as Annoy (`AnnoyParam()`) and HNSW (`HnswParam()`), as supported by the [`bluster`](https://bioconductor.org/packages/release/bioc/html/bluster.html) and [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html) packages might speed up finding these graphs, but we haven't formally benchmarked them. 
+
+See [Chapter 14 of Spatial Data Science](https://r-spatial.org/book/14-Areal.html) on proximity in areal data for a more detailed discussion of the different neighborhood graphs in `spdep`. The methods for areal data are the first to be wrapped by Voyager because much of spatial transcriptomics data is analogous to areal geospatial data, where data from several cells are aggregated over areas, which happens in Visium spots. Just like in geospatial areal data, the Visium aggregation areas are arbitrary and do not represent the underlying spatial process. Although sometimes geographical areal units are not arbitrary, that tissues are generally not in hexagonal grids means that Visium spot polygons are arbitrary in this context. Regions of interest (ROI) selection spatial transcriptomics methods, such as laser capture microdissection (LCM) and GeoMX DSP are more obviously analogous to geospatial areal data. The aggregation also happens when we analyze smFISH-based data at the cell level, if the basic unit of observation is individual transcript spots. 
+
+While `spdep` caters to areal data, `gstat` caters to geostatistical data, where a continuous spatial process is sampled at point locations. In some ways, spatial transcriptomics data is analogous to geostatistical data. Visium samples the supposed spatial biological process in a regular hexagonal grid, if we pretend that Visium spots are points. In smFISH-based single cell resolution data, the cells observed can be thought of as a sample of an underlying spatial biological process supervening on the specific locations of the cells. In a sense, the cells are not samples, since smFISH based technologies attempt to visualize all cells in the tissue section. However, as the biological function of the tissue does not depend on this particular spatial arrangement of individual cells (i.e. supervenes on this particular spatial arrangement), but more of cell types, the specific cell locations observed can be thought of as samples of the process, if we consider the cell the basic unit of the spatial process. In the next release of Voyager, we plan to add semivariograms (from the [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) package) as an exploratory tool to identify the presence of spatial autocorrelation, its length scale, and anisotropy (i.e. different in different directions). Covariates can be specified when computing the variogram to account for spatial trends and adjust for another spatial variable. However, unlike Morans's I, the semivariogram can't identify negative spatial autocorrelation, although since the spatial neighborhood graph typically does not encode spatial directions, `spdep` autocorrelation metrics can't identify anisotropy.
+
+Single cell smFISH based data is also dissimiliar to both areal and geostatistical data in important ways. In geospatial areal data, data from numerous basic units of the spatial process (e.g. people in epidemiology) are aggregated over areas (e.g. cities), whereas in histological space, the cell is arguably a more sensible basic unit of the biological spatial process than individual mRNA molecules. Unlike in geostatistical data, the cells as seen in the tissue section are often polygons tessellating the tissue section rather than points. Furthermore, while ideally the samples of the underlying spatial process should not affect the spatial process itself in geostatistical data, the cells play active roles in the biological spatial process. 
+
+However, data analysis methods for areal and geostatistical data can still be relevant to EDA and descriptive models (not causal or mechanistic) of single cell smFISH data. Different types of spatial neighborhood graphs for cells may be relevant to different processes. For instance, contiguity of cell segmentation polygons is relevant when contact is involved in cell signaling, although cell segmentation is imperfect. Positive spatial autocorrelation here can arise from contact activation, and negative autocorrelation can arise from contact inhibition. However, cells may also be influenced by longer range factors such as secreted ligands, morphogens, and simpler spatial trends like distance to artery and vein. In this case, perhaps the semivariogram and using Euclidean distance between cells as spatial weights in spatial autocorrelation metrics would be more relevant for EDA. It would be interesting to compare the results from different spatial neighborhood graphs and spatial weights, and between `spdep` and `gstat`. Perhaps there is no one best method, but different methods reveal different phenomena.
+
+Spatial autocorrelation metrics seek to measure how nearby things tend to be more similar or dissimilar, and the neighborhood graph and edge weights define what we mean by "nearby" in areal data. Note that because each Visium spot can contain from several to dozens of cells, the spatial neighborhood graphs of Visium spots describe neighborhood relationships of much longer length scales than spatial neighborhood graphs of single cells, so spatial autocorrelation metrics using the Visium graph have different meanings from cellular neighborhood graphs. 
+
+For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
 ```{r}
 system.time(
     colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
@@ -244,7 +312,7 @@ system.time(
     )
 ```
 
-It took about a minute, not bad. Now compute Moran's I for some cell QC metrics
+Now compute Moran's I for some cell QC metrics
 ```{r}
 features_use <- c("nCounts", "nGenes", "Area", "AspectRatio")
 sfe <- colDataMoransI(sfe, features_use, colGraphName = "knn5")
@@ -256,7 +324,8 @@ colFeatureData(sfe)[features_use,]
 
 Positive spatial autocorrelation is suggested, which is stronger in nCounts and nGenes.
 
-What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run. Another way to find the lengthscale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods for each feature as the binning is done once for all features.
+What are the length scales of spatial autocorrelation for these QC metrics? It would be nice if the lagged neighborhood graphs can be stored and reused for all features rather than recomputed for each feature as in `spdep::sp.correlogram()` called behind the scene here. This takes a few minutes to run, but not as long as a typical song. Another way to find the length scale of spatial autocorrelation is to bin the cells into bins of different sizes and then find spatial autocorrelation at each bin size, which probably is faster than finding lagged values at higher and higher neighborhoods since `geom_bin2d()` and `geom_hex()` in `ggplot2` run pretty fast even for large datasets. Or use a semivariogram; `gstat` also bins the data when estimating the semivariogram and calculating the semivariogram over very long distance is much faster than the correlogram with cell-cell neighborhood graphs. 
+
 ```{r}
 system.time(
     sfe <- colDataUnivariate(sfe, "sp.correlogram", features = features_use,
@@ -264,6 +333,8 @@ system.time(
                          BPPARAM = MulticoreParam(2))
 )
 ```
+
+Note that `MulticoreParam()` doesn't work on Windows; this vignette was built on Linux. Use `SnowParam()` or `DoparParam()` for Windows. See `?BiocParallelParam` for the available parallel processing backends. We did not notice significant performance differences between `ShowParam()` and `MulticoreParam()` in this context.
 
 ```{r}
 plotCorrelogram(sfe, features_use) +
@@ -281,7 +352,7 @@ sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 moranPlot(sfe, "nCounts") + theme_bw()
 ```
 
-There are no obvious clusters in this plot.
+There are no obvious clusters in this plot but the clusters may be obscured by overplotting.
 
 Local Moran's I for nCounts
 ```{r}
@@ -293,7 +364,7 @@ plotLocalResult(sfe, "localmoran", "nCounts", colGeometryName = "cellSeg",
                 divergent = TRUE, diverge_center = 0)
 ```
 
-Cool, it appears that some histological regions tend to be more homogenous in nCounts.
+Cool, it appears that the epithelial regions tend to be more homogenous in nCounts.
 
 # Data normalization
 Given that there may be some relationship between cell size and total counts, and that total counts may be biological and thus not purely treated as technical, questions are raised about data normalization and how it should be different from the standard scRNA-seq practices. For instance, what are technical contributions to total counts for this kind of data? Furthermore, what to do with cell area, since part of it is technical, in where the z-plane of cell segmentation polygons intersects each cell, but for some cell types, it could be biological? Also, how would different methods of data normalization affect spatial autocorrelation? Should spatial autocorrelation be used in some ways when normalizing data? Besides correcting for technical effects and making gene expression in cells with different total counts more comparable, data normalization stabilizes variance and tries to make the data more normally distributed since many statistical methods assume normally distributed data. So while we don't know the best practice to normalize this kind of data, we will still normalize the data for downstream analyses.
@@ -302,13 +373,15 @@ Given that there may be some relationship between cell size and total counts, an
 sfe <- logNormCounts(sfe)
 ```
 
+# Moran's I
+
+Here we run global Moran's I on log normalized gene expression.
 ```{r}
 # Note: on your computer, you can put progressbar = TRUE inside MulticoreParam()
-# to show progress bar.
+# to show progress bar. This applies to any BiocParallParam.
 sfe <- runMoransI(sfe, features = rownames(sfe), 
-                  BPPARAM = MulticoreParam(2, progressbar = TRUE))
+                  BPPARAM = MulticoreParam(2))
 ```
-
 
 Do real genes tend to have more spatial autocorrelation than negative controls?
 ```{r}
@@ -318,12 +391,12 @@ plotRowData(sfe, x = "moran_sample01", y = "is_neg")
 It seems that at least at the shorter length scale captured by the k nearest neighbor graph, most genes don't have strong spatial autocorrelation while some have strong positive spatial autocorrelation. In contrast, Moran's I for the negative controls is closely packed around 0, indicating lack of spatial autocorrelation, which is a good sign, that there is no evidence of a technical artifact that manifests as a spatial trend manifest in the negative controls.
 
 What are the genes with the highest Moran's I?
-```{r, fig.width=9, fig.height=8}
+```{r, fig.width=9, fig.height=7}
 top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
 plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
 ```
 
-They all highlight the same histological regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
+They all highlight the same epithelial regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
 
 # Non-spatial dimension reduction and clustering
 ```{r}
@@ -336,7 +409,7 @@ ElbowPlot(sfe, ndims = 30) + theme_bw()
 ```
 
 ```{r}
-plotDimLoadings(sfe) + theme_bw()
+plotDimLoadings(sfe, dims = 1:6) + theme_bw()
 ```
 
 ```{r, fig.width=9, fig.height=9}
@@ -344,10 +417,108 @@ spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
                   diverge_center = 0, ncol = 2)
 ```
 
-It's aRt!
+The first PC highlights the epithelium. PC2 highlights T cells. PC4 might highlight other leukocytes. Need to check the genes with the highest loadings to find what the other PCs mean.
+
+```{r}
+set.seed(29)
+sfe <- runUMAP(sfe, dimred = "PCA", n_dimred = 15)
+```
+
+Non-spatial clustering and locating the clusters in space
+```{r}
+colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
+                                    BLUSPARAM = SNNGraphParam(
+                                        cluster.fun = "leiden",
+                                        cluster.args = list(
+                                            resolution_parameter = 0.5,
+                                            objective_function = "modularity")))
+```
+
+```{r, fig.height=8, fig.width=8}
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
+    geom_density2d()
+```
+
+```{r}
+plotUMAP(sfe, colour_by = "cluster")
+```
+
+```{r}
+plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
+```
+
+Further analyses that can be done at this stage:
+
+* Which and how many cell types are in the neighborhood of each cell? This is subject to the different definitions of the neighborhood.
+* Which cell types tend to co-localize where?
+* Find spatial regions based on cell type colocalization, which can be done with the R package [`spicyR`](https://bioconductor.org/packages/release/bioc/html/spicyR.html) [@Canete2022-tz]
 
 # Differential expression
+Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
+```{r}
+markers <- findMarkers(sfe, groups = colData(sfe)$cluster,
+                       test.type = "wilcox", pval.type = "all", direction = "up")
+```
+
+It's already sorted by p-values
+```{r}
+markers[[6]]
+```
+
+Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points.
+```{r}
+genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
+plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
+```
+
+Plot more top marker genes in a heatmap
+```{r, fig.width=6, fig.height=6}
+genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
+plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
+```
+
+# Local spatial statistics of marker genes
+Plot those genes in space
+```{r, fig.width=8, fig.height=12}
+plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
+```
+
+Moran's I of these marker genes
+
+```{r}
+rowData(sfe)[genes_use, "moran_sample01", drop = FALSE]
+```
+
+Local Moran's I of these marker genes
+```{r}
+sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = MulticoreParam(2))
+```
+
+```{r, fig.width=8, fig.height=12}
+plotLocalResult(sfe, type = "localmoran", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 2, divergent = TRUE,
+                diverge_center = 0)
+```
+
+It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous.
+
+Run local spatial heteroscdasticity (LOSH) for these marker genes to find local heterogeneity
+```{r}
+sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = MulticoreParam(2))
+```
+
+```{r, fig.width=8, fig.height=12}
+plotLocalResult(sfe, type = "LOSH", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 2)
+```
+
+Some genes are more heterogeneous where they are also more highly expressed, such as COLA1 and IGKC. However this is not the case for all genes. For example, MZT2A is quite ubiqiutously experssed, but is more heterogeneous in some regions than others, and KRT19 does not seem to be much more heterogeneous where it's more highly expressed. For MZT2A, LOSH picked up the artifact of the edges of the FOVs, although this is not apparent for other genes plotted here. Here we don't have information on which cell belongs to which FOV, but FOV edge effects should be considered in data normalization. It would be interesting to more systematically see how LOSH relates to gene expression across more genes, and how this differs in cell types and gene functions.
 
 # Session Info
+```{r}
+sessionInfo()
+```
 
 # References

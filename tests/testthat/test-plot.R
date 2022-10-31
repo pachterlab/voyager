@@ -13,7 +13,6 @@ sfe <- runUnivariate(sfe,
 )
 
 test_that("Everything plotSpatialFeature", {
-    # testthat::skip("Skipping plots that require sf")
     expect_doppelganger(
         "Plot gene expression",
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
@@ -178,6 +177,7 @@ levels = as.character(1:5)
 )
 
 test_that("moranPlot, not filled, no color_by", {
+    skip_on_ci()
     expect_warning(
         moranPlot(sfe, "B", "visium1", "sample01"),
         "Too few points"
@@ -193,6 +193,7 @@ test_that("moranPlot, not filled, no color_by", {
 })
 
 test_that("moranPlot, not filled, with color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, not filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -202,6 +203,7 @@ test_that("moranPlot, not filled, with color_by", {
 })
 
 test_that("moranPlot, filled, no color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, filled",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -211,6 +213,7 @@ test_that("moranPlot, filled, no color_by", {
 })
 
 test_that("moranPlot, filled, with color_by", {
+    skip_on_ci()
     expect_doppelganger(
         "moranPlot, filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
@@ -329,4 +332,17 @@ test_that("Everything spatialReducedDim", {
             divergent = TRUE, diverge_center = 0
         )
     })
+})
+
+test_that("When a gene symbol rowname is not a valid R object name", {
+    rownames(sfe_muscle)[1] <- "HLA-foo" # Just toy example
+    expect_doppelganger("plotSpatialFeature with illegal gene name",
+                        plotSpatialFeature(sfe_muscle, "HLA-foo", "spotPoly",
+                                           show_symbol = FALSE))
+    sfe_muscle <- runUnivariate(sfe_muscle, "localmoran", "HLA-foo",
+                                colGraphName = "visium")
+    expect_doppelganger("plotLocalResult with illegal gene name",
+                        plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
+                                        colGeometryName = "spotPoly",
+                                        show_symbol = FALSE))
 })
