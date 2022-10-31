@@ -430,6 +430,11 @@ table(sfe$subsets_negProbe_detected)
 There are at most 3 count per cell per type. Hence those rays in the matrix plot. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
 
 ## Genes
+Here we look at the mean and variance of each gene
+```{r}
+rowData(sfe)$means <- rowMeans(counts(sfe))
+rowData(sfe)$vars <- rowVars(counts(sfe))
+```
 
 Real genes generally have higher mean expression across cells than negative controls.
 ```{r}
@@ -437,12 +442,6 @@ rowData(sfe)$is_neg <- is_any_neg
 plotRowData(sfe, x = "means", y = "is_neg") +
     scale_y_log10() +
     annotation_logticks(sides = "b")
-```
-
-Here we look at the mean and variance of each gene
-```{r}
-rowData(sfe)$means <- rowMeans(counts(sfe))
-rowData(sfe)$vars <- rowVars(counts(sfe))
 ```
 
 Here the real genes and negative controls are plotted in different colors
