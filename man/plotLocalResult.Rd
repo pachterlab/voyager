@@ -28,6 +28,7 @@ plotLocalResult(
   color = NA,
   fill = "gray80",
   show_symbol = TRUE,
+  scattermore = FALSE,
   ...
 )
 }
@@ -119,6 +120,13 @@ specified or not applicable, or for \code{annotGeometry} if
 \item{show_symbol}{Logical, whether to show human readable gene symbol on the
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+
+\item{scattermore}{Logical, whether to use the \code{scattermore} package to
+greatly speed up plotting numerous points. Only used for POINT \code{colGeometries}.
+If the geometry is not POINT, then the centroids are used. Recommended for
+plotting hundreds of thousands or more cells where the cell polygons can't
+be seen when plotted due to the large number of cells and small plot size
+such as when plotting multiple panels for multiple features.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }

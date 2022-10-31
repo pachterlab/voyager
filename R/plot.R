@@ -145,7 +145,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
-                         ncol_sample) {
+                         ncol_sample, scattermore) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -188,13 +188,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if ("fill" %in% names(feature_aes) && is_annot_filled) {
         p <- p + new_scale_fill()
     }
-    aes_use <- do.call(aes_string, feature_aes)
-    geom_use <- do.call(geom_sf, c(
-        list(mapping = aes_use, data = df),
-        feature_fixed
-    ))
+    if (scattermore) {
+        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y"), feature_aes))
+        geom_use <- do.call(scattermore::geom_scattermore,
+                            c(list(mapping = aes_use, data = df),
+                              feature_fixed))
+    } else {
+        aes_use <- do.call(aes_string, feature_aes)
+        geom_use <- do.call(geom_sf, c(
+            list(mapping = aes_use, data = df),
+            feature_fixed
+        ))
+    }
     p <- p + geom_use
-
+    if (scattermore) p <- p + coord_equal()
     # Palette
     pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center,
                     name = name_show)
@@ -253,7 +260,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_aes, annot_fixed, size, shape, linetype,
                                 alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
-                                annot_diverge_center, ...) {
+                                annot_diverge_center, scattermore, ...) {
     feature_fixed <- list(
         size = size, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -383,7 +390,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param scattermore Logical, whether to use the \code{scattermore} package to
-#'   greatly speed up plotting numerous points.
+#'   greatly speed up plotting numerous points. Only used for POINT \code{colGeometries}.
+#'   If the geometry is not POINT, then the centroids are used. Recommended for
+#'   plotting hundreds of thousands or more cells where the cell polygons can't
+#'   be seen when plotted due to the large number of cells and small plot size
+#'   such as when plotting multiple panels for multiple features.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
@@ -445,7 +456,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         annot_fixed, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linetype,
-        alpha, color, fill, ...
+        alpha, color, fill, scattermore, ...
     )
 }
 

@@ -346,3 +346,14 @@ test_that("When a gene symbol rowname is not a valid R object name", {
                                         colGeometryName = "spotPoly",
                                         show_symbol = FALSE))
 })
+
+# scattermore
+sfe_cosmx <- HeNSCLCData()
+bbox_use <- st_bbox(colGeometry(sfe_cosmx, "centroids"))
+annot <- data.frame(x = c(bbox_use[c("xmin", "xmax")]),
+                    y = c(bbox_use[c("ymax", "ymin")]),
+                    ID = 1)
+annot <- df2sf(annot, geometryType = "LINESTRING")
+test_that("scattermore", {
+    
+})
