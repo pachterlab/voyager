@@ -1,0 +1,204 @@
+---
+title: "Slide-Seq V2 Exploratory Data Analysis"
+author: "Kayla Jackson"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{slideseq_v2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+[Slide-seq V2](https://doi.org/10.1038/s41587-020-0739-1) is a spatial transcriptomic tool that measures genome-wide expression using DNA-barcoded beads patterned on a slide in an non-regular array. The beads used in the current protocol have a diameter of $10 \mu m$ and are thus larger than a single cell, but the number of detected transcripts is an order of magnitude higher compared to the previous iteration of the technology.
+
+In this vignette, we will use `Voyager` to analyze a dataset generated using the Slide-Seq V2 technology. The data is described in [Dissecting the treatment-naive ecosystem of human melanoma brain metastasis](https://doi.org/10.1016/j.cell.2022.06.007). The raw counts and cell metadata are publicly available from GEO. We will focus on one of the human melanoma brain metastasis (MBM) samples that are provided in the `SFEData` package as a `SpatialFeatureExperiment`(SFE) object. The SFE object contains raw counts, QC metrics such as number of UMIs and genes detected per barcode, and centroid coordinates for each barcode as a `sf` POINT geometry.
+
+```{r setup}
+library(Voyager)
+library(SFEData)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(scater)
+library(scran)
+library(bluster)
+library(ggplot2)
+library(patchwork)
+# library(stringr)
+library(spdep)
+library(BiocParallel)
+# library(BiocSingular)
+theme_set(theme_bw())
+```
+
+```{r}
+(sfe <- BiermannMelaMetasData(dataset ="MBM05_rep1"))
+```
+
+The SFE object in the `SFEData` package includes information for 27,566 features and 29,536 beads/barcodes.
+
+```{r}
+sfe
+```
+
+# Quality control (QC)
+
+We can begin by performing some exploratory data analysis on the barcodes in the tissue. There are some pre-computed QC measures that are stored in the object.
+
+```{r}
+names(colData(sfe))
+```
+
+Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and the proportion of mitochondrially encoded counts (`prop_mito`). Below, we will plot the total number of UMI counts per barcode as a violin plot and in space. For the latter task, we will leverage the function `plotSpatialFeature` which uses `geom_sf` to plot geometries where applicable.
+
+```{r}
+violin <- plotColData(sfe, "nCounts") +
+  theme(legend.position = "top") 
+
+spatial <- plotSpatialFeature(sfe, features = "nCounts",
+                               colGeometryName = "centroids")
+violin + spatial
+```
+
+Each barcode is represented as a `sf` POINT geometry In the plot above, we note that many beads have quite low UMI counts, but there are small regions throughout the tissue that appear to have high counts. This is perhaps due to high cellular density of the melanoma cells.
+
+It is worthwhile to note that cell segmentation data were not included with this dataset. Even though Slide-Seq V2 does not profile gene expression at single cell resolution, cell segmentation data can be flexibly stored as `annotGeometries` in the `SFE` object. These geometries can be plotted with barcode-level data and can be used with `sf` for operations like finding the number of barcodes localized to a single cell.
+
+```{r}
+colData(sfe)$log_nCounts <- log(colData(sfe)$nCounts)
+violin <- plotColData(sfe, "nCounts") +
+  theme(legend.position = "top") 
+
+spatial <- plotSpatialFeature(sfe, features = "log_nCounts",
+                               colGeometryName = "centroids")
+violin + spatial
+```
+
+The plot above visualizes the number of UMI counts per barcode on a log scale. It appears that barcodes with higher counts are co-localized in regions throughout the tissue, however, these regions are rather small and may not suggest spatial autocorrelation.
+
+Next we find number of genes detected per barcode. Again, this QC feature is provided as `nGenes` in the `colData` attribute for barcodes.
+
+```{r}
+colData(sfe)$log_nCounts <- log(colData(sfe)$nCounts)
+violin <- plotColData(sfe, "nGenes") +
+  theme(legend.position = "top") 
+
+spatial <- plotSpatialFeature(sfe, features = "nGenes",
+                               colGeometryName = "centroids")
+violin + spatial
+```
+
+Similar to the number of UMI counts per barcode, there seem to be small regions with higher number of genes throughout the tissue. These may correspond to regions of cellular diversity or high cellular density, as might be expected in the context of melanoma.
+
+We can compute the degree to which the number of UMI counts per barcode depends on the spatial location of each measurement. This relationship, spatial autocorrelation, can be quantified using Moran's index of spatial autocorrelation, or Moran's *I*. The computation of Moran's *I* requires first a definition of what constitutes objects being "near" to each other. Most simply, this is represented as a spatial weights matrix. One possible representation is an adjacency matrix. This matrix can be computed for polygonal data and the resulting matrix can be binary, where entries are 1 if polygons share a border, and 0 elsewhere (including the diagonal). These entries can be weighted in different ways, including by the length of border shared between two polygons.
+
+This schema does not necessarily lend itself well to spatial transcriptomic technologies, where the polygonal boundaries of cell objects may not correspond to the measurements in the count matrix, or individual spots or barcodes may themselves correspond to multiple neighborhoods of cells. Certainly, the interpretation of spatial weights matrix will change depending on the technology.
+
+In any case, we can generate a putative spatial graph using the k-nearest neighbors algorithm. This is implemented in the `findSpatialNeighbors` function with the argument `method = "knearneigh"` . We will store the result in the `colGraphs` slot of the SFE object.
+
+```{r}
+
+ colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
+                                                  dist_type = "idw", k = 5, 
+                                                  style = "W")
+```
+
+Now compute Moran\'s I for some barcode QC metrics using `colDataMoransI`.
+
+```{r}
+features_use <- c("nCounts", "nGenes")
+sfe <- colDataMoransI(sfe, features_use, colGraphName = "knn5")
+```
+
+```{r}
+colFeatureData(sfe)[features_use,]
+```
+
+The results above do not substantiate the visual check for spatial autocorrelation. We will continue with investigating other QC metrics.
+
+The proportion of UMIs mapping to mitochondrial genes is a useful metric for assessing cell quality in scRNA-seq data. We will examine this QC metric below by plotting it versus total number of UMI counts for each barcode.
+
+```{r}
+violin <- plotColData(sfe, "prop_mito") +
+  theme(legend.position = "top") 
+mito <- plotColData(sfe, x = "nCounts", y = "prop_mito")
+
+violin + mito
+```
+
+In keeping with expectations, barcodes associated with fewer counts appear to be associated with higher proportions of mitochondrial reads. We will exclude barcodes containing more than \>10% mitochondrial reads for subsequent analysis.
+
+```{r}
+sfe_filt <- sfe[, colData(sfe)$prop_mito < 0.1]
+sfe_filt <- sfe_filt[rowSums(counts(sfe_filt)) > 0,]
+```
+
+# Data Normalization
+
+Normalization of spatial transcriptomics data is non-trivial and requires thoughtful consideration. Like in scRNA-seq data analysis, the goal of normalization is to remove the effects of technical variation and derive a quantity that reflects biological variation. However, several questions arise when considering best practices for spatial data normalization. For example, spatial methods on average detect fewer UMIs than their single-cell counterparts, which may preclude the use normalization techniques such as log transformation as shown [here](<https://doi.org/10.1093/bioinformatics/btab085>). What's more, it is not always evident whether spatial autocorrelation between genes (or QC measures) is an artifact of the technology, and thus, whether normalization methods should preserve the spatial autocorrelation architecture. These questions provide avenues for active research and development, but are currently unresolved. To this end, we will normalize the data in the cell below and identify variable genes for subsequent analysis.
+
+```{r}
+sfe_filt <- logNormCounts(sfe_filt)
+
+dec <- modelGeneVar(sfe_filt)
+hvgs <- getTopHVGs(dec, n = 2000)
+```
+
+# Dimension Reduction and Clustering
+Much like in scRNA-seq analysis, we will perform principal component analysis (PCA) before clustering. We note that the method does not use any spatial information. 
+```{r}
+sfe_filt <- runPCA(sfe_filt, ncomponents = 30, subset_row = hvgs,
+                     scale = TRUE) # scale as in Seurat
+```
+We can plot the variance explained by each PC. 
+```{r}
+ElbowPlot(sfe_filt, ndims = 30) + theme_bw()
+```
+We see that the first few components explain most of the variance in the data. The principal components (PCs) can be plotted in space. Here we notice that the PCs may show some spatial structure that correlates to biological niches of cells. 
+```{r}
+spatialReducedDim(sfe_filt, "PCA", ncomponents = 4, 
+                  colGeometryName = "centroids", divergent = TRUE, 
+                  diverge_center = 0) &
+    theme_void()
+```
+Without the cellular overlays, we can only speculate about the potential relevance of the barcodes that seem to be separated by each PC, but each PC doe seem to separate distinct neighborhoods of barcodes.  
+
+
+Now we can cluster the barcodes using a graph-based clustering algorithm and plot them in space. 
+```{r}
+colData(sfe_filt)$cluster <- clusterRows(reducedDim(sfe_filt, "PCA")[,1:3],
+                                           BLUSPARAM = SNNGraphParam(
+                                               cluster.fun = "leiden",
+                                               cluster.args = list(
+                                                   resolution_parameter = 0.5,
+                                                   objective_function = "modularity")))
+```
+The plot below is colored by cluster id. A naive interpretation of the plot shows distinct niches of barcodes separated by more abundant, intervening types. This may be indicative of the biological processes at hand, namely melanoma metastasis, where 'hotspots' of melanoma proliferation would be separated by unaffected normal tissue. 
+```{r}
+plotSpatialFeature(sfe_filt, "cluster", colGeometryName = "centroids")
+```
+## Remaining Questions
+
+One avenue for future analysis includes identifying genes that are differentially expressed in each cluster, This can be interrogated with `findMarkers` in a non-spatial context and with `calculateMoransI` in a spatial context. In the spatial case, some consideration should be given to whether the differences seen in across the tissue represent biological difference or artifacts from field of view. 
+
+Spatial variability can also be investigated using  differential expression testing known anatomical regions complemented witn spatial location. One potential drawback to this approach is the variability that is induced by the melanoma, rather than the native tissue architecture. 
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
