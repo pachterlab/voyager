@@ -258,7 +258,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         size = size, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
-    type <- .get_generalized_geometry_type(df)
+    type <- if(scattermore) "POINT" else .get_generalized_geometry_type(df)
     plots <- lapply(names(values), function(n) {
         df[[n]] <- values[[n]]
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
@@ -266,7 +266,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         .plot_var_sf(
             df, annot_df, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
-            annot_divergent, annot_diverge_center, ncol_sample
+            annot_divergent, annot_diverge_center, ncol_sample, scattermore
         )
     })
     if (length(plots) > 1L) {
@@ -277,15 +277,27 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
+#' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
                                 annot_fixed, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, ...) {
+                                alpha, color, fill, scattermore, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    }
+    if (scattermore) {
+        check_installed("scattermore", reason = "to plot points with scattermore")
+        type_df <- .get_generalized_geometry_type(df)
+        if (type_df != "POINT") {
+            warning("scattermore only applies to points. Using centroids.")
+            df_coords <- as.data.frame(st_coordinates(st_centroid(df)))
+        } else {
+            df_coords <- as.data.frame(st_coordinates(df))
+        }
+        df <- cbind(st_drop_geometry(df), df_coords)
     }
     # Will use separate ggplots for each feature so each can have its own color scale
     if (!is.null(annotGeometryName)) {
@@ -299,7 +311,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         df, annot_df, type_annot, values, aes_use,
         annot_aes, annot_fixed, size, shape, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
-        diverge_center, annot_divergent, annot_diverge_center,
+        diverge_center, annot_divergent, annot_diverge_center, scattermore,
         ...
     )
 }
@@ -370,9 +382,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param show_symbol Logical, whether to show human readable gene symbol on the
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
+#' @param scattermore Logical, whether to use the \code{scattermore} package to
+#'   greatly speed up plotting numerous points.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
-#' object if plotting multiple features.
+#'   object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
@@ -417,7 +431,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_diverge_center = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = NA, fill = "gray80", show_symbol = TRUE,
-                               ...) {
+                               scattermore = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
