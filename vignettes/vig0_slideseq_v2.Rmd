@@ -37,10 +37,9 @@ library(scran)
 library(bluster)
 library(ggplot2)
 library(patchwork)
-# library(stringr)
 library(spdep)
 library(BiocParallel)
-# library(BiocSingular)
+
 theme_set(theme_bw())
 ```
 
@@ -126,7 +125,6 @@ sfe <- colDataMoransI(sfe, features_use, colGraphName = "knn5")
 ```{r}
 colFeatureData(sfe)[features_use,]
 ```
-
 The results above do not substantiate the visual check for spatial autocorrelation. We will continue with investigating other QC metrics.
 
 The proportion of UMIs mapping to mitochondrial genes is a useful metric for assessing cell quality in scRNA-seq data. We will examine this QC metric below by plotting it versus total number of UMI counts for each barcode.
