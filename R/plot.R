@@ -300,7 +300,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         type_df <- .get_generalized_geometry_type(df)
         if (type_df != "POINT") {
             warning("scattermore only applies to points. Using centroids.")
-            df_coords <- as.data.frame(st_coordinates(st_centroid(df)))
+            df_coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(df))))
         } else {
             df_coords <- as.data.frame(st_coordinates(df))
         }

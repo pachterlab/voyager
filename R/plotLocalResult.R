@@ -136,7 +136,8 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             annot_fixed, aes_use, divergent,
             diverge_center, annot_divergent,
             annot_diverge_center, size, shape, linetype,
-            alpha, color, fill, show_symbol, scattermore, ...
+            alpha, color, fill, show_symbol = show_symbol, 
+            scattermore = scattermore, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")

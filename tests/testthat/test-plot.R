@@ -348,12 +348,59 @@ test_that("When a gene symbol rowname is not a valid R object name", {
 })
 
 # scattermore
+library(sf)
 sfe_cosmx <- HeNSCLCData()
 bbox_use <- st_bbox(colGeometry(sfe_cosmx, "centroids"))
 annot <- data.frame(x = c(bbox_use[c("xmin", "xmax")]),
                     y = c(bbox_use[c("ymax", "ymin")]),
                     ID = 1)
 annot <- df2sf(annot, geometryType = "LINESTRING")
-test_that("scattermore", {
-    
+annotGeometry(sfe_cosmx, "foo") <- annot
+sfe_cosmx <- sfe_cosmx[, sfe_cosmx$nCounts > 10]
+sfe_cosmx <- logNormCounts(sfe_cosmx)
+test_that("scattermore in plotSpatialFeature", {
+    expect_doppelganger("Plot colData with scattermore", {
+        plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Plot multiple colData columns", {
+        plotSpatialFeature(sfe_cosmx, c("nCounts", "nGenes"), 
+                           colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Divergent scale with scattermore", {
+        plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
+                           divergent = TRUE, scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Gene expression", {
+        plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Also plot annotGeometry", {
+        plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
+                           annotGeometryName = "foo", scattermore = TRUE,
+                           size = 0)
+    })
+    expect_warning(plotSpatialFeature(sfe_cosmx, "nCounts", 
+                                      colGeometryName = "cellSeg",
+                                      scattermore = TRUE),
+                   "Using centroids.")
+})
+
+localResult(sfe_cosmx, "localG", "KRT19") <- seq_len(ncol(sfe_cosmx))
+test_that("Use scattermore in plotLocalResult", {
+    expect_doppelganger("scattermore plotLocalResult", {
+        plotLocalResult(sfe_cosmx, "localG", "KRT19", 
+                        colGeometryName = "centroids", scattermore = TRUE, 
+                        size = 0)
+    })
+})
+
+fake_pca <- as.matrix(t(logcounts(sfe_cosmx)[c("KRT19", "COL1A1"),]))
+colnames(fake_pca) <- c("PC1", "PC2")
+reducedDim(sfe_cosmx, "PCA") <- fake_pca
+test_that("Use scattermore in spatialReducedDim", {
+    expect_doppelganger("scattermore spatialReducedDim", {
+        spatialReducedDim(sfe_cosmx, "PCA", 2, scattermore = TRUE)
+    })
 })
