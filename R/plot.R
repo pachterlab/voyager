@@ -145,7 +145,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
-                         ncol_sample, scattermore) {
+                         ncol_sample, scattermore, pointsize) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -189,7 +189,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p + new_scale_fill()
     }
     if (scattermore) {
-        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y"), feature_aes))
+        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y", 
+                                              pointsize = pointsize), 
+                                         feature_aes))
         geom_use <- do.call(scattermore::geom_scattermore,
                             c(list(mapping = aes_use, data = df),
                               feature_fixed))
@@ -260,7 +262,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_aes, annot_fixed, size, shape, linetype,
                                 alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
-                                annot_diverge_center, scattermore, ...) {
+                                annot_diverge_center, scattermore, pointsize,
+                                ...) {
     feature_fixed <- list(
         size = size, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -273,7 +276,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
         .plot_var_sf(
             df, annot_df, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
-            annot_divergent, annot_diverge_center, ncol_sample, scattermore
+            annot_divergent, annot_diverge_center, ncol_sample, scattermore,
+            pointsize
         )
     })
     if (length(plots) > 1L) {
@@ -290,7 +294,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_fixed, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, scattermore, ...) {
+                                alpha, color, fill, scattermore, pointsize,
+                                ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
@@ -319,7 +324,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         annot_aes, annot_fixed, size, shape, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        ...
+        pointsize, ...
     )
 }
 
@@ -390,11 +395,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param scattermore Logical, whether to use the \code{scattermore} package to
-#'   greatly speed up plotting numerous points. Only used for POINT \code{colGeometries}.
-#'   If the geometry is not POINT, then the centroids are used. Recommended for
-#'   plotting hundreds of thousands or more cells where the cell polygons can't
-#'   be seen when plotted due to the large number of cells and small plot size
-#'   such as when plotting multiple panels for multiple features.
+#'   greatly speed up plotting numerous points. Only used for POINT
+#'   \code{colGeometries}. If the geometry is not POINT, then the centroids are
+#'   used. Recommended for plotting hundreds of thousands or more cells where
+#'   the cell polygons can't be seen when plotted due to the large number of
+#'   cells and small plot size such as when plotting multiple panels for
+#'   multiple features.
+#' @param pointsize Radius of rasterized point in \code{scattermore}. Default to
+#'   0 for single pixels (fastest).
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
@@ -442,7 +450,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_diverge_center = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = NA, fill = "gray80", show_symbol = TRUE,
-                               scattermore = FALSE, ...) {
+                               scattermore = FALSE, pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -456,7 +464,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         annot_fixed, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linetype,
-        alpha, color, fill, scattermore, ...
+        alpha, color, fill, scattermore, pointsize, ...
     )
 }
 
