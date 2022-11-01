@@ -451,10 +451,10 @@ test_that("colData and rowData histograms", {
 
 test_that("plotCellBin2D", {
     expect_doppelganger("Cell density, rectangular", {
-        plotCellBin2D(sfe_cosmx)
+        plotCellBin2D(sfe_cosmx, bins = 50)
     })
     expect_doppelganger("Cell density, hex", {
-        plotCellBin2D(sfe_cosmx, hex = TRUE)
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
     })
 })
 
