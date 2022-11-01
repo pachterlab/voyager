@@ -47,7 +47,7 @@ library(bluster)
 library(scran)
 library(dplyr)
 library(tidyr)
-library(ggnewscale)
+library(patchwork)
 theme_set(theme_void())
 ```
 
@@ -141,7 +141,8 @@ There's an outlier near the right edge of the section, throwing off the dynamic 
 
 How does cell area relate to nuclei area?
 ```{r}
-plotColDataBin2D(sfe, "cell_area", "nucleus_area") + theme_bw()
+plotColDataBin2D(sfe, "cell_area", "nucleus_area") + theme_bw() +
+    scale_fill_viridis_c()
 ```
 
 Again, there are two branches, probably related to cell density and cell type. That nucleus outlier also has large cell area, though not as much an outlier in cell area. However, it is a spatial outlier as it's unusually large compared to its neighbors (scroll up two plots back). 
@@ -419,11 +420,12 @@ sfe <- colDataUnivariate(sfe, type = "localmoran",
                          colGraphName = "knn5", BPPARAM = MulticoreParam(2))
 ```
 
+The `pointsize` argument adjusts the point size in `scattermore`. The default is 0, meaning single pixels, but since the cells in the sparse region are hard to see that way, we increase `pointsize`. We would still plot the polygons in larger single panel plots, but use `scattermore` in multi-panel plots where the polygons in each panel are invisible anyway due to the small size to save some time.
 ```{r, fig.width=9, fig.height=6}
 plotLocalResult(sfe, "localmoran",
                 features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
                 colGeometryName = "centroids", scattermore = TRUE,
-                divergent = TRUE, diverge_center = 0)
+                divergent = TRUE, diverge_center = 0, pointsize = 1)
 ```
 
 Interestingly, nCounts is more homogenous in the interior of the dense region, while nGenes is more homogenous by the edge of the dense region. As expected, cell area is more homogenous in the sparse region. However, the nucleus area is more homogenous in the interior of the dense region. 
@@ -433,11 +435,13 @@ Moran plot for nCounts
 sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
-```{r}
-moranPlot(sfe, "nCounts") + theme_bw()
+```{r, fig.width=6, fig.height=6}
+p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
+p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
+p1 / p2 + plot_layout(guides = "collect") & theme_bw()
 ```
 
-There are no obvious clusters here.
+There are no obvious clusters here. In the lower panel, the 2D histogram of influential points is plotted in red.
 
 # Moran's I
 
@@ -468,7 +472,8 @@ What are the two negative controls with a sizable Moran's I?
 ```{r, fig.width=9, fig.height=3}
 ord <- order(rowData(sfe)$moran_sample01[is_any_neg], decreasing = TRUE)[1:2]
 top_neg <- rownames(sfe)[is_any_neg][ord]
-plotSpatialFeature(sfe, top_neg, colGeometryName = "cellSeg")
+plotSpatialFeature(sfe, top_neg, colGeometryName = "centroids",
+                   scattermore = TRUE, pointsize = 1)
 ```
 
 There is somewhat a spatial trend for that antisense probe, with more detected in the upper left. However, this might not significantly affect other results since there are at most 2 counts and at most about 1% of all counts in each cell. The negative control codeword has at most 1 count per cell and the cells with this negative control detected seem to be few and far between. 
@@ -479,9 +484,10 @@ head(sort(rowData(sfe)$means[is_any_neg], decreasing = TRUE), 15)
 ```
 
 What are the genes with the highest Moran's I?
-```{r, fig.width=9, fig.height=6}
-top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
-plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
+```{r, fig.width=9, fig.height=9}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:6]]
+plotSpatialFeature(sfe, top_moran, colGeometryName = "centroids",
+                   scattermore = TRUE, ncol = 2, pointsize = 0.5)
 ```
 
 They all highlight the same histological regions, as in the [CosMX vignette](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#morans-i). How does Moran's I relate to gene expression level?
@@ -508,8 +514,8 @@ plotDimLoadings(sfe, dims = 1:6) + theme_bw()
 ```
 
 ```{r, fig.width=9, fig.height=9}
-spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
-                  diverge_center = 0, ncol = 2)
+spatialReducedDim(sfe, "PCA", 6, colGeometryName = "centroids", divergent = TRUE,
+                  diverge_center = 0, ncol = 2, scattermore = TRUE, pointsize = 0.5)
 ```
 
 While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types.
@@ -529,13 +535,14 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
                                             objective_function = "modularity")))
 ```
 
+Now the `scater` can also rasterize the plots with lots of points, but with a different mechanism from `scattermore` that requires more system dependencies.
 ```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = TRUE) +
     geom_density2d()
 ```
 
 ```{r}
-plotUMAP(sfe, colour_by = "cluster")
+plotUMAP(sfe, colour_by = "cluster", rasterise = TRUE)
 ```
 
 Plot the location of the clusters in space
@@ -572,7 +579,7 @@ plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_
 First we plot those genes in space as a reference
 ```{r, fig.width=9, fig.height=9}
 plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 3,
-                   size = 0.1)
+                   pointsize = 0.3, scattermore = TRUE)
 ```
 
 Global Moran's I of these marker genes
@@ -592,19 +599,21 @@ sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "kn
 ```{r, fig.width=9, fig.height=9}
 plotLocalResult(sfe, type = "localmoran", features = genes_use, 
                 colGeometryName = "centroids", ncol = 3, divergent = TRUE,
-                diverge_center = 0, size = 0)
+                diverge_center = 0, scattermore = TRUE, pointsize = 0.3)
 ```
 
 It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous. For some genes, regions with higher expression also have higher local Moran's I, such as FOXA1 and GATA3, while for some genes, this is not the case, such as FGL2 and LUM. 
 
 Run local spatial heteroscdasticity (LOSH) for these marker genes to find local heterogeneity
 ```{r}
-sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5")
+sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
+                     BPPARAM = MulticoreParam(2))
 ```
 
 ```{r, fig.width=9, fig.height=9}
 plotLocalResult(sfe, type = "LOSH", features = genes_use, 
-                colGeometryName = "centroids", ncol = 3, size = 0.1)
+                colGeometryName = "centroids", ncol = 3, scattermore = TRUE, 
+                pointsize = 0.3)
 ```
 
 Again, just like in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes), LOSH is higher where the gene is more highly expressed in some (e.g. CD3E, LUM, TENT5C) but not all cases (e.g. FOXA1, GATA3). This may be due to spatial distribution of different cell types.
