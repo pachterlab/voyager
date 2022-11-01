@@ -182,6 +182,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #' @param name_false Character, name to show on the legend for cells or genes
 #'   indicated \code{FALSE} in the \code{subset} argument.
 #' @importFrom ggplot2 geom_bin2d geom_hex
+#' @importFrom stats reshape
 #' @export
 #' @return A ggplot object
 #' @name plotColDataBin2D

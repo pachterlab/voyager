@@ -629,6 +629,7 @@ plotCellBin2D <- function(sfe, bins = 200, binwidth = NULL, hex = FALSE) {
     bin_fun <- if (hex) geom_hex else geom_bin2d
     df <- as.data.frame(spatialCoords(sfe))
     names(df) <- c("x", "y")
+    x <- y <- NULL
     ggplot(df, aes(x, y)) +
         bin_fun(bins = bins, binwidth = binwidth) +
         scale_fill_distiller(palette = "Blues", direction = 1) +
