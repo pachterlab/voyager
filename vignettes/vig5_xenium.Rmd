@@ -39,7 +39,6 @@ library(ggplot2)
 library(stringr)
 library(scater) # devel version of plotExpression
 library(scuttle)
-library(ggforce)
 library(tidyselect)
 library(BiocParallel)
 library(BiocSingular)
@@ -272,19 +271,6 @@ The counts are low, mostly 0, but there are outliers with up to 10 counts of all
 
 The `scuttle` package can detect outliers, but by default it says anything above 0 is an outlier, since they are over 3 median absolute deviations (MADs) away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But it makes sense to allow a small proportion of negative controls. Here we use the distribution just for cells with at least 1 negative control count to find outliers. This distribution has a very long tail and some definite outliers.
 
-Are cells that are outliers in one type of negative control also outliers in other negative controls?
-
-```{r}
-ggplot(as.data.frame(colData(sfe))) +
-    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
-    geom_autodensity() +
-    scale_fill_viridis_c() +
-    facet_matrix(vars(ends_with("_percent")), layer.diag = 2) +
-    theme_bw()
-```
-
-It seems that sometimes yes, but largely no, hence the bins along x = 0 and y = 0 outside the last row and column (sum of all types of negative controls).
-
 Here we get those outliers, based only on cells with at least 1 negative control count
 
 ```{r}
@@ -337,17 +323,7 @@ inds_keep <- sfe$nCounts > 0 & sfe$nucleus_area < 400 & !sfe$is_anti_outlier &
 (sfe <- sfe[,inds_keep])
 ```
 
-Over 1000 cells were removed. Among non-outliers, how do counts from different types of negative controls relate to each other?
-```{r}
-ggplot(as.data.frame(colData(sfe))) +
-    geom_hex(aes(x = .panel_x, y = .panel_y), bins = 50) +
-    geom_autodensity() +
-    scale_fill_viridis_c() +
-    facet_matrix(vars(ends_with("_percent")), layer.diag = 2) +
-    theme_bw()
-```
-
-The bin with the highest counts (yellow) is at the origin, the plot shows rays, possibly from the small number of counts.
+Over 1000 cells were removed. 
 
 How many negative control features are detected per cell?
 ```{r}
