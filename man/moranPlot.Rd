@@ -14,10 +14,15 @@ moranPlot(
   colGeometryName = NULL,
   annotGeometryName = NULL,
   plot_singletons = TRUE,
+  binned = FALSE,
   filled = FALSE,
   divergent = FALSE,
   diverge_center = NULL,
   show_symbol = TRUE,
+  bins = 100,
+  binwidth = NULL,
+  hex = FALSE,
+  plot_influential = TRUE,
   ...
 )
 }
@@ -55,6 +60,9 @@ annotate the gene expression plot.}
 \item{plot_singletons}{Logical, whether to plot items that don't have spatial
 neighbors.}
 
+\item{binned}{Logical, whether to plot 2D histograms. This argument has
+precedence to \code{filled}.}
+
 \item{filled}{Logical, whether to plot filled contours for the
 non-influential points and only plot influential points as points.}
 
@@ -66,6 +74,18 @@ palette should diverge. If \code{NULL}, then not centering.}
 \item{show_symbol}{Logical, whether to show human readable gene symbol on the
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+
+\item{bins}{Numeric vector giving number of bins in both vertical and
+horizontal directions. Set to 100 by default.}
+
+\item{binwidth}{Numeric vector giving bin width in both vertical and
+horizontal directions. Overrides \code{bins} if both set.}
+
+\item{hex}{Logical, whether to use hexagon rather than rectangular bins.
+Requires the \code{hexbin} package.}
+
+\item{plot_influential}{Logical, whether to plot influential points with
+different palette if \code{binned = TRUE}.}
 
 \item{...}{Other arguments to pass to \code{\link{geom_density2d}}.}
 }

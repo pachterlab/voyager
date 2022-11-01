@@ -18,7 +18,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", fig.align = "center", eval = FALSE
 )
 ```
 
@@ -48,10 +48,6 @@ theme_set(theme_void())
 (sfe <- HeNSCLCData())
 ```
 
-```{r}
-sfe
-```
-
 Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
 ```{r}
 ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
@@ -64,13 +60,7 @@ With single cell resolution, a lot of the details can be seen, although there's 
 
 Plot cell density
 ```{r}
-as.data.frame(spatialCoords(sfe)) |> 
-    ggplot(aes(CenterX_global_px, CenterY_global_px)) +
-    geom_hex(bins = 200) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
-    theme_bw() + coord_equal() +
-    scale_x_continuous(expand = expansion()) +
-    scale_y_continuous(expand = expansion())
+plotCellBin2D(sfe) + theme_bw()
 ```
 
 # Quality control (QC)
@@ -85,11 +75,13 @@ names(colData(sfe))
 ```
 Cell area, aspect ratio, marker and stain intensities, i.e. all columns before "sample_id" come from Nanostring's website. The `sf` package can compute areas of the cell polygons. In R, the `EBImage` package can compute more morphological metrics such as aspect ratio, eccentricity, orientation, and etc., but it requires the data to be converted to raster. OpenCV can compute more morphological metrics for polygons without converting to raster, but it needs to be called from Python or C++. Since the math behind many basic morphological metrics is pretty simple, we may add those to `Voyager` in a future version.
 
+Since plotting 100,000 polygons is slow and the plot isn't large enough for us to see the polygons anyway, we use [`scattermore`](https://github.com/exaexa/scattermore) to rasterize the plot to speed up plotting. Instead of plotting every single point, now `ggplot` merely displays a rasterized image.
 ```{r}
 # Function to plot violin plot for distribution and spatial at once
 plot_violin_spatial <- function(sfe, feature) {
-    violin <- plotColData(sfe, feature)
-    spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "cellSeg")
+    violin <- plotColData(sfe, feature, point_fun = function(...) list())
+    spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "centroids",
+                                  scattermore = TRUE)
     violin + spatial +
         plot_layout(widths = c(1, 2))
 }
@@ -108,16 +100,16 @@ To make nCounts and nGenes more comparable across datasets, we divide them by th
 
 ```{r}
 n_panel <- 960
+colData(sfe)$nCounts_normed <- sfe$nCounts/n_panel
+colData(sfe)$nGenes_normed <- sfe$nGenes/n_panel
 ```
 
 ```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nCounts/n_panel)) +
-    geom_histogram(bins = 100) +
+plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed")) +
     theme_bw()
 ```
 
-This means the cells mostly have less than 1 transcript count per gene on average, which is not surprising since not all cells express all genes.
+This means the cells mostly have less than 1 transcript count per gene on average, which is not surprising since not all cells express all genes. Most cells are detected to express less than 30% of all genes probed.
 
 Number of genes (out of 980) detected per cell
 ```{r, fig.width=8, fig.height=4}
@@ -130,22 +122,9 @@ summary(sfe$nGenes)
 
 Based on the spatial plot, it seems that nCounts and nGenes are biologically relevant, but there are cells with no transcripts detected. 
 
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nGenes/n_panel)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-This means most cells are detected to express less than 30% of all genes probed.
-
 How nCounts relates to nGenes
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(nCounts, nGenes)) +
-    geom_bin2d(bins = 100) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
+plotColDataBin2D(sfe, "nCounts", "nGenes") +
     theme_bw()
 ```
 
@@ -174,12 +153,7 @@ Larger cells are more likely to be found in certain areas of the tissue. It coul
 
 How does area relate to total counts?
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(nCounts, Area)) +
-    geom_bin2d(bins = 100) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
-    theme_bw()
+plotColDataBin2D(sfe, "nCounts", "Area") + theme_bw()
 ```
 
 While there may vaguely seem that cells with more total counts tend to be larger (at least in this z-plane), there are some cells that are large but have low total counts.
@@ -197,27 +171,17 @@ plot_violin_spatial(sfe, "prop_neg")
 ```
 
 The NA's are empty cells, and the proportion is very low except for a few outliers. How does prop_neg relate to nCounts?
-```{r}
-plotColData(sfe, x = "nCounts", y = "prop_neg")
-```
 
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(nCounts, prop_neg)) +
-    geom_bin2d(bins = 100) +
-    scale_fill_viridis_c(trans = "log10") +
-    theme_bw()
+plotColDataBin2D(sfe, "nCounts", "prop_neg") +
+    scale_fill_viridis_c() + theme_bw()
 ```
 
 This looks kind of like the proportion of mitochondrial counts vs. nCounts plot for scRNA-seq, where cells with fewer total counts tend to have higher proportion of mitochondrial counts.
 ```{r}
 # The zeros are removed
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(prop_neg)) +
-    geom_histogram(bins = 100) +
+plotColDataHistogram(sfe, "prop_neg") +
     scale_x_log10() +
-    annotation_logticks(sides = "b") +
     theme_bw()
 ```
 
@@ -236,32 +200,30 @@ Nanostring provides some cell stain and marker intensities in the cell metadata.
 names(colData(sfe))
 ```
 
-Here we plot aspect ratio and mean intensity of cells stains and markers, which have not been plotted before. PanCK is a marker for epithelial cells. CD45 is a leukocyte marker. CD3 is a T cell marker. This plot takes a while to show since it would take any program quite a while to plot over 100,000 polygons 6 times.
-```{r, fig.width=6, fig.height=6}
+Here we plot aspect ratio and mean intensity of cells stains and markers, which have not been plotted before. PanCK is a marker for epithelial cells. CD45 is a leukocyte marker. CD3 is a T cell marker. Since it takes quite a while to plot 100,000 cells 6 times, `scattermore` really helps.
+```{r, fig.width=10, fig.height=9}
 plotSpatialFeature(sfe, c("AspectRatio", "Mean.DAPI", "Mean.MembraneStain", 
                           "Mean.PanCK", "Mean.CD45", "Mean.CD3"),
-                   colGeometryName = "cellSeg", ncol = 2)
+                   colGeometryName = "centroids", ncol = 2, scattermore = TRUE)
 ```
 
 ## Genes
 ```{r}
 rowData(sfe)$means <- rowMeans(counts(sfe))
 rowData(sfe)$vars <- rowVars(counts(sfe))
+rowData(sfe)$is_neg <- neg_inds
 ```
 
 ```{r}
-as.data.frame(rowData(sfe)) |> 
-    ggplot(aes(means, vars)) +
-    geom_bin2d(bins = 50) +
+plotRowDataBin2D(sfe, "means", "vars", subset = "is_neg", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
     annotation_logticks() +
     coord_equal() +
     theme_bw()
 ```
 
-The red line $y = x$ is expected from Poisson data. Gene expression in this dataset has more variance than expected from Poisson, even for gene with lower expression. How about for the negative controls?
+The red line $y = x$ is expected from Poisson data. Gene expression in this dataset has more variance than expected from Poisson, even for gene with lower expression. Zoom into the negative controls
 
 ```{r}
 as.data.frame(rowData(sfe)[neg_inds,]) |> 
@@ -278,7 +240,6 @@ Among the "high quality" cells, the negative controls still have higher variance
 
 Negative controls vs. real genes
 ```{r}
-rowData(sfe)$is_neg <- neg_inds
 plotRowData(sfe, x = "means", y = "is_neg") +
     scale_y_log10() +
     annotation_logticks(sides = "b")
@@ -303,7 +264,8 @@ However, data analysis methods for areal and geostatistical data can still be re
 
 Spatial autocorrelation metrics seek to measure how nearby things tend to be more similar or dissimilar, and the neighborhood graph and edge weights define what we mean by "nearby" in areal data. Note that because each Visium spot can contain from several to dozens of cells, the spatial neighborhood graphs of Visium spots describe neighborhood relationships of much longer length scales than spatial neighborhood graphs of single cells, so spatial autocorrelation metrics using the Visium graph have different meanings from cellular neighborhood graphs. 
 
-For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot.
+For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot. In this tissue, many cells appear contiguous, but since cell segmentation is imperfect, there are many false singletons, which makes polygon contiguity neighbors from `poly2nb()` problematic without some modification. But based on the distribution of the number of neighbors based on contiguity, $k = 5$ doesn't seem to be a bad approximate for contiguity.
+
 ```{r}
 system.time(
     colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
@@ -348,8 +310,11 @@ Moran's scatter plot for nCounts.
 sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
-```{r}
-moranPlot(sfe, "nCounts") + theme_bw()
+In the first panel, the density is for all points in this plot, and in the second, the points influential to fitting the line are highlighted in red, still a 2D histogram to avoid overplotting.
+```{r, fig.width=8, fig.height=7}
+p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE)
+p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
+p1 / p2 + plot_layout(guides = "collect") & theme_bw()
 ```
 
 There are no obvious clusters in this plot but the clusters may be obscured by overplotting.
@@ -385,15 +350,17 @@ sfe <- runMoransI(sfe, features = rownames(sfe),
 
 Do real genes tend to have more spatial autocorrelation than negative controls?
 ```{r}
-plotRowData(sfe, x = "moran_sample01", y = "is_neg")
+plotRowData(sfe, x = "moran_sample01", y = "is_neg") +
+    geom_hline(yintercept = 0, linetype = 2)
 ```
 
 It seems that at least at the shorter length scale captured by the k nearest neighbor graph, most genes don't have strong spatial autocorrelation while some have strong positive spatial autocorrelation. In contrast, Moran's I for the negative controls is closely packed around 0, indicating lack of spatial autocorrelation, which is a good sign, that there is no evidence of a technical artifact that manifests as a spatial trend manifest in the negative controls.
 
 What are the genes with the highest Moran's I?
-```{r, fig.width=9, fig.height=7}
-top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
-plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg")
+```{r, fig.width=9, fig.height=9}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:6]]
+plotSpatialFeature(sfe, top_moran, colGeometryName = "centroids", 
+                   scattermore = TRUE, ncol = 2)
 ```
 
 They all highlight the same epithelial regions. It could be that other regions are not as spatially organized, or that a short length scale is used for Moran's I here but the correlogram shows that Moran's I decays after the first order neighbors. I wonder how using a longer length scale would change the results.
@@ -413,8 +380,8 @@ plotDimLoadings(sfe, dims = 1:6) + theme_bw()
 ```
 
 ```{r, fig.width=9, fig.height=9}
-spatialReducedDim(sfe, "PCA", 6, colGeometryName = "cellSeg", divergent = TRUE,
-                  diverge_center = 0, ncol = 2)
+spatialReducedDim(sfe, "PCA", 6, colGeometryName = "centroids", divergent = TRUE,
+                  diverge_center = 0, ncol = 2, scattermore = TRUE)
 ```
 
 The first PC highlights the epithelium. PC2 highlights T cells. PC4 might highlight other leukocytes. Need to check the genes with the highest loadings to find what the other PCs mean.
@@ -465,14 +432,14 @@ It's already sorted by p-values
 markers[[6]]
 ```
 
-Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points.
+Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points, which are uninformative due to overplotting and make this plot really slow.
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
 plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
-```{r, fig.width=6, fig.height=6}
+```{r, fig.width=6, fig.height=7}
 genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
 plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
 ```
@@ -480,7 +447,8 @@ plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_
 # Local spatial statistics of marker genes
 Plot those genes in space
 ```{r, fig.width=8, fig.height=12}
-plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg", ncol = 2)
+plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 2,
+                   scattermore = TRUE)
 ```
 
 Moran's I of these marker genes
@@ -497,8 +465,8 @@ sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "kn
 
 ```{r, fig.width=8, fig.height=12}
 plotLocalResult(sfe, type = "localmoran", features = genes_use, 
-                colGeometryName = "cellSeg", ncol = 2, divergent = TRUE,
-                diverge_center = 0)
+                colGeometryName = "centroids", ncol = 2, divergent = TRUE,
+                diverge_center = 0, scattermore = TRUE)
 ```
 
 It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous.
@@ -511,7 +479,7 @@ sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
 
 ```{r, fig.width=8, fig.height=12}
 plotLocalResult(sfe, type = "LOSH", features = genes_use, 
-                colGeometryName = "cellSeg", ncol = 2)
+                colGeometryName = "centroids", ncol = 2, scattermore = TRUE)
 ```
 
 Some genes are more heterogeneous where they are also more highly expressed, such as COLA1 and IGKC. However this is not the case for all genes. For example, MZT2A is quite ubiqiutously experssed, but is more heterogeneous in some regions than others, and KRT19 does not seem to be much more heterogeneous where it's more highly expressed. For MZT2A, LOSH picked up the artifact of the edges of the FOVs, although this is not apparent for other genes plotted here. Here we don't have information on which cell belongs to which FOV, but FOV edge effects should be considered in data normalization. It would be interesting to more systematically see how LOSH relates to gene expression across more genes, and how this differs in cell types and gene functions.

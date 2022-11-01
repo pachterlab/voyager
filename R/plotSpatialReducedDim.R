@@ -37,7 +37,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
                               annot_divergent = FALSE,
                               annot_diverge_center = NULL,
                               size = 0, shape = 16, linetype = 1, alpha = 1,
-                              color = NA, fill = "gray80", ...) {
+                              color = NA, fill = "gray80", scattermore = FALSE,
+                              pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(ncomponents) == 1L) {
@@ -53,7 +54,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
         divergent, diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linetype,
         alpha, color, fill,
-        show_symbol = FALSE, ...
+        show_symbol = FALSE, scattermore = scattermore, pointsize = pointsize,
+        ...
     )
     if (is(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)

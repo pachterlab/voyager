@@ -27,6 +27,8 @@ plotSpatialFeature(
   color = NA,
   fill = "gray80",
   show_symbol = TRUE,
+  scattermore = FALSE,
+  pointsize = 0,
   ...
 )
 }
@@ -110,11 +112,22 @@ specified or not applicable, or for \code{annotGeometry} if
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 
+\item{scattermore}{Logical, whether to use the \code{scattermore} package to
+greatly speed up plotting numerous points. Only used for POINT
+\code{colGeometries}. If the geometry is not POINT, then the centroids are
+used. Recommended for plotting hundreds of thousands or more cells where
+the cell polygons can't be seen when plotted due to the large number of
+cells and small plot size such as when plotting multiple panels for
+multiple features.}
+
+\item{pointsize}{Radius of rasterized point in \code{scattermore}. Default to
+0 for single pixels (fastest).}
+
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
 \value{
 A \code{ggplot2} object if plotting one feature. A \code{patchwork}
-object if plotting multiple features.
+  object if plotting multiple features.
 }
 \description{
 Unlike \code{Seurat} and \code{ggspavis}, plotting functions in this package

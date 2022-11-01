@@ -5,6 +5,7 @@ library(SingleCellExperiment)
 library(vdiffr)
 library(scater)
 library(Matrix)
+library(ggplot2)
 # Toy example
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
@@ -345,4 +346,131 @@ test_that("When a gene symbol rowname is not a valid R object name", {
                         plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
                                         colGeometryName = "spotPoly",
                                         show_symbol = FALSE))
+})
+
+# scattermore
+library(sf)
+sfe_cosmx <- HeNSCLCData()
+bbox_use <- st_bbox(colGeometry(sfe_cosmx, "centroids"))
+annot <- data.frame(x = c(bbox_use[c("xmin", "xmax")]),
+                    y = c(bbox_use[c("ymax", "ymin")]),
+                    ID = 1)
+annot <- df2sf(annot, geometryType = "LINESTRING")
+annotGeometry(sfe_cosmx, "foo") <- annot
+sfe_cosmx <- sfe_cosmx[, sfe_cosmx$nCounts > 10]
+sfe_cosmx <- logNormCounts(sfe_cosmx)
+test_that("scattermore in plotSpatialFeature", {
+    expect_doppelganger("Plot colData with scattermore", {
+        plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Plot multiple colData columns", {
+        plotSpatialFeature(sfe_cosmx, c("nCounts", "nGenes"),
+                           colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Divergent scale with scattermore", {
+        plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
+                           divergent = TRUE, scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Gene expression", {
+        plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
+                           scattermore = TRUE, size = 0)
+    })
+    expect_doppelganger("Also plot annotGeometry", {
+        plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
+                           annotGeometryName = "foo", scattermore = TRUE,
+                           size = 0)
+    })
+    expect_warning(plotSpatialFeature(sfe_cosmx, "nCounts",
+                                      colGeometryName = "cellSeg",
+                                      scattermore = TRUE),
+                   "Using centroids.")
+})
+
+localResult(sfe_cosmx, "localG", "KRT19") <- seq_len(ncol(sfe_cosmx))
+test_that("Use scattermore in plotLocalResult", {
+    expect_doppelganger("scattermore plotLocalResult", {
+        plotLocalResult(sfe_cosmx, "localG", "KRT19",
+                        colGeometryName = "centroids", scattermore = TRUE,
+                        size = 0)
+    })
+})
+
+fake_pca <- as.matrix(t(logcounts(sfe_cosmx)[c("KRT19", "COL1A1"),]))
+colnames(fake_pca) <- c("PC1", "PC2")
+reducedDim(sfe_cosmx, "PCA") <- fake_pca
+test_that("Use scattermore in spatialReducedDim", {
+    expect_doppelganger("scattermore spatialReducedDim", {
+        spatialReducedDim(sfe_cosmx, "PCA", 2, scattermore = TRUE)
+    })
+})
+
+rowData(sfe_cosmx)$is_neg <- grepl("^NegPrb", rownames(sfe_cosmx))
+test_that("colData and rowData bin2d", {
+    expect_doppelganger("colData bin2d", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
+    })
+    expect_doppelganger("colData bin2d with hexbin", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
+    })
+    expect_doppelganger("rowData bin2d", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+    expect_doppelganger("rowData bin2d with subset", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
+                         name_true = "Counts (negative controls)",
+                         name_false = "Counts (real genes)", bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+    expect_doppelganger("rowData bin2d with subset and default legend", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
+                         bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+})
+
+test_that("colData and rowData histograms", {
+    expect_doppelganger("colData histogram, one variable", {
+        plotColDataHistogram(sfe_cosmx, "nCounts")
+    })
+    expect_doppelganger("colData histogram, multiple variables", {
+        plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
+    })
+    expect_doppelganger("One variable, fill_by", {
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg")
+    })
+    expect_doppelganger("Multiple variables, fill_by", {
+        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg")
+    })
+    expect_doppelganger("with subset", {
+        plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
+    })
+})
+
+test_that("plotCellBin2D", {
+    expect_doppelganger("Cell density, rectangular", {
+        plotCellBin2D(sfe_cosmx, bins = 50)
+    })
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
+    })
+})
+
+sfe_muscle2 <- McKellarMuscleData()
+sfe_muscle2 <- sfe_muscle2[, sfe_muscle2$in_tissue]
+colGraph(sfe_muscle2, "visium") <- findVisiumGraph(sfe_muscle2)
+sfe_muscle2 <- colDataUnivariate(sfe_muscle2, "moran.plot", "nCounts")
+test_that("Moran plot bin2d", {
+    expect_doppelganger("Moran plot rectangular bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30)
+    })
+    expect_doppelganger("Moran plot don't plot influential", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
+                  plot_influential = FALSE)
+    })
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
 })

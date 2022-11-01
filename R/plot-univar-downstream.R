@@ -54,6 +54,51 @@
     p
 }
 
+.moran_ggplot_bin2d <- function(mp, feature, is_singleton, 
+                                plot_singletons = TRUE, bins = 100, 
+                                binwidth = NULL, hex = FALSE, 
+                                plot_influential = TRUE) {
+    if (!plot_singletons) {
+        mp <- mp[!is_singleton, ]
+    }
+    x <- wx <- is_inf <- NULL
+    if (all(!is_singleton) && plot_singletons) plot_singletons <- FALSE
+    bin_fun <- if (hex) geom_hex else geom_bin2d
+    p <- ggplot(mapping = aes(x = x, y = wx))
+        
+    if (plot_influential) {
+        p <- p + 
+            bin_fun(bins = bins, binwidth = binwidth, data = mp[!mp$is_inf, ]) +
+            scale_fill_distiller(palette = "Blues", direction = 1) +
+            new_scale_fill() +
+            bin_fun(bins = bins, binwidth = binwidth, data = mp[mp$is_inf, ]) +
+            scale_fill_distiller(palette = "Reds", direction = 1,
+                                 name = "count (influential)")
+    } else {
+        p <- p + bin_fun(bins = bins, binwidth = binwidth, data = mp) +
+            scale_fill_distiller(palette = "Blues", direction = 1)
+    }
+        
+    if (plot_singletons) {
+        p <- p +
+            geom_point(
+                data = mp[is_singleton, ], shape = 21, size = 5, fill = "gray",
+                color = "black", alpha = 0.3
+            )
+    }
+    p <- p +
+        geom_smooth(formula = y ~ x, method = "lm", data = mp) +
+        geom_hline(yintercept = mean(mp$wx), lty = 2, color = "gray") +
+        geom_vline(xintercept = mean(mp$x), lty = 2, color = "gray") +
+        scale_shape_manual(values = c(1, 9)) +
+        coord_equal() +
+        labs(
+            x = feature,
+            y = paste("Spatially lagged", feature)
+        )
+    p
+}
+
 .moran_ggplot_filled <- function(mp, feature, is_singleton, color_by = NULL,
                                  plot_singletons = TRUE, divergent = FALSE,
                                  diverge_center = NULL, ...) {
@@ -112,6 +157,7 @@
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
 #' @inheritParams calculateUnivariate
+#' @inheritParams plotColDataBin2D
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
@@ -126,6 +172,8 @@
 #'   neighbors.
 #' @param filled Logical, whether to plot filled contours for the
 #'   non-influential points and only plot influential points as points.
+#' @param binned Logical, whether to plot 2D histograms. This argument has
+#'   precedence to \code{filled}.
 #' @param graphName Name of the \code{colGraph} or \code{annotGraph}, the
 #'   spatial neighborhood graph used to compute the Moran plot. This is to
 #'   determine which points are singletons to plot differently on this plot.
@@ -134,6 +182,8 @@
 #' @param show_symbol Logical, whether to show human readable gene symbol on the
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
+#' @param plot_influential Logical, whether to plot influential points with
+#'   different palette if \code{binned = TRUE}.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
@@ -159,9 +209,10 @@
 moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
-                      plot_singletons = TRUE,
+                      plot_singletons = TRUE, binned = FALSE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      show_symbol = TRUE, ...) {
+                      show_symbol = TRUE, bins = 100, binwidth = NULL, 
+                      hex = FALSE, plot_influential = TRUE, ...) {
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     use_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
@@ -215,7 +266,11 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     listw <- spatialGraph(sfe, type = graphName, MARGIN = mar,
                           sample_id = sample_id)
     is_singleton <- vapply(listw$neighbours, min, FUN.VALUE = integer(1)) == 0L
-    if (filled) {
+    if (binned) {
+        .moran_ggplot_bin2d(mp, feature, is_singleton, plot_singletons,
+                            bins = bins, binwidth = binwidth, hex = hex,
+                            plot_influential = plot_influential)
+    } else if (filled) {
         .moran_ggplot_filled(
             mp, feature, is_singleton, color_by, plot_singletons,
             divergent, diverge_center, ...
