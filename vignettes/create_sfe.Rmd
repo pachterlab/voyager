@@ -121,8 +121,8 @@ For 10x Genomics' new single cell resolution technology Xenium, the gene count m
 ```{r, eval=FALSE}
 library(DropletUtils)
 library(arrow)
-sce <- read10xCounts("Xenium_FFPE_Human_Breast_Cancer_Rep2_cell_feature_matrix.h5")
-cell_info <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep2_cells.parquet")
+sce <- read10xCounts("Xenium_FFPE_Human_Breast_Cancer_Rep1_cell_feature_matrix.h5")
+cell_info <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep1_cells.parquet")
 # Add the centroid coordinates to colData
 colData(sce) <- cbind(colData(sce), cell_info[,-1])
 spe <- toSpatialExperiment(sce, spatialCoordsNames = c("x_centroid", "y_centroid"))
