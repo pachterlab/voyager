@@ -122,3 +122,130 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
         scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
         labs(x = "Loading", y = "Gene")
 }
+
+.plot_dimdata_bin2d_fun <- function(fun) {
+    function(sfe, x, y, subset = NULL, bins = 100, binwidth = NULL, 
+             hex = FALSE, name_true = NULL, name_false = NULL) {
+        bin_fun <- if (hex) geom_hex else geom_bin2d
+        df <- as.data.frame(fun(sfe))
+        p <- ggplot()
+        if (is.null(subset)) {
+            p <- p +
+                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                        data = df) +
+                scale_fill_distiller(palette = "Blues", direction = 1)
+        } else {
+            name_subset <- subset
+            subset <- df[[subset]]
+            if (anyNA(as.logical(subset))) {
+                stop("Column ", subset, " must be coerceable to logical.")
+            }
+            name_true <- name_true %||% name_subset
+            name_false <- name_false %||% paste0("!", name_subset)
+            p <- p +
+                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                        data = df[!subset,]) +
+                scale_fill_distiller(palette = "Blues", direction = 1,
+                                     name = name_false) +
+                new_scale_fill() +
+                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                        data = df[subset,]) +
+                scale_fill_distiller(palette = "Reds", direction = 1,
+                                     name = name_true)
+        }
+        p
+    }
+}
+
+#' Plot colData and rowData with 2D histograms
+#'
+#' To avoid overplotting in large datasets. The 2D histogram is more informative
+#' of point density on the plot than the scatter plot where there are so many
+#' points plotted that they effectively form a solid block.
+#'
+#' @inheritParams ggplot2::geom_bin2d
+#' @param sfe A \code{SpatialFeatureExperiment} object.
+#' @param x Name of the column in \code{colData} or \code{rowData} to plot on
+#'   the x axis of the plot.
+#' @param y Name of the column in \code{colData} or \code{rowData} to plot on
+#'   the y axis of the plot.
+#' @param bins Numeric vector giving number of bins in both vertical and
+#'   horizontal directions. Set to 100 by default.
+#' @param subset Name of a logical column in \code{colData} or \code{rowData},
+#'   indicating cells or genes to plot with a different palette. Since the 2D
+#'   histogram is effectively an opaque heatmap, don't use this argument unless
+#'   the two groups are largely non-overlapping in the variables being plotted.
+#' @param hex Logical, whether to use hexagon rather than rectangular bins.
+#'   Requires the \code{hexbin} package.
+#' @param name_true Character, name to show on the legend for cells or genes
+#'   indicated \code{TRUE} in the \code{subset} argument.
+#' @param name_false Character, name to show on the legend for cells or genes
+#'   indicated \code{FALSE} in the \code{subset} argument.
+#' @importFrom ggplot2 geom_bin2d geom_hex
+#' @export
+#' @return A ggplot object
+#' @name plotColDataBin2D
+#' @examples
+#' library(SFEData)
+#' sfe <- McKellarMuscleData()
+#' sfe <- sfe[, sfe$in_tissue]
+#' plotColDataBin2D(sfe, "nCounts", "nGenes")
+plotColDataBin2D <- .plot_dimdata_bin2d_fun(colData)
+
+#' @rdname plotColDataBin2D
+#' @export
+plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
+
+.plot_dimdata_hist <- function(fun) {
+    function(sfe, feature, fill_by = NULL, subset = NULL, bins = 100, binwidth = NULL,
+             scales = "free", ncol = 1, position = "identity") {
+        df <- as.data.frame(fun(sfe))[, c(feature, fill_by, subset), drop = FALSE]
+        if (!is.null(subset)) df <- df[df[[subset]],]
+        p <- ggplot()
+        if (length(feature) > 1L) {
+            df <- reshape(df, varying = feature, direction = "long",
+                          v.names = "values", timevar = "variable",
+                          times = feature)
+            aes_use <- do.call(aes_string, as.list(c(x = "values", fill = fill_by)))
+            p <- p +
+                geom_histogram(data = df, mapping = aes_use, bins = bins, 
+                               binwidth = binwidth, position = position) +
+                facet_wrap(~ variable, scales = scales, ncol = ncol)
+        } else {
+            aes_use <- do.call(aes_string, as.list(c(x = feature, fill = fill_by)))
+            p <- p +
+                geom_histogram(data = df, mapping = aes_use, bins = bins, 
+                               binwidth = binwidth, position = position)
+        }
+        p
+    }
+}
+
+#' Plot histograms for colData and rowData columns
+#'
+#' @inheritParams plotColDataBin2D
+#' @inheritParams ggplot2::facet_wrap
+#' @inheritParams ggplot2::geom_histogram
+#' @param feature Names of columns in \code{colData} or \code{rowData} to plot.
+#'   When multiple features are specified, they will be plotted in separate
+#'   facets.
+#' @param ncol Number of columns in the facetting.
+#' @param fill_by Name of a categorical column in \code{colData} or
+#'   \code{rowData} to fill the histogram.
+#' @param subset Name of a logical column to only plot a subset of the data.
+#' @return A ggplot object
+#' @importFrom rlang %||%
+#' @export
+#' @examples 
+#' library(SFEData)
+#' sfe <- McKellarMuscleData()
+#' plotColDataHistogram(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",
+#'                      bins = 50)
+#' plotColDataHistogram(sfe, "nCounts", subset = "in_tissue")
+#' sfe2 <- sfe[, sfe$in_tissue]
+#' plotColDataHistogram(sfe2, c("nCounts", "nGenes"), bins = 50)
+plotColDataHistogram <- .plot_dimdata_hist(colData)
+
+#' @rdname plotColDataHistogram
+#' @export
+plotRowDataHistogram <- .plot_dimdata_hist(rowData)
