@@ -448,3 +448,25 @@ test_that("colData and rowData histograms", {
         plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
     })
 })
+
+test_that("plotCellBin2D", {
+    expect_doppelganger("Cell density, rectangular", {
+        plotCellBin2D(sfe_cosmx)
+    })
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE)
+    })
+})
+
+sfe_muscle2 <- McKellarMuscleData()
+sfe_muscle2 <- sfe_muscle2[, sfe_muscle2$in_tissue]
+colGraph(sfe_muscle2, "visium") <- findVisiumGraph(sfe_muscle2)
+sfe_muscle2 <- colDataUnivariate(sfe_muscle2, "moran.plot", "nCounts")
+test_that("Moran plot bin2d", {
+    expect_doppelganger("Moran plot rectangular bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30)
+    })
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
+})

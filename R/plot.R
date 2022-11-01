@@ -612,3 +612,28 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
         ncol = ncol, weights = weights
     )
 }
+
+#' Plot cell density as 2D histogram
+#' 
+#' This function plots cell density in histological space as 2D histograms, 
+#' especially helpful for larger smFISH-based datasets.
+#' 
+#' @inheritParams plotColDataBin2D
+#' @return A ggplot object.
+#' @export
+#' @examples 
+#' library(SFEData)
+#' sfe <- HeNSCLCData()
+#' plotCellBin2D(sfe)
+plotCellBin2D <- function(sfe, bins = 200, binwidth = NULL, hex = FALSE) {
+    bin_fun <- if (hex) geom_hex else geom_bin2d
+    df <- as.data.frame(spatialCoords(sfe))
+    names(df) <- c("x", "y")
+    ggplot(df, aes(x, y)) +
+        bin_fun(bins = bins, binwidth = binwidth) +
+        scale_fill_distiller(palette = "Blues", direction = 1) +
+        coord_equal() +
+        scale_x_continuous(expand = expansion()) +
+        scale_y_continuous(expand = expansion()) +
+        labs(x = NULL, y = NULL)
+}
