@@ -5,6 +5,7 @@ library(SingleCellExperiment)
 library(vdiffr)
 library(scater)
 library(Matrix)
+library(ggplot2)
 # Toy example
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
@@ -402,5 +403,48 @@ reducedDim(sfe_cosmx, "PCA") <- fake_pca
 test_that("Use scattermore in spatialReducedDim", {
     expect_doppelganger("scattermore spatialReducedDim", {
         spatialReducedDim(sfe_cosmx, "PCA", 2, scattermore = TRUE)
+    })
+})
+
+rowData(sfe_cosmx)$is_neg <- grepl("^NegPrb", rownames(sfe_cosmx))
+test_that("colData and rowData bin2d", {
+    expect_doppelganger("colData bin2d", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
+    })
+    expect_doppelganger("colData bin2d with hexbin", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
+    })
+    expect_doppelganger("rowData bin2d", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+    expect_doppelganger("rowData bin2d with subset", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
+                         name_true = "Counts (negative controls)",
+                         name_false = "Counts (real genes)", bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+    expect_doppelganger("rowData bin2d with subset and default legend", {
+        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
+                         bins = 50) +
+            scale_x_log10() + scale_y_log10()
+    })
+})
+
+test_that("colData and rowData histograms", {
+    expect_doppelganger("colData histogram, one variable", {
+        plotColDataHistogram(sfe_cosmx, "nCounts")
+    })
+    expect_doppelganger("colData histogram, multiple variables", {
+        plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
+    })
+    expect_doppelganger("One variable, fill_by", {
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg")
+    })
+    expect_doppelganger("Multiple variables, fill_by", {
+        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg")
+    })
+    expect_doppelganger("with subset", {
+        plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
     })
 })
