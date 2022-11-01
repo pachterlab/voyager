@@ -57,7 +57,9 @@ The dataset used in this vignette is from the paper [Large-scale integration of 
 
 The gene count matrix was directly downloaded [from GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4904759). All 4992 spots, whether in tissue or not, are included. The tissue boundary was found by thresholding the H&E image in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The `in_tissue` column in `colData` indicates which spot polygons intersect the tissue polygons, and is based on `st_intersects()`. 
 
-Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. See [the vignette of `SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html) for more details on the structure of the SFE object. The SFE object of this dataset is provided in the `SFEData` package; we begin by downloading the data and loading it into R.
+Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` data frames in the SFE object. The Visium spot polygons are called "spotPoly" in this SFE object. The `SpatialFeatureExperiment` package has a few convenience wrappers to get and set common types of geometries, including `spotPoly()` for Visium (or other technologies when relevant) spot polygons, `cellSeg()` for cell segmentation, `nucSeg()` for nuclei segmentation, and `centroids()` for cell centroids. Behind the scene are specially named `sf` data frames. See [the vignette of `SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html) for more details on the structure of the SFE object. 
+
+The SFE object of this dataset is provided in the `SFEData` package; we begin by downloading the data and loading it into R.
 
 ```{r}
 (sfe <- McKellarMuscleData("full"))
