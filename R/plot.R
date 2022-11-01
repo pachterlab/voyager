@@ -145,7 +145,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
-                         ncol_sample) {
+                         ncol_sample, scattermore) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -188,13 +188,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if ("fill" %in% names(feature_aes) && is_annot_filled) {
         p <- p + new_scale_fill()
     }
-    aes_use <- do.call(aes_string, feature_aes)
-    geom_use <- do.call(geom_sf, c(
-        list(mapping = aes_use, data = df),
-        feature_fixed
-    ))
+    if (scattermore) {
+        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y"), feature_aes))
+        geom_use <- do.call(scattermore::geom_scattermore,
+                            c(list(mapping = aes_use, data = df),
+                              feature_fixed))
+    } else {
+        aes_use <- do.call(aes_string, feature_aes)
+        geom_use <- do.call(geom_sf, c(
+            list(mapping = aes_use, data = df),
+            feature_fixed
+        ))
+    }
     p <- p + geom_use
-
+    if (scattermore) p <- p + coord_equal()
     # Palette
     pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center,
                     name = name_show)
@@ -253,12 +260,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_aes, annot_fixed, size, shape, linetype,
                                 alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
-                                annot_diverge_center, ...) {
+                                annot_diverge_center, scattermore, ...) {
     feature_fixed <- list(
         size = size, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
-    type <- .get_generalized_geometry_type(df)
+    type <- if(scattermore) "POINT" else .get_generalized_geometry_type(df)
     plots <- lapply(names(values), function(n) {
         df[[n]] <- values[[n]]
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
@@ -266,7 +273,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         .plot_var_sf(
             df, annot_df, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
-            annot_divergent, annot_diverge_center, ncol_sample
+            annot_divergent, annot_diverge_center, ncol_sample, scattermore
         )
     })
     if (length(plots) > 1L) {
@@ -277,15 +284,27 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
+#' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
                                 annot_fixed, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, ...) {
+                                alpha, color, fill, scattermore, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    }
+    if (scattermore) {
+        check_installed("scattermore", reason = "to plot points with scattermore")
+        type_df <- .get_generalized_geometry_type(df)
+        if (type_df != "POINT") {
+            warning("scattermore only applies to points. Using centroids.")
+            df_coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(df))))
+        } else {
+            df_coords <- as.data.frame(st_coordinates(df))
+        }
+        df <- cbind(st_drop_geometry(df), df_coords)
     }
     # Will use separate ggplots for each feature so each can have its own color scale
     if (!is.null(annotGeometryName)) {
@@ -299,7 +318,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         df, annot_df, type_annot, values, aes_use,
         annot_aes, annot_fixed, size, shape, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
-        diverge_center, annot_divergent, annot_diverge_center,
+        diverge_center, annot_divergent, annot_diverge_center, scattermore,
         ...
     )
 }
@@ -370,9 +389,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param show_symbol Logical, whether to show human readable gene symbol on the
 #'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 #'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
+#' @param scattermore Logical, whether to use the \code{scattermore} package to
+#'   greatly speed up plotting numerous points. Only used for POINT \code{colGeometries}.
+#'   If the geometry is not POINT, then the centroids are used. Recommended for
+#'   plotting hundreds of thousands or more cells where the cell polygons can't
+#'   be seen when plotted due to the large number of cells and small plot size
+#'   such as when plotting multiple panels for multiple features.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
-#' object if plotting multiple features.
+#'   object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
 #' @importMethodsFrom Matrix t
@@ -417,7 +442,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_diverge_center = NULL,
                                size = 0, shape = 16, linetype = 1, alpha = 1,
                                color = NA, fill = "gray80", show_symbol = TRUE,
-                               ...) {
+                               scattermore = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -431,7 +456,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         annot_fixed, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linetype,
-        alpha, color, fill, ...
+        alpha, color, fill, scattermore, ...
     )
 }
 
@@ -586,4 +611,30 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
         segment_size = segment_size, geometry_size = geometry_size,
         ncol = ncol, weights = weights
     )
+}
+
+#' Plot cell density as 2D histogram
+#' 
+#' This function plots cell density in histological space as 2D histograms, 
+#' especially helpful for larger smFISH-based datasets.
+#' 
+#' @inheritParams plotColDataBin2D
+#' @return A ggplot object.
+#' @export
+#' @examples 
+#' library(SFEData)
+#' sfe <- HeNSCLCData()
+#' plotCellBin2D(sfe)
+plotCellBin2D <- function(sfe, bins = 200, binwidth = NULL, hex = FALSE) {
+    bin_fun <- if (hex) geom_hex else geom_bin2d
+    df <- as.data.frame(spatialCoords(sfe))
+    names(df) <- c("x", "y")
+    x <- y <- NULL
+    ggplot(df, aes(x, y)) +
+        bin_fun(bins = bins, binwidth = binwidth) +
+        scale_fill_distiller(palette = "Blues", direction = 1) +
+        coord_equal() +
+        scale_x_continuous(expand = expansion()) +
+        scale_y_continuous(expand = expansion()) +
+        labs(x = NULL, y = NULL)
 }

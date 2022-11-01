@@ -27,6 +27,7 @@ spatialReducedDim(
   alpha = 1,
   color = NA,
   fill = "gray80",
+  scattermore = FALSE,
   ...
 )
 }
@@ -109,6 +110,13 @@ specified or not applicable, or for \code{annotGeometry} if
 \code{annot_color_by} is not specified or not applicable.}
 
 \item{fill}{Similar to \code{color}, but for fill.}
+
+\item{scattermore}{Logical, whether to use the \code{scattermore} package to
+greatly speed up plotting numerous points. Only used for POINT \code{colGeometries}.
+If the geometry is not POINT, then the centroids are used. Recommended for
+plotting hundreds of thousands or more cells where the cell polygons can't
+be seen when plotted due to the large number of cells and small plot size
+such as when plotting multiple panels for multiple features.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
