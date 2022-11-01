@@ -189,11 +189,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p + new_scale_fill()
     }
     if (scattermore) {
-        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y", 
-                                              pointsize = pointsize), 
+        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y"), 
                                          feature_aes))
         geom_use <- do.call(scattermore::geom_scattermore,
-                            c(list(mapping = aes_use, data = df),
+                            c(list(mapping = aes_use, data = df,
+                                   pointsize = pointsize),
                               feature_fixed))
     } else {
         aes_use <- do.call(aes_string, feature_aes)
