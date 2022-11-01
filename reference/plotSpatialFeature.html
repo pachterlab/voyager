@@ -12,7 +12,7 @@ uses geom_sf whenever applicable."><!-- mathjax --><script src="https://cdnjs.cl
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.11</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,9 @@ uses geom_sf whenever applicable."><!-- mathjax --><script src="https://cdnjs.cl
     <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
     <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
+    <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
+    <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -89,6 +91,8 @@ uses <code>geom_sf</code> whenever applicable.</p>
 <span>  color <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fill <span class="op">=</span> <span class="st">"gray80"</span>,</span>
 <span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scattermore <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  pointsize <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -218,6 +222,21 @@ plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></dd>
 
 
+<dt>scattermore</dt>
+<dd><p>Logical, whether to use the <code>scattermore</code> package to
+greatly speed up plotting numerous points. Only used for POINT
+<code>colGeometries</code>. If the geometry is not POINT, then the centroids are
+used. Recommended for plotting hundreds of thousands or more cells where
+the cell polygons can't be seen when plotted due to the large number of
+cells and small plot size such as when plotting multiple panels for
+multiple features.</p></dd>
+
+
+<dt>pointsize</dt>
+<dd><p>Radius of rasterized point in <code>scattermore</code>. Default to
+0 for single pixels (fastest).</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Other arguments passed to <code>wrap_plots</code>.</p></dd>
 
@@ -287,7 +306,7 @@ of the <code>dittoSeq</code> palette is used for discrete variables.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

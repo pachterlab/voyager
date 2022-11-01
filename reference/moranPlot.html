@@ -20,7 +20,7 @@ the viridis E option is used."><!-- mathjax --><script src="https://cdnjs.cloudf
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.11</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,9 @@ the viridis E option is used."><!-- mathjax --><script src="https://cdnjs.cloudf
     <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
     <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
     <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
+    <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
+    <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -88,10 +90,15 @@ the viridis E option is used.</p>
 <span>  colGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  plot_singletons <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  binned <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  bins <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  binwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hex <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  plot_influential <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -149,6 +156,11 @@ annotate the gene expression plot.</p></dd>
 neighbors.</p></dd>
 
 
+<dt>binned</dt>
+<dd><p>Logical, whether to plot 2D histograms. This argument has
+precedence to <code>filled</code>.</p></dd>
+
+
 <dt>filled</dt>
 <dd><p>Logical, whether to plot filled contours for the
 non-influential points and only plot influential points as points.</p></dd>
@@ -167,6 +179,26 @@ palette should diverge. If <code>NULL</code>, then not centering.</p></dd>
 <dd><p>Logical, whether to show human readable gene symbol on the
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></dd>
+
+
+<dt>bins</dt>
+<dd><p>Numeric vector giving number of bins in both vertical and
+horizontal directions. Set to 100 by default.</p></dd>
+
+
+<dt>binwidth</dt>
+<dd><p>Numeric vector giving bin width in both vertical and
+horizontal directions. Overrides <code>bins</code> if both set.</p></dd>
+
+
+<dt>hex</dt>
+<dd><p>Logical, whether to use hexagon rather than rectangular bins.
+Requires the <code>hexbin</code> package.</p></dd>
+
+
+<dt>plot_influential</dt>
+<dd><p>Logical, whether to plot influential points with
+different palette if <code>binned = TRUE</code>.</p></dd>
 
 
 <dt>...</dt>
@@ -207,7 +239,7 @@ be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">
