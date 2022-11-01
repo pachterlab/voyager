@@ -1,6 +1,7 @@
 ---
 title: "Slide-Seq V2 Exploratory Data Analysis"
 author: "Kayla Jackson"
+date: "`r Sys.Date()`"
 output: 
   html_document:
   toc: true
@@ -17,7 +18,7 @@ vignette: >
 ```{r, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", fig.align = "center", eval = FALSE
 )
 ```
 
@@ -48,10 +49,6 @@ theme_set(theme_bw())
 ```
 
 The SFE object in the `SFEData` package includes information for 27,566 features and 29,536 beads/barcodes.
-
-```{r}
-sfe
-```
 
 # Quality control (QC)
 
@@ -131,10 +128,9 @@ This schema does not necessarily lend itself well to spatial transcriptomic tech
 In any case, we can generate a putative spatial graph using the k-nearest neighbors algorithm. This is implemented in the `findSpatialNeighbors()` function with the argument `method = "knearneigh"` . We will store the result in the `colGraphs()` slot of the SFE object.
 
 ```{r}
-
- colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
-                                                  dist_type = "idw", k = 5, 
-                                                  style = "W")
+colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh",
+                                              dist_type = "idw", k = 5, 
+                                              style = "W")
 ```
 
 Now compute Moran\'s I for some barcode QC metrics using `colDataMoransI()`.
@@ -165,6 +161,9 @@ violin + mito
 In keeping with expectations, barcodes associated with fewer counts appear to be associated with higher proportions of mitochondrial reads. We will exclude barcodes containing more than \>10% mitochondrial reads for subsequent analysis. The second line removes barcodes with zero counts, but this is not necessary for this dataset as there are no barcodes with zero counts. We will keep it here just to demonstrate the method. 
 
 ```{r}
+# Spatial neighborhood graph is reconstructed when subsetting columns
+# Use drop = TRUE to drop the graph without reconstruction, whose indices are 
+# no longer valid
 sfe_filt <- sfe[, colData(sfe)$prop_mito < 0.1]
 sfe_filt <- sfe_filt[rowSums(counts(sfe_filt)) > 0,]
 ```
@@ -190,6 +189,7 @@ We can plot the variance explained by each PC.
 ```{r}
 ElbowPlot(sfe_filt, ndims = 30) + theme_bw()
 ```
+
 We see that the first few components explain most of the variance in the data. The principal components (PCs) can be plotted in space. Here we notice that the PCs may show some spatial structure that correlates to biological niches of cells. 
 ```{r}
 spatialReducedDim(sfe_filt, "PCA", ncomponents = 4, 
@@ -197,6 +197,7 @@ spatialReducedDim(sfe_filt, "PCA", ncomponents = 4,
                   diverge_center = 0) &
     theme_void()
 ```
+
 Without the cellular overlays, we can only speculate about the potential relevance of the barcodes that seem to be separated by each PC, but each PC doe seem to separate distinct neighborhoods of barcodes.  
 
 
@@ -209,21 +210,23 @@ colData(sfe_filt)$cluster <- clusterRows(reducedDim(sfe_filt, "PCA")[,1:3],
                                                    resolution_parameter = 0.5,
                                                    objective_function = "modularity")))
 ```
+
 The plot below is colored by cluster id. A naive interpretation of the plot shows distinct niches of barcodes separated by more abundant, intervening types. This may be indicative of the biological processes at hand, namely melanoma metastasis, where 'hotspots' of melanoma proliferation would be separated by unaffected normal tissue. 
 ```{r}
 plotSpatialFeature(sfe_filt, "cluster", colGeometryName = "centroids") +
   guides(colour = guide_legend(override.aes = list(size=3)))
 ```
+
 ## Moran's *I*
 
 One avenue for future analysis includes identifying genes that are differentially expressed in each cluster, This can be interrogated with `findMarkers()` in a non-spatial context and with `calculateMoransI()` in a spatial context. In the spatial case, some consideration should be given to whether the differences seen in across the tissue represent biological difference or artifacts from field of view. 
 
 Here we run global Moran’s *I* on log normalized gene expression.
 ```{r}
-
 sfe_filt <- runMoransI(sfe_filt, features = hvgs, 
-                  BPPARAM = MulticoreParam(2, progressbar=TRUE))
+                       BPPARAM = MulticoreParam(2))
 ```
+
 Now, we might ask: which genes display the most spatial autocorrelation? 
 ```{r}
 top_moran <- rownames(sfe_filt)[order(rowData(sfe_filt)$moran_sample01, decreasing = TRUE)[1:4]]

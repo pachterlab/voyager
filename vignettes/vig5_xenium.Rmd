@@ -18,7 +18,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", fig.align = "center"
 )
 ```
 
@@ -435,7 +435,7 @@ Moran plot for nCounts
 sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
-```{r, fig.width=6, fig.height=6}
+```{r, fig.width=8, fig.height=7}
 p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
 p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
 p1 / p2 + plot_layout(guides = "collect") & theme_bw()
@@ -535,7 +535,7 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
                                             objective_function = "modularity")))
 ```
 
-Now the `scater` can also rasterize the plots with lots of points, but with a different mechanism from `scattermore` that requires more system dependencies.
+Now the `scater` can also rasterize the plots with lots of points, but with a different mechanism from `scattermore` that requires more system dependencies. 
 ```{r, fig.height=8, fig.width=8}
 plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = TRUE) +
     geom_density2d()
@@ -569,7 +569,7 @@ plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
-```{r, fig.width=6, fig.height=6}
+```{r, fig.width=6, fig.height=8}
 genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
 plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
 ```

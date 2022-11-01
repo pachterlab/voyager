@@ -18,7 +18,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", fig.align = "center", eval = FALSE
 )
 ```
 
@@ -201,7 +201,7 @@ names(colData(sfe))
 ```
 
 Here we plot aspect ratio and mean intensity of cells stains and markers, which have not been plotted before. PanCK is a marker for epithelial cells. CD45 is a leukocyte marker. CD3 is a T cell marker. Since it takes quite a while to plot 100,000 cells 6 times, `scattermore` really helps.
-```{r, fig.width=9, fig.height=9}
+```{r, fig.width=10, fig.height=9}
 plotSpatialFeature(sfe, c("AspectRatio", "Mean.DAPI", "Mean.MembraneStain", 
                           "Mean.PanCK", "Mean.CD45", "Mean.CD3"),
                    colGeometryName = "centroids", ncol = 2, scattermore = TRUE)
@@ -311,7 +311,7 @@ sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
 In the first panel, the density is for all points in this plot, and in the second, the points influential to fitting the line are highlighted in red, still a 2D histogram to avoid overplotting.
-```{r, fig.width=6, fig.height=7}
+```{r, fig.width=8, fig.height=7}
 p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE)
 p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
 p1 / p2 + plot_layout(guides = "collect") & theme_bw()
@@ -439,7 +439,7 @@ plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
-```{r, fig.width=6, fig.height=6}
+```{r, fig.width=6, fig.height=7}
 genes_use2 <- unique(unlist(lapply(markers, function(x) rownames(x)[1:5])))
 plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_pal()(100))
 ```
