@@ -364,7 +364,7 @@ test_that("scattermore in plotSpatialFeature", {
                            scattermore = TRUE, size = 0)
     })
     expect_doppelganger("Plot multiple colData columns", {
-        plotSpatialFeature(sfe_cosmx, c("nCounts", "nGenes"), 
+        plotSpatialFeature(sfe_cosmx, c("nCounts", "nGenes"),
                            colGeometryName = "centroids",
                            scattermore = TRUE, size = 0)
     })
@@ -381,7 +381,7 @@ test_that("scattermore in plotSpatialFeature", {
                            annotGeometryName = "foo", scattermore = TRUE,
                            size = 0)
     })
-    expect_warning(plotSpatialFeature(sfe_cosmx, "nCounts", 
+    expect_warning(plotSpatialFeature(sfe_cosmx, "nCounts",
                                       colGeometryName = "cellSeg",
                                       scattermore = TRUE),
                    "Using centroids.")
@@ -390,8 +390,8 @@ test_that("scattermore in plotSpatialFeature", {
 localResult(sfe_cosmx, "localG", "KRT19") <- seq_len(ncol(sfe_cosmx))
 test_that("Use scattermore in plotLocalResult", {
     expect_doppelganger("scattermore plotLocalResult", {
-        plotLocalResult(sfe_cosmx, "localG", "KRT19", 
-                        colGeometryName = "centroids", scattermore = TRUE, 
+        plotLocalResult(sfe_cosmx, "localG", "KRT19",
+                        colGeometryName = "centroids", scattermore = TRUE,
                         size = 0)
     })
 })
