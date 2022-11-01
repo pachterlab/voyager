@@ -26,13 +26,13 @@ knitr::opts_chunk$set(
 
 In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) anlaysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
 
-This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz].
+This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz]. The code can be run of [Google Colab](https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing).
 
 ```{r, echo = FALSE, fig.alt='Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.'}
 knitr::include_graphics("https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png")
 ```
 
-While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a vignette illustrating univariate spatial analysis with the same dataset, see the more advanced [exploratory spatial data analyis vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil) with the same dataset.
+While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a vignette illustrating univariate spatial analysis with the same dataset, see the more advanced [exploratory spatial data analyis vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html) with the same dataset.
 
 Here we load the packages used in this vignette.
 ```{r setup}
@@ -107,7 +107,7 @@ As commonly done for scRNA-seq data, here we plot nCounts vs. nGenes
 plotColData(sfe, x = "nCounts", y = "nGenes", colour_by = "in_tissue")
 ```
 
-This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See [the exploratory spatial data analysis (ESDA) Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil).
+This plot has two branches for the spots in tissue, which turn out to be related to myofiber size. See [the exploratory spatial data analysis (ESDA) Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html).
 
 As is commonly done for scRNA-seq data, we plot the proportion of mitochondrially encoded counts. The commented out code shows how to find this proportion:
 ```{r}
@@ -128,7 +128,7 @@ To see the relationship between the proportion of mitochondrial counts and total
 plotColData(sfe, x = "nCounts", y = "prop_mito", colour_by = "in_tissue")
 ```
 
-There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See the [ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil). 
+There are two clusters for the spots in tissue, which also turn out to be related to myofiber size. See the [ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html). 
 
 So far we haven't seen spots that are obvious outliers in these QC metrics.
 
@@ -151,12 +151,9 @@ rowData(sfe_tissue)$cv2 <- rowData(sfe_tissue)$vars/rowData(sfe_tissue)$means^2
 
 To avoid overplotting and better show point density on the plot, we use a 2D histogram. The color of each bin indicates the number of points in that bin.
 ```{r}
-as.data.frame(rowData(sfe_tissue)) |> 
-    ggplot(aes(means, vars)) +
-    geom_bin2d(bins = 50) +
+plotRowDataBin2D(sfe, "means", "vars", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
     annotation_logticks() +
     coord_equal()
 ```
@@ -164,12 +161,9 @@ as.data.frame(rowData(sfe_tissue)) |>
 The red line, $y = x$ is what is expected for Poisson distributed data, but we find that the variance is higher for more highly expressed genes than expected from Poisson distributed counts. The coefficient of variation shows the same.
 
 ```{r}
-as.data.frame(rowData(sfe_tissue)) |> 
-    ggplot(aes(means, cv2)) +
-    geom_bin2d(bins = 50) +
+plotRowDataBin2D(sfe, "means", "cv2", bins = 50) +
     geom_abline(slope = -1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
     annotation_logticks() +
     coord_equal()
 ```
@@ -337,7 +331,7 @@ These genes do indeed look spatially variable. However, such spatial variability
 
 Another consideration in using Moran's I is the extent to which the strength of spatial autocorrelation varies in space. What if a gene exhibits strong spatial autocorrelation in one region, but not in another? Should the different histological regions be analyzed separately in some cases? 
 
-There are ways to see whether Moran's I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in the more advanced [ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.htil). 
+There are ways to see whether Moran's I is statistically significant, and many other methods to explore spatial autocorrelation. These are discussed in the more advanced [ESDA Visium vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html). 
 
 # Session Info
 ```{r}
