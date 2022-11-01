@@ -22,6 +22,7 @@ moranPlot(
   bins = 100,
   binwidth = NULL,
   hex = FALSE,
+  plot_influential = TRUE,
   ...
 )
 }
@@ -59,8 +60,7 @@ annotate the gene expression plot.}
 \item{plot_singletons}{Logical, whether to plot items that don't have spatial
 neighbors.}
 
-\item{binned}{Logical, whether to plot 2D histograms. Influential and
-non-influential points will have different palettes. This argument has
+\item{binned}{Logical, whether to plot 2D histograms. This argument has
 precedence to \code{filled}.}
 
 \item{filled}{Logical, whether to plot filled contours for the
@@ -83,6 +83,9 @@ horizontal directions. Overrides \code{bins} if both set.}
 
 \item{hex}{Logical, whether to use hexagon rather than rectangular bins.
 Requires the \code{hexbin} package.}
+
+\item{plot_influential}{Logical, whether to plot influential points with
+different palette if \code{binned = TRUE}.}
 
 \item{...}{Other arguments to pass to \code{\link{geom_density2d}}.}
 }

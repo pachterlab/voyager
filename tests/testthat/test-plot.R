@@ -466,6 +466,10 @@ test_that("Moran plot bin2d", {
     expect_doppelganger("Moran plot rectangular bin", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30)
     })
+    expect_doppelganger("Moran plot don't plot influential", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
+                  plot_influential = FALSE)
+    })
     expect_doppelganger("Moran plot hex bin", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
     })
