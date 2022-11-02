@@ -26,31 +26,33 @@ knitr::opts_chunk$set(
 
 Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The first Xenium dataset is for formalin fixed paraffin embedded (FFPE) human breast tumor, reported in [@Janesick2022-rp] and downloaded from the [10X website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast). This might not be representative of Xenium data after the formal release in late 2022.
 
-The gene count matrix was downloaded as an HDF5 file and read into R as a `SingleCellExperiment` (SCE) object with `DropletUtils::read10xCounts()`. The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with `arrow::read_parquet()`. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
+The gene count matrix was downloaded as an HDF5 file and read into R as a `SingleCellExperiment` (SCE) object with `DropletUtils::read10xCounts()`. The gene count matrix is originally a `DelayedArray`, so the data is not all loaded into memory. For now, the matrix has been converted into an in memory `dgCMatrix`. However, for the next release, we would like to write another vignette on on disk analyses. The challenge is representing `sf` data frames on disk, perhaps with [`sedona`](https://github.com/apache/incubator-sedona) and [`SQLDataFrame`](https://bioconductor.org/packages/release/bioc/html/SQLDataFrame.html).
+
+The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with `arrow::read_parquet()`. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
 
 Here we load the packages used in this vignette.
 
 ```{r setup}
 library(Voyager)
-library(SFEData)
+library(SFEData) # Pushed fix to Bioc but changes may take a while to show up
 library(SingleCellExperiment)
 library(SpatialExperiment)
+library(SpatialFeatureExperiment)
 library(ggplot2)
 library(stringr)
 library(scater) # devel version of plotExpression
 library(scuttle)
-library(tidyselect)
 library(BiocParallel)
 library(BiocSingular)
 library(bluster)
 library(scran)
-library(dplyr)
-library(tidyr)
 library(patchwork)
 theme_set(theme_void())
 ```
 
 ```{r}
+# Fixed version this function may not immediately show up on Bioconductor
+# Use remotes::install_github("pachterlab/SFEData") if Bioc version doesn't work
 (sfe <- JanesickBreastData(dataset = "rep2"))
 ```
 
@@ -211,10 +213,6 @@ is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
 sum(is_neg)
 ```
 
-```{r}
-knitr::opts_chunk$set(eval = FALSE)
-```
-
 This should be number 2, the decoding control
 ```{r}
 is_neg2 <- str_detect(rownames(sfe), "^NegControlCodeword")
@@ -337,7 +335,7 @@ plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
     theme_bw()
 ```
 
-There are at most 3 count per cell per type. Hence those rays in the matrix plot. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
+There are at most 3 count per cell per type. For the non-outliers, each type is at most around 1%, so this data looks like really good. 
 
 ## Genes
 Here we look at the mean and variance of each gene

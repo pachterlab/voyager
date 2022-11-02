@@ -17,7 +17,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>", eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -117,7 +117,7 @@ For Vizgen MERFISH, the first column is cell ID but doesn't have have a column n
 
 **Note that Xenium is in Beta and this might soon change**
 
-For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
+For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. The gene count matrix is a `DelayedArray`, so the data is not all loaded into memory and operations on this matrix are performed in chunks. The `DelayedArray` has been converted into a `dgCMatrix` in memory. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
 ```{r, eval=FALSE}
 library(DropletUtils)
 library(arrow)
