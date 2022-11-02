@@ -211,6 +211,10 @@ is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
 sum(is_neg)
 ```
 
+```{r}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
 This should be number 2, the decoding control
 ```{r}
 is_neg2 <- str_detect(rownames(sfe), "^NegControlCodeword")
@@ -235,10 +239,6 @@ sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
                                                negCodeword = is_neg2,
                                                anti = is_anti,
                                                any_neg = is_any_neg))
-```
-
-```{r}
-knitr::opts_chunk$set(eval = FALSE)
 ```
 
 ```{r}
