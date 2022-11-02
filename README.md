@@ -24,7 +24,7 @@ The main branch in this repo is the release version. The development version of 
 
 ```r
 # install.packages("remotes")
-remotes::install_github("pachterlab/Voyager", ref = "devel")
+remotes::install_github("pachterlab/voyager", ref = "devel")
 ```
 
 Or from Bioconductor with:
