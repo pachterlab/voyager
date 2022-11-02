@@ -265,7 +265,7 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 ```
 
 These genes are interesting to view in spatial context:
-```{r}
+```{r, fig.width=9, fig.height=9}
 plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly") &
     theme_void()
 ```
@@ -322,7 +322,7 @@ df[ord, c("symbol", "moran_Vis5A")]
 ```
 
 We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation. We can plot the genes with the strongest positive spatial autocorrelation in space:
-```{r}
+```{r, fig.width=9, fig.height=6}
 plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") &
     theme_void()
 ```
