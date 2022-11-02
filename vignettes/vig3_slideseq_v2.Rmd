@@ -52,13 +52,13 @@ The SFE object in the `SFEData` package includes information for 27,566 features
 
 # Quality control (QC)
 
-We can begin by performing some exploratory data analysis on the barcodes in the tissue. There are some pre-computed QC measures that are stored in the object.
+We begin by performing some exploratory data analysis on the barcodes in the tissue. There are some pre-computed QC measures that are stored in the object.
 
 ```{r}
 names(colData(sfe))
 ```
 
-Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and the proportion of mitochondrially encoded counts (`prop_mito`). Below, we will plot the total number of UMI counts per barcode as a violin plot and in space. For the latter task, we will leverage the function `plotSpatialFeature()` which uses `geom_sf()` to plot geometries where applicable. The first few lines compute the average number of UMI counts per barcode and this average is plotted as a red line in the vilin plot. 
+Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and the proportion of mitochondrially encoded counts (`prop_mito`). Below, we plot the total number of UMI counts per barcode as a violin plot and in space. For the latter task, we leverage the function `plotSpatialFeature()` which uses `geom_sf()` to plot geometries where applicable. The first few lines compute the average number of UMI counts per barcode and this average is plotted as a red line in the vilin plot. 
 
 ```{r}
 avg <- as.data.frame(colData(sfe)) |>
@@ -73,7 +73,7 @@ spatial <- plotSpatialFeature(sfe, features = "nCounts",
 violin + spatial
 ```
 
-Each barcode is represented as a `sf` POINT geometry In the plot above, we note that many beads have quite low UMI counts, but there are small regions throughout the tissue that appear to have high counts. This is perhaps due to high cellular density of the melanoma cells, but we can only speculate without an image of the tissue. Interestingly, there are not any barcodes with 0 counts. This is in contrast to many scRNA-seq dataset were many cells have zero counts. 
+Each barcode is represented as an `sf` POINT geometry In the plot above, we note that many beads have quite low UMI counts, but there are small regions throughout the tissue that appear to have high counts. This is perhaps due to high cellular density of the melanoma cells, but we can only speculate without an image of the tissue. Interestingly, there are not any barcodes with zero counts. This is in contrast to many scRNA-seq dataset were many cells have zero counts. 
 
 Given the density of points, we may choose to aggregate points into a hexagonal grid to avoid overplotting. Each hexagon will be colored by the total number of UMI counts in that space and each hexagon may represent more than one barcode. 
 ```{r}
@@ -158,7 +158,7 @@ mito <- plotColData(sfe, x = "nCounts", y = "prop_mito")
 violin + mito
 ```
 
-In keeping with expectations, barcodes associated with fewer counts appear to be associated with higher proportions of mitochondrial reads. We will exclude barcodes containing more than \>10% mitochondrial reads for subsequent analysis. The second line removes barcodes with zero counts, but this is not necessary for this dataset as there are no barcodes with zero counts. We will keep it here just to demonstrate the method. 
+In keeping with expectations, barcodes associated with fewer counts appear to be associated with higher proportions of mitochondrial reads. We will exclude barcodes containing more than \>10% mitochondrial reads for subsequent analysis. The second line removes barcodes with zero counts, but this is not necessary for this dataset as there are no barcodes with zero counts. We keep it here just to demonstrate the method. 
 
 ```{r}
 # Spatial neighborhood graph is reconstructed when subsetting columns
@@ -170,7 +170,7 @@ sfe_filt <- sfe_filt[rowSums(counts(sfe_filt)) > 0,]
 
 # Data Normalization
 
-Normalization of spatial transcriptomics data is non-trivial and requires thoughtful consideration. Like in scRNA-seq data analysis, the goal of normalization is to remove the effects of technical variation and derive a quantity that reflects biological variation. However, several questions arise when considering best practices for spatial data normalization. For example, spatial methods on average detect fewer UMIs than their single-cell counterparts, which may preclude the use normalization techniques such as log transformation as shown [here](<https://doi.org/10.1093/bioinformatics/btab085>). What's more, it is not always evident whether spatial autocorrelation between genes (or QC measures) is an artifact of the technology, and thus, whether normalization methods should preserve the spatial autocorrelation architecture. These questions provide avenues for active research and development, but are currently unresolved. To this end, we will log-normalize the data in the cell below and identify variable genes for subsequent analysis.
+Normalization of spatial transcriptomics data is non-trivial and requires thoughtful consideration. Similarly to scRNA-seq data analysis, the goal of normalization is to remove the effects of technical variation and derive a quantity that reflects biological variation. However, several questions arise when considering best practices for spatial data normalization. For example, spatial methods on average detect fewer UMIs than their single-cell counterparts, which may preclude the use normalization techniques such as log transformation as shown [here](<https://doi.org/10.1093/bioinformatics/btab085>). What's more, it is not always evident whether spatial autocorrelation between genes (or QC measures) is an artifact of the technology, and thus, whether normalization methods should preserve the spatial autocorrelation architecture. These questions provide avenues for active research and development, but are currently unresolved. To this end, we log-normalize the data in the cell below and identify variable genes for subsequent analysis.
 
 ```{r}
 sfe_filt <- logNormCounts(sfe_filt)
@@ -180,7 +180,7 @@ hvgs <- getTopHVGs(dec, n = 2000)
 ```
 
 # Dimension Reduction and Clustering
-Much like in scRNA-seq analysis, we will perform principal component analysis (PCA) before clustering. We note that the method does not use any spatial information. 
+Much like in scRNA-seq analysis, we perform principal component analysis (PCA) before clustering. We note that the method does not use any spatial information. 
 ```{r}
 sfe_filt <- runPCA(sfe_filt, ncomponents = 30, subset_row = hvgs,
                      scale = TRUE) # scale as in Seurat
