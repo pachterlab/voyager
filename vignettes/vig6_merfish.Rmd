@@ -354,9 +354,9 @@ system.time(
 )
 ```
 
-The `spdep` implementation of k nearest neighbors isn't not too bad, not taking longer than a song. 
+The `spdep` implementation of k nearest neighbors isn't too bad, not taking longer than a song.
 
-[Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. To use Annoy from R, one way is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
+[Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. One way to use Annoy in R is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
 
 To examine the speed of Annoy, we convert the results into an `nb` object in `spdep`, and do inverse distance weighting. From profiling, most of the time was spent on `nb2listwdist()`. The output from `findKNN()` also contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly perform the row normalization of the edge weights and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listw()` involve more slow R loops but are more flexible for many other kinds of graphs.
 
@@ -420,7 +420,7 @@ plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes", "volume"),
                 ncol = 2, divergent = TRUE, diverge_center = 0) & theme_bw()
 ```
 
-There are some niches around smaller blood vessels with positive local Moran's I for nCounts and nGenes. This is most likely due to the more homogenous endothelial cells compared to hepatocytes.
+There are some niches around smaller blood vessels with positive local Moran's I for nCounts and nGenes. This is most likely due to the more homogeneous endothelial cells compared to hepatocytes.
 
 # Moran's I
 ```{r}
@@ -587,10 +587,22 @@ spatialReducedDim(sfe, "PCA", 4, colGeometryName = "centroids", scattermore = TR
                   divergent = TRUE, diverge_center = 0)
 ```
 
-PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. There are some methods for spatially informed PCA, such as MULTISPATI PCA [@Dray2008-en] in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package, which seeks to maximize both variance (as in non-spatial PCA) and Moran's I on each PC. Unlike traditional PCs, where all eigenvalues, signifying variance explained, are positive, MULTISPATI PCA can have negative eigenvalues, which signify negative spatial autocorrelation. The PCs from MULTISPATI PCA with positive eigenvalues are also more spatially coherent than those from non-spatial PCA. For the CosMX and Xenium datasets on this website, the spatial coherence from MULTISPATI might not make a difference, but it might make a difference in this dataset where non-spatial PCs don't show much spatial structure. 
+PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. There are some methods for spatially informed PCA, such as MULTISPATI PCA [@Dray2008-en] in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package, which seeks to maximize both variance (as in non-spatial PCA) and Moran's I on each PC. Unlike traditional PCs, where all eigenvalues, signifying variance explained, are positive, MULTISPATI PCA can have negative eigenvalues, which signify negative spatial autocorrelation. The PCs from MULTISPATI PCA with positive eigenvalues are also more spatially coherent than those from non-spatial PCA. For the CosMX and Xenium datasets on this website, the spatial coherence from MULTISPATI might not make a difference, but it might make a difference in this dataset where non-spatial PCs don't show as much spatial structure, at least at the larger scale over the entire tissue section. 
 
-Like global Moran's I, PCA and MULTISPATI PCA return one result for the entire dataset. There's also geographically weighted PCA (GWPCA) [@] to account for spatial heterogeneity. 
- 
+Here we use that makeshift function to plot a zoomed in patch
+```{r, fig.width=9, fig.height=5}
+colData(sfe)$PC2 <- reducedDim(sfe, "PCA", withDimnames = FALSE)[,2]
+colData(sfe)$PC4 <- reducedDim(sfe, "PCA", withDimnames = FALSE)[,4]
+plot_colgeom_bbox(sfe, "PC2", bbox_use, divergent = TRUE, diverge_center = 0) + 
+plot_colgeom_bbox(sfe, "PC4", bbox_use, divergent = TRUE, diverge_center = 0)
+```
+
+There's some spatial structure in PC2 at a smaller scale.
+
+Like global Moran's I, PCA and MULTISPATI PCA return one result for the entire dataset. There's also [geographically weighted PCA (GWPCA)](https://rdrr.io/cran/GWmodel/man/gwpca.html) [@Harris2015-sr] to account for spatial heterogeneity. GWPCA runs PCA at each spatial location using only the nearby locations weighed by a kernel. The different locations can have different PCs, and the results can be visualized with "winning variables" in each PC, i.e. plotting which feature has the highest loading in each PC in space. This most likely doesn't scale to 400,000 cells, but it would still be ineresting when performed on spatially binned data. 
+
+The first release of `Voyager` only has univariate spatial analysis methods. We plan to add bivariate and multivariate methods in the next release, which should include MULTISPATI PCA and GWPCA, or a more scalable re-implementation. 
+
 # More challenges from large datasets
 Here, despite the numerous cells, the data was loaded into memory. What if the data doesn't fit into memory? In the next release, we plan to write a new vignette with `DelayedArray` demonstrating out of memory data analysis. This is already supported by `SingleCellExperiment`, which SFE inherits from. However, the geometries, graphs, and local results can take up a lot memory as well. These can possibly be stored in SQL databases and operated on with [`SQLDataFrame`](https://bioconductor.org/packages/release/bioc/html/SQLDataFrame.html). The geometric operations can be handled by [`sedona`](https://github.com/apache/incubator-sedona), although the options are limited compared to GEOS, which performs geometric operations behind the scene for `sf`.
 
