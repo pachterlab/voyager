@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction
+When you are reading this, you are reading analyses run on GitHub Action's machine, which has 7 GB of RAM, 2 CPU cores, and 14 GB of disk space, which is less than what a typical modern laptop has. That these analyses can be run means that a lot can be done for almost 400,000 cells with limited computational resources.
 
 The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally developed around a relatively small Visium dataset as a proof of concept, and were hence not originally optimized for very large datasets. However, those larger smFISH datasets with hundreds of thousands, sometimes over a million cells, are certainly coming. Among studies using smFISH-based spatial transcriptomics technologies that reported the number of cells per dataset, the number of cells per dataset has increased in the past years [@Moses2022-xz].
 
@@ -31,7 +32,7 @@ The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally deve
 knitr::include_graphics("https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png")
 ```
 
-In this vignette, we use a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false&pli=1) to preview some features to come in later versions of `Voyager` relevant to larger datasets and some smaller ones as well. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` dataframe is not trivial. See the [vignette on creating an SFE object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. 
+In this vignette, we use a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false&pli=1) to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` dataframe is not trivial. See the [vignette on creating an SFE object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. 
 
 Here we load the packages used 
 ```{r setup}
@@ -40,8 +41,6 @@ library(SFEData)
 library(SingleCellExperiment)
 library(SpatialExperiment)
 library(scater) # devel version of plotExpression
-library(scran)
-library(bluster)
 library(ggplot2)
 library(patchwork)
 library(stringr)
@@ -49,7 +48,9 @@ library(spdep)
 library(BiocParallel)
 library(BiocSingular)
 library(gstat)
-library(scattermore)
+library(BiocNeighbors)
+library(sf)
+library(automap)
 theme_set(theme_void())
 ```
 
@@ -57,7 +58,7 @@ theme_set(theme_void())
 (sfe <- VizgenLiverData())
 ```
 
-There are 395215 cells in this dataset
+There are 395215 cells in this dataset. Plotting them all as polygons takes a while, but it isn't too bad.
 ```{r, fig.width=9, fig.height=6}
 ggplot(colGeometry(sfe, "cellSeg")) + geom_sf(size = 0.1) +
     scale_x_continuous(expand = expansion()) +
@@ -65,6 +66,9 @@ ggplot(colGeometry(sfe, "cellSeg")) + geom_sf(size = 0.1) +
     theme_bw()
 ```
 
+However, it will be a disaster if this plot is saved as PDF. To avoid this problem, either use the `scattermore = TRUE` argument in `plotSpatialFeature()` and plot the centroids since the polygons are pretty much invisible anyway, or use the [`ggrastr`](https://github.com/VPetukhov/ggrastr) package to rasterize the polygons without rasterizing the text. 
+
+Cell density can be vaguely seen in the plot above. Here we count the number of cells in bins to better visualize cell density.
 ```{r, fig.width=9, fig.height=6}
 ggplot(as.data.frame(spatialCoords(sfe))) +
     geom_hex(aes(center_x, center_y), bins = 300) +
@@ -88,27 +92,56 @@ system.time(
 )
 ```
 
-Here nCounts kind of looks like salt and pepper. Using the [`scattermore`](https://github.com/exaexa/scattermore) package can speed up plotting a large number of points. In this non-interactive plot, the cell polygons are too small to see anyway, so plotting cell centroid points should be fine. In the next version ov Voyager, we will add arguments to select a bounding box to zoom into a smaller region of the tissue when making non-interactive plots. 
+Here nCounts kind of looks like salt and pepper. Using the [`scattermore`](https://github.com/exaexa/scattermore) package can speed up plotting a large number of points. In this non-interactive plot, the cell polygons are too small to see anyway, so plotting cell centroid points should be fine. 
 
 ```{r}
-coldata_scattermore <- function(sfe, feature) {
-    df <- as.data.frame(spatialCoords(sfe))
-    df <- cbind(df, colData(sfe))
-    nms <- spatialCoordsNames(sfe)
-    ggplot(df) +
-        geom_scattermore(aes_string(nms[1], nms[2], color = feature)) +
-        scale_color_distiller(palette = "Blues", direction = 1) +
-        coord_equal()
+system.time({
+    print(plotSpatialFeature(sfe, "nCounts", colGeometryName = "centroids",
+                             scattermore = TRUE))
+})
+```
+
+When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` took about 2 seconds. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `Voyager`. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
+
+This feature will be added to all spatial plotting functions in the next release: to use a bounding box to only plot a portion of the tissue. This function here is simplified and not generalizable, compared to what will go into the next release. While interactive data visualization is definitely cooler for the user, there is a place for static figures in publications. 
+```{r}
+plot_colgeom_bbox <- function(sfe, feature, bbox,
+                              divergent = FALSE, diverge_center = 0) {
+    df <- cellSeg(sfe)
+    if (feature %in% names(colData(sfe)))
+        df[[feature]] <- colData(sfe)[[feature]]
+    else
+        df[[feature]] <- as.vector(logcounts(sfe)[feature,])
+    feature <- make.names(feature)
+    names(df) <- make.names(names(df))
+    # Specify bounding box
+    bbox_use <- st_as_sfc(st_bbox(bbox))
+    # Subset the sf data frame with the bounding box
+    df <- df[bbox_use,]
+    if (divergent) {
+        r <- getDivergeRange(df[[feature]], diverge_center)
+        # fill, since only for polygons for now
+        pal <- scico::scale_fill_scico(palette = "roma", begin = r[1], end = r[2])
+    } else
+        pal <- scale_fill_distiller(palette = "Blues", direction = 1)
+    ggplot(df) + geom_sf(aes_string(fill = feature), size = 0.1) +
+        pal + theme_bw() +
+        scale_x_continuous(expand = expansion()) +
+        scale_y_continuous(expand = expansion())
 }
 ```
 
 ```{r}
-system.time({
-    print(coldata_scattermore(sfe, "nCounts"))
-})
+bbox_use <- c(xmin = 3000, xmax = 3500, ymin = 2500, ymax = 3000)
 ```
 
-When run on our server, plotting almost 400,000 polygons took almost 22 seconds, while using `geom_scattermore()` took less than one second. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `Voyager`. This would especially help when plotting multiple genes in space. However, note that `geom_scattermore()` is fast because it rasterizes the plot, so the plot will be pixelated when enlarged.
+```{r}
+plot_colgeom_bbox(sfe, "nCounts", bbox_use)
+```
+
+Much of the time making this plot was spent subsetting the `sf` data frame with the bounding box. Here spatial autocorrelation is evident in the upper right region with smaller cells, but less so in the rest of this patch. Here nCounts seems to be related to cell size; larger cells seem to have more total counts.
+
+Interactive data visualization is outside the scope of this package. Nor do we have the JavaScript expertise to develop one for SFE. To be honest, I generally find `shiny` apps really slow compared to interactive tools written directly in JavaScript. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Pielawski2022-wk], and [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2022-zw].
 
 Since there aren't too many genes, all genes and negative control probes can be shown
 ```{r}
@@ -123,55 +156,55 @@ n_panel <- 347
 
 Plot the distribution of nCounts, divided by the number of genes in the panel, so this distribution is more comparable across datasets with different numbers of genes.
 ```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nCounts/n_panel)) +
-    geom_histogram(bins = 100) +
+colData(sfe)$nCounts_normed <- sfe$nCounts / n_panel
+colData(sfe)$nGenes_normed <- sfe$nGenes / n_panel
+```
+
+```{r}
+plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed")) +
     theme_bw()
 ```
+
+Just like in the [Xenium dataset](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells), there are those mysterious regular notches in the histogram of the number of genes detected.
 
 Also plot the number of genes detected per cell, with `geom_scattermore()`
 ```{r}
-coldata_scattermore(sfe, "nGenes")
+plotSpatialFeature(sfe, "nGenes", colGeometryName = "centroids", scattermore = TRUE)
 ```
 
-Plot the distribution of nGenes, divided by number of genes in the panel
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(nGenes/n_panel)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
+Just like nCounts, this looks kind of salt and pepper. 
 
 Distribution of cell volume in space
 ```{r}
-coldata_scattermore(sfe, "volume")
+plotSpatialFeature(sfe, "volume", colGeometryName = "centroids", scattermore = TRUE)
 ```
+
+Also kind of salt and pepper
 
 How does nCounts relate to nGenes?
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(nCounts, nGenes)) +
-    geom_bin2d(bins = 200) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
+plotColDataBin2D(sfe, "nCounts", "nGenes") + 
     theme_bw()
 ```
 
-There're two branches. Interesting.
+There're two branches in this plot. 
 
 How does cell size relate to nCounts?
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(volume, nCounts)) +
-    geom_bin2d(bins = 200) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
-    theme_bw()
+plotColDataBin2D(sfe, "volume", "nCounts") + theme_bw()
 ```
 
-Again, 2 branches.
+Again, 2 branches, the lower one where larger cells don't really tend to have more total counts, and the upper one where larger cells tend to have more total counts.
+
+How does cell size relate to number of genes detected?
+```{r}
+plotColDataBin2D(sfe, "volume", "nGenes") + theme_bw()
+```
+
+There seem to be clusters. Even more interesting. This is probably related to cell type. 
 
 ### Negative controls
+Blank probes are used as negative controls
 ```{r}
 is_blank <- str_detect(rownames(sfe), "^Blank-")
 ```
@@ -186,68 +219,47 @@ names(colData(sfe))
 
 Total transcript counts from the blank probes
 ```{r}
-coldata_scattermore(sfe, "subsets_blank_sum")
-```
-
-```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_blank_sum)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
+plotSpatialFeature(sfe, "subsets_blank_sum", colGeometryName = "centroids",
+                   scattermore = TRUE)
 ```
 
 Number of blank features detected per cell
 ```{r}
-coldata_scattermore(sfe, "subsets_blank_detected")
+plotSpatialFeature(sfe, "subsets_blank_detected", colGeometryName = "centroids",
+                   scattermore = TRUE)
 ```
 
+Percentage of blank features per cell
 ```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_blank_detected)) +
-    geom_histogram(bins = 100) +
-    theme_bw()
-```
-
-Percentage oof blank features per cell
-```{r}
-coldata_scattermore(sfe, "subsets_blank_percent")
+plotSpatialFeature(sfe, "subsets_blank_percent", colGeometryName = "centroids",
+                   scattermore = TRUE)
 ```
 
 The percentage is more interesting: within the tissue, cells with high percentage of blank counts are scattered like salt and pepper, but more of these cells are on the left edge of the tissue, the edges of FOVs, where the tissue itself doesn't end. 
 
+Also plot histograms 
 ```{r}
-as.data.frame(colData(sfe)) |> 
-    ggplot(aes(subsets_blank_percent)) +
-    geom_histogram(bins = 100) +
+plotColDataHistogram(sfe, paste0("subsets_blank_", c("sum", "detected", "percent"))) +
     theme_bw()
 ```
 
-The NA's are cells without any transcript detected. Also plot this histogram only for cells with at least one blank count.
+The NA's are cells without any transcript detected. 
 ```{r}
 mean(sfe$subsets_blank_sum > 0)
 ```
 
+Unlike in the Xenium dataset, here most cells have at least one blank count. By log transforming, the 0's are removed from the plot. 
 ```{r}
-summary(sfe$subsets_blank_percent)
-```
-
-Unlike in the Xenium dataset, here most cells have at least one blank count.
-```{r}
-as.data.frame(colData(sfe)[sfe$nCounts > 0 & sfe$subsets_blank_sum > 0,]) |> 
-    ggplot(aes(subsets_blank_percent)) +
-    geom_histogram(bins = 100) +
-    theme_bw() +
+plotColDataHistogram(sfe, "subsets_blank_percent") +
     scale_x_log10() +
-    annotation_logticks(sides = "b")
+    annotation_logticks() +
+    theme_bw()
 ```
 
-A small percentage of blank counts is acceptable. So we will remove the outlier based on the distribution of the percentage when it's greater than 0.
+A small percentage of blank counts is acceptable. So we will remove the outlier based on the distribution of the percentage when it's greater than 0. How does the blank percentage relate to total counts?
 
 ```{r}
-colData(sfe) |> 
-    as.data.frame() |> 
-    ggplot(aes(nCounts, subsets_blank_percent)) +
-    geom_bin2d(bins = 200) +
+plotColDataBin2D(sfe, "nCounts", "subsets_blank_percent") +
     scale_fill_viridis_c() +
     theme_bw()
 ```
@@ -295,7 +307,6 @@ rowData(sfe)$means <- rowMeans(counts(sfe))
 rowData(sfe)$vars <- rowVars(counts(sfe))
 ```
 
-Real genes generally have higher mean expression across cells than negative controls.
 ```{r}
 rowData(sfe)$is_blank <- is_blank
 plotRowData(sfe, x = "means", y = "is_blank") +
@@ -307,15 +318,7 @@ Most real genes have higher mean expression than blanks, but there's considerabl
 
 Here the real genes and negative controls are plotted in different colors
 ```{r}
-as.data.frame(rowData(sfe)) |> 
-    ggplot(aes(means, vars)) +
-    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[!is_blank,])) +
-    scale_fill_distiller(palette = "Blues", direction = 1,
-                         name = "Counts (real genes)") +
-    new_scale_fill() +
-    geom_bin2d(bins = 50, data = as.data.frame(rowData(sfe)[is_blank,])) +
-    scale_fill_distiller(palette = "Reds", direction = 1,
-                         name = "Counts (negative controls)") +
+plotRowData(sfe, x = "means", y = "vars", colour_by = "is_blank") +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
     annotation_logticks() +
@@ -338,19 +341,14 @@ as.data.frame(rowData(sfe)[is_blank,]) |>
 When zoomed in, the blanks are also somewhat overdispersed.
 
 # Spatial autocorrelation of QC metrics
+
+Again, we plot that zoomed in patch to visually inspect cell-cell contiguity
 ```{r}
-bbox_use <- st_as_sfc(st_bbox(c(xmin = 2000, xmax = 2500, ymin = 2000, ymax = 2500)))
+ggplot(cellSeg(sfe)[st_as_sfc(st_bbox(bbox_use)),]) + geom_sf()
 ```
 
-```{r}
-g <- colGeometry(sfe, "cellSeg")[bbox_use,]
-```
 
-```{r}
-ggplot(g) + geom_sf()
-```
-
-There're quite a few cells that are not contiguous to any other cell, so purely using poly2nb is probably not good. I tried it before; making snap too large doesn't work.
+There're quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is probably not good. In the next release, we might implement a way to blend polygon contiguity graph with some other graph in case of singletons. For now we use k nearest neighbors, with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection.
 
 ```{r}
 system.time(
@@ -360,45 +358,210 @@ system.time(
 )
 ```
 
-It's not too bad, not taking longer than a song. 
+The `spdep` implementation of k nearest neighbors isn't not too bad, not taking longer than a song. 
 
-Try annoy and hnsw
+[Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. To use Annoy from R, one way is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
 
-I should also try poly2nb (pretty fast) to find a more appropriate k
-
-Moran's I. OK, I have the code now. I should add it to the package and just say this vignette is for devel version.
+Is Annoy faster? To have a fair comparison, we convert the results into an `nb` object in `spdep`, and do inverse distance weighting. From profiling, most of the time was spent on `nb2listwdist()`. The output from `findKNN()` also contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly perform the row normalization of the edge weights and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listw()` involve more slow R loops but are more flexible for many other kinds of graphs.
 
 ```{r}
-system.time(
-    sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
-                          colGraphName = "knn5")
-)
+system.time({
+    foo <- findKNN(spatialCoords(sfe), k=5, BNPARAM=AnnoyParam())
+    # Split by row
+    foo_nb <- asplit(foo$index, 1)
+    dmat <- 1/foo$distance
+    # Row normalize the weights
+    dmat <- sweep(dmat, 1, rowSums(dmat), FUN = "/")
+    glist <- asplit(dmat, 1)
+    # Sort based on index
+    ord <- lapply(foo_nb, order)
+    foo_nb <- lapply(seq_along(foo_nb), function(i) foo_nb[[i]][ord[[i]]])
+    class(foo_nb) <- "nb"
+    glist <- lapply(seq_along(glist), function(i) glist[[i]][ord[[i]]])
+    
+    listw <- list(style = "W",
+                  neighbours = foo_nb,
+                  weights = glist)
+    class(listw) <- "listw"
+})
 ```
 
-Not nearly as bad as I thought
+This took about half the time as `spdep`, so we will formalize it and add it to the next release. How do the results compare to those from `spdep`?
+```{r}
+diff_nbs <- diffnb(colGraph(sfe, "knn5")$neighbours, foo_nb)
+diff_card <- card(diff_nbs)
+summary(diff_card)
+```
+
+By and large the results are very similar, but there are some small differences as Annoy finds approximate k nearest neighbors.
+
+With the spatial neighborhood graph, we can compute Moran's I for QC metrics.
+
+```{r}
+sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
+                      colGraphName = "knn5")
+```
+
+
 ```{r}
 colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),]
 ```
 
-Ah, I finally see a sizable negative Moran's I!
+Unlike the other smFISH-based datasets on this website, nCounts and nGenes have sizable negative Moran's I's, which is closer to 0 for volume. It would be interesting to compare these metrics across different tissues, as we add more datasets to `SFEData` in future releases.
 
+Also check local Moran's I, since in that little patch we examined above, some regions may have more positive spatial autocorrelation.
+```{r}
+sfe <- colDataUnivariate(sfe, type = "localmoran", 
+                         features = c("nCounts", "nGenes", "volume"),
+                         colGraphName = "knn5")
+```
+
+```{r, fig.width=9, fig.height=7}
+plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes", "volume"),
+                colGeometryName = "centroids", scattermore = TRUE,
+                ncol = 2, divergent = TRUE, diverge_center = 0) & theme_bw()
+```
+
+There are some niches around smaller blood vessels with positive local Moran's I for nCounts and nGenes. This is most likely due to the more homogenous endothelial cells compared to hepatocytes.
+
+# Moran's I
 ```{r}
 sfe <- logNormCounts(sfe)
 ```
 
 ```{r}
-sfe <- runMoransI(sfe, BPPARAM = MulticoreParam(2, progressbar = TRUE))
+system.time(
+    sfe <- runMoransI(sfe, BPPARAM = MulticoreParam(2))
+)
 ```
 
-It's actually not as slow as I thought for almost 400,000 cells.
+It's actually not as slow as I thought for almost 400,000 cells. How are Moran's I's distributed for real genes and blank probes?
 
 ```{r}
 plotRowData(sfe, x = "moran_sample01", y = "is_blank") +
     geom_hline(yintercept = 0, linetype = 2)
 ```
 
-The blanks are clustered tightly around 0. The vast majority of real genes have positive spatial autocorrelation, some quite strong. But some genes have negative spatial autocorrelation.
+The blanks are clustered tightly around 0. The vast majority of real genes have positive spatial autocorrelation, some quite strong. But some genes have negative spatial autocorrelation, although it may or may not be statistically significant.
 
-Plot the top genes with positive spatial autocorrelation (devel version of Voyager)
+Plot the top genes with positive spatial autocorrelation
+
+```{r, fig.width=9, fig.height=12}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:6]]
+plotSpatialFeature(sfe, top_moran, colGeometryName = "centroids", scattermore = TRUE,
+                   ncol = 2)
+```
+
+Unlike in the other smFISH-based cancer datasets on this dataset, the genes with the highest Moran's I highlight different histological regions. Some probably for zones in the hepatic lobule, and some for blood vessels. It would be interesting to compare spatial autocorrelation of marker genes among different tissues and cell types.
+
+Negative Moran's I means that nearby cells tend to be more dissimilar to each other. That would be hard to see when plotting the whole tissue section, so we will use that bounding box again. The gene with the most negative Moran's I is compared to one with Moran's I closest to 0.
+
+```{r, fig.width=9, fig.height=5}
+bottom_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01)[1]]
+bottom_abs_moran <- rownames(sfe)[order(abs(rowData(sfe)$moran_sample01))[1]]
+plot_colgeom_bbox(sfe, bottom_moran, bbox_use) +
+plot_colgeom_bbox(sfe, bottom_abs_moran, bbox_use)
+```
 
 
+This took a while since the bottleneck is the spatial subsetting with the bounding box that was performed twice. In the next release, this subsetting will be done only once when multiple features are plotted. As expected, the feature with Moran's I closest to 0 is a blank.
+
+# Spatial autocorrelation at larger length scales
+The k nearest neighbor graph used above only concern 5 cells around each cell, which is a very small neighborhood, over a very small length scale. In the current release of `Voyager`, a correlogram can be computed to get a sense of the length scale of spatial autocorrelation. However, since finding the lag values over higher and higher orders of neighgorhoods is very slow for such a large number of cells for higher orders, the correlogram is not very helpful here. In this section, we use some other methods involving binning to explore spatial autocorrelation at larger length scales.
+
+## Binning
+The `sf` package can create polygons in a grid, with which we can bin the cells and their attributes and gene expressions. Here we make a 100 by 100 hexagonal grid in the bounding box of the cell centroids.
+```{r}
+(bins <- st_make_grid(colGeometry(sfe, "centroids"), n = 100, square = FALSE))
+```
+
+Here we use this grid to bin the QC metrics by averaging the values from the cells. Since bins not completely covered by tissue have fewer cells, the mean may be less susceptible to edge effect than the sum, as bins near the edge will have lower sums, which may spuriously increase Moran's I. 
+```{r}
+df <- cbind(colGeometry(sfe, "centroids"), colData(sfe)[,c("nCounts", "nGenes", "volume")])
+df_binned <- aggregate(df, bins, FUN = mean)
+# Remove bins not containing cells
+df_binned <- df_binned[!is.na(df_binned$nCounts),]
+```
+
+Plot the binned values
+```{r, fig.width=9, fig.height=7}
+# Not using facet_wrap to give each panel its own color scale
+plts <- lapply(c("nCounts", "nGenes", "volume"), function(f) {
+    ggplot(df_binned[,f]) + geom_sf(aes_string(fill = f), size = 0) +
+        scale_fill_distiller(palette = "Blues", direction = 1)
+})
+wrap_plots(plts, nrow = 2)
+```
+
+There's an outlier bin not as evident when plotting single cells. There's still some edge effect around blood vessels. This might be truly edge effect, or that endothelial cells tend to have lower values in all 3 variables here.
+
+Then compute Moran's I over the binned data, with contiguity neighborhoods. `zero.policy = TRUE` because there are some bins with no neighbors.
+```{r}
+nb <- poly2nb(df_binned)
+listw <- nb2listw(nb, zero.policy = TRUE)
+```
+
+```{r}
+calculateMoransI(t(as.matrix(st_drop_geometry(df_binned[,c("nCounts", "nGenes", "volume")]))),
+                 listw = listw, zero.policy = TRUE)
+```
+
+At a larger length scale, Moran's I becomes positive. Comparing Moran's I across different sized bins can give a sense of the length scale of spatial autocorrelation. However, there are problems with binning to watch out for:
+
+1. Edge effect, especially when using the sum when binning
+2. Which function to use to aggregate the values when binning
+3. When using a rectangular grid, whether to use rook or queen neighbors. Rook means two cells are neighbors if they share an edge, while queen means they are neighbors even if they merely share a vertex. 
+
+While binning can greatly speed up computation of spatial autocorrelation metrics for larger datasets, and is in fact used for Moran's I in Seurat, it can be used for smaller datasets to find length scales of spatial autocorrelation. On the other hand, as seen here, Moran's I can flip signs at different length scales, so for larger datasets, exploring spatial autocorrelation at the cell level would still be interesting.
+
+## Semivariogram
+In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations, as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. One of the classic R packages in the geostatistical tradition is [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html), which we use here to find semivariograms, defined as
+
+$$
+\gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
+$$
+
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually levelling off when the distance is beyond the length scale of spatial autocorrelation.
+
+In the next release of Voyager, this will be part of `runUnivariate()` so the learning curve for users will be minimal.
+
+First we find an empirical variogram assuming that it's the same in all directions. Here the data is binned at distance intervals, so this is much faster than the correlogram at the cell level. The `width` argument controlls the bin size. The `cutoff` argument is the maximum distance to consider. Here we use the defaults. The first argument is a formula; covariates can be specified, but is not done here.
+
+With different widths and cutoffs, the variogram can be estimated at different length scales. The `gstat` package can also fit a model to the empirical variogram. See `vgm()` for the different types of models. The [`automap`](https://cran.r-project.org/web/packages/automap/) package can choose a model for the user, and is used here. 
+
+Unfortunately, `gstat` doesn't scale to 400,000 cells, although it worked for 100,000 cells in the other smFISH-based datasets on this website. But since the variogram is used to explore larger length scales here anyway, we use the binned data here, but the problems with binning will apply here.
+
+```{r, warning=FALSE}
+# as_Spatial since automap uses old fashioned sp, the predecessor of sf
+v <- autofitVariogram(nCounts ~ 1, as_Spatial(df_binned))
+plot(v)
+```
+
+The numbers in this plot are the number of pairs in each distance bin. The variogram is not 0 at 0 distance; this is the variance within the bin size, called the nugget. The variogram levels off at greater distance, and the value of the variogram where is levels off is the sill. Range is where the variogram is leveling off, indicating length scale of spatial autocorrelation; the range from visual inspection appears closer to 1000 while the model somehow indicates 423. 
+
+A variogram map can be made to see how spatial autocorrelation may differ in different directions, i.e. anisotropy
+```{r}
+v2 <- variogram(nCounts ~ 1, data = df_binned, width = 300, cutoff = 4500, map = TRUE)
+plot(v2)
+```
+
+Here apparently there's no anisotropy at shorter length scales, but there may be some artifact from the hexagonal bins. Going beyond 2000 (whatever unit), the variance drops at the northwest and southeast direction but not in other directions, perhaps related to the repetitiveness of the hepatic lobules and the general NE/SW direction of the blood vessels seen in the previous plots. 
+
+The variogram can also be calculated at specified angles, here selected as sides of the hexagon:
+```{r}
+v3 <- variogram(nCounts ~ 1, df_binned, alpha = c(30, 90, 150))
+v3_model <- fit.variogram(v3, vgm("Ste"))
+plot(v3, v3_model)
+```
+
+The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space?
+
+In the next release of Voyager, we will write `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
+# References
