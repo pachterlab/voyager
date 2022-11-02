@@ -158,7 +158,7 @@ colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
 plotColDataHistogram(sfe, "prop_nuc") + theme_bw()
 ```
 
-This distribution could have been generated from two peaks that were combined. From the histogram, there do not seem to be cells without nuclei or segmentation artifactsm where the nucleus is larger than the cell. However, there are so many cells in this dataset and it is possible that just a few cells would not be visible on this histogram. We doublecheck:
+This distribution could have been generated from two peaks that were combined. From the histogram, there do not seem to be cells without nuclei or segmentation artifacts where the nucleus is larger than the cell. However, there are so many cells in this dataset and it is possible that just a few cells would not be visible on this histogram. We double check:
 ```{r}
 # No nucleus
 sum(sfe$nucleus_area < 1)
@@ -244,7 +244,7 @@ sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
 names(colData(sfe))
 ```
 
-Next we plot the proportion of transcript counts coming from any negative control. But first, we use Tidyverse to reshape the percentage columns for the different types of negative controls into the long form to plot them in different panels of the same plot.
+Next we plot the proportion of transcript counts coming from any negative control. 
 
 ```{r}
 cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
@@ -272,7 +272,7 @@ plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
 
 The counts are low, mostly zero, but there are outliers with up to 10 counts of all types aggregated. Then the outlier with 50% of counts from negative controls must have very low total real transcript counts to begin with.
 
-The `scuttle` package can detect outliers, but by default it assigns anything above zero as an outlier, since that is are over 3 median absolute deviations (MADs) away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But it makes sense to allow a small proportion of negative controls. Here we use the distribution just for cells with at least 1 negative control count to find outliers. This distribution has a very long tail and some definite outliers.
+The `scuttle` package can detect outliers, but by default it assigns anything above zero as an outlier, since that is over 3 median absolute deviations (MADs) away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But it makes sense to allow a small proportion of negative controls. Here we use the distribution just for cells with at least 1 negative control count to find outliers. This distribution has a very long tail and some definite outliers.
 
 The code below extracts the outliers, based only on cells with at least one negative control count
 
@@ -313,7 +313,7 @@ plotColData(sfe, y = "is_blank_outlier", x = "cell_area",
             point_fun = function(...) list()) 
 ```
 
-The analysis reveals that they do seem to be smaller. Outliers for negative probe controls and negative codeword controls are also hard to see on the plot, so their plots are skipped here. But the top left region in the tissue tends to have more counts from antisense controls. 
+The analysis reveals that the outliers seem to be smaller. Outliers for negative probe controls and negative codeword controls are also hard to see on the plot, so their plots are skipped here. But the top left region in the tissue tends to have more counts from antisense controls. 
 ```{r}
 plotSpatialFeature(sfe, "is_anti_outlier", colGeometryName = "cellSeg")
 ```
@@ -336,7 +336,7 @@ plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
     theme_bw()
 ```
 
-There are at most 3 count per cell per type. For the non-outliers, each type is at most around 1%, so this data looks good. 
+There are at most 3 counts per cell per type. For the non-outliers, each type is at most around 1%, so this data looks good. 
 
 ## Genes
 Here we look at the mean and variance of each gene
@@ -369,7 +369,7 @@ The red line $y = x$ is expected if the data follows a Poisson distribution. Neg
 
 # Spatial autocorrelation of QC metrics
 
-There's a sparse and a dense region. This poses the question of what type of neighborhood graph to use, e.g. it is conceivable that cells in the sparse region should just be singletons. Furthermore, it is unclear what the length scale of their influence might be. It might depends on the cell type and how contact and secreted signals are used in the cell type, and length scale of influence. If k nearest neighbors are used, then the neighbors in the dense region are much closer together than those in the sparse region. If distance based neighbors are used, then cells in the dense region will have more neighbors than cells in the sparse region, and the sparse region can break into multiple compartments if the distance cutoff is not long enough. 
+There's a sparse and a dense region. This poses the question of what type of neighborhood graph to use, e.g. it is conceivable that cells in the sparse region should just be singletons. Furthermore, it is unclear what the length scale of their influence might be. It might depend on the cell type and how contact and secreted signals are used in the cell type, and length scale of the influence. If k nearest neighbors are used, then the neighbors in the dense region are much closer together than those in the sparse region. If distance based neighbors are used, then cells in the dense region will have more neighbors than cells in the sparse region, and the sparse region can break into multiple compartments if the distance cutoff is not long enough. 
 
 For the purpose of demonstration, we use k nearest neighbors with $k = 5$, with inverse distance weighting. Note that using more neighbors leads to longer computation time of spatial autocorrelation metrics.
 
@@ -390,7 +390,7 @@ sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "cell_area", "nucleus_area"),
 colFeatureData(sfe)[c("nCounts", "nGenes", "cell_area", "nucleus_area"),]
 ```
 
-Global Moran's I indicate positive spatial autocorrelation. As the strength of spatial autocorrelation can vary spatially, we also run local Moran's I.
+Global Moran's I indicatse positive spatial autocorrelation. As the strength of spatial autocorrelation can vary spatially, we also run local Moran's I.
 
 ```{r}
 sfe <- colDataUnivariate(sfe, type = "localmoran", 
@@ -407,7 +407,7 @@ plotLocalResult(sfe, "localmoran",
                 divergent = TRUE, diverge_center = 0, pointsize = 1)
 ```
 
-Interestingly, nCounts is more homogenous in the interior of the dense region, while nGenes is more homogenous by the edge of the dense region. As expected, cell area is more homogenous in the sparse region. However, the nucleus area is more homogenous in the interior of the dense region. 
+Interestingly, nCounts is more homogeneous in the interior of the dense region, while nGenes is more homogeneous by the edge of the dense region. As expected, cell area is more homogeneous in the sparse region. However, the nucleus area is more homogeneous in the interior of the dense region. 
 
 Moran plot for nCounts
 ```{r}
@@ -424,7 +424,7 @@ There are no obvious clusters here. In the lower panel, the 2D histogram of infl
 
 # Moran's I
 
-By default, for gene experssion, the log normalized counts are used in spatial autocorrelation metrics, so before running Moran's I, we normalize the data.
+By default, for gene expression, the log normalized counts are used in spatial autocorrelation metrics, so before running Moran's I, we normalize the data.
 
 ```{r}
 sfe <- logNormCounts(sfe)
