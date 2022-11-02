@@ -521,7 +521,7 @@ $$
 \gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
 $$
 
-where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually levelling off when the distance is beyond the length scale of spatial autocorrelation.
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually levelling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2.
 
 In the next release of Voyager, this will be part of `runUnivariate()` so the learning curve for users will be minimal.
 
@@ -554,7 +554,7 @@ v3_model <- fit.variogram(v3, vgm("Ste"))
 plot(v3, v3_model)
 ```
 
-The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space?
+The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space? A problem with the variogram is that it's global, giving one result for the entire dataset, albeit more nuanced than just a number as in Moran's I, because kriging assumes that the data is intrinsically stationary, meaning that the same variogram model applies everywhere, and that spatial dependence only depends on distance between two observations.
 
 In the next release of Voyager, we will write `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
 
