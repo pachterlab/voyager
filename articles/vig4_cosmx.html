@@ -47,6 +47,7 @@
     <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
     <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
+    <a class="dropdown-item" href="../articles/vis6_merfish.html">MERFISH mouse liver dataset and large data</a>
   </div>
 </li>
 <li class="nav-item">
@@ -502,21 +503,27 @@ majority of real genes.</p>
 analyses with <code>spdep</code>. Without a benchmark, we don’t yet know
 which type of neighborhood graph is the best for which purpose.</p>
 <p>Methods to find spatial neighborhood graphs in <code>spdep</code>
-other than <code><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html" class="external-link">knearneigh()</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/dnearneigh.html" class="external-link">dnearneigh()</a></code>, and
-<code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> (only for polygon data where contiguity is
-relevant) are not recommended for larger datasets. Delaunay
-triangulation with the <code>deldir</code> package, which is used by
-<code>spdep</code> (<code><a href="https://r-spatial.github.io/spdep/reference/tri2nb.html" class="external-link">tri2nb()</a></code>), takes 4 to 5 minutes for a
-dataset of this size, but the runtime increases much more drastically
-than linearly as the number of cells increases. Sphere of Interest (SOI)
-graph (<code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">soi.graph()</a></code>) prunes edges from triangulation that
-are too long, and does not take long itself. So triangulation and SOI
-graph, while slower than <code><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html" class="external-link">knearneigh()</a></code>,
-<code><a href="https://r-spatial.github.io/spdep/reference/dnearneigh.html" class="external-link">dnearneigh()</a></code>, and <code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code>, are somewhat
-practical considerations. The implementation of
-<code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">gabrielneigh()</a></code> and <code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">relativeneigh()</a></code> take
-impracticably long (over an hour and I terminated the R session out of
-impatience) for this dataset so are not recommended.</p>
+other than <code><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html" class="external-link">knearneigh()</a></code> (k nearest neighbors),
+<code><a href="https://r-spatial.github.io/spdep/reference/dnearneigh.html" class="external-link">dnearneigh()</a></code> (find cells within a certain distance), and
+<code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> (polygon contiguity) are not recommended for
+larger datasets. While cell-cell contact may be biologically relevant,
+because cell segmentation is imperfect, leading to non-contiguous cell
+segmentation polygons for cells that appear contiguous in H&amp;E, only
+using <code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> to find polygon contiguity neighbors
+without supplementing with another kind of neighborhood is problematic.
+Delaunay triangulation with the <code>deldir</code> package, which is
+used by <code>spdep</code> (<code><a href="https://r-spatial.github.io/spdep/reference/tri2nb.html" class="external-link">tri2nb()</a></code>), takes 4 to 5 minutes
+for a dataset of this size, but the run time increases much more
+drastically than linearly as the number of cells increases. Sphere of
+Interest (SOI) graph (<code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">soi.graph()</a></code>) prunes edges from
+triangulation that are too long, and does not take long itself. So
+triangulation and SOI graph, while slower than
+<code><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html" class="external-link">knearneigh()</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/dnearneigh.html" class="external-link">dnearneigh()</a></code>, and
+<code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code>, are somewhat practical considerations. The
+implementation of <code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">gabrielneigh()</a></code> and
+<code><a href="https://r-spatial.github.io/spdep/reference/graphneigh.html" class="external-link">relativeneigh()</a></code> take impracticably long (over an hour and I
+terminated the R session out of impatience) for this dataset so are not
+recommended.</p>
 <p>Methods to find approximate nearest neighbors such as Annoy
 (<code>AnnoyParam()</code>) and HNSW (<code>HnswParam()</code>), as
 supported by the <a href="https://bioconductor.org/packages/release/bioc/html/bluster.html" class="external-link"><code>bluster</code></a>
@@ -553,9 +560,10 @@ However, as the biological function of the tissue does not depend on
 this particular spatial arrangement of individual cells (i.e. supervenes
 on this particular spatial arrangement), but more of cell types, the
 specific cell locations observed can be thought of as samples of the
-process, if we consider the cell the basic unit of the spatial process.
-In the next release of Voyager, we plan to add semivariograms (from the
-<a href="https://cran.r-project.org/web/packages/gstat/index.html" class="external-link"><code>gstat</code></a>
+process, if we consider the cell the basic unit of the spatial
+process.</p>
+<p>In the next release of Voyager, we plan to add semivariograms (from
+the <a href="https://cran.r-project.org/web/packages/gstat/index.html" class="external-link"><code>gstat</code></a>
 package) as an exploratory tool to identify the presence of spatial
 autocorrelation, its length scale, and anisotropy (i.e. different in
 different directions). Covariates can be specified when computing the
@@ -563,8 +571,13 @@ variogram to account for spatial trends and adjust for another spatial
 variable. However, unlike Morans’s I, the semivariogram can’t identify
 negative spatial autocorrelation, although since the spatial
 neighborhood graph typically does not encode spatial directions,
-<code>spdep</code> autocorrelation metrics can’t identify
-anisotropy.</p>
+<code>spdep</code> autocorrelation metrics can’t identify anisotropy.
+Another problem with the semivariogram is that it assumes that the data
+is intrinsically stationary, i.e. the semivariogram holds in the entire
+dataset, or that similarity between two cells only depends on their
+distance from each other, which may not be the case when spatial
+autocorrelation varies in space as evident for some genes in local
+spatial analyses.</p>
 <p>Single cell smFISH based data is also dissimiliar to both areal and
 geostatistical data in important ways. In geospatial areal data, data
 from numerous basic units of the spatial process (e.g. people in
@@ -592,7 +605,10 @@ weights in spatial autocorrelation metrics would be more relevant for
 EDA. It would be interesting to compare the results from different
 spatial neighborhood graphs and spatial weights, and between
 <code>spdep</code> and <code>gstat</code>. Perhaps there is no one best
-method, but different methods reveal different phenomena.</p>
+method, but different methods reveal different phenomena. The problem of
+choosing a spatial neighborhood matrix has a long history far predating
+spatial transcriptomics. See <span class="citation">(Getis 2009)</span>
+for a brief discussion of decades of work around this issue.</p>
 <p>Spatial autocorrelation metrics seek to measure how nearby things
 tend to be more similar or dissimilar, and the neighborhood graph and
 edge weights define what we mean by “nearby” in areal data. Note that
@@ -625,7 +641,7 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; Warning in knearneigh(coords, k = k, use_kd_tree = use_kd_tree, longlat =</span></span>
 <span><span class="co">#&gt; FALSE): dnearneigh: longlat argument overrides object</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 197.342   0.016 197.363</span></span></code></pre></div>
+<span><span class="co">#&gt; 261.708   0.111 261.861</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -663,7 +679,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 223.401   1.343 227.069</span></span></code></pre></div>
+<span><span class="co">#&gt; 669.473   4.554 340.101</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -1041,6 +1057,10 @@ Canete, Nicolas P, Sourish S Iyengar, John T Ormerod, Heeva Baharlou,
 Andrew N Harman, and Ellis Patrick. 2022. <span>“spicyR: Spatial
 Analysis of in Situ Cytometry Data in <span>R</span>.”</span>
 <em>Bioinformatics</em>, April.
+</div>
+<div id="ref-Getis2009-iw" class="csl-entry">
+Getis, Arthur. 2009. <span>“Spatial Weights Matrices.”</span> <em>Geogr.
+Anal.</em> 41 (4): 404–10.
 </div>
 <div id="ref-He2021-oy" class="csl-entry">
 He, Shanshan, Ruchir Bhatt, Carl Brown, Emily A Brown, Derek L Buhr, Kan

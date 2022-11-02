@@ -47,6 +47,7 @@
     <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
     <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
+    <a class="dropdown-item" href="../articles/vis6_merfish.html">MERFISH mouse liver dataset and large data</a>
   </div>
 </li>
 <li class="nav-item">
@@ -94,6 +95,11 @@ Moses</h4>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
+<p>When you are reading this, you are reading analyses run on GitHub
+Action’s machine, which has 7 GB of RAM, 2 CPU cores, and 14 GB of disk
+space, which is less than what a typical modern laptop has. That these
+analyses can be run means that a lot can be done for almost 400,000
+cells with limited computational resources.</p>
 <p>The <code>SpatialFeatureExperiment</code> (SFE) and
 <code>Voyager</code> packages were originally developed around a
 relatively small Visium dataset as a proof of concept, and were hence
@@ -105,18 +111,22 @@ dataset, the number of cells per dataset has increased in the past years
 <span class="citation">(Moses and Pachter 2022)</span>.</p>
 <p>In this vignette, we use a MERFISH mouse liver dataset downloaded
 from the <a href="https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&amp;prefix=&amp;forceOnObjectsSortingFiltering=false&amp;pli=1" class="external-link">Vizgen
-website</a> to preview some features to come in later versions of
-<code>Voyager</code> relevant to larger datasets and some smaller ones
-as well. The gene count matrix and cell metadata (including centroid
-coordinates) were downloaded as CSV files and read into R. The cell
-polygons are in HDF5 files, with one HDF5 file per field of view (FOV),
-and there’re over 1000 FOVs in this dataset. Converting these HDF5 files
+website</a> to discuss some issues with large datasets and some upcoming
+features in the next release of <code>Voyager</code>. The gene count
+matrix and cell metadata (including centroid coordinates) were
+downloaded as CSV files and read into R. While 7 z-planes were imaged,
+cell segmentation is only available in one z-plane. The cell polygons
+are in HDF5 files, with one HDF5 file per field of view (FOV), and
+there’re over 1000 FOVs in this dataset. Converting these HDF5 files
 into an <code>sf</code> dataframe is not trivial. See the <a href="https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes">vignette
-on creating an SFE object</a> for code used to do the conversion, and
-the polygons are included in the SFE object. The cell metadata already
-has cell volume. If the polygons are not used in the analyses, and the
-polygons can’t be seen on a static plot with hundreds of thousands of
-cells anyway, then doing the conversion is optional.</p>
+on creating a <code>SpatialFeatureExperiment</code> (SFE) object</a> for
+code used to do the conversion, and the polygons are included in the SFE
+object. The cell metadata already has cell volume. If the polygons are
+not used in the analyses, and the polygons can’t be seen on a static
+plot with hundreds of thousands of cells anyway, then doing the
+conversion is optional. While the transcript spot locations are
+available, we don’t yet know how to work with such a huge point
+dataset.</p>
 <p>Here we load the packages used</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/Voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
@@ -124,8 +134,6 @@ cells anyway, then doing the conversion is optional.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span> <span class="co"># devel version of plotExpression</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
@@ -133,16 +141,26 @@ cells anyway, then doing the conversion is optional.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/LTLA/BiocSingular" class="external-link">BiocSingular</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/gstat/" class="external-link">gstat</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/exaexa/scattermore" class="external-link">scattermore</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">BiocNeighbors</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">automap</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/VizgenLiverData.html" class="external-link">VizgenLiverData</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>There are 395215 cells in this dataset</p>
+<p>There are 395215 cells in this dataset. Plotting them all as polygons
+takes a while, but it isn’t too bad.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cellSeg"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>However, it will be a disaster if this plot is saved as PDF. To avoid
+this problem, either use the <code>scattermore = TRUE</code> argument in
+<code><a href="../reference/plotSpatialFeature.html">plotSpatialFeature()</a></code> and plot the centroids since the
+polygons are pretty much invisible anyway, or use the <a href="https://github.com/VPetukhov/ggrastr" class="external-link"><code>ggrastr</code></a>
+package to rasterize the polygons without rasterizing the text.</p>
+<p>Cell density can be vaguely seen in the plot above. Here we count the
+number of cells in bins to better visualize cell density.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoords</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">center_x</span>, <span class="va">center_y</span><span class="op">)</span>, bins <span class="op">=</span> <span class="fl">300</span><span class="op">)</span> <span class="op">+</span></span>
@@ -166,138 +184,157 @@ denser regions that seem to relate to the blood vessels.</p>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
-plotting cell centroid points should be fine. In the next version ov
-Voyager, we will add arguments to select a bounding box to zoom into a
-smaller region of the tissue when making non-interactive plots.</p>
+plotting cell centroid points should be fine.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">coldata_scattermore</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoords</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoordsNames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">+</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">geom_scattermore</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_.html" class="external-link">aes_string</a></span><span class="op">(</span><span class="va">nms</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">nms</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, color <span class="op">=</span> <span class="va">feature</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
+<span>                             scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<p>When run on our server, plotting almost 400,000 polygons took almost
-22 seconds, while using <code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">geom_scattermore()</a></code> took less than
-one second. Using <code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">geom_scattermore()</a></code> and plotting cell
-density in space will be added to the next release of
-<code>Voyager</code>. This would especially help when plotting multiple
-genes in space. However, note that <code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">geom_scattermore()</a></code> is
-fast because it rasterizes the plot, so the plot will be pixelated when
-enlarged.</p>
+<p>When run on our server, plotting almost 400,000 polygons took around
+23 seconds, while using <code>geom_scattermore()</code> took about 2
+seconds. Using <code>geom_scattermore()</code> and plotting cell density
+in space will be added to the next release of <code>Voyager</code>.
+Since <code>geom_scattermore()</code> rasterizes the plot, the plot will
+be pixelated when zoomed in.</p>
+<p>This feature will be added to all spatial plotting functions in the
+next release: to use a bounding box to only plot a portion of the
+tissue. This function here is simplified and not generalizable, compared
+to what will go into the next release. While interactive data
+visualization is definitely cooler for the user, there is a place for
+static figures in publications.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plot_colgeom_bbox</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span>, <span class="va">bbox</span>,</span>
+<span>                              <span class="va">divergent</span> <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">diverge_center</span> <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">cellSeg</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="va">feature</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">df</span><span class="op">[[</span><span class="va">feature</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[[</span><span class="va">feature</span><span class="op">]</span><span class="op">]</span></span>
+<span>    <span class="kw">else</span></span>
+<span>        <span class="va">df</span><span class="op">[[</span><span class="va">feature</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">feature</span>,<span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="va">feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/make.names.html" class="external-link">make.names</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/make.names.html" class="external-link">make.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="co"># Specify bounding box</span></span>
+<span>    <span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html" class="external-link">st_as_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">bbox</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="co"># Subset the sf data frame with the bounding box</span></span>
+<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">[</span><span class="va">bbox_use</span>,<span class="op">]</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="va">divergent</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getDivergeRange.html">getDivergeRange</a></span><span class="op">(</span><span class="va">df</span><span class="op">[[</span><span class="va">feature</span><span class="op">]</span><span class="op">]</span>, <span class="va">diverge_center</span><span class="op">)</span></span>
+<span>        <span class="co"># fill, since only for polygons for now</span></span>
+<span>        <span class="va">pal</span> <span class="op">&lt;-</span> <span class="fu">scico</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/scico/man/ggplot2-scales.html" class="external-link">scale_fill_scico</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"roma"</span>, begin <span class="op">=</span> <span class="va">r</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, end <span class="op">=</span> <span class="va">r</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">}</span> <span class="kw">else</span></span>
+<span>        <span class="va">pal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_.html" class="external-link">aes_string</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">feature</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>        <span class="va">pal</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">3000</span>, xmax <span class="op">=</span> <span class="fl">3500</span>, ymin <span class="op">=</span> <span class="fl">2500</span>, ymax <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
+<p>Much of the time making this plot was spent subsetting the
+<code>sf</code> data frame with the bounding box. Here spatial
+autocorrelation is evident in the upper right region with smaller cells,
+but less so in the rest of this patch. Here nCounts seems to be related
+to cell size; larger cells seem to have more total counts.</p>
+<p>Interactive data visualization is outside the scope of this package.
+Nor do we have the JavaScript expertise to develop one for SFE. To be
+honest, I generally find <code>shiny</code> apps really slow compared to
+interactive tools written directly in JavaScript. There are existing
+tools for interactive visualization of highly multiplexed imaging data,
+such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
+<span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
+<span class="citation">(Pielawski et al. 2022)</span>, and <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(Warchol et al. 2022)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be shown</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
 <p>The number of real genes is 347</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_panel</span> <span class="op">&lt;-</span> <span class="fl">347</span></span></code></pre></div>
 <p>Plot the distribution of nCounts, divided by the number of genes in
 the panel, so this distribution is more comparable across datasets with
 different numbers of genes.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">nCounts</span><span class="op">/</span><span class="va">n_panel</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Also plot the number of genes detected per cell, with
-<code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">geom_scattermore()</a></code></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nGenes"</span><span class="op">)</span></span></code></pre></div>
-<p>Plot the distribution of nGenes, divided by number of genes in the
-panel</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">nGenes</span><span class="op">/</span><span class="va">n_panel</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Distribution of cell volume in space</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">nCounts_normed</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">nCounts</span> <span class="op">/</span> <span class="va">n_panel</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">nGenes_normed</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">nGenes</span> <span class="op">/</span> <span class="va">n_panel</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span><span class="op">)</span></span></code></pre></div>
-<p>How does nCounts relate to nGenes?</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts_normed"</span>, <span class="st">"nGenes_normed"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Just like in the <a href="https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells">Xenium
+dataset</a>, there are those mysterious regular notches in the histogram
+of the number of genes detected.</p>
+<p>Also plot the number of genes detected per cell, with
+<code>geom_scattermore()</code></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">nCounts</span>, <span class="va">nGenes</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>There’re two branches. Interesting.</p>
-<p>How does cell size relate to nCounts?</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nGenes"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Just like nCounts, this looks kind of salt and pepper.</p>
+<p>Distribution of cell volume in space</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">volume</span>, <span class="va">nCounts</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Also kind of salt and pepper</p>
+<p>How does nCounts relate to nGenes?</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Again, 2 branches.</p>
+<p>There’re two branches in this plot.</p>
+<p>How does cell size relate to nCounts?</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span>, <span class="st">"nCounts"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Again, 2 branches, the lower one where larger cells don’t really tend
+to have more total counts, and the upper one where larger cells tend to
+have more total counts.</p>
+<p>How does cell size relate to number of genes detected?</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span>, <span class="st">"nGenes"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>There seem to be clusters. Even more interesting. This is probably
+related to cell type.</p>
 <div class="section level4">
 <h4 id="negative-controls">Negative controls<a class="anchor" aria-label="anchor" href="#negative-controls"></a>
 </h4>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<p>Blank probes are used as negative controls</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">is_blank</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span>, <span class="st">"^Blank-"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/addPerCellQCMetrics.html" class="external-link">addPerCellQCMetrics</a></span><span class="op">(</span><span class="va">sfe</span>, subset <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>blank <span class="op">=</span> <span class="va">is_blank</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Total transcript counts from the blank probes</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_sum"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">subsets_blank_sum</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Number of blank features detected per cell</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_detected"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">subsets_blank_detected</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Percentage oof blank features per cell</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_sum"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
+<span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Number of blank features detected per cell</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">coldata_scattermore</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_percent"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_detected"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
+<span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Percentage of blank features per cell</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_percent"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
+<span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>The percentage is more interesting: within the tissue, cells with
 high percentage of blank counts are scattered like salt and pepper, but
 more of these cells are on the left edge of the tissue, the edges of
 FOVs, where the tissue itself doesn’t end.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">subsets_blank_percent</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The NA’s are cells without any transcript detected. Also plot this
-histogram only for cells with at least one blank count.</p>
+<p>Also plot histograms</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">subsets_blank_sum</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"subsets_blank_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sum"</span>, <span class="st">"detected"</span>, <span class="st">"percent"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The NA’s are cells without any transcript detected.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">subsets_blank_percent</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">subsets_blank_sum</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p>Unlike in the Xenium dataset, here most cells have at least one blank
-count.</p>
+count. By log transforming, the 0’s are removed from the plot.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">sfe</span><span class="op">$</span><span class="va">nCounts</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">sfe</span><span class="op">$</span><span class="va">subsets_blank_sum</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">subsets_blank_percent</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_blank_percent"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span>sides <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>A small percentage of blank counts is acceptable. So we will remove
 the outlier based on the distribution of the percentage when it’s
-greater than 0.</p>
+greater than 0. How does the blank percentage relate to total
+counts?</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">nCounts</span>, <span class="va">subsets_blank_percent</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="st">"subsets_blank_percent"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The outliers in percentage of blank counts have low total counts. But
@@ -336,8 +373,6 @@ has a very long tail, we log transform it when finding outliers.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowVars.html" class="external-link">rowVars</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Real genes generally have higher mean expression across cells than
-negative controls.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_blank</span> <span class="op">&lt;-</span> <span class="va">is_blank</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"is_blank"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -349,15 +384,7 @@ expressed at lower levels or in fewer cells are included.</p>
 <p>Here the real genes and negative controls are plotted in different
 colors</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">means</span>, <span class="va">vars</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">50</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="va">is_blank</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                         name <span class="op">=</span> <span class="st">"Counts (real genes)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">new_scale_fill</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">50</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">is_blank</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Reds"</span>, direction <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                         name <span class="op">=</span> <span class="st">"Counts (negative controls)"</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"vars"</span>, colour_by <span class="op">=</span> <span class="st">"is_blank"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>slope <span class="op">=</span> <span class="fl">1</span>, intercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -382,54 +409,424 @@ the line, while real genes are overdispersed.</p>
 <div class="section level2">
 <h2 id="spatial-autocorrelation-of-qc-metrics">Spatial autocorrelation of QC metrics<a class="anchor" aria-label="anchor" href="#spatial-autocorrelation-of-qc-metrics"></a>
 </h2>
+<p>Again, we plot that zoomed in patch to visually inspect cell-cell
+contiguity</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html" class="external-link">st_as_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">2000</span>, xmax <span class="op">=</span> <span class="fl">2500</span>, ymin <span class="op">=</span> <span class="fl">2000</span>, ymax <span class="op">=</span> <span class="fl">2500</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cellSeg"</span><span class="op">)</span><span class="op">[</span><span class="va">bbox_use</span>,<span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">cellSeg</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html" class="external-link">st_as_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">bbox_use</span><span class="op">)</span><span class="op">)</span>,<span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>There’re quite a few cells that are not contiguous to any other cell,
-so purely using poly2nb is probably not good. I tried it before; making
-snap too large doesn’t work.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+and cell segmentation is imperfect, so purely using
+<code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> is probably not good. In the next release, we
+might implement a way to blend polygon contiguity graph with some other
+graph in case of singletons. For now we use k nearest neighbors, with
+<span class="math inline">\(k = 5\)</span>, which seems like a
+reasonable approximation of contiguity based on the visual
+inspection.</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn5"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>, </span>
 <span>                                                  dist_type <span class="op">=</span> <span class="st">"idw"</span>, k <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>It’s not too bad, not taking longer than a song.</p>
-<p>Try annoy and hnsw</p>
-<p>I should also try poly2nb (pretty fast) to find a more appropriate
-k</p>
-<p>Moran’s I. OK, I have the code now. I should add it to the package
-and just say this vignette is for devel version.</p>
+<p>The <code>spdep</code> implementation of k nearest neighbors isn’t
+not too bad, not taking longer than a song.</p>
+<p><a href="https://github.com/spotify/annoy" class="external-link">Annoy</a> is a faster way
+to find approximate k nearest neighbors, and is used in graph based
+clustering in scRNA-seq data. To use Annoy from R, one way is to use
+<code><a href="https://rdrr.io/pkg/BiocNeighbors/man/AnnoyParam.html" class="external-link">AnnoyParam()</a></code> in <a href="https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html" class="external-link"><code>BiocNeighbors</code></a>.</p>
+<p>Is Annoy faster? To have a fair comparison, we convert the results
+into an <code>nb</code> object in <code>spdep</code>, and do inverse
+distance weighting. From profiling, most of the time was spent on
+<code><a href="https://r-spatial.github.io/spdep/reference/nb2listwdist.html" class="external-link">nb2listwdist()</a></code>. The output from <code><a href="https://rdrr.io/pkg/BiocNeighbors/man/findKNN-methods.html" class="external-link">findKNN()</a></code> also
+contains a matrix for the indices of the neighbors, and another matrix
+for the distances to the neighbors. To further speed up the code, we
+directly perform the row normalization of the edge weights and format
+the data into the <code>listw</code> structure. The functions
+<code><a href="https://r-spatial.github.io/spdep/reference/knn2nb.html" class="external-link">knn2nb()</a></code> and <code><a href="https://r-spatial.github.io/spdep/reference/nb2listw.html" class="external-link">nb2listw()</a></code> involve more slow R
+loops but are more flexible for many other kinds of graphs.</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>    <span class="va">foo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/findKNN-methods.html" class="external-link">findKNN</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoords</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span>, k<span class="op">=</span><span class="fl">5</span>, BNPARAM<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/AnnoyParam.html" class="external-link">AnnoyParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="co"># Split by row</span></span>
+<span>    <span class="va">foo_nb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/asplit.html" class="external-link">asplit</a></span><span class="op">(</span><span class="va">foo</span><span class="op">$</span><span class="va">index</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="va">dmat</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">/</span><span class="va">foo</span><span class="op">$</span><span class="va">distance</span></span>
+<span>    <span class="co"># Row normalize the weights</span></span>
+<span>    <span class="va">dmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">dmat</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">dmat</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span>
+<span>    <span class="va">glist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/asplit.html" class="external-link">asplit</a></span><span class="op">(</span><span class="va">dmat</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="co"># Sort based on index</span></span>
+<span>    <span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">foo_nb</span>, <span class="va">order</span><span class="op">)</span></span>
+<span>    <span class="va">foo_nb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">foo_nb</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="va">foo_nb</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">ord</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">foo_nb</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"nb"</span></span>
+<span>    <span class="va">glist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">glist</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="va">glist</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">ord</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>    </span>
+<span>    <span class="va">listw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>style <span class="op">=</span> <span class="st">"W"</span>,</span>
+<span>                  neighbours <span class="op">=</span> <span class="va">foo_nb</span>,</span>
+<span>                  weights <span class="op">=</span> <span class="va">glist</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<p>This took about half the time as <code>spdep</code>, so we will
+formalize it and add it to the next release. How do the results compare
+to those from <code>spdep</code>?</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">diff_nbs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/diffnb.html" class="external-link">diffnb</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn5"</span><span class="op">)</span><span class="op">$</span><span class="va">neighbours</span>, <span class="va">foo_nb</span><span class="op">)</span></span>
+<span><span class="va">diff_card</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/card.html" class="external-link">card</a></span><span class="op">(</span><span class="va">diff_nbs</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">diff_card</span><span class="op">)</span></span></code></pre></div>
+<p>By and large the results are very similar, but there are some small
+differences as Annoy finds approximate k nearest neighbors.</p>
+<p>With the spatial neighborhood graph, we can compute Moran’s I for QC
+metrics.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>, </span>
-<span>                          colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Not nearly as bad as I thought</p>
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>, </span>
+<span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
-<p>Ah, I finally see a sizable negative Moran’s I!</p>
+<p>Unlike the other smFISH-based datasets on this website, nCounts and
+nGenes have sizable negative Moran’s I’s, which is closer to 0 for
+volume. It would be interesting to compare these metrics across
+different tissues, as we add more datasets to <code>SFEData</code> in
+future releases.</p>
+<p>Also check local Moran’s I, since in that little patch we examined
+above, some regions may have more positive spatial autocorrelation.</p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"localmoran"</span>, </span>
+<span>                         features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>,</span>
+<span>                         colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span>, progressbar <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>It’s actually not as slow as I thought for almost 400,000 cells.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>,</span>
+<span>                colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                ncol <span class="op">=</span> <span class="fl">2</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>There are some niches around smaller blood vessels with positive
+local Moran’s I for nCounts and nGenes. This is most likely due to the
+more homogenous endothelial cells compared to hepatocytes.</p>
+</div>
+<div class="section level2">
+<h2 id="morans-i">Moran’s I<a class="anchor" aria-label="anchor" href="#morans-i"></a>
+</h2>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
+<span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>It’s actually not as slow as I thought for almost 400,000 cells. How
+are Moran’s I’s distributed for real genes and blank probes?</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"moran_sample01"</span>, y <span class="op">=</span> <span class="st">"is_blank"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p>The blanks are clustered tightly around 0. The vast majority of real
 genes have positive spatial autocorrelation, some quite strong. But some
-genes have negative spatial autocorrelation.</p>
-<p>Plot the top genes with positive spatial autocorrelation (devel
-version of Voyager)</p>
+genes have negative spatial autocorrelation, although it may or may not
+be statistically significant.</p>
+<p>Plot the top genes with positive spatial autocorrelation</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">top_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                   ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<p>Unlike in the other smFISH-based cancer datasets on this dataset, the
+genes with the highest Moran’s I highlight different histological
+regions. Some probably for zones in the hepatic lobule, and some for
+blood vessels. It would be interesting to compare spatial
+autocorrelation of marker genes among different tissues and cell
+types.</p>
+<p>Negative Moran’s I means that nearby cells tend to be more dissimilar
+to each other. That would be hard to see when plotting the whole tissue
+section, so we will use that bounding box again. The gene with the most
+negative Moran’s I is compared to one with Moran’s I closest to 0.</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bottom_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">bottom_abs_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">bottom_moran</span>, <span class="va">bbox_use</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">bottom_abs_moran</span>, <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
+<p>This took a while since the bottleneck is the spatial subsetting with
+the bounding box that was performed twice. In the next release, this
+subsetting will be done only once when multiple features are plotted. As
+expected, the feature with Moran’s I closest to 0 is a blank.</p>
+</div>
+<div class="section level2">
+<h2 id="spatial-autocorrelation-at-larger-length-scales">Spatial autocorrelation at larger length scales<a class="anchor" aria-label="anchor" href="#spatial-autocorrelation-at-larger-length-scales"></a>
+</h2>
+<p>The k nearest neighbor graph used above only concern 5 cells around
+each cell, which is a very small neighborhood, over a very small length
+scale. In the current release of <code>Voyager</code>, a correlogram can
+be computed to get a sense of the length scale of spatial
+autocorrelation. However, since finding the lag values over higher and
+higher orders of neighgorhoods is very slow for such a large number of
+cells for higher orders, the correlogram is not very helpful here. In
+this section, we use some other methods involving binning to explore
+spatial autocorrelation at larger length scales.</p>
+<div class="section level3">
+<h3 id="binning">Binning<a class="anchor" aria-label="anchor" href="#binning"></a>
+</h3>
+<p>The <code>sf</code> package can create polygons in a grid, with which
+we can bin the cells and their attributes and gene expressions. Here we
+make a 100 by 100 hexagonal grid in the bounding box of the cell
+centroids.</p>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">bins</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_make_grid.html" class="external-link">st_make_grid</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"centroids"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">100</span>, square <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Here we use this grid to bin the QC metrics by averaging the values
+from the cells. Since bins not completely covered by tissue have fewer
+cells, the mean may be less susceptible to edge effect than the sum, as
+bins near the edge will have lower sums, which may spuriously increase
+Moran’s I.</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"centroids"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">df_binned</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">bins</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
+<span><span class="co"># Remove bins not containing cells</span></span>
+<span><span class="va">df_binned</span> <span class="op">&lt;-</span> <span class="va">df_binned</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">$</span><span class="va">nCounts</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
+<p>Plot the binned values</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Not using facet_wrap to give each panel its own color scale</span></span>
+<span><span class="va">plts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">[</span>,<span class="va">f</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_.html" class="external-link">aes_string</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">f</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
+<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">plts</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<p>There’s an outlier bin not as evident when plotting single cells.
+There’s still some edge effect around blood vessels. This might be truly
+edge effect, or that endothelial cells tend to have lower values in all
+3 variables here.</p>
+<p>Then compute Moran’s I over the binned data, with contiguity
+neighborhoods. <code>zero.policy = TRUE</code> because there are some
+bins with no neighbors.</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">)</span></span>
+<span><span class="va">listw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/nb2listw.html" class="external-link">nb2listw</a></span><span class="op">(</span><span class="va">nb</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/calculateUnivariate.html">calculateMoransI</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_drop_geometry</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                 listw <span class="op">=</span> <span class="va">listw</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>At a larger length scale, Moran’s I becomes positive. Comparing
+Moran’s I across different sized bins can give a sense of the length
+scale of spatial autocorrelation. However, there are problems with
+binning to watch out for:</p>
+<ol style="list-style-type: decimal">
+<li>Edge effect, especially when using the sum when binning</li>
+<li>Which function to use to aggregate the values when binning</li>
+<li>When using a rectangular grid, whether to use rook or queen
+neighbors. Rook means two cells are neighbors if they share an edge,
+while queen means they are neighbors even if they merely share a
+vertex.</li>
+</ol>
+<p>While binning can greatly speed up computation of spatial
+autocorrelation metrics for larger datasets, and is in fact used for
+Moran’s I in Seurat, it can be used for smaller datasets to find length
+scales of spatial autocorrelation. On the other hand, as seen here,
+Moran’s I can flip signs at different length scales, so for larger
+datasets, exploring spatial autocorrelation at the cell level would
+still be interesting.</p>
+</div>
+<div class="section level3">
+<h3 id="semivariogram">Semivariogram<a class="anchor" aria-label="anchor" href="#semivariogram"></a>
+</h3>
+<p>In geostatistical data, an underlying spatial process is sampled at
+known locations. Kriging uses a Gaussian process to interpolate the
+values between the sample locations, and the semivariogram is used to
+model the spatial dependency between the locations, as the covariance of
+the Gaussian process. When not kriging, the semivariogram can be used as
+an exploratory data analysis tool to find the length scale and
+anisotropy of spatial autocorrelation. One of the classic R packages in
+the geostatistical tradition is <a href="https://cran.r-project.org/web/packages/gstat/index.html" class="external-link"><code>gstat</code></a>,
+which we use here to find semivariograms, defined as</p>
+<p><span class="math display">\[
+\gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
+\]</span></p>
+<p>where <span class="math inline">\(X\)</span> is the value such as
+gene expression, and <span class="math inline">\(t\)</span> is a spatial
+vector. <span class="math inline">\(X_0\)</span> is the value at a
+location of interest, and <span class="math inline">\(X_t\)</span> is
+the value lagged by <span class="math inline">\(t\)</span>. With
+positive spatial autocorrelation, the variance would be smaller among
+nearby values, so the variogram would increase with distance, eventually
+levelling off when the distance is beyond the length scale of spatial
+autocorrelation. The “semi” comes from the 1/2.</p>
+<p>In the next release of Voyager, this will be part of
+<code><a href="../reference/calculateUnivariate.html">runUnivariate()</a></code> so the learning curve for users will be
+minimal.</p>
+<p>First we find an empirical variogram assuming that it’s the same in
+all directions. Here the data is binned at distance intervals, so this
+is much faster than the correlogram at the cell level. The
+<code>width</code> argument controlls the bin size. The
+<code>cutoff</code> argument is the maximum distance to consider. Here
+we use the defaults. The first argument is a formula; covariates can be
+specified, but is not done here.</p>
+<p>With different widths and cutoffs, the variogram can be estimated at
+different length scales. The <code>gstat</code> package can also fit a
+model to the empirical variogram. See <code><a href="https://rdrr.io/pkg/gstat/man/vgm.html" class="external-link">vgm()</a></code> for the
+different types of models. The <a href="https://cran.r-project.org/web/packages/automap/" class="external-link"><code>automap</code></a>
+package can choose a model for the user, and is used here.</p>
+<p>Unfortunately, <code>gstat</code> doesn’t scale to 400,000 cells,
+although it worked for 100,000 cells in the other smFISH-based datasets
+on this website. But since the variogram is used to explore larger
+length scales here anyway, we use the binned data here, but the problems
+with binning will apply here.</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># as_Spatial since automap uses old fashioned sp, the predecessor of sf</span></span>
+<span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/automap/man/autofitVariogram.html" class="external-link">autofitVariogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, <span class="fu"><a href="https://r-spatial.github.io/sf/reference/coerce-methods.html" class="external-link">as_Spatial</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span></span></code></pre></div>
+<p>The numbers in this plot are the number of pairs in each distance
+bin. The variogram is not 0 at 0 distance; this is the variance within
+the bin size, called the nugget. The variogram levels off at greater
+distance, and the value of the variogram where is levels off is the
+sill. Range is where the variogram is leveling off, indicating length
+scale of spatial autocorrelation; the range from visual inspection
+appears closer to 1000 while the model somehow indicates 423.</p>
+<p>A variogram map can be made to see how spatial autocorrelation may
+differ in different directions, i.e. anisotropy</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">df_binned</span>, width <span class="op">=</span> <span class="fl">300</span>, cutoff <span class="op">=</span> <span class="fl">4500</span>, map <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">v2</span><span class="op">)</span></span></code></pre></div>
+<p>Here apparently there’s no anisotropy at shorter length scales, but
+there may be some artifact from the hexagonal bins. Going beyond 2000
+(whatever unit), the variance drops at the northwest and southeast
+direction but not in other directions, perhaps related to the
+repetitiveness of the hepatic lobules and the general NE/SW direction of
+the blood vessels seen in the previous plots.</p>
+<p>The variogram can also be calculated at specified angles, here
+selected as sides of the hexagon:</p>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">df_binned</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">v3_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/fit.variogram.html" class="external-link">fit.variogram</a></span><span class="op">(</span><span class="va">v3</span>, <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/vgm.html" class="external-link">vgm</a></span><span class="op">(</span><span class="st">"Ste"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">v3</span>, <span class="va">v3_model</span><span class="op">)</span></span></code></pre></div>
+<p>The variogram rises when going beyond 2000 at 30 and 90 degrees and
+drops at 150 degrees. This is consistent with the variogram map. These
+differences are averaged out in the omni-directional variogram.
+<code>gstat</code> does not fit anisotropy parameters, so the fitted
+curve is omni-directional. It fits pretty well below 2000. This is only
+for nCounts, and may differ for other QC metrics and genes. What if
+anisotropy varies in space? A problem with the variogram is that it’s
+global, giving one result for the entire dataset, albeit more nuanced
+than just a number as in Moran’s I, because kriging assumes that the
+data is intrinsically stationary, meaning that the same variogram model
+applies everywhere, and that spatial dependence only depends on distance
+between two observations.</p>
+<p>In the next release of Voyager, we will write <code>ggplot2</code>
+based plotting functions to make better looking and more customizable
+plots of the variograms. Here <code>gstat</code> is using
+<code>lattice</code>, a predecessor of <code>ggplot2</code> to make
+facetted plots and has been superseded by <code>ggplot2</code>.
+<code>gstat</code> is one of the oldest R packages still on CRAN, dating
+back to the days of S (prequel of R), although its oldest archive on
+CRAN is from 2003. <code>spdep</code> is also really old; its oldest
+archive on CRAN is from 2002, but it’s still in active development. In
+using these time honored packages and methods (Moran’s I and Geary’s C
+themselves date back to the 1950s and their modern form date back to
+1969 <span class="citation">(Cliff and Ord 1969; Bivand 2013)</span>) on
+the cool new spatial transcriptomics dataset, we are participating in a
+glorious tradition, which we will further develop as a spatial analysis
+tradition forms around spatial -omics data analysis.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="more-on-large-datasets">More on large datasets<a class="anchor" aria-label="anchor" href="#more-on-large-datasets"></a>
+</h2>
+<p>Here, despite the numerous cells, the data was loaded into memory.
+What if the data doesn’t fit into memory? In the next release, we plan
+to write a new vignette with <code>DelayedArray</code> demonstrating out
+of memory data analysis. This is already supported by
+<code>SingleCellExperiment</code>, which SFE inherits from. However, the
+geometries, graphs, and local results can take up a lot memory as well.
+These can possibly be stored in SQL databases and operated on with <a href="https://bioconductor.org/packages/release/bioc/html/SQLDataFrame.html" class="external-link"><code>SQLDataFrame</code></a>.
+The geometric operations can be handled by <a href="https://github.com/apache/incubator-sedona" class="external-link"><code>sedona</code></a>,
+although the options are limited compared to GEOS, which performs
+geometric operations behind the scene for <code>sf</code>.</p>
+<p>Another question can be raised about large spatial transcriptomics
+data: Is it still a good idea to analyze the entire dataset at once?
+There must be many interesting and unique neighborhoods that might not
+get the attention they deserve when the whole dataset is analyzed at
+once. After all, in the geographical space, national level data is
+usually not analyzed at the block resolution, although a reason for this
+is privacy of the subjects. County resolution is often used, but there
+aren’t hundreds of thousands of counties. Many analyses are done for
+cities and counties with neighborhood resolution; using the largest
+geographical unit isn’t always the most relevant. Back to histological
+space: How to aggregate cells into larger spatial units? How to decide
+which scale of spatial units (analogous to nation vs state vs county and
+etc) is relevant? We have traditional anatomical ontologies, such as
+from the Allen Brain Atlas, but this isn’t available for all tissues.
+Also, with more single cell -omics data, the traditional ontologies can
+be improved.</p>
+<p>Furthermore, there are 3D thick section single cell resolution
+spatial transcriptomics data, such as from STARmap <span class="citation">(X. Wang et al. 2018)</span> and EASI-FISH <span class="citation">(Y. Wang et al. 2021)</span>, although the vast
+majority of spatial -omics data are from thin sections pretty much
+<em>de facto</em> 2D. As we mostly live on the surface of Earth, there
+are many more 2D geospatial resources than 3D. However, some methods can
+in principle be applied to 3D and the existing software primarily made
+for 2D data might work. For example, GEOS supports 3D data, so in
+principle 3D geometries in <code>sf</code> should work, although there’s
+little documentation on this. Also, k nearest neighbor, Moran’s I,
+variograms, and etc. should in principle work in 3D, and
+<code>gstat</code> officially supports 3D. These are more challenges
+related to 3D data:</p>
+<ol style="list-style-type: decimal">
+<li>Even when multiple z-planes are imaged, the resolution is much lower
+in the z direction than the x and y directions. Then should the z-plane
+be treated as an attribute or as a coordinate?</li>
+<li>How to make static plots for 3D data for publications? This is more
+complicated than plotting z-planes separately, since a 3D block can be
+sectioned from any other direction. Also for interactive visualization,
+we need to somehow see through the tissue.</li>
+</ol>
+<p>Finally, the geospatial tradition is only one tradition relevant to
+large spatial data, and at present <code>Voyager</code> only works with
+vector data. We are uncertain whether raster should be added in a later
+version, and there are existing tools for large raster data as well,
+such as <a href="https://docs.tiledb.com/geospatial/" class="external-link">TileDB</a>. Other
+traditions can be relevant, such as astronomy and image processing, but
+those are beyond the scope of this package.</p>
+</div>
+<div class="section level2">
+<h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
+</h2>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Bivand2013-jx" class="csl-entry">
+Bivand, Roger. 2013. <span>“<span>‘The Problem of Spatial
+Autocorrelation:’</span> Forty Years On.”</span> <a href="http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf" class="external-link uri">http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf</a>.
+</div>
+<div id="ref-Cliff1969-wp" class="csl-entry">
+Cliff, Andrew David, and J K Ord. 1969. <span>“The Problem of Spatial
+Autocorrelation.”</span> In <em>London Papers in Regional Science 1,
+Studies in Regional Science</em>, edited by A J Scott, 25–55. London:
+Pion.
+</div>
 <div id="ref-Moses2022-xz" class="csl-entry">
 Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
 Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
 628.
+</div>
+<div id="ref-Pielawski2022-wk" class="csl-entry">
+Pielawski, Nicolas, Axel Andersson, Christophe Avenel, Andrea Behanova,
+Eduard Chelebian, Anna Klemm, Fredrik Nysjö, Leslie Solorzano, and
+Carolina Wählby. 2022. <span>“<span>TissUUmaps</span> 3: Interactive
+Visualization and Quality Assessment of Large-Scale Spatial Omics
+Data.”</span> <em>bioRxiv</em>.
+</div>
+<div id="ref-Wang2020-sv" class="csl-entry">
+Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
+Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
+Transcriptome in Individual Neurons.”</span> <em>bioRxiv</em>. bioRxiv.
+</div>
+<div id="ref-Wang2018-cv" class="csl-entry">
+Wang, Xiao, William E Allen, Matthew A Wright, Emily L Sylwestrak,
+Nikolay Samusik, Sam Vesuna, Kathryn Evans, et al. 2018.
+<span>“Three-Dimensional Intact-Tissue Sequencing of Single-Cell
+Transcriptional States.”</span> <em>Science</em> 361 (6400).
+</div>
+<div id="ref-Wang2021-fv" class="csl-entry">
+Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
+Tim Wang, Konrad Rokicki, et al. 2021. <span>“<span>EASI-FISH</span> for
+Thick Tissue Defines Lateral Hypothalamus Spatio-Molecular
+Organization.”</span> <em>Cell</em> 184 (26): 6361–6377.e24.
+</div>
+<div id="ref-Warchol2022-zw" class="csl-entry">
+Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
+Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2022. <span>“Visinity:
+Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
+Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> PP (September):
+1–11.
 </div>
 </div>
 </div>
