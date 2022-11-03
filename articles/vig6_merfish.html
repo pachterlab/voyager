@@ -291,7 +291,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  30.393   1.165  31.639</span></span></code></pre>
+<span><span class="co">#&gt;  38.003   1.709  40.044</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -303,11 +303,11 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.080   0.239   2.349</span></span></code></pre>
+<span><span class="co">#&gt;   2.485   0.282   2.771</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code> took about 2
 seconds. Using <code>geom_scattermore()</code> and plotting cell density
-in space will be added to the next release of <code>voyager</code>.
+in space will be added to the next release of <code>Voyager</code>.
 Since <code>geom_scattermore()</code> rasterizes the plot, the plot will
 be pixelated when zoomed in.</p>
 <p>In the next release we will add to all spatial plotting functions the
@@ -352,7 +352,7 @@ autocorrelation is evident in the upper right region with smaller cells,
 but less so in the rest of this patch. Here nCounts seems to be related
 to cell size; larger cells seem to have more total counts.</p>
 <p>Interactive data visualization is currently beyond the scope of
-<code>voyager</code> or this vignette. There are existing tools for
+<code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
 <span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
 <span class="citation">(Pielawski et al. 2022)</span>, and <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
@@ -687,9 +687,11 @@ approximation of contiguity based on the visual inspection.</p>
 <span><span class="co">#&gt; Warning in knearneigh(coords, k = k, use_kd_tree = use_kd_tree, longlat =</span></span>
 <span><span class="co">#&gt; FALSE): dnearneigh: longlat argument overrides object</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 370.310   1.106 372.552</span></span></code></pre></div>
+<span><span class="co">#&gt; 468.741   2.513 474.749</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
-too bad, not taking longer than a song.</p>
+too bad, not taking longer than a song (radio edit Italodance on our
+server, but more like a full Trance or Ethereal Techno song on GitHub
+Actions).</p>
 <p><a href="https://github.com/spotify/annoy" class="external-link">Annoy</a> is a faster way
 to find approximate k nearest neighbors, and is used in graph based
 clustering in scRNA-seq data. One way to use Annoy in R is to use
@@ -727,7 +729,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 158.216   1.946 160.515</span></span></code></pre></div>
+<span><span class="co">#&gt; 195.368   2.836 199.632</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -793,7 +795,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 221.415  21.952 135.987</span></span></code></pre></div>
+<span><span class="co">#&gt; 238.294  24.679 147.369</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1036,12 +1038,12 @@ user interface, and it supports out of memory data in
 <code>DelayedArray</code>. According to <a href="https://slowkow.com/notes/pca-benchmark/" class="external-link">this benchmark</a>,
 <code><a href="https://rdrr.io/r/stats/prcomp.html" class="external-link">stats::prcomp()</a></code> shipped with R is rather slow for larger
 datasets. The fastest methods are <code><a href="https://rdrr.io/pkg/irlba/man/irlba.html" class="external-link">irlba::irlba()</a></code> and
-<code>RSpectra::svds()</code> are the fastest methods, and the former is
-supported by <code>BiocSingular</code>. So here we use IRLBA and see how
-long it takes. Many PCA algorithms involve repeated matrix
-multiplications. R does not come with optimized BLAS and LAPACK, for
-portability reasons. However, the BLAS and LAPACK used by R can be
-changed to an optimized one (here’s <a href="https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS" class="external-link">how
+<code>RSpectra::svds()</code>, and the former is supported by
+<code>BiocSingular</code>. So here we use IRLBA and see how long it
+takes. Many PCA algorithms involve repeated matrix multiplications. R
+does not come with optimized BLAS and LAPACK, for portability reasons.
+However, the BLAS and LAPACK used by R can be changed to an optimized
+one (here’s <a href="https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS" class="external-link">how
 to do it</a>), which will speed up matrix multiplication.</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
@@ -1051,11 +1053,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  26.699   1.954  28.759</span></span>
+<span><span class="co">#&gt;  31.107   2.291  33.555</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19432263 1037.8   34378813 1836.1         NA  34378813 1836.1</span></span>
-<span><span class="co">#&gt; Vcells 261982548 1998.8  585595803 4467.8      16384 585565530 4467.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19432266 1037.8   34378237 1836.0         NA  34378237 1836.0</span></span>
+<span><span class="co">#&gt; Vcells 261982566 1998.8  585595824 4467.8      16384 585565548 4467.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1093,11 +1095,11 @@ least at the larger scale over the entire tissue section.</p>
 <p>Here we use that makeshift function to plot a zoomed in patch</p>
 <div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">PC2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, withDimnames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">PC4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, withDimnames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">4</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">PC3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, withDimnames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span></span>
 <span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PC2"</span>, <span class="va">bbox_use</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span> </span>
-<span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PC4"</span>, <span class="va">bbox_use</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PC3"</span>, <span class="va">bbox_use</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-65-1.png" width="864"></p>
-<p>There’s some spatial structure in PC2 and PC4 at a smaller scale.</p>
+<p>There’s some spatial structure in PC2 and PC3 at a smaller scale.</p>
 <p>Like global Moran’s I, PCA and MULTISPATI PCA return one result for
 the entire dataset. In contrast, <a href="https://rdrr.io/cran/GWmodel/man/gwpca.html" class="external-link">geographically
 weighted PCA (GWPCA)</a> <span class="citation">(Harris et al.
