@@ -514,14 +514,14 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
                                             objective_function = "modularity")))
 ```
 
-Now the `scater` can also rasterize the plots with lots of points, but with a different mechanism from `scattermore` that requires more system dependencies. 
+Now the `scater` can also rasterize the plots with lots of points with the `rasterise` argument, but with a different mechanism from `scattermore` that requires more system dependencies. 
 ```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = TRUE) +
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = FALSE) +
     geom_density2d()
 ```
 
 ```{r}
-plotUMAP(sfe, colour_by = "cluster", rasterise = TRUE)
+plotUMAP(sfe, colour_by = "cluster", rasterise = FALSE)
 ```
 
 Plot the location of the clusters in space
