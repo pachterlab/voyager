@@ -24,13 +24,15 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally developed around a relatively small Visium dataset as a proof of concept, and were hence not originally optimized for very large datasets. However, larger smFISH datasets with hundreds of thousands, sometimes over a million cells, have already been produced, and will soon be produced routinely. Among studies using smFISH-based spatial transcriptomics technologies that reported the number of cells per dataset, the number of cells per dataset has increased in the past years [@Moses2022-xz].
+The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally developed around a relatively small Visium dataset as a proof of concept, and were hence not originally optimized for very large datasets. However, larger smFISH datasets with hundreds of thousands, sometimes over a million cells have already been produced and will soon be produced routinely. Among studies using smFISH-based spatial transcriptomics technologies that reported the number of cells per dataset, the number of cells per dataset has increased in the past years [@Moses2022-xz].
 
 ```{r, echo=FALSE}
 knitr::include_graphics("https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png")
 ```
+
 In anticipation of large datasets, this vignette was produced using limited GitHub Actions resources, which are 7 GB of RAM with 2 CPU cores and 14 GB of disk space, less than what is common on current laptops. We therefore expect that the analyses in this vignette should scale to reasonably sized datasets.  
-The dataset we use in this vignette is a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false&pli=1) to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. While 7 z-planes were imaged, cell segmentation is only available in one z-plane. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` dataframe is not trivial. See the [vignette on creating a `SpatialFeatureExperiment` (SFE) object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. While the transcript spot locations are available, we cannot yet work with such a large point dataset.
+
+The dataset we use in this vignette is a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1) to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. While 7 z-planes were imaged, cell segmentation is only available in one z-plane. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` data frame is not trivial. See the [vignette on creating a `SpatialFeatureExperiment` (SFE) object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. While the transcript spot locations are available, we cannot yet work with such a large point dataset.
 
 Here we load the packages used 
 ```{r setup}
@@ -76,7 +78,7 @@ ggplot(as.data.frame(spatialCoords(sfe))) +
     theme_bw() + coord_equal()
 ```
 
-Cell density is for the most part homogenous but shows some structure with denser regions that seem to relate to the blood vessels.
+Cell density is for the most part homogeneous but shows some structure with denser regions that seem to relate to the blood vessels.
 
 # Quality control
 ```{r}
@@ -170,7 +172,7 @@ We also plot the number of genes detected per cell, with `geom_scattermore()`
 plotSpatialFeature(sfe, "nGenes", colGeometryName = "centroids", scattermore = TRUE)
 ```
 
-Similarly to nCounts, this the points look intermingled. 
+Similarly to nCounts, the points look intermingled. 
 
 Distribution of cell volume in space
 ```{r}
@@ -322,7 +324,7 @@ plotRowData(sfe, x = "means", y = "vars", colour_by = "is_blank") +
     theme_bw()
 ```
 
-The red line $y = x$ is expected when the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed.
+The red line $y = x$ is expected when the data follows a Poisson distribution. 
 ```{r}
 as.data.frame(rowData(sfe)[is_blank,]) |> 
     ggplot(aes(means, vars)) +
@@ -344,7 +346,7 @@ ggplot(cellSeg(sfe)[st_as_sfc(st_bbox(bbox_use)),]) + geom_sf()
 ```
 
 
-There're quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is probably not good. In the next release, we might implement a way to blend polygon contiguity graph with some other graph in case of singletons. For now we use k nearest neighbors, with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection.
+There're quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is problematic. In the next release, we might implement a way to blend polygon contiguity graph with some other graph in case of singletons. For now we use k nearest neighbors, with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection.
 
 ```{r}
 system.time(
@@ -358,7 +360,7 @@ The `spdep` implementation of k nearest neighbors isn't too bad, not taking long
 
 [Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. One way to use Annoy in R is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
 
-To examine the speed of Annoy, we convert the results into an `nb` object in `spdep`, and do inverse distance weighting. From profiling, most of the time was spent on `nb2listwdist()`. The output from `findKNN()` also contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly perform the row normalization of the edge weights and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listw()` involve more slow R loops but are more flexible for many other kinds of graphs.
+To examine the speed of Annoy, we convert the results into an `nb` object in `spdep`, and do inverse distance weighting. From profiling, most of the time constructed the spatial weights matrix was spent on `nb2listwdist()`, to perform distance weighting. The output from `findKNN()` contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly compute the inverse distance edge weights without using `nb2listwdist()` and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listwdist()` involve more slow R loops but are more flexible for many other kinds of graphs.
 
 ```{r}
 system.time({
@@ -382,7 +384,7 @@ system.time({
 })
 ```
 
-This took about half the time as `spdep`, so we will formalize it and add it to the next release. But this is not necessarily that Annoy is faster than the kd tree method in `dbscan`, which is used by `spdep`, as much of the time was spent in `nb2listwdist()` to compute the distance based edge weights from the geometry, as `spdep` does not take the distance matrix returned by `dbscan::kNN()` while we used the distance matrix from `BiocNeighbors::findKNN()` here rather than using the geometry to find the distance again. So for the next release, we will also use `BiocNeighbors` for distance based neighbors, as it also returns a distance list, which can be used to compute distance based edge weights more efficiently than `nb2listwdist()`.
+This took about half the time as `spdep`, so we will formalize it and add it to the next release. But this is not necessarily that Annoy by itself is faster than the kd tree method in `dbscan`, which is used by `spdep`, as much of the time was spent in `nb2listwdist()` to compute the distance based edge weights from the geometry, as `spdep` does not take the distance matrix returned by `dbscan::kNN()` while we used the distance matrix from `BiocNeighbors::findKNN()` here rather than using the geometry to find the distance again. So for the next release, we will also use `BiocNeighbors` for distance based neighbors, as it also returns a distance list, which can be used to compute distance based edge weights more efficiently than `nb2listwdist()`.
 
 A comparison of results is shown below:
 ```{r}
@@ -518,7 +520,7 @@ $$
 \gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
 $$
 
-where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually levelling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2.
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2.
 
 In the next release of Voyager, this will be part of `runUnivariate()` so the learning curve for users will be minimal.
 
@@ -526,7 +528,7 @@ First we find an empirical variogram assuming that it's the same in all directio
 
 With different widths and cutoffs, the variogram can be estimated at different length scales. The `gstat` package can also fit a model to the empirical variogram. See `vgm()` for the different types of models. The [`automap`](https://cran.r-project.org/web/packages/automap/) package can choose a model for the user, and is used here. 
 
-Unfortunately, `gstat` doesn't scale to 400,000 cells, although it worked for 100,000 cells in the other smFISH-based datasets on this website. But since the variogram is used to explore larger length scales here anyway, we use the binned data here, but the problems with binning will apply here.
+Unfortunately, `gstat` doesn't scale to 400,000 cells, although it worked for 100,000 cells in the other smFISH-based datasets on this website. But since the variogram is used to explore larger length scales here anyway, we use the binned data here, but the problems with binning will apply.
 
 ```{r, warning=FALSE}
 # as_Spatial since automap uses old fashioned sp, the predecessor of sf
@@ -551,12 +553,12 @@ v3_model <- fit.variogram(v3, vgm("Ste"))
 plot(v3, v3_model)
 ```
 
-The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space? A problem with the variogram is that it's global, giving one result for the entire dataset, albeit more nuanced than just a number as in Moran's I, because kriging assumes that the data is intrinsically stationary, meaning that the same variogram model applies everywhere, and that spatial dependence only depends on distance between two observations.
+The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space? A problem with the variogram is that it's global, giving one result for the entire dataset, albeit more nuanced than just a number as in Moran's I, because kriging assumes that the data is intrinsically stationary, meaning that the same variogram model applies everywhere, and that spatial dependence only depends on lag between two observations.
 
 In the next release of `voyager`, we will write `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
 
 # PCA for larger datasets
-There are many ways to do PCA in R, and the [`BiocSingular`](https://bioconductor.org/packages/release/bioc/html/BiocSingular.html) package makes a number of different methods available with a consistent user interface, and it supports out of memory data in `DelayedArray`. According to [this benchmark](https://slowkow.com/notes/pca-benchmark/), `stats::prcomp()` that ships with R is rather slow for larger datasets. The fastest methods are `irlba::irlba()` and `RSpectra::svds()` are the fastest methods, and the former is supported by `BiocSingular`. So here we use IRLBA and see how long it takes. Many PCA algorithms involve repeated matrix multiplications. R does not come with optimized BLAS and LAPACK, for portability reasons. However, the BLAS and LAPACK used by R can be changed to an optimized one (here's [how to do it](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS)), which will speed up matrix multiplication. 
+There are many ways to do PCA in R, and the [`BiocSingular`](https://bioconductor.org/packages/release/bioc/html/BiocSingular.html) package makes a number of different methods available with a consistent user interface, and it supports out of memory data in `DelayedArray`. According to [this benchmark](https://slowkow.com/notes/pca-benchmark/), `stats::prcomp()` shipped with R is rather slow for larger datasets. The fastest methods are `irlba::irlba()` and `RSpectra::svds()` are the fastest methods, and the former is supported by `BiocSingular`. So here we use IRLBA and see how long it takes. Many PCA algorithms involve repeated matrix multiplications. R does not come with optimized BLAS and LAPACK, for portability reasons. However, the BLAS and LAPACK used by R can be changed to an optimized one (here's [how to do it](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS)), which will speed up matrix multiplication. 
 
 ```{r}
 set.seed(29)
@@ -597,9 +599,9 @@ plot_colgeom_bbox(sfe, "PC2", bbox_use, divergent = TRUE, diverge_center = 0) +
 plot_colgeom_bbox(sfe, "PC4", bbox_use, divergent = TRUE, diverge_center = 0)
 ```
 
-There's some spatial structure in PC2 at a smaller scale.
+There's some spatial structure in PC2 and PC4 at a smaller scale.
 
-Like global Moran's I, PCA and MULTISPATI PCA return one result for the entire dataset. There's also [geographically weighted PCA (GWPCA)](https://rdrr.io/cran/GWmodel/man/gwpca.html) [@Harris2015-sr] to account for spatial heterogeneity. GWPCA runs PCA at each spatial location using only the nearby locations weighed by a kernel. The different locations can have different PCs, and the results can be visualized with "winning variables" in each PC, i.e. plotting which feature has the highest loading in each PC in space. This most likely doesn't scale to 400,000 cells, but it would still be ineresting when performed on spatially binned data. 
+Like global Moran's I, PCA and MULTISPATI PCA return one result for the entire dataset. In contrast, [geographically weighted PCA (GWPCA)](https://rdrr.io/cran/GWmodel/man/gwpca.html) [@Harris2015-sr] can account for spatial heterogeneity. GWPCA runs PCA at each spatial location using only the nearby locations weighed by a kernel. The different locations can have different PCs, and the results can be visualized with "winning variables" in each PC, i.e. plotting which feature has the highest loading in each PC in space. This most likely doesn't scale to 400,000 cells, but it would still be interesting when performed on spatially binned data. 
 
 The first release of `Voyager` only has univariate spatial analysis methods. We plan to add bivariate and multivariate methods in the next release, which should include MULTISPATI PCA and GWPCA, or a more scalable re-implementation. 
 
