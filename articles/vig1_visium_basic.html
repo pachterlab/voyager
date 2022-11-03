@@ -47,7 +47,7 @@
     <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
     <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung canger data</a>
     <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
-    <a class="dropdown-item" href="../articles/vis6_merfish.html">MERFISH mouse liver dataset and large data</a>
+    <a class="dropdown-item" href="../articles/vig6_merfish.html">MERFISH mouse liver dataset and large data</a>
   </div>
 </li>
 <li class="nav-item">
@@ -84,7 +84,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2022-11-02</h4>
+            <h4 data-toc-skip class="date">2022-11-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/Voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -106,7 +106,6 @@ popularity, and therefore the availability of numerous publicly
 available datasets for analysis <span class="citation">(Moses and
 Pachter 2022)</span>. The code can be run on <a href="https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing" class="external-link">Google
 Colab</a>.</p>
-<p><img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt='Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.' style="display: block; margin: auto;"></p>
 <p>While Voyager was developed with the goal of facilitating the use of
 geospatial methods in spatial genomics, this introductory vignette is
 restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a
@@ -118,70 +117,8 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/Voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
-<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
-<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
-<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
-<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
-<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
-<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
-<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
-<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
-<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
-<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
-<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
-<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
-<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
-<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
-<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
-<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
-<span><span class="co">#&gt; Loading required package: stats4</span></span>
-<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
-<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
-<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
-<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
-<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
-<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
-<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
-<span><span class="co">#&gt; Loading required package: IRanges</span></span>
-<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
-<span><span class="co">#&gt; Loading required package: Biobase</span></span>
-<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
-<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
-<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rowMedians</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: scuttle</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
@@ -219,7 +156,7 @@ wrappers to get and set common types of geometries, including
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">spotPoly()</a></code> for Visium (or other technologies when relevant)
 spot polygons, <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">cellSeg()</a></code> for cell segmentation,
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">nucSeg()</a></code> for nuclei segmentation, and
-<code>centroids()</code> for cell centroids. Behind the scene are
+<code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">centroids()</a></code> for cell centroids. Behind the scene are
 specially named <code>sf</code> data frames. See <a href="https://bioconductor.org/packages/devel/bioc/vignettes/SpatialFeatureExperiment/inst/doc/SFE.html" class="external-link">the
 vignette of <code>SpatialFeatureExperiment</code></a> for more details
 on the structure of the SFE object.</p>
@@ -227,35 +164,10 @@ on the structure of the SFE object.</p>
 <code>SFEData</code> package; we begin by downloading the data and
 loading it into R.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"full"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; snapshotDate(): 2022-10-24</span></span>
-<span><span class="co">#&gt; see ?SFEData and browseVignettes('SFEData') for documentation</span></span>
-<span><span class="co">#&gt; loading from cache</span></span>
-<span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
-<span><span class="co">#&gt; dim: 15123 4992 </span></span>
-<span><span class="co">#&gt; metadata(0):</span></span>
-<span><span class="co">#&gt; assays(1): counts</span></span>
-<span><span class="co">#&gt; rownames(15123): ENSMUSG00000025902 ENSMUSG00000096126 ...</span></span>
-<span><span class="co">#&gt;   ENSMUSG00000064368 ENSMUSG00000064370</span></span>
-<span><span class="co">#&gt; rowData names(6): Ensembl symbol ... vars cv2</span></span>
-<span><span class="co">#&gt; colnames(4992): AAACAACGAATAGTTC AAACAAGTATCTCCCA ... TTGTTTGTATTACACG</span></span>
-<span><span class="co">#&gt;   TTGTTTGTGTAAATTC</span></span>
-<span><span class="co">#&gt; colData names(12): barcode col ... prop_mito in_tissue</span></span>
-<span><span class="co">#&gt; reducedDimNames(0):</span></span>
-<span><span class="co">#&gt; mainExpName: NULL</span></span>
-<span><span class="co">#&gt; altExpNames(0):</span></span>
-<span><span class="co">#&gt; spatialCoords names(2) : imageX imageY</span></span>
-<span><span class="co">#&gt; imgData names(1): sample_id</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Geometries:</span></span>
-<span><span class="co">#&gt; colGeometries: spotPoly (POLYGON) </span></span>
-<span><span class="co">#&gt; annotGeometries: tissueBoundary (POLYGON), myofiber_full (POLYGON), myofiber_simplified (POLYGON), nuclei (POLYGON), nuclei_centroid (POINT) </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Graphs:</span></span>
-<span><span class="co">#&gt; Vis5A:</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"full"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The authors provided the full resolution hematoxylin and eosin
-(H&amp;E) image on GEO, which we downsized to facilitate its display:
-<img src="tissue_lowres_5a.jpeg" alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers." width="100%" style="display: block; margin: auto;"></p>
+(H&amp;E) image on GEO, which we downsized to facilitate its
+display:</p>
 </div>
 <div class="section level2">
 <h2 id="quality-control">Quality control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
@@ -268,9 +180,7 @@ violin plots and in space. The QC metrics are pre-computed and stored in
 <code>colData</code> (for spots) and <code>rowData</code> of the SFE
 object.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "barcode"   "col"       "row"       "x"         "y"         "dia"      </span></span>
-<span><span class="co">#&gt;  [7] "tissue"    "sample_id" "nCounts"   "nGenes"    "prop_mito" "in_tissue"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Below we plot the total unique molecular identifier (UMI) counts per
 spot. The commented out line of code shows how to compute the total UMI
 counts.</p>
@@ -282,7 +192,6 @@ counts.</p>
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Some spots in the injury site with leukocyte infiltration have high
 total counts. Spatial autocorrelation of the total counts is apparent,
 which will be discussed in a later section of this vignette.</p>
@@ -296,12 +205,10 @@ line of code shows how to find the number of genes detected.</p>
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As commonly done for scRNA-seq data, here we plot nCounts
 vs. nGenes</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"nGenes"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-8-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>This plot has two branches for the spots in tissue, which turn out to
 be related to myofiber size. See <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.html">the
 exploratory spatial data analysis (ESDA) Visium vignette</a>.</p>
@@ -317,7 +224,6 @@ this proportion:</p>
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-9-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As expected, spots outside tissue have a higher proportion of
 mitochondrial counts, because when the tissue is lysed, mitochondrial
 transcripts are are less likely to degrade than cytosolic transcripts as
@@ -332,7 +238,6 @@ i.e. cells with few UMI counts and a high proportion of mitochondrial
 counts.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"prop_mito"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-10-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>There are two clusters for the spots in tissue, which also turn out
 to be related to myofiber size. See the <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.html">ESDA
 Visium vignette</a>.</p>
@@ -367,7 +272,6 @@ in that bin.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-13-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The red line, <span class="math inline">\(y = x\)</span> is what is
 expected for Poisson distributed data, but we find that the variance is
 higher for more highly expressed genes than expected from Poisson
@@ -378,7 +282,6 @@ distributed counts. The coefficient of variation shows the same.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-14-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -404,8 +307,6 @@ currently unsolved.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/quickCluster.html" class="external-link">quickCluster</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/computeSumFactors.html" class="external-link">computeSumFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, clusters<span class="op">=</span><span class="va">clusters</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (x, sizes, min.mean = NULL, positive = FALSE, scaling =</span></span>
-<span><span class="co">#&gt; NULL) : encountered non-positive size factor estimates</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">sizeFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 <p>Next, we identify highly variable genes, which will be used for
@@ -422,10 +323,8 @@ principal component analysis (PCA) dimensionality reduction.</p>
 <span>                     scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># scale as in Seurat</span></span></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-18-1.png" width="700" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-19-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Do the clustering to show on the dimension reduction plots</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/clusterRows.html" class="external-link">clusterRows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"PCA"</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
@@ -436,7 +335,6 @@ principal component analysis (PCA) dimensionality reduction.</p>
 <span>                                                   objective_function <span class="op">=</span> <span class="st">"modularity"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ncomponents <span class="op">=</span> <span class="fl">3</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;"></p>
 <p>The principal components (PCs) can be plotted in space. Due to
 spatial autocorrelation of many genes and spatial regions of different
 histological characters, even though spatial information is not used in
@@ -446,7 +344,6 @@ the PCA procedure, the PCs may show spatial structure.</p>
 <span>                  colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                  diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>PC1, which explains far more variance than PC2, separates the injury
 site leukocytes and myofibers close to the site from the visium
 myofibers. PC2 highlight some myofibers near the edge. PC3 highlights
@@ -463,12 +360,10 @@ a UMAP below:</p>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/runUMAP.html" class="external-link">runUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dimred <span class="op">=</span> <span class="st">"PCA"</span>, n_dimred <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plot_reddim.html" class="external-link">plotUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-24-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>More interesting in spatial transcriptomics, is to locate the
 clusters in space, and this can be done as follows:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-25-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>While spatial information is not explicitly used in clustering, due
 to spatial autocorrelation of gene expression and the histological
 regions, some of these clusters are spatially contiguous. There are many
@@ -524,45 +419,16 @@ rank sum test:</p>
 <span>                       test.type <span class="op">=</span> <span class="st">"wilcox"</span>, pval.type <span class="op">=</span> <span class="st">"all"</span>, direction <span class="op">=</span> <span class="st">"up"</span><span class="op">)</span></span></code></pre></div>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                        p.value        FDR summary.AUC     AUC.1     AUC.2</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt;  &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000098178 9.73942e-14 1.4651e-09    0.790021  0.790021  0.895246</span></span>
-<span><span class="co">#&gt; ENSMUSG00000028031 8.35506e-03 1.0000e+00    0.537753  0.550430  0.554795</span></span>
-<span><span class="co">#&gt; ENSMUSG00000044349 1.20906e-01 1.0000e+00    0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ENSMUSG00000095676 1.20906e-01 1.0000e+00    0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ENSMUSG00000050640 1.20906e-01 1.0000e+00    0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ...                        ...        ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000087095           1          1         0.5       0.5  0.495098</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1          1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1          1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1          1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1          1         0.5       0.5  0.495098</span></span>
-<span><span class="co">#&gt;                        AUC.3     AUC.4     AUC.5</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000098178  0.920353  0.836534  0.813750</span></span>
-<span><span class="co">#&gt; ENSMUSG00000028031  0.547496  0.537753  0.540968</span></span>
-<span><span class="co">#&gt; ENSMUSG00000044349  0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ENSMUSG00000095676  0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ENSMUSG00000050640  0.506849  0.506849  0.506849</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000087095  0.497268       0.5  0.496894</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.497268       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.497268       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.494536       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000       0.5  0.500000</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <p>Significant markers for each cluster can be obtained as follows:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotExpression.html" class="external-link">plotExpression</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="va">genes_use</span>, <span class="st">"symbol"</span><span class="op">]</span>, x <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>               colour_by <span class="op">=</span> <span class="st">"cluster"</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-28-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-29-1.png" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="morans-i">Moran’s I<a class="anchor" aria-label="anchor" href="#morans-i"></a>
@@ -611,12 +477,7 @@ The graph for adjacent Visium spot can be found with</p>
 counts. Here’s what Moran’s I shows:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/calculateUnivariate.html">calculateMoransI</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, </span>
-<span>                 listw <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; DataFrame with 2 rows and 2 columns</span></span>
-<span><span class="co">#&gt;             moran         K</span></span>
-<span><span class="co">#&gt;         &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; nCounts  0.528705   3.00082</span></span>
-<span><span class="co">#&gt; nGenes   0.384028   3.88036</span></span></code></pre></div>
+<span>                 listw <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>K means kurtosis. The positive values of Moran’s I indicate positive
 spatial autocorrelation.</p>
 <div class="section level3">
@@ -632,59 +493,17 @@ Moran’s I for 2000 highly variable genes, and 2 cores are used with the
 SNOW backend.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="va">hvgs</span>, colGraphName <span class="op">=</span> <span class="st">"visium"</span>,</span>
-<span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: &lt;anonymous&gt;: ... may be used in an incorrect context: 'fun(x[i, ], listw, ...)'</span></span></code></pre></div>
+<span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The results are stored in <code>rowData</code></p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                               Ensembl      symbol            type      means</span></span>
-<span><span class="co">#&gt;                           &lt;character&gt; &lt;character&gt;     &lt;character&gt;  &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025902 ENSMUSG00000025902       Sox17 Gene Expression 0.03969957</span></span>
-<span><span class="co">#&gt; ENSMUSG00000096126 ENSMUSG00000096126     Gm22307 Gene Expression 0.00107296</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033845 ENSMUSG00000033845      Mrpl15 Gene Expression 0.38197425</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025903 ENSMUSG00000025903      Lypla1 Gene Expression 0.28755365</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033813 ENSMUSG00000033813       Tcea1 Gene Expression 0.26502146</span></span>
-<span><span class="co">#&gt; ...                               ...         ...             ...        ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 ENSMUSG00000064360      mt-Nd3 Gene Expression  56.445279</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064363 ENSMUSG00000064363      mt-Nd4 Gene Expression 123.991416</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064367 ENSMUSG00000064367      mt-Nd5 Gene Expression  14.645923</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064368 ENSMUSG00000064368      mt-Nd6 Gene Expression   0.109442</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064370 ENSMUSG00000064370     mt-Cytb Gene Expression 121.273605</span></span>
-<span><span class="co">#&gt;                           vars       cv2 moran_Vis5A   K_Vis5A</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025902  0.04460915  28.30429          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000096126  0.00107296 932.00000          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033845  0.47048031   3.22458          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025903  0.34686963   4.19497          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033813  0.32388797   4.61140   0.0197543   29.6881</span></span>
-<span><span class="co">#&gt; ...                        ...       ...         ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 2.47976e+03  0.778314    0.605694   4.70819</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064363 1.45282e+04  0.944991    0.680026   4.79491</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064367 2.34858e+02  1.094895    0.635612   2.74170</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064368 1.31941e-01 11.015664          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064370 1.48225e+04  1.007833    0.722350   3.95620</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>NA</code>’s are for genes that are not highly variable and
 Moran’s I was not computed for those genes. We rank the genes by Moran’s
 I and plot them in space as follows:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="va">hvgs</span>,<span class="op">]</span></span>
 <span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">moran_Vis5A</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">df</span><span class="op">[</span><span class="va">ord</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"symbol"</span>, <span class="st">"moran_Vis5A"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 2000 rows and 2 columns</span></span>
-<span><span class="co">#&gt;                         symbol moran_Vis5A</span></span>
-<span><span class="co">#&gt;                    &lt;character&gt;   &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064351      mt-Co1    0.814980</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064345      mt-Nd2    0.784339</span></span>
-<span><span class="co">#&gt; ENSMUSG00000018893          Mb    0.761522</span></span>
-<span><span class="co">#&gt; ENSMUSG00000056328        Myh1    0.727282</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064370     mt-Cytb    0.722350</span></span>
-<span><span class="co">#&gt; ...                        ...         ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000055436      Srsf11  -0.0397929</span></span>
-<span><span class="co">#&gt; ENSMUSG00000067713      Prkag1  -0.0404949</span></span>
-<span><span class="co">#&gt; ENSMUSG00000090262       Mpv17  -0.0423579</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030061        Uba3  -0.0424449</span></span>
-<span><span class="co">#&gt; ENSMUSG00000020964       Sel1l  -0.0507095</span></span></code></pre></div>
+<span><span class="va">df</span><span class="op">[</span><span class="va">ord</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"symbol"</span>, <span class="st">"moran_Vis5A"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <p>We see that some genes that have strong positive spatial
 autocorrelation, but don’t observe strong negative spatial
 autocorrelation. We can plot the genes with the strongest positive
@@ -692,7 +511,6 @@ spatial autocorrelation in space:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-35-1.png" width="864" style="display: block; margin: auto;"></p>
 <p>These genes do indeed look spatially variable. However, such spatial
 variability can simply be due to the histological regions in space, or
 in other words, spatial distribution of different cell types. There are
@@ -724,111 +542,7 @@ Visium vignette</a>.</p>
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: Ubuntu 20.04.5 LTS</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0</span></span>
-<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
-<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
-<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
-<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; attached base packages:</span></span>
-<span><span class="co">#&gt; [1] stats4    stats     graphics  grDevices utils     datasets  methods  </span></span>
-<span><span class="co">#&gt; [8] base     </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] sparseMatrixStats_1.8.0          stringr_1.4.1                   </span></span>
-<span><span class="co">#&gt;  [3] BiocParallel_1.30.4              SFEData_1.1.2                   </span></span>
-<span><span class="co">#&gt;  [5] bluster_1.6.0                    patchwork_1.1.2                 </span></span>
-<span><span class="co">#&gt;  [7] scran_1.24.1                     scater_1.25.9                   </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.3.6                    scuttle_1.7.4                   </span></span>
-<span><span class="co">#&gt; [11] SpatialExperiment_1.6.1          SingleCellExperiment_1.18.1     </span></span>
-<span><span class="co">#&gt; [13] SummarizedExperiment_1.26.1      Biobase_2.57.3                  </span></span>
-<span><span class="co">#&gt; [15] GenomicRanges_1.48.0             GenomeInfoDb_1.33.17            </span></span>
-<span><span class="co">#&gt; [17] IRanges_2.31.2                   S4Vectors_0.35.4                </span></span>
-<span><span class="co">#&gt; [19] BiocGenerics_0.43.4              MatrixGenerics_1.9.1            </span></span>
-<span><span class="co">#&gt; [21] matrixStats_0.62.0               SpatialFeatureExperiment_0.99.10</span></span>
-<span><span class="co">#&gt; [23] Voyager_1.0.1                   </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] snow_0.4-4                    AnnotationHub_3.5.2          </span></span>
-<span><span class="co">#&gt;   [3] BiocFileCache_2.4.0           systemfonts_1.0.4            </span></span>
-<span><span class="co">#&gt;   [5] igraph_1.3.5                  sp_1.5-0                     </span></span>
-<span><span class="co">#&gt;   [7] digest_0.6.30                 htmltools_0.5.3              </span></span>
-<span><span class="co">#&gt;   [9] viridis_0.6.2                 magick_2.7.3                 </span></span>
-<span><span class="co">#&gt;  [11] fansi_1.0.3                   magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [13] memoise_2.0.1                 ScaledMatrix_1.5.1           </span></span>
-<span><span class="co">#&gt;  [15] cluster_2.1.4                 limma_3.53.11                </span></span>
-<span><span class="co">#&gt;  [17] Biostrings_2.65.6             R.utils_2.12.1               </span></span>
-<span><span class="co">#&gt;  [19] pkgdown_2.0.6                 colorspace_2.0-3             </span></span>
-<span><span class="co">#&gt;  [21] rappdirs_0.3.3                blob_1.2.3                   </span></span>
-<span><span class="co">#&gt;  [23] ggrepel_0.9.1                 textshaping_0.3.6            </span></span>
-<span><span class="co">#&gt;  [25] xfun_0.34                     dplyr_1.0.10                 </span></span>
-<span><span class="co">#&gt;  [27] crayon_1.5.2                  RCurl_1.98-1.9               </span></span>
-<span><span class="co">#&gt;  [29] jsonlite_1.8.3                glue_1.6.2                   </span></span>
-<span><span class="co">#&gt;  [31] gtable_0.3.1                  zlibbioc_1.43.0              </span></span>
-<span><span class="co">#&gt;  [33] XVector_0.37.1                DelayedArray_0.23.2          </span></span>
-<span><span class="co">#&gt;  [35] scico_1.3.1                   BiocSingular_1.13.1          </span></span>
-<span><span class="co">#&gt;  [37] DropletUtils_1.17.3           Rhdf5lib_1.19.2              </span></span>
-<span><span class="co">#&gt;  [39] HDF5Array_1.25.2              scales_1.2.1                 </span></span>
-<span><span class="co">#&gt;  [41] DBI_1.1.3                     edgeR_3.39.7                 </span></span>
-<span><span class="co">#&gt;  [43] Rcpp_1.0.9                    xtable_1.8-4                 </span></span>
-<span><span class="co">#&gt;  [45] viridisLite_0.4.1             spData_2.2.0                 </span></span>
-<span><span class="co">#&gt;  [47] units_0.8-0                   dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [49] bit_4.0.4                     spdep_1.2-7                  </span></span>
-<span><span class="co">#&gt;  [51] rsvd_1.0.5                    proxy_0.4-27                 </span></span>
-<span><span class="co">#&gt;  [53] httr_1.4.4                    metapod_1.5.0                </span></span>
-<span><span class="co">#&gt;  [55] FNN_1.1.3.1                   RColorBrewer_1.1-3           </span></span>
-<span><span class="co">#&gt;  [57] ellipsis_0.3.2                wk_0.7.0                     </span></span>
-<span><span class="co">#&gt;  [59] farver_2.1.1                  pkgconfig_2.0.3              </span></span>
-<span><span class="co">#&gt;  [61] R.methodsS3_1.8.2             uwot_0.1.14                  </span></span>
-<span><span class="co">#&gt;  [63] dbplyr_2.2.1                  sass_0.4.2                   </span></span>
-<span><span class="co">#&gt;  [65] deldir_1.0-6                  locfit_1.5-9.6               </span></span>
-<span><span class="co">#&gt;  [67] utf8_1.2.2                    labeling_0.4.2               </span></span>
-<span><span class="co">#&gt;  [69] AnnotationDbi_1.59.1          later_1.3.0                  </span></span>
-<span><span class="co">#&gt;  [71] tidyselect_1.2.0              rlang_1.0.6                  </span></span>
-<span><span class="co">#&gt;  [73] BiocVersion_3.16.0            munsell_0.5.0                </span></span>
-<span><span class="co">#&gt;  [75] tools_4.2.2                   cachem_1.0.6                 </span></span>
-<span><span class="co">#&gt;  [77] cli_3.4.1                     ExperimentHub_2.5.0          </span></span>
-<span><span class="co">#&gt;  [79] generics_0.1.3                RSQLite_2.2.18               </span></span>
-<span><span class="co">#&gt;  [81] evaluate_0.17                 fastmap_1.1.0                </span></span>
-<span><span class="co">#&gt;  [83] yaml_2.3.6                    ragg_1.2.4                   </span></span>
-<span><span class="co">#&gt;  [85] knitr_1.40                    bit64_4.0.5                  </span></span>
-<span><span class="co">#&gt;  [87] fs_1.5.2                      purrr_0.3.5                  </span></span>
-<span><span class="co">#&gt;  [89] s2_1.1.0                      KEGGREST_1.36.3              </span></span>
-<span><span class="co">#&gt;  [91] mime_0.12                     R.oo_1.25.0                  </span></span>
-<span><span class="co">#&gt;  [93] compiler_4.2.2                png_0.1-7                    </span></span>
-<span><span class="co">#&gt;  [95] interactiveDisplayBase_1.35.1 filelock_1.0.2               </span></span>
-<span><span class="co">#&gt;  [97] curl_4.3.3                    beeswarm_0.4.0               </span></span>
-<span><span class="co">#&gt;  [99] e1071_1.7-12                  tibble_3.1.8                 </span></span>
-<span><span class="co">#&gt; [101] statmod_1.4.37                bslib_0.4.0                  </span></span>
-<span><span class="co">#&gt; [103] stringi_1.7.8                 highr_0.9                    </span></span>
-<span><span class="co">#&gt; [105] desc_1.4.2                    lattice_0.20-45              </span></span>
-<span><span class="co">#&gt; [107] Matrix_1.5-1                  classInt_0.4-8               </span></span>
-<span><span class="co">#&gt; [109] vctrs_0.5.0                   pillar_1.8.1                 </span></span>
-<span><span class="co">#&gt; [111] lifecycle_1.0.3               rhdf5filters_1.9.0           </span></span>
-<span><span class="co">#&gt; [113] BiocManager_1.30.19           jquerylib_0.1.4              </span></span>
-<span><span class="co">#&gt; [115] BiocNeighbors_1.14.0          cowplot_1.1.1                </span></span>
-<span><span class="co">#&gt; [117] bitops_1.0-7                  irlba_2.3.5.1                </span></span>
-<span><span class="co">#&gt; [119] httpuv_1.6.6                  R6_2.5.1                     </span></span>
-<span><span class="co">#&gt; [121] promises_1.2.0.1              KernSmooth_2.23-20           </span></span>
-<span><span class="co">#&gt; [123] gridExtra_2.3                 vipor_0.4.5                  </span></span>
-<span><span class="co">#&gt; [125] codetools_0.2-18              boot_1.3-28                  </span></span>
-<span><span class="co">#&gt; [127] assertthat_0.2.1              rhdf5_2.40.0                 </span></span>
-<span><span class="co">#&gt; [129] rprojroot_2.0.3               rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt; [131] withr_2.5.0                   GenomeInfoDbData_1.2.8       </span></span>
-<span><span class="co">#&gt; [133] parallel_4.2.2                grid_4.2.2                   </span></span>
-<span><span class="co">#&gt; [135] beachmat_2.13.4               class_7.3-20                 </span></span>
-<span><span class="co">#&gt; [137] rmarkdown_2.17                DelayedMatrixStats_1.19.2    </span></span>
-<span><span class="co">#&gt; [139] ggnewscale_0.4.8              sf_1.0-8                     </span></span>
-<span><span class="co">#&gt; [141] shiny_1.7.3                   ggbeeswarm_0.6.0</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
