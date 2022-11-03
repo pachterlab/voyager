@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,7 @@
 
       <ul class="navbar-nav">
 <li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/pachterlab/Voyager/" aria-label="github">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -86,7 +86,7 @@ Moses</h4>
             
             <h4 data-toc-skip class="date">2022-11-03</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/pachterlab/Voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
     </div>
 
@@ -107,10 +107,10 @@ increased in the past years <span class="citation">(Moses and Pachter
 2022)</span>.</p>
 <p><img src="https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png"><!-- --></p>
 <p>In anticipation of large datasets, this vignette was produced using
-limited GitHub Actions resources, which are 7 GB of RAM with 2 CPU cores
-and 14 GB of disk space, less than what is common on current laptops. We
-therefore expect that the analyses in this vignette should scale to
-reasonably sized datasets.</p>
+limited GitHub Actions resources (MacOS), which are 14 GB of RAM with 3
+CPU cores and 14 GB of disk space, comparable to laptops. We therefore
+expect that the analyses in this vignette should scale to reasonably
+sized datasets.</p>
 <p>The dataset we use in this vignette is a MERFISH mouse liver dataset
 downloaded from the <a href="https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1" class="external-link">Vizgen
 website</a> to discuss some issues with large datasets and some upcoming
@@ -130,7 +130,7 @@ conversion is optional. While the transcript spot locations are
 available, we cannot yet work with such a large point dataset.</p>
 <p>Here we load the packages used</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/Voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -291,7 +291,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  36.913   1.813  46.907</span></span></code></pre>
+<span><span class="co">#&gt;  30.393   1.165  31.639</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -303,7 +303,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.468   0.258   4.083</span></span></code></pre>
+<span><span class="co">#&gt;   2.080   0.239   2.349</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code> took about 2
 seconds. Using <code>geom_scattermore()</code> and plotting cell density
@@ -687,7 +687,7 @@ approximation of contiguity based on the visual inspection.</p>
 <span><span class="co">#&gt; Warning in knearneigh(coords, k = k, use_kd_tree = use_kd_tree, longlat =</span></span>
 <span><span class="co">#&gt; FALSE): dnearneigh: longlat argument overrides object</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 420.090   5.545 492.137</span></span></code></pre></div>
+<span><span class="co">#&gt; 370.310   1.106 372.552</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song.</p>
 <p><a href="https://github.com/spotify/annoy" class="external-link">Annoy</a> is a faster way
@@ -727,7 +727,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 175.116   4.424 193.082</span></span></code></pre></div>
+<span><span class="co">#&gt; 158.216   1.946 160.515</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -793,7 +793,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 293.685  45.452 210.767</span></span></code></pre></div>
+<span><span class="co">#&gt; 221.415  21.952 135.987</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1051,11 +1051,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  30.481   2.438  33.235</span></span>
+<span><span class="co">#&gt;  26.699   1.954  28.759</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19432267 1037.8   34378688 1836.1         NA  34378688 1836.1</span></span>
-<span><span class="co">#&gt; Vcells 261982549 1998.8  585595804 4467.8      16384 585565531 4467.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19432263 1037.8   34378813 1836.1         NA  34378813 1836.1</span></span>
+<span><span class="co">#&gt; Vcells 261982548 1998.8  585595803 4467.8      16384 585565530 4467.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1205,7 +1205,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [21] GenomeInfoDb_1.34.0            IRanges_2.32.0                </span></span>
 <span><span class="co">#&gt; [23] S4Vectors_0.36.0               BiocGenerics_0.44.0           </span></span>
 <span><span class="co">#&gt; [25] MatrixGenerics_1.10.0          matrixStats_0.62.0            </span></span>
-<span><span class="co">#&gt; [27] SFEData_1.1.2                  Voyager_1.0.1                 </span></span>
+<span><span class="co">#&gt; [27] SFEData_1.1.2                  Voyager_1.0.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.1               </span></span>
