@@ -215,14 +215,14 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       hex = FALSE, plot_influential = TRUE, ...) {
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
-    use_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
-    if (!use_geometry) feature <- .symbol2id(sfe, feature)
+    not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
+    if (not_geometry) feature <- .symbol2id(sfe, feature)
     mp <- localResult(sfe,
         type = "moran.plot", feature = feature,
         sample_id = sample_id, colGeometryName = colGeometryName,
         annotGeometryName = annotGeometryName
     )
-    if (show_symbol && !use_geometry) {
+    if (show_symbol && not_geometry) {
         if (feature %in% rownames(sfe)) {
             feature <- rowData(sfe)[feature, "symbol"]
         }
