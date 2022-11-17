@@ -210,12 +210,20 @@ rowFeatureData <- function(sfe) {
     out
 }
 
+# Source: https://stackoverflow.com/a/12866609
+.unAsIs <- function(X) {
+    if("AsIs" %in% class(X)) {
+        class(X) <- class(X)[-match("AsIs", class(X))]
+    }
+    X
+}
+
 .get_localResult_attrs <- function(lrs, attribute) {
     out <- lapply(lrs, function(l) {
         if (is.atomic(l) && is.vector(l)) {
-            l
+            .unAsIs(l)
         } else {
-            l[, attribute]
+            .unAsIs(l[, attribute])
         }
     })
     data.frame(out, check.names = FALSE)
