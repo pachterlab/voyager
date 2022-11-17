@@ -1,0 +1,262 @@
+---
+title: "Apply spatial analyses to non-spatial scRNA-seq data"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{nonspatial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Voyager)
+library(DropletUtils)
+library(BiocNeighbors)
+library(scater)
+library(spdep)
+library(scran)
+library(bluster)
+library(BiocParallel)
+theme_set(theme_bw())
+```
+
+Download dataset: https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem? This is already filtered. We will not cover QC here.
+```{r}
+download.file("https://cf.10xgenomics.com/samples/cell-exp/3.0.2/5k_pbmc_v3_nextgem/5k_pbmc_v3_nextgem_filtered_feature_bc_matrix.tar.gz", destfile = "5kpbmc.tar.gz", quiet = TRUE)
+system("tar -xzf 5kpbmc.tar.gz")
+```
+
+```{r}
+(sce <- read10xCounts("filtered_feature_bc_matrix/"))
+```
+
+```{r}
+colnames(sce) <- sce$Barcode
+```
+
+```{r}
+sce$nCounts <- colSums(counts(sce))
+sce$nGenes <- colSums(counts(sce) > 0)
+```
+
+```{r}
+plotColData(sce, "nCounts") +
+    plotColData(sce, "nGenes")
+```
+
+```{r}
+plotColDataBin2D(sce, x = "nCounts", y = "nGenes")
+```
+
+```{r}
+clusts <- quickCluster(sce)
+sce <- computeSumFactors(sce, cluster = clusts)
+sce <- sce[, sizeFactors(sce) > 0]
+sce <- logNormCounts(sce)
+```
+
+```{r}
+hvgs <- getTopHVGs(sce, n = 2000)
+```
+
+```{r}
+set.seed(29)
+sce <- runPCA(sce, ncomponents = 30, BSPARAM = IrlbaParam(),
+              subset_row = hvgs, scale = TRUE)
+```
+
+```{r}
+ElbowPlot(sce, ndims = 30)
+```
+
+```{r}
+sce <- runUMAP(sce, dimred = "PCA", n_dimred = 10)
+```
+
+```{r}
+sce$cluster <- clusterRows(reducedDim(sce, "PCA")[,1:10],
+                           BLUSPARAM = SNNGraphParam(cluster.fun = "leiden",
+                                                     cluster.args = list(
+                                                         resolution=0.5,
+                                                         objective_function = "modularity"
+                                                     )))
+```
+
+```{r, fig.width=9, fig.height=9}
+plotPCA(sce, ncomponents = 5, color_by = "cluster")
+```
+
+```{r}
+plotUMAP(sce, color_by = "cluster")
+```
+
+Now find k nearest neighbor graph in PCA space for Moran's I
+```{r}
+foo <- findKNN(reducedDim(sce, "PCA")[,1:10], k=10, BNPARAM=AnnoyParam())
+# Split by row
+foo_nb <- asplit(foo$index, 1)
+dmat <- 1/foo$distance
+# Row normalize the weights
+dmat <- sweep(dmat, 1, rowSums(dmat), FUN = "/")
+glist <- asplit(dmat, 1)
+# Sort based on index
+ord <- lapply(foo_nb, order)
+foo_nb <- lapply(seq_along(foo_nb), function(i) foo_nb[[i]][ord[[i]]])
+class(foo_nb) <- "nb"
+glist <- lapply(seq_along(glist), function(i) glist[[i]][ord[[i]]])
+
+listw <- list(style = "W",
+              neighbours = foo_nb,
+              weights = glist)
+class(listw) <- "listw"
+attr(listw, "region.id") <- colnames(sce)
+```
+
+I really need to write a function to go straight from SCE to SFE. To make it easier to plot the results when I compute spatial statistics on the non-spatial data, I'll just use the UMAP coordinates as spatial coordinates.
+```{r}
+spe <- toSpatialExperiment(sce, spatialCoords = reducedDim(sce, "UMAP"))
+sfe <- toSpatialFeatureExperiment(spe)
+sfe
+```
+
+```{r}
+colGraph(sfe, "knn10") <- listw
+```
+
+```{r}
+sfe <- runMoransI(sfe, features = hvgs, BPPARAM = MulticoreParam(2))
+```
+
+```{r}
+rowData(sfe)
+```
+
+```{r}
+plotRowDataHistogram(sfe, "moran_sample01", bins = 50)
+```
+
+I sort of wonder what if I color this plot with gene sets. 
+
+Since the knn graph was found in PCA space, which is based on gene expression, as expected, Moran's I with this graph is mostly positive, although often not that strong. A small number of genes have slightly negative Moran's I. What do the top genes look like on UMAP and PCA?
+
+```{r}
+names(rowData(sfe))[2] <- "symbol"
+```
+
+```{r}
+top_moran <- head(rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)], 4)
+plotSpatialFeature(sfe, top_moran)
+```
+
+I suppose these genes have high Moran's I because they are specific to a cell type. Remember that while UMAP is plotted here, it was not used to compute the knn graph, which was computed from PCA space. How about negative Moran's I?
+
+```{r}
+sum(rowData(sfe)$moran_sample01 < 0, na.rm = TRUE)
+```
+
+```{r}
+neg_moran <- head(rownames(sfe)[order(rowData(sfe)$moran_sample01, na.last = NA)], 4)
+plotSpatialFeature(sfe, neg_moran)
+```
+
+How about local Moran's I? Are there "rebel" cells?
+```{r}
+sfe <- runUnivariate(sfe, "localmoran", features = c(top_moran, neg_moran))
+```
+
+```{r, fig.width=6, fig.height=6}
+plotLocalResult(sfe, "localmoran", top_moran, colGeometryName = "centroids", 
+                divergent = TRUE, diverge_center = 0)
+```
+
+Not many cells that have negative local Moran's I. 
+
+```{r, fig.width=6, fig.height=6}
+plotLocalResult(sfe, "localmoran", neg_moran, colGeometryName = "centroids", 
+                divergent = TRUE, diverge_center = 0, size = 0.5)
+```
+
+How about LOSH?
+
+```{r}
+sfe <- runUnivariate(sfe, "LOSH", c(top_moran, neg_moran))
+```
+
+```{r, fig.width=6, fig.height=6}
+plotLocalResult(sfe, "LOSH", top_moran, colGeometryName = "centroids")
+```
+
+In the two genes on the right, it's interesting to see higher LOSH in the middle cluster. The two genes on the left have some outliers throwing off the dynamic range. but it seems that their high LOSH regions are different.
+
+How about Moran plot?
+
+```{r}
+sfe <- runUnivariate(sfe, "moran.plot", features = top_moran, colGraphName = "knn10")
+```
+
+```{r}
+moranPlot(sfe, top_moran[2])
+```
+
+It's just so concentrated around the origin. But for the cells that do express this gene, there're interesting clusters.
+
+How about "spatial" autocorrelation of nCounts and nGenes?
+```{r}
+sfe <- colDataMoransI(sfe, c("nCounts", "nGenes"))
+colFeatureData(sfe)
+```
+
+That's pretty strong. How about the local stuff?
+
+```{r}
+sfe <- colDataUnivariate(sfe, "moran.plot", c("nCounts", "nGenes"))
+```
+
+```{r}
+moranPlot(sfe, "nCounts")
+```
+
+Those clusters are really interesting
+
+```{r}
+moranPlot(sfe, "nGenes")
+```
+
+```{r}
+sfe <- colDataUnivariate(sfe, "localmoran", c("nCounts", "nGenes"))
+```
+
+```{r}
+plotSpatialFeature(sfe, c("nCounts", "nGenes"))
+```
+
+```{r}
+plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes"), colGeometryName = "centroids")
+```
+
+```{r}
+sfe <- colDataUnivariate(sfe, "LOSH", c("nCounts", "nGenes"))
+```
+
+```{r}
+plotLocalResult(sfe, "LOSH", c("nCounts", "nGenes"), colGeometryName = "centroids")
+```
+
+```{r}
+sessionInfo()
+```
+
