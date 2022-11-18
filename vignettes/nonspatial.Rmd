@@ -190,6 +190,20 @@ plotLocalResult(sfe, "localmoran", neg_moran, colGeometryName = "centroids",
                 divergent = TRUE, diverge_center = 0, size = 0.5)
 ```
 
+```{r}
+sfe <- runUnivariate(sfe, "moran.mc", features = c(top_moran, neg_moran), nsim = 200)
+```
+
+```{r}
+plotMoranMC(sfe, top_moran)
+```
+
+```{r}
+plotMoranMC(sfe, neg_moran)
+```
+
+It doesn't look significant.
+
 How about LOSH?
 
 ```{r}
@@ -245,7 +259,8 @@ plotSpatialFeature(sfe, c("nCounts", "nGenes"))
 ```
 
 ```{r}
-plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes"), colGeometryName = "centroids")
+plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes"), colGeometryName = "centroids",
+                divergent = TRUE, diverge_center = 0)
 ```
 
 ```{r}
