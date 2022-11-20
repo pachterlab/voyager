@@ -34,7 +34,7 @@ library(BiocParallel)
 theme_set(theme_bw())
 ```
 
-Download dataset: https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem? This is already filtered. We will not cover QC here.
+Download dataset: https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem? This dataset has already been filtered.
 ```{r}
 download.file("https://cf.10xgenomics.com/samples/cell-exp/3.0.2/5k_pbmc_v3_nextgem/5k_pbmc_v3_nextgem_filtered_feature_bc_matrix.tar.gz", destfile = "5kpbmc.tar.gz", quiet = TRUE)
 system("tar -xzf 5kpbmc.tar.gz")
@@ -100,11 +100,12 @@ sce$cluster <- clusterRows(reducedDim(sce, "PCA")[,1:10],
 plotPCA(sce, ncomponents = 5, color_by = "cluster")
 ```
 
+Next, it is customary to make a UMAP plot based on the PCA project. We do not recommend producing a UMAP since the procedure distorts distances, and does not respect either local or global structure in the data (Chari, Banerjee, and Pachter 2021). However, for completeness, we show how to produce a UMAP below:
 ```{r}
 plotUMAP(sce, color_by = "cluster")
 ```
 
-Now find k nearest neighbor graph in PCA space for Moran's I
+Instead of a heuristic UMAP examination, we apply a spatially motivated analysis to the k-nearest neighbor graph in the PCA projection, namely Moran's I:
 ```{r}
 foo <- findKNN(reducedDim(sce, "PCA")[,1:10], k=10, BNPARAM=AnnoyParam())
 # Split by row
@@ -212,7 +213,7 @@ sfe <- runUnivariate(sfe, "moran.plot", features = top_moran, colGraphName = "kn
 moranPlot(sfe, top_moran[2])
 ```
 
-It's just so concentrated around the origin. But for the cells that do express this gene, there're interesting clusters.
+It's just so concentrated around the origin. But for the cells that do express this gene, there are interesting clusters.
 
 How about "spatial" autocorrelation of nCounts and nGenes?
 ```{r}
@@ -220,7 +221,7 @@ sfe <- colDataMoransI(sfe, c("nCounts", "nGenes"))
 colFeatureData(sfe)
 ```
 
-That's pretty strong. How about the local stuff?
+That's pretty strong. Next we came examine local correlations: 
 
 ```{r}
 sfe <- colDataUnivariate(sfe, "moran.plot", c("nCounts", "nGenes"))
