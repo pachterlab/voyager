@@ -47,6 +47,7 @@ theme_set(theme_bw())
 ```
 
 Here we download the filtered [Cell Ranger gene count matrix from the 10X website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem?). The empty droplets have already been removed.
+
 ```{r}
 download.file("https://cf.10xgenomics.com/samples/cell-exp/3.0.2/5k_pbmc_v3_nextgem/5k_pbmc_v3_nextgem_filtered_feature_bc_matrix.tar.gz", destfile = "5kpbmc.tar.gz", quiet = TRUE)
 system("tar -xzf 5kpbmc.tar.gz")
@@ -151,7 +152,9 @@ markers <- findMarkers(sce, groups = colData(sce)$cluster,
 markers[[4]]
 ```
 
+
 See how specific the top markers to each cluster
+
 ```{r}
 top_markers <- unlist(lapply(markers, function(x) head(rownames(x), 1)))
 top_markers_symbol <- rowData(sce)[top_markers, "Symbol"]
@@ -165,6 +168,7 @@ plotExpression(sce, top_markers_symbol, x = "cluster", point_fun = function(...)
 
 # "Spatial" analyses for QC metrics
 Find k nearest neighbor graph in PCA space for Moran's I. We are not using `spdep` here since its `nb2listwdist()` function for distance based edge weighting requires 2-3 dimensional spatial coordinates while the coordinates here have 10 dimensions. Here inverse distance weighting is used for edge weights.
+
 ```{r}
 foo <- findKNN(reducedDim(sce, "PCA")[,1:10], k=10, BNPARAM=AnnoyParam())
 # Split by row
