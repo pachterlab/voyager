@@ -1,0 +1,323 @@
+---
+title: "seqFISH exploratory data analysis"
+author: "Kayla Jackson"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{visium_basic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", fig.align = "center"
+)
+```
+
+# Introduction
+
+# Dataset
+The data used in this vignette are described in [Integration of spatial and single-cell transcriptomic data elucidates mouse organogenesis](https://doi.org/10.1038/s41587-021-01006-2). Briefly, seqFISH was use to profile 351 genes in several mouse embryos at the 8-12 somite stage (ss). We will focus on a single biological replicate, embryo 3. The raw and processed counts and corresponding metadata are available to download from the [Marioni lab](https://content.cruk.cam.ac.uk/jmlab/SpatialMouseAtlas2020/). Expression matrices, segmentation data, and segmented cell vertices are provided as R objects that can be readily imported into an R environment. The data relevant to this vignette have been converted to a `SFE` object and are available to download [here]().  
+
+We will begin by downloading the data and loading it in to R. 
+```{r setup}
+library(Voyager)
+library(SFEData)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(scater)
+library(batchelor)
+library(scran)
+library(bluster)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(spdep)
+library(BiocParallel)
+
+theme_set(theme_bw())
+```
+
+```{r}
+# download and load data
+
+# sfe
+```
+The rows in the count matrix correspond to the 351 barcoded genes measured by seqFISH. Additionally, the authors provide some metadata, including the field of view and z-slice for each cell. We will filter the count matrix and metadata to include only  cells from a single z-slice. 
+```{r}
+names(colData(sfe))
+```
+
+```{r}
+mask <- colData(sfe)$z == 2
+sfe <- sfe[,mask]
+```
+# Quality control 
+
+We will begin quality control (QC) of the cells by computing metrics that are common in single-cell analysis and store them in the `colData` field of the SFE object. Below, we compute the number of counts per cell. We will also compute the average and display it on the violin plot. 
+```{r}
+colData(sfe)$nCounts <- colSums(counts(sfe))
+avg <- mean(colData(sfe)$nCounts)
+
+violin <- plotColData(sfe, "nCounts") +
+    geom_hline(yintercept = avg, color='red') +
+    theme(legend.position = "top") 
+
+spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "seg_coords") +
+    theme_void()
+
+violin + spatial
+```
+Notably, the cells in this dataset have fewer counts that would be expected in a single-cell sequencing experiment and the cells with higher counts seem to be dispersed throughout the tissue. Fewer counts are expected in seqFISH experiments where probing for highly expressed genes may lead to optical crowding over multiple imaging rounds.  
+
+Since the counts are collected from several fields of view, we will visualize the number of cells and total counts for each field separately. 
+```{r}
+pos <- colData(sfe)$pos
+counts_spl <- split.data.frame(t(counts(sfe)), pos)
+
+# nCounts per FOV
+df <- map_dfr(counts_spl, rowSums, .id='pos') %>%
+  pivot_longer(cols=contains('embryo'), values_to = 'nCounts') %>%
+  filter(!is.na(nCounts))
+
+cells_fov <- ggplot(data.frame(colData(sfe)), aes(pos,)) +
+  geom_bar() + 
+  theme_minimal() + 
+  labs(
+    x = "",
+    y = "Number of cells") + 
+  theme(axis.text.x = element_text(angle = 90))
+
+counts_fov <- ggplot(df, aes(pos, nCounts)) +
+  geom_boxplot(outlier.size = 0.5) + 
+  theme_minimal() + 
+  labs(x = "", y = 'nCounts') + 
+  theme(axis.text.x = element_text(angle = 90))
+
+cells_fov / counts_fov
+```
+There is some variability in the total number of counts in each field of view. It is not completely apparent what accounts for the low number of counts in some FOVs. For example, FOV 22 has the fewest number of cells, but comparably more counts are detected there than in regions with more cells (e.g. FOV 18). 
+
+Next, will will compute the number of genes detected per cell, defined here as the number of genes with non-zero counts. We will again plot this metric for each FOV as is done above.
+
+```{r}
+colData(sfe)$nGenes <- colSums(counts(sfe) > 0)
+
+avg <- mean(colData(sfe)$nGenes)
+
+violin <- plotColData(sfe, "nGenes") +
+    geom_hline(yintercept = avg, color='red') +
+    theme(legend.position = "top") 
+
+spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "seg_coords") +
+    theme_void()
+
+violin + spatial
+```
+Many cells have fewer than 100 detected genes. This in part reflects that the panel of 351 probed genes was chosen to distinguish cell types at these developmental stages and that distinct cell types will likely express a small subset of the 351 genes. The authors also note that the gene panel consists of lowly expressed to moderately expressed genes. Taken together, these technical details can explain the relatively low number of counts and genes per cell. 
+
+Here, we plot the number of genes detected per cell in each FOV. 
+```{r}
+df <- map_dfr(counts_spl, ~ rowSums(.x > 0), .id='pos') %>%
+  pivot_longer(cols = contains('embryo'), values_to = 'nGenes') %>%
+  filter(!is.na(nGenes)) %>%
+  merge(df)
+
+genes_fov <- ggplot(df, aes(pos, nGenes)) +
+  geom_boxplot(outlier.size = 0.5) + 
+  theme_bw() + 
+  labs(x = "") + 
+  theme(axis.text.x = element_text(angle = 90))
+
+genes_fov
+```
+This plot mirrors the plot above for total counts. No single FOV stands out as an obvious outlier. 
+
+The authors have provided cell type assignments as metadata. We can assess whether the low quality cells tend to be located in a particular FOV. 
+
+```{r}
+meta <- data.frame(colData(sfe)) 
+
+meta <- meta %>% 
+  group_by(pos) %>% 
+  add_tally(name = "nCells_FOV") %>% 
+  filter(celltype_mapped_refined %in% "Low quality") %>% 
+  add_tally(name = "nLQ_FOV") %>% 
+  mutate(prop_lq = nLQ_FOV/nCells_FOV) %>% distinct(pos, prop_lq)
+
+prop_lq <- ggplot(meta, aes(pos, prop_lq)) + 
+  geom_bar(stat = 'identity' ) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) 
+
+prop_lq
+```
+It appears that FOV 26 and 31 have the largest fraction of low quality cells. Interestingly, these do not correspond to the FOVs with the largest number of cells overall. 
+
+Here we plot nCounts vs. nGenes for each FOV. 
+```{r}
+count_vs_genes_p <- ggplot(df, aes(nCounts, nGenes)) + 
+  geom_point(
+    alpha = 0.5,
+    size = 1,
+    fill = "white"
+  ) +
+  facet_wrap(~ pos)
+
+count_vs_genes_p 
+```
+
+As in scRNA-seq, gene expression variance in seqFISH measurements is overdispersed compared to variance of counts that are Poisson distributed.
+```{r}
+gene_meta <- map_dfr(counts_spl, colMeans, .id = 'pos') %>% 
+  pivot_longer(cols = -pos, names_to = 'gene', values_to = 'mean')
+
+gene_meta <- map_dfr(counts_spl, ~colVars(.x, useNames = TRUE), .id = 'pos') %>% 
+  pivot_longer(-pos, names_to = 'gene', values_to='variance') %>% 
+  full_join(gene_meta)
+```
+To understand the mean-variance relationship, we compute the mean and variance for each gene among cells in tissue. As above, we will perform this calculation separately for each FOV
+```{r}
+ggplot(gene_meta, aes(mean, variance)) + 
+  geom_point(
+    alpha = 0.5,
+    size = 1,
+    fill = "white"
+  ) +
+  facet_wrap(~ pos) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  scale_x_log10() + scale_y_log10() +
+  annotation_logticks() +
+  theme_bw()
+```
+The red line represents the line $y = x$, which is the mean-variance relationship that would be expected for Poisson distributed data. The data deviate from this expectation in each FOV. In each case, the variance is greater than what would be expected. 
+
+# Data normalization and dimension reduction
+The exploratory analysis above indicates the presence of batch effects corresponding to FOV. We will use a normalization scheme that is batch aware. As the SFE object inherits from the `SpatialExperiment`and `SingleCellExperiment`, classes, we can take advantage of normalization methods implemented in the `scran` and `batchelor` R packages.
+
+We will first use the `multiBatchNorm()` function to scale the data within each batch. As noted in the documentation, the function uses median-based normalization on the ratio of the average counts between batches. 
+
+Batch correction and dimension reduction is accomplished using `fastMNN()` which performs multi-sample PCA across multiple gene expression matrices to project all cells to a common low-dimensional space.
+```{r}
+sfe <- multiBatchNorm(sfe, batch = pos)
+sfe_red <- fastMNN(sfe, batch = pos, cos.norm = FALSE, d = 20)
+```
+The function `fastMNN` returns a batch-corrected matrix in the `reducedDims` slot of a `SingleCellExperiment` object. We will extract the relevant data and store them in the SFE ojbject. 
+```{r}
+reducedDim(sfe, "PCA") <- reducedDim(sfe_red, "corrected")
+assay(sfe, "reconstructed") <- assay(sfe_red, "reconstructed") 
+```
+Now we will visualize the first two PCs in space. Here we notice that the PCs may show some spatial structure that correlates to biological niches of cells. 
+```{r}
+pcs <- reducedDim(sfe, "PCA")[,1:2]
+ord <- rownames(colData(sfe))
+pcs <- pcs[ord,]
+
+colData(sfe)$pc1  <- pcs[,1]
+colData(sfe)$pc2  <- pcs[,2]
+
+plotSpatialFeature(sfe, c("pc1","pc2"), colGeometryName = "seg_coords") +
+    theme_void()
+
+```
+
+# Clustering
+Much like in single cell analysis, we can use the batch-corrected data to cluster the cells. We will implement a graph-based clustering algorithm and plot the resulting clusters in space. 
+```{r}
+colData(sfe)$cluster <- 
+  clusterRows(reducedDim(sfe, "PCA"),
+                      BLUSPARAM = SNNGraphParam(
+                        cluster.fun = "leiden",
+                        cluster.args = list(
+                        resolution_parameter = 0.5,
+                        objective_function = "modularity")
+                        )
+              )
+```
+The plot below is colored by cluster ID and by the cell types provided by the author. 
+```{r}
+plotSpatialFeature(sfe, c("cluster", "celltype_mapped_refined"), colGeometryName = "seg_coords") + guides(colour = guide_legend(override.aes = list(size=2)))
+```
+The authors have assigned cells to more types than are identified in the clustering step. In any case, the clustering results seem to recapitulate the major cell niches from the previous annotations. We can compute the [Rand index](https://en.wikipedia.org/wiki/Rand_index) using a function from the `fossil` package to assess the similarity between the two clustering results. A value of 1 would suggest the clustering results are identical, while a value of 0 would suggest that the results do not agree at all. 
+```{r}
+g1 <- as.numeric(colData(sfe)$cluster)
+g2 <- as.numeric(colData(sfe)$celltype_mapped_refined)
+
+rand.index(g1, g2)
+```
+The relatively large Rand index suggests that cells are often found in the same cluster in both cases. 
+
+# Univariate Spatial Statistics
+At this point, we may be interested in identifying genes that exhibit spatial variability, or whose expression depends on spatial location within the tissue. Measures of spatial autocorrelation can be useful in identifyign genes that display spatial variablity. Among the most common measures are Moran's I and Geary's C. In the latter case, a less than 1 indicates positive spatial autocorrelation, while a value larger than 1 points to negative spatial autocorrelation. In the former case, positive and negative values of Moran's I indicate positive and negative spatial autocorrelation, respectively.
+
+These tests require a spatial neighborhood graph for computation of the statistic. There are several ways to define spatial neighbors and the `findSpatialNeighbors()` function wraps all of the methods implemented in the `spdep` package. Below, we compute a k-nearest neighborhood graph. The `dist_type = "idw"` weights the edges of the graph by the inverse distance between neighbors.
+
+```{r}
+colGraph(sfe, "knn5") <- findSpatialNeighbors(
+  sfe, method = "knearneigh", dist_type = "idw", 
+  k = 5, style = "W")
+```
+We will also save the most variable genes for use in the computations below. 
+```{r}
+dec <- modelGeneVar(sfe)
+hvgs <- getTopHVGs(dec, n = 100)
+```
+We use the `runUnivariate()` function to compute the spatial autocorrelation metrics and save the results and save them in the SFE object. The `mc` type for each test implements a permutation test for each statistic and relies on the `nsim` argument for computing a p-value for the statistic. 
+```{r}
+sfe <- runUnivariate(
+  sfe, type = "geary.mc", features = hvgs, 
+  colGraphName = "knn5", nsim = 100)
+```
+
+```{r}
+sfe <- runUnivariate(
+  sfe, type = "moran.mc", features = hvgs,
+  colGraphName = "knn5", nsim = 100)
+
+sfe <- colDataUnivariate(
+  sfe, type = "moran.mc", features = c("nCounts", "nGenes"), 
+  colGraphName = "knn5", nsim = 100)
+```
+We can plot the results of the Monte Carlo simulations: 
+```{r}
+plotMoranMC(sfe, "Meox1")
+```
+The vertical line represents the observed value of Moran's I and the density represents Moran's I computed from the permuted data. These simulations suggest that the spatial autocorrelation for this feature is significant. 
+
+The function can also be used to plot the `geary.mc` results. 
+
+Now, we might ask: which genes display the most spatial autocorrelation? 
+```{r}
+top_moran <- rownames(sfe)[order(-rowData(sfe)$moran.mc_statistic_sample01)[1:4]]
+
+plotSpatialFeature(sfe, top_moran, colGeometryName = "seg_coords")
+```
+It appears that the genes with the highest spatial autocorrelation seem to have obvious expression patterns in the tissue. 
+
+It would be interesting to see if these genes are also differentially expressed in the clusters above. Non-spatial differential gene expression can be interrogated using the `findMarkers()` function implemented in the `scran` package and more complex methods for identifying spatially variable genes are actively being developed. 
+
+These analyses bring up interesting considerations. For one, it is unclear whether normalization scheme employed here effectively removes FOV batch effects. That said, there may be times where FOV differences are expected and represent biological differences, for example in the context of a tumor sample. It remains to be seen what normalization methods will perform best in these cases, and this is represents an area for research.
+
+
+
+# Session Info
+```{r}
+sessionInfo()
+```
+
+# References
+
+
+
+
+
+
