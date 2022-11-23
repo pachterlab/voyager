@@ -1,0 +1,84 @@
+---
+title: "How to Create a SpatialFeatureExperiment"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{Install}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(Voyager)
+library(SpatialFeatureExperiment)
+library(rjson)
+library(Matrix)
+library(vroom)
+
+Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 3)
+```
+## Downloading the data
+
+The data used are from a recent publication, [High Resolution Slide-seqV2 Spatial Transcriptomics Enables Discovery of Disease-Specific Cell Neighborhoods and Pathways](https://doi.org/10.1016/j.isci.2022.104097) and are available for download from GEO (Accession Number: [GSE190094](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190094). 
+
+We will demonstrate use of [`ffq`](https://github.com/pachterlab/ffq) to access FTP links for downloading the relevant data. We will only download the data for a single WT sample. The commented line shows how to install `ffq` from the R terminal. 
+
+```{r}
+# system("pip install ffq")
+system("ffq -l1 GSM5713341")
+```
+The output of the command is metadata for GSM5713341. We can use [`cURL`](https://curl.se) or [`wget`](https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html#using-wget) to download files with FTP links one-by-one. 
+
+Files beginning with `ftp://` can be read directly with the R package `vroom`. Files do not have be uncompressed before reading. These files will be automatically downloaded and uncompressed. We will use this method here, but the commented lines show how to download the files using `cURL`. 
+```{r}
+# system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_MappedDGEForR.csv.gz")
+
+# system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_BeadLocationsForR.csv.gz")
+
+# list.files(pattern = "*.gz")
+```
+## Reading in the data
+```{r}
+mtx <- vroom("ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_MappedDGEForR.csv.gz")
+
+centroids <- vroom("ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_BeadLocationsForR.csv.gz")
+```
+## Construct a SFE object
+The count matrix and bead locations are provided by the authors. We will pass these to the constructor for the `SpatialFeatureExperiment` object. The files are read in as data frames. We will convert the gene count matrix to a matrix and then a sparse `dgCMatrix`.
+```{r}
+rn <- mtx$Row
+mtx <- as.matrix(mtx[,-1])
+
+rownames(mtx) <- rn
+mtx <- as(mtx, "dgCMatrix")
+```
+Here, spot locations are provided as a CSV file. There are two columns of particular interest, namely `xcoord` and `ycoord`. The barcode column corresponds to the barcodes in the count matrix. Before calling the `SpatialFeatureExperiment` constructor, the spatial coordinates must be converted to a `sf` data frame using `df2sf()`. The coordinates are centroid positions, so we will indicate that `geometryType="POINT"`.  
+
+```{r}
+colnames(centroids)[1] <- "ID"
+
+centroids <- df2sf(
+  centroids, geometryType = "POINT",
+  spatialCoordsNames=c("xcoord","ycoord"))
+
+```
+Now we have the ingredients to create a SFE object. The values to the `assays` and `colGeometries` arguments must be passed as a list as shown below.
+```{r}
+sfe <- SpatialFeatureExperiment(
+  assays = list(counts = mtx),
+  colGeometries = list(centroids = centroids)
+)
+
+sfe
+```
+# Session info
+```{r}
+sessionInfo()
+```
