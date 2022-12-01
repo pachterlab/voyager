@@ -53,8 +53,10 @@ free (\code{"free"}), or free in one dimension (\code{"free_x"},
 
 \item{ncol}{Number of columns in the facetting.}
 
-\item{position}{Position adjustment, either as a string, or the result of
-a call to a position adjustment function.}
+\item{position}{Position adjustment, either as a string naming the adjustment
+(e.g. \code{"jitter"} to use \code{position_jitter}), or the result of a call to a
+position adjustment function. Use the latter if you need to change the
+settings of the adjustment.}
 }
 \value{
 A ggplot object
