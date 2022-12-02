@@ -62,7 +62,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     fixed_applicable
 }
 
-.get_pal <- function(df, feature_aes, option, divergent, diverge_center, 
+.get_pal <- function(df, feature_aes, option, divergent, diverge_center,
                      name = waiver()) {
     feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color")]
     if (length(feature_aes)) {
@@ -137,11 +137,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 #' @importFrom sf st_drop_geometry st_geometry_type
-#' @importFrom ggplot2 ggplot aes_string geom_sf scale_fill_manual
+#' @importFrom ggplot2 ggplot geom_sf scale_fill_manual
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
 #' geom_segment stat_density2d waiver
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
+#' @importFrom rlang syms !!!
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
@@ -153,9 +154,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
         if ("color" %in% names(annot_aes) && annot_fixed$size == 0) {
             annot_fixed$size <- 0.5
         }
-        aes_annot <- do.call(aes_string, annot_aes)
         geom_annot <- do.call(geom_sf, c(
-            list(mapping = aes_annot, data = annot_df),
+            list(mapping = aes(!!!syms(annot_aes)), data = annot_df),
             annot_fixed
         ))
         pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_divergent,
@@ -167,7 +167,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     feature_aes <- lapply(feature_aes, make.names)
     name_fix <- setdiff(df_names_orig, names(df))
     if (length(name_fix)) name_show <- name_fix else name_show <- waiver()
-    
+
     p <- ggplot()
     # Filled polygon annotations go beneath feature plot
     is_annot_filled <- !is.null(annot_df) &&
@@ -189,16 +189,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p + new_scale_fill()
     }
     if (scattermore) {
-        aes_use <- do.call(aes_string, c(list(x = "X", y = "Y"), 
-                                         feature_aes))
         geom_use <- do.call(scattermore::geom_scattermore,
-                            c(list(mapping = aes_use, data = df,
-                                   pointsize = pointsize),
+                            c(list(mapping = aes(!!!syms(c(list(x = "X", y = "Y"),
+                                                           feature_aes))),
+                                   data = df, pointsize = pointsize),
                               feature_fixed))
     } else {
-        aes_use <- do.call(aes_string, feature_aes)
         geom_use <- do.call(geom_sf, c(
-            list(mapping = aes_use, data = df),
+            list(mapping = aes(!!!syms(feature_aes)), data = df),
             feature_fixed
         ))
     }
@@ -622,14 +620,14 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 }
 
 #' Plot cell density as 2D histogram
-#' 
-#' This function plots cell density in histological space as 2D histograms, 
+#'
+#' This function plots cell density in histological space as 2D histograms,
 #' especially helpful for larger smFISH-based datasets.
-#' 
+#'
 #' @inheritParams plotColDataBin2D
 #' @return A ggplot object.
 #' @export
-#' @examples 
+#' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
 #' plotCellBin2D(sfe)

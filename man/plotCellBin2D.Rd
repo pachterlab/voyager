@@ -22,7 +22,7 @@ Requires the \code{hexbin} package.}
 A ggplot object.
 }
 \description{
-This function plots cell density in histological space as 2D histograms, 
+This function plots cell density in histological space as 2D histograms,
 especially helpful for larger smFISH-based datasets.
 }
 \examples{
