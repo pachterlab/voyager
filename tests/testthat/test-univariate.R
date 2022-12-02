@@ -229,14 +229,17 @@ test_that("DataFrame output for localG, not perm", {
 })
 
 test_that("Properly add localmoran results to localResults when there're multiple samples", {
-    feat_use <- rownames(mat1)[1]
+    feats_use <- rownames(mat1)[1:2]
     sfe2 <- runUnivariate(sfe,
                           type = "localmoran", colGraphName = "visium",
-                          features = feat_use,
+                          features = feats_use,
                           sample_id = "all", exprs_values = "counts"
     )
     expect_equal(localResultNames(sfe2), "localmoran")
-    lr <- localResult(sfe2, "localmoran", feat_use, sample_id = "all")
-    expect_true(all(!is.na(lr$Ii)))
-    expect_true(is.numeric(lr$Ii))
+    lrs <- localResults(sfe2, "localmoran", feats_use, sample_id = "all")
+    expect_equal(names(lrs), feats_use)
+    expect_true(all(!is.na(lrs[[1]]$Ii)))
+    expect_true(is.numeric(lrs[[1]]$Ii))
+    expect_true(all(!is.na(lrs[[2]]$Ii)))
+    expect_true(is.numeric(lrs[[2]]$Ii))
 })
