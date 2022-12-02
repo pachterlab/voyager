@@ -17,7 +17,7 @@ test_that("Correct structure of calculateMoransI output (matrix)", {
 })
 
 test_that("Correctly add results to rowData when features = NULL", {
-    sfe <- runUnivariate(sfe, type = "geary", features = NULL, 
+    sfe <- runUnivariate(sfe, type = "geary", features = NULL,
                          colGraphName = "visium", sample_id = "sample01",
                          exprs_values = "counts")
     expect_true(is.numeric(rowData(sfe)$geary_sample01))
@@ -25,7 +25,7 @@ test_that("Correctly add results to rowData when features = NULL", {
 })
 
 test_that("Correctly add results to rowData when features = NULL with Moran's I wrapper", {
-    sfe <- runMoransI(sfe, features = NULL, colGraphName = "visium", 
+    sfe <- runMoransI(sfe, features = NULL, colGraphName = "visium",
                       sample_id = "sample01", exprs_values = "counts")
     expect_true(is.numeric(rowData(sfe)$moran_sample01))
     expect_true(all(!is.na(rowData(sfe)$moran_sample01)))
@@ -226,4 +226,17 @@ test_that("DataFrame output for localG, not perm", {
                                is.numeric(o), FUN.VALUE = logical(1))))
     expect_equal(names(out), rownames(mat1))
     expect_equal(nrow(out), ncol(mat1))
+})
+
+test_that("Properly add localmoran results to localResults when there're multiple samples", {
+    feat_use <- rownames(mat1)[1]
+    sfe2 <- runUnivariate(sfe,
+                          type = "localmoran", colGraphName = "visium",
+                          features = feat_use,
+                          sample_id = "all", exprs_values = "counts"
+    )
+    expect_equal(localResultNames(sfe2), "localmoran")
+    lr <- localResult(sfe2, "localmoran", feat_use, sample_id = "all")
+    expect_true(all(!is.na(lr$Ii)))
+    expect_true(is.numeric(lr$Ii))
 })
