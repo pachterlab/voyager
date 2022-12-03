@@ -223,7 +223,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
         annotGeometryName = annotGeometryName
     )
     if (show_symbol && not_geometry) {
-        if (feature %in% rownames(sfe)) {
+        if (feature %in% rownames(sfe) && "symbol" %in% colnames(rowData(sfe))) {
             feature <- rowData(sfe)[feature, "symbol"]
         }
     }
