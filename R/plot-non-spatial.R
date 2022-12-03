@@ -124,10 +124,14 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 }
 
 .plot_dimdata_bin2d_fun <- function(fun) {
-    function(sfe, x, y, subset = NULL, bins = 100, binwidth = NULL,
-             hex = FALSE, name_true = NULL, name_false = NULL) {
+    function(sfe, x, y, facet_by = NULL, subset = NULL, bins = 100, binwidth = NULL,
+             hex = FALSE, name_true = NULL, name_false = NULL, ncol = NULL) {
         bin_fun <- if (hex) geom_hex else geom_bin2d
         df <- as.data.frame(fun(sfe))
+        if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {
+            warning(facet_by, " is not a categorical variable. Not facetting.")
+            facet_by <- NULL
+        }
         p <- ggplot()
         if (is.null(subset)) {
             p <- p +
@@ -153,6 +157,9 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                 scale_fill_distiller(palette = "Reds", direction = 1,
                                      name = name_true)
         }
+        if (!is.null(facet_by)) {
+            p <- p + facet_wrap(facet_by, ncol = ncol)
+        }
         p
     }
 }
@@ -164,11 +171,12 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #' points plotted that they effectively form a solid block.
 #'
 #' @inheritParams ggplot2::geom_bin2d
-#' @param sfe A \code{SpatialFeatureExperiment} object.
+#' @param sfe A \code{SingleCellExperiment} object.
 #' @param x Name of the column in \code{colData} or \code{rowData} to plot on
 #'   the x axis of the plot.
 #' @param y Name of the column in \code{colData} or \code{rowData} to plot on
 #'   the y axis of the plot.
+#' @param facet_by Column in \code{colData} or \code{rowData} to facet with.
 #' @param bins Numeric vector giving number of bins in both vertical and
 #'   horizontal directions. Set to 100 by default.
 #' @param subset Name of a logical column in \code{colData} or \code{rowData},
@@ -181,6 +189,8 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #'   indicated \code{TRUE} in the \code{subset} argument.
 #' @param name_false Character, name to show on the legend for cells or genes
 #'   indicated \code{FALSE} in the \code{subset} argument.
+#' @param ncol If facetting, the number of columns of facets, passed to
+#'   \code{\link{facet_wrap}}.
 #' @importFrom ggplot2 geom_bin2d geom_hex
 #' @importFrom stats reshape
 #' @export

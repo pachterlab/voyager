@@ -407,6 +407,14 @@ test_that("Use scattermore in spatialReducedDim", {
 })
 
 rowData(sfe_cosmx)$is_neg <- grepl("^NegPrb", rownames(sfe_cosmx))
+
+inds <- spatialCoords(sfe_cosmx)[,1] > 20000
+sfe_cosmx2a <- sfe_cosmx[,!inds]
+sfe_cosmx2b <- sfe_cosmx[,inds]
+colData(sfe_cosmx2b)$sample_id <- "sample02"
+names(int_metadata(sfe_cosmx2b)$spatialGraphs) <- "sample02"
+sfe_cosmx2 <- cbind(sfe_cosmx2a, sfe_cosmx2b)
+
 test_that("colData and rowData bin2d", {
     expect_doppelganger("colData bin2d", {
         plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
@@ -429,6 +437,13 @@ test_that("colData and rowData bin2d", {
                          bins = 50) +
             scale_x_log10() + scale_y_log10()
     })
+    expect_doppelganger("colData bin2d for multiple samples", {
+        plotColDataBin2D(sfe_cosmx2, "nCounts", "nGenes",
+                         facet_by = "sample_id")
+    })
+    expect_warning(plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes",
+                                    facet_by = "nCounts"),
+                   "Not facetting")
 })
 
 test_that("colData and rowData histograms", {

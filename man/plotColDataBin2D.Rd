@@ -9,34 +9,40 @@ plotColDataBin2D(
   sfe,
   x,
   y,
+  facet_by = NULL,
   subset = NULL,
   bins = 100,
   binwidth = NULL,
   hex = FALSE,
   name_true = NULL,
-  name_false = NULL
+  name_false = NULL,
+  ncol = NULL
 )
 
 plotRowDataBin2D(
   sfe,
   x,
   y,
+  facet_by = NULL,
   subset = NULL,
   bins = 100,
   binwidth = NULL,
   hex = FALSE,
   name_true = NULL,
-  name_false = NULL
+  name_false = NULL,
+  ncol = NULL
 )
 }
 \arguments{
-\item{sfe}{A \code{SpatialFeatureExperiment} object.}
+\item{sfe}{A \code{SingleCellExperiment} object.}
 
 \item{x}{Name of the column in \code{colData} or \code{rowData} to plot on
 the x axis of the plot.}
 
 \item{y}{Name of the column in \code{colData} or \code{rowData} to plot on
 the y axis of the plot.}
+
+\item{facet_by}{Column in \code{colData} or \code{rowData} to facet with.}
 
 \item{subset}{Name of a logical column in \code{colData} or \code{rowData},
 indicating cells or genes to plot with a different palette. Since the 2D
@@ -57,6 +63,9 @@ indicated \code{TRUE} in the \code{subset} argument.}
 
 \item{name_false}{Character, name to show on the legend for cells or genes
 indicated \code{FALSE} in the \code{subset} argument.}
+
+\item{ncol}{If facetting, the number of columns of facets, passed to
+\code{\link{facet_wrap}}.}
 }
 \value{
 A ggplot object

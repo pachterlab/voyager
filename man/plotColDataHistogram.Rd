@@ -30,7 +30,7 @@ plotRowDataHistogram(
 )
 }
 \arguments{
-\item{sfe}{A \code{SpatialFeatureExperiment} object.}
+\item{sfe}{A \code{SingleCellExperiment} object.}
 
 \item{feature}{Names of columns in \code{colData} or \code{rowData} to plot.
 When multiple features are specified, they will be plotted in separate
