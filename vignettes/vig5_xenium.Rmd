@@ -124,7 +124,7 @@ plotColDataHistogram(sfe, c("cell_area", "nucleus_area"), scales = "free_y") +
     theme_bw()
 ```
 
-That's should be in pixels. There's a very long tail. The nuclei are much smaller than the cells.
+That should be in pixels. There's a very long tail. The nuclei are much smaller than the cells.
 
 How is cell area distributed in space?
 ```{r}
@@ -430,7 +430,7 @@ By default, for gene expression, the log normalized counts are used in spatial a
 sfe <- logNormCounts(sfe)
 ```
 
-Somehow while there are fewer genes in this dataset compared to the CosMX dataset and not too many more cells, running Moran's I for all genes took much longer. Use more cores if available to speed this up.
+Use more cores if available to speed this up.
 ```{r}
 system.time(
     sfe <- runMoransI(sfe, colGraphName = "knn5", BPPARAM = MulticoreParam(2))
@@ -514,14 +514,14 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
                                             objective_function = "modularity")))
 ```
 
-Now the `scater` can also rasterize the plots with lots of points, but with a different mechanism from `scattermore` that requires more system dependencies. 
+Now the `scater` can also rasterize the plots with lots of points with the `rasterise` argument, but with a different mechanism from `scattermore` that requires more system dependencies. 
 ```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = TRUE) +
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = FALSE) +
     geom_density2d()
 ```
 
 ```{r}
-plotUMAP(sfe, colour_by = "cluster", rasterise = TRUE)
+plotUMAP(sfe, colour_by = "cluster", rasterise = FALSE)
 ```
 
 Plot the location of the clusters in space

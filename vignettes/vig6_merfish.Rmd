@@ -101,7 +101,7 @@ system.time({
 })
 ```
 
-When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` took about 2 seconds. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `voyager`. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
+When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` took about 2 seconds. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `Voyager`. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
 
 In the next release we will add to all spatial plotting functions the use of a bounding box to only plot a portion of the tissue. This function here is simplified and not generalizable, compared to what will be provided with the next release. While interactive data visualization is useful for ESDA, there is a need for static figures in publications. 
 ```{r}
@@ -141,7 +141,7 @@ plot_colgeom_bbox(sfe, "nCounts", bbox_use)
 
 Much of the time making this plot is spent subsetting the `sf` data frame with the bounding box. Here spatial autocorrelation is evident in the upper right region with smaller cells, but less so in the rest of this patch. Here nCounts seems to be related to cell size; larger cells seem to have more total counts.
 
-Interactive data visualization is currently beyond the scope of `voyager` or this vignette. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Pielawski2022-wk], and [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2022-zw].
+Interactive data visualization is currently beyond the scope of `Voyager` or this vignette. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Pielawski2022-wk], and [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2022-zw].
 
 Since there aren't too many genes, all genes and negative control probes can be displayed:
 ```{r}
@@ -356,7 +356,7 @@ system.time(
 )
 ```
 
-The `spdep` implementation of k nearest neighbors isn't too bad, not taking longer than a song.
+The `spdep` implementation of k nearest neighbors isn't too bad, not taking longer than a song (radio edit Italodance on our server, but more like a full Trance or Ethereal Techno song on GitHub Actions).
 
 [Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. One way to use Annoy in R is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
 
@@ -558,7 +558,7 @@ The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150
 In the next release of `voyager`, we will write `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
 
 # PCA for larger datasets
-There are many ways to do PCA in R, and the [`BiocSingular`](https://bioconductor.org/packages/release/bioc/html/BiocSingular.html) package makes a number of different methods available with a consistent user interface, and it supports out of memory data in `DelayedArray`. According to [this benchmark](https://slowkow.com/notes/pca-benchmark/), `stats::prcomp()` shipped with R is rather slow for larger datasets. The fastest methods are `irlba::irlba()` and `RSpectra::svds()` are the fastest methods, and the former is supported by `BiocSingular`. So here we use IRLBA and see how long it takes. Many PCA algorithms involve repeated matrix multiplications. R does not come with optimized BLAS and LAPACK, for portability reasons. However, the BLAS and LAPACK used by R can be changed to an optimized one (here's [how to do it](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS)), which will speed up matrix multiplication. 
+There are many ways to do PCA in R, and the [`BiocSingular`](https://bioconductor.org/packages/release/bioc/html/BiocSingular.html) package makes a number of different methods available with a consistent user interface, and it supports out of memory data in `DelayedArray`. According to [this benchmark](https://slowkow.com/notes/pca-benchmark/), `stats::prcomp()` shipped with R is rather slow for larger datasets. The fastest methods are `irlba::irlba()` and `RSpectra::svds()`, and the former is supported by `BiocSingular`. So here we use IRLBA and see how long it takes. Many PCA algorithms involve repeated matrix multiplications. R does not come with optimized BLAS and LAPACK, for portability reasons. However, the BLAS and LAPACK used by R can be changed to an optimized one (here's [how to do it](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS)), which will speed up matrix multiplication. 
 
 ```{r}
 set.seed(29)
@@ -594,12 +594,12 @@ PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spati
 Here we use that makeshift function to plot a zoomed in patch
 ```{r, fig.width=9, fig.height=5}
 colData(sfe)$PC2 <- reducedDim(sfe, "PCA", withDimnames = FALSE)[,2]
-colData(sfe)$PC4 <- reducedDim(sfe, "PCA", withDimnames = FALSE)[,4]
+colData(sfe)$PC3 <- reducedDim(sfe, "PCA", withDimnames = FALSE)[,3]
 plot_colgeom_bbox(sfe, "PC2", bbox_use, divergent = TRUE, diverge_center = 0) + 
-plot_colgeom_bbox(sfe, "PC4", bbox_use, divergent = TRUE, diverge_center = 0)
+plot_colgeom_bbox(sfe, "PC3", bbox_use, divergent = TRUE, diverge_center = 0)
 ```
 
-There's some spatial structure in PC2 and PC4 at a smaller scale.
+There's some spatial structure in PC2 and PC3 at a smaller scale.
 
 Like global Moran's I, PCA and MULTISPATI PCA return one result for the entire dataset. In contrast, [geographically weighted PCA (GWPCA)](https://rdrr.io/cran/GWmodel/man/gwpca.html) [@Harris2015-sr] can account for spatial heterogeneity. GWPCA runs PCA at each spatial location using only the nearby locations weighed by a kernel. The different locations can have different PCs, and the results can be visualized with "winning variables" in each PC, i.e. plotting which feature has the highest loading in each PC in space. This most likely doesn't scale to 400,000 cells, but it would still be interesting when performed on spatially binned data. 
 
