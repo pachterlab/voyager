@@ -6,7 +6,7 @@
 \title{Plot colData and rowData with 2D histograms}
 \usage{
 plotColDataBin2D(
-  sfe,
+  sce,
   x,
   y,
   facet_by = NULL,
@@ -16,11 +16,12 @@ plotColDataBin2D(
   hex = FALSE,
   name_true = NULL,
   name_false = NULL,
-  ncol = NULL
+  ncol = NULL,
+  ...
 )
 
 plotRowDataBin2D(
-  sfe,
+  sce,
   x,
   y,
   facet_by = NULL,
@@ -30,11 +31,12 @@ plotRowDataBin2D(
   hex = FALSE,
   name_true = NULL,
   name_false = NULL,
-  ncol = NULL
+  ncol = NULL,
+  ...
 )
 }
 \arguments{
-\item{sfe}{A \code{SingleCellExperiment} object.}
+\item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{x}{Name of the column in \code{colData} or \code{rowData} to plot on
 the x axis of the plot.}
@@ -66,6 +68,11 @@ indicated \code{FALSE} in the \code{subset} argument.}
 
 \item{ncol}{If facetting, the number of columns of facets, passed to
 \code{\link{facet_wrap}}.}
+
+\item{...}{Other arguments passed on to \code{\link[ggplot2:layer]{layer()}}. These are
+often aesthetics, used to set an aesthetic to a fixed value, like
+\code{colour = "red"} or \code{size = 3}. They may also be parameters
+to the paired geom/stat.}
 }
 \value{
 A ggplot object

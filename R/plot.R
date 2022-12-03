@@ -625,6 +625,7 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' especially helpful for larger smFISH-based datasets.
 #'
 #' @inheritParams plotColDataBin2D
+#' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @return A ggplot object.
 #' @export
 #' @examples

@@ -444,6 +444,9 @@ test_that("colData and rowData bin2d", {
     expect_warning(plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes",
                                     facet_by = "nCounts"),
                    "Not facetting")
+    expect_warning(plotColDataBin2D(sfe = sfe_cosmx, x = "nCounts",
+                                    y = "nGenes"),
+                   "deprecated")
 })
 
 test_that("colData and rowData histograms", {
@@ -462,6 +465,15 @@ test_that("colData and rowData histograms", {
     expect_doppelganger("with subset", {
         plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
     })
+    expect_doppelganger("One variable, facetting", {
+        plotColDataHistogram(sfe_cosmx2, "nCounts", facet_by = "sample_id")
+    })
+    expect_doppelganger("Multiple variables, facetting", {
+        plotColDataHistogram(sfe_cosmx2, c("nCounts", "nGenes"),
+                             facet_by = "sample_id")
+    })
+    expect_warning(plotColDataHistogram(sfe = sfe_cosmx, feature = "nCounts"),
+                   "deprecated")
 })
 
 test_that("plotCellBin2D", {

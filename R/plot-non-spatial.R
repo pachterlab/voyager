@@ -124,10 +124,17 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 }
 
 .plot_dimdata_bin2d_fun <- function(fun) {
-    function(sfe, x, y, facet_by = NULL, subset = NULL, bins = 100, binwidth = NULL,
-             hex = FALSE, name_true = NULL, name_false = NULL, ncol = NULL) {
+    function(sce, x, y, facet_by = NULL, subset = NULL, bins = 100,
+             binwidth = NULL, hex = FALSE, name_true = NULL, name_false = NULL,
+             ncol = NULL, ...) {
+        args <- list(...)
+        browser()
+        if (missing(sce) && "sfe" %in% names(args)) {
+            warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
+            sce <- args$sfe
+        }
         bin_fun <- if (hex) geom_hex else geom_bin2d
-        df <- as.data.frame(fun(sfe))
+        df <- as.data.frame(fun(sce))
         if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {
             warning(facet_by, " is not a categorical variable. Not facetting.")
             facet_by <- NULL
@@ -171,7 +178,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #' points plotted that they effectively form a solid block.
 #'
 #' @inheritParams ggplot2::geom_bin2d
-#' @param sfe A \code{SingleCellExperiment} object.
+#' @param sce A \code{SingleCellExperiment} object.
 #' @param x Name of the column in \code{colData} or \code{rowData} to plot on
 #'   the x axis of the plot.
 #' @param y Name of the column in \code{colData} or \code{rowData} to plot on
@@ -208,9 +215,20 @@ plotColDataBin2D <- .plot_dimdata_bin2d_fun(colData)
 plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 
 .plot_dimdata_hist <- function(fun) {
-    function(sfe, feature, fill_by = NULL, subset = NULL, bins = 100, binwidth = NULL,
-             scales = "free", ncol = 1, position = "identity") {
-        df <- as.data.frame(fun(sfe))[, c(feature, fill_by, subset), drop = FALSE]
+    function(sce, feature, fill_by = NULL, facet_by = NULL, subset = NULL,
+             bins = 100, binwidth = NULL, scales = "free", ncol = 1,
+             position = "identity", ...) {
+        args <- list(...)
+        if (missing(sce) && "sfe" %in% names(args)) {
+            warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
+            sce <- args$sfe
+        }
+        df <- as.data.frame(fun(sce))[, c(feature, fill_by, facet_by, subset),
+                                      drop = FALSE]
+        if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {
+            warning(facet_by, " is not a categorical variable. Not facetting.")
+            facet_by <- NULL
+        }
         if (!is.null(subset)) df <- df[df[[subset]],]
         p <- ggplot()
         if (length(feature) > 1L) {
@@ -221,14 +239,23 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
                 geom_histogram(data = df,
                                mapping = aes(!!!syms(c(x = "values", fill = fill_by))),
                                bins = bins,
-                               binwidth = binwidth, position = position) +
-                facet_wrap(~ variable, scales = scales, ncol = ncol)
+                               binwidth = binwidth, position = position)
+            if (is.null(facet_by)) {
+                p <- p + facet_wrap(~ variable, scales = scales, ncol = ncol)
+            } else {
+                p <- p + facet_grid(rows = vars(variable),
+                                    cols = vars(!!!syms(facet_by)),
+                                    scales = scales)
+            }
         } else {
             p <- p +
                 geom_histogram(data = df,
                                mapping = aes(!!!syms(c(x = feature, fill = fill_by))),
                                bins = bins,
                                binwidth = binwidth, position = position)
+            if (!is.null(facet_by)) {
+                p <- p + facet_wrap(facet_by, ncol = ncol, scales = scales)
+            }
         }
         p
     }
@@ -242,12 +269,18 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 #' @param feature Names of columns in \code{colData} or \code{rowData} to plot.
 #'   When multiple features are specified, they will be plotted in separate
 #'   facets.
+#' @param facet_by Column in \code{colData} or \code{rowData} to facet with.
+#'   When multiple features are plotted, the features will be in different
+#'   facets. In this case, setting \code{facet_by} will call
+#'   \code{\link{facet_grid}} so the features are in rows and categories in
+#'   \code{facet_by} will be in columns.
 #' @param ncol Number of columns in the facetting.
 #' @param fill_by Name of a categorical column in \code{colData} or
 #'   \code{rowData} to fill the histogram.
 #' @param subset Name of a logical column to only plot a subset of the data.
 #' @return A ggplot object
 #' @importFrom rlang %||% .data
+#' @importFrom ggplot2 facet_grid
 #' @export
 #' @examples
 #' library(SFEData)
