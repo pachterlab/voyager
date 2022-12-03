@@ -17,18 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: r-lib/actions/setup-r@v2
+      - name: Setup R and Bioconductor
+        uses: grimbough/bioc-actions/setup-bioc@v1
         with:
-          use-public-rspm: true
-          extra-repositories: 'https://bioconductor.org/packages/release/bioc/ https://bioconductor.org/packages/release/data/experiment'
+          bioc-version: 3.16
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::covr
           needs: coverage
-      - name: Use current version of Bioconductor
-        run: install.packages("BiocManager"); BiocManager::install(version = "3.16")
-        shell: Rscript {0}
+
       - name: Test coverage
         run: covr::codecov(quiet = FALSE)
         shell: Rscript {0}
