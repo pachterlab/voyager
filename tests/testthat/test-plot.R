@@ -505,3 +505,23 @@ test_that("Moran plot bin2d", {
     #    moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
     #})
 })
+
+sfe1 <- McKellarMuscleData("small")
+sfe2 <- McKellarMuscleData("small2")
+sfe <- cbind(sfe1, sfe2)
+sfe <- removeEmptySpace(sfe)
+
+test_that("Plot geometries", {
+    expect_doppelganger("plot colGeometry 2 samples", {
+        plotGeometry(sfe, "spotPoly")
+    })
+    expect_doppelganger("plot colGeometry 1 sample", {
+        plotGeometry(sfe_muscle, "spotPoly")
+    })
+    expect_doppelganger("plot annotGeometry 2 samples", {
+        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+    })
+    expect_doppelganger("plot annotGeometry 1 sample", {
+        plotGeometry(sfe_muscle, "myofiber_simplified", MARGIN = 3)
+    })
+})

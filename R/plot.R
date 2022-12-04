@@ -652,3 +652,37 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
     }
     p
 }
+
+#' Plot geometries without coloring
+#'
+#' Different samples are plotted in separate facets.
+#'
+#' @inheritParams plotSpatialFeature
+#' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @return A ggplot object.
+#' @export
+#' @examples
+#' library(SFEData)
+#' sfe1 <- McKellarMuscleData("small")
+#' sfe2 <- McKellarMuscleData("small2")
+#' sfe <- cbind(sfe1, sfe2)
+#' sfe <- removeEmptySpace(sfe)
+#' plotGeometry(sfe, "spotPoly")
+#' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
+                         ncol = NULL) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
+    df <- fun(sfe, type, sample_id = sample_id)
+    if (MARGIN == 2L) {
+        df$sample_id <- sfe$sample_id
+    }
+    if (MARGIN == 3L) {
+        sample_id <- unique(df$sample_id)
+    }
+    p <- ggplot(df) + geom_sf()
+    if (MARGIN != 1L && length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id, ncol = ncol)
+    }
+    p
+}
