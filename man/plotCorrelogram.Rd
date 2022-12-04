@@ -7,7 +7,7 @@
 plotCorrelogram(
   sfe,
   features,
-  sample_id = NULL,
+  sample_id = "all",
   method = "I",
   color_by = NULL,
   facet_by = c("sample_id", "features"),

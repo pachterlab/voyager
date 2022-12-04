@@ -28,7 +28,7 @@
 #' )
 #' # Basically PC1 separates spots not on tissue from those on tissue.
 spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
-                              sample_id = NULL, ncol = NULL, ncol_sample = NULL,
+                              sample_id = "all", ncol = NULL, ncol_sample = NULL,
                               annotGeometryName = NULL,
                               annot_aes = list(), annot_fixed = list(),
                               exprs_values = "logcounts",

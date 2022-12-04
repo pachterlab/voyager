@@ -30,7 +30,7 @@
 #'     features = rownames(sfe)[inds],
 #'     BLUSPARAM = KmeansParam(2)
 #' )
-clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
+clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
                                 method = "I",
                                 colGeometryName = NULL,
                                 annotGeometryName = NULL, show_symbol = TRUE) {
@@ -106,7 +106,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = NULL,
 #' clusts <- clusterMoranPlot(sfe, rownames(sfe)[1],
 #'     BLUSPARAM = KmeansParam(2)
 #' )
-clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = NULL,
+clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
                              colGeometryName = NULL,
                              annotGeometryName = NULL, show_symbol = TRUE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)

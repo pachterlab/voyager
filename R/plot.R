@@ -437,7 +437,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'     annot_aes = list(fill = "area")
 #' )
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
-                               sample_id = NULL, ncol = NULL,
+                               sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
                                annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
@@ -595,7 +595,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'     weights = TRUE
 #' )
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
-                         sample_id = NULL, weights = FALSE, segment_size = 0.5,
+                         sample_id = "all", weights = FALSE, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL) {
     .plot_graph(sfe,
         MARGIN = 2L, sample_id = sample_id, graph_name = colGraphName,
@@ -608,7 +608,7 @@ plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
 #' @rdname plotColGraph
 #' @export
 plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
-                           sample_id = NULL, weights = FALSE,
+                           sample_id = "all", weights = FALSE,
                            segment_size = 0.5, geometry_size = 0.5,
                            ncol = NULL) {
     .plot_graph(sfe,
@@ -625,23 +625,30 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' especially helpful for larger smFISH-based datasets.
 #'
 #' @inheritParams plotColDataBin2D
-#' @param sfe A \code{SpatialFeatureExperiment} object.
+#' @inheritParams plotSpatialFeature
 #' @return A ggplot object.
 #' @export
 #' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
 #' plotCellBin2D(sfe)
-plotCellBin2D <- function(sfe, bins = 200, binwidth = NULL, hex = FALSE) {
+plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
+                          hex = FALSE, ncol = NULL) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     bin_fun <- if (hex) geom_hex else geom_bin2d
     df <- as.data.frame(spatialCoords(sfe))
     names(df) <- c("x", "y")
+    df$sample_id <- colData(sfe)$sample_id
     x <- y <- NULL
-    ggplot(df, aes(x, y)) +
+    p <- ggplot(df, aes(x, y)) +
         bin_fun(bins = bins, binwidth = binwidth) +
         scale_fill_distiller(palette = "Blues", direction = 1) +
         coord_equal() +
         scale_x_continuous(expand = expansion()) +
         scale_y_continuous(expand = expansion()) +
         labs(x = NULL, y = NULL)
+    if (length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id)
+    }
+    p
 }

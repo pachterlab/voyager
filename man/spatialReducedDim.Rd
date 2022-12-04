@@ -9,7 +9,7 @@ spatialReducedDim(
   dimred,
   ncomponents,
   colGeometryName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   ncol = NULL,
   ncol_sample = NULL,
   annotGeometryName = NULL,

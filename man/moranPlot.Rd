@@ -8,7 +8,7 @@ moranPlot(
   sfe,
   feature,
   graphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   contour_color = "cyan",
   color_by = NULL,
   colGeometryName = NULL,

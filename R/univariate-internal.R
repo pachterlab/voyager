@@ -41,7 +41,7 @@
 #' @importFrom spdep include.self nb2listw
 .calc_univar_sfe_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L,
-                        sample_id = NULL,
+                        sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, returnDF = TRUE,
                         include_self = FALSE, p.adjust.method = "BH", ...) {
@@ -70,7 +70,7 @@
     if (is.null(type)) {
         fun_use
     } else {
-        function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
+        function(x, features = NULL, colGraphName = 1L, sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, returnDF = TRUE,
                  include_self = FALSE, p.adjust.method = "BH",...) {
@@ -143,7 +143,7 @@
 }
 
 .coldata_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features, colGraphName = 1L, sample_id = NULL,
+    fun_use <- function(x, type, features, colGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
                         include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
@@ -170,7 +170,7 @@
     if (is.null(type)) {
         fun_use
     } else {
-        function(x, features, colGraphName = 1L, sample_id = NULL,
+        function(x, features, colGraphName = 1L, sample_id = "all",
                  BPPARAM = SerialParam(), zero.policy = NULL,
                  include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
@@ -183,7 +183,7 @@
 
 .colgeom_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, colGeometryName = 1L,
-                        colGraphName = 1L, sample_id = NULL,
+                        colGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
                         include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
@@ -217,7 +217,7 @@
         fun_use
     } else {
         function(x, features, colGeometryName = 1L, colGraphName = 1L,
-                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
+                 sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
                  include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGeometryName, colGraphName, sample_id,
@@ -229,7 +229,7 @@
 
 .annotgeom_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, annotGeometryName = 1L,
-                        annotGraphName = 1L, sample_id = NULL,
+                        annotGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
                         include_self = FALSE, p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
@@ -265,7 +265,7 @@
         fun_use
     } else {
         function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
-                 sample_id = NULL, BPPARAM = SerialParam(), zero.policy = NULL,
+                 sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
                  include_self = FALSE, p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, annotGeometryName, annotGraphName, sample_id,
@@ -276,7 +276,7 @@
 }
 
 .sfe_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = NULL,
+    fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, include_self = FALSE, 
                         p.adjust.method = "BH", ...) {
@@ -307,7 +307,7 @@
     if (is.null(type)) {
         fun_use
     } else {
-        function(x, features = NULL, colGraphName = 1L, sample_id = NULL,
+        function(x, features = NULL, colGraphName = 1L, sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, include_self = FALSE, 
                  p.adjust.method = "BH", ...) {

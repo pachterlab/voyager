@@ -206,7 +206,7 @@
 #' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
 #' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
 #' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1])
-moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
+moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE, binned = FALSE,
@@ -423,7 +423,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' plotCorrelogram(sfe, features, color_by = clust$cluster)
 #' # Facet by features
 #' plotCorrelogram(sfe, features, facet_by = "features")
-plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
+plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
                             color_by = NULL,
                             facet_by = c("sample_id", "features"),
                             ncol = NULL,
@@ -626,7 +626,7 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' sfe <- colDataUnivariate(sfe, type = "moran.mc", "nCounts", nsim = 100)
 #' plotMoranMC(sfe, "nCounts")
-plotMoranMC <- function(sfe, features, sample_id = NULL,
+plotMoranMC <- function(sfe, features, sample_id = "all",
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
                         ptype = c("density", "histogram", "freqpoly"),

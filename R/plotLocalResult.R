@@ -104,7 +104,7 @@
 #' )
 #' # don't use annot_* arguments when annotGeometry is plotted without colGeometry
 plotLocalResult <- function(sfe, type, features, attribute = NULL,
-                            sample_id = NULL,
+                            sample_id = "all",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
                             annot_aes = list(), annot_fixed = list(),

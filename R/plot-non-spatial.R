@@ -128,7 +128,6 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
              binwidth = NULL, hex = FALSE, name_true = NULL, name_false = NULL,
              ncol = NULL, ...) {
         args <- list(...)
-        browser()
         if (missing(sce) && "sfe" %in% names(args)) {
             warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
             sce <- args$sfe
@@ -198,7 +197,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #'   indicated \code{FALSE} in the \code{subset} argument.
 #' @param ncol If facetting, the number of columns of facets, passed to
 #'   \code{\link{facet_wrap}}.
-#' @importFrom ggplot2 geom_bin2d geom_hex
+#' @importFrom ggplot2 geom_bin2d geom_hex vars
 #' @importFrom stats reshape
 #' @export
 #' @return A ggplot object
@@ -231,6 +230,7 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
         }
         if (!is.null(subset)) df <- df[df[[subset]],]
         p <- ggplot()
+        variable <- NULL
         if (length(feature) > 1L) {
             df <- reshape(df, varying = feature, direction = "long",
                           v.names = "values", timevar = "variable",

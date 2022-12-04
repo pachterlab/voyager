@@ -8,7 +8,7 @@ clusterCorrelograms(
   sfe,
   features,
   BLUSPARAM,
-  sample_id = NULL,
+  sample_id = "all",
   method = "I",
   colGeometryName = NULL,
   annotGeometryName = NULL,

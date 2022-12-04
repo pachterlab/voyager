@@ -7,7 +7,7 @@
 plotMoranMC(
   sfe,
   features,
-  sample_id = NULL,
+  sample_id = "all",
   facet_by = c("sample_id", "features"),
   ncol = NULL,
   colGeometryName = NULL,

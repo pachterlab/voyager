@@ -414,6 +414,7 @@ sfe_cosmx2b <- sfe_cosmx[,inds]
 colData(sfe_cosmx2b)$sample_id <- "sample02"
 names(int_metadata(sfe_cosmx2b)$spatialGraphs) <- "sample02"
 sfe_cosmx2 <- cbind(sfe_cosmx2a, sfe_cosmx2b)
+sfe_cosmx2 <- removeEmptySpace(sfe_cosmx2)
 
 test_that("colData and rowData bin2d", {
     expect_doppelganger("colData bin2d", {
@@ -483,6 +484,9 @@ test_that("plotCellBin2D", {
     #expect_doppelganger("Cell density, hex", {
     #    plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
     #})
+    expect_doppelganger("Multiple samples", {
+        plotCellBin2D(sfe_cosmx2, bins = 50)
+    })
 })
 
 sfe_muscle2 <- McKellarMuscleData()

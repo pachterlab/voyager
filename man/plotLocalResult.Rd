@@ -9,7 +9,7 @@ plotLocalResult(
   type,
   features,
   attribute = NULL,
-  sample_id = NULL,
+  sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
   ncol = NULL,

@@ -8,7 +8,7 @@ clusterMoranPlot(
   sfe,
   features,
   BLUSPARAM,
-  sample_id = NULL,
+  sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
   show_symbol = TRUE
