@@ -1,16 +1,10 @@
 # Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
-on:
-  push:
-    #branches: [documentation]
-    tags:
-      - '*'
-  release:
-    types: [published]
-  workflow_dispatch:
 
 name: pkgdown
-
+on: 
+  schedule:
+   - cron: "22 2 * * *"
 jobs:
   pkgdown:
     runs-on: macos-12
@@ -21,7 +15,8 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          ref: documentation
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: Setup R and Bioconductor
