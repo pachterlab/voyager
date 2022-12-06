@@ -93,7 +93,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     is_ensembl <- all(grepl("^ENS", rownames(sce)))
     if (!is_ensembl) show_symbol <- FALSE # I mean, irrelevant
     loading_cols <- paste0("PC", dims)
-    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings), ]),
+    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
                 loadings[, loading_cols])
     if (!symbol_col %in% names(df) || !show_symbol) {
         df$gene_show <- rownames(loadings)
