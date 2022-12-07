@@ -8,6 +8,7 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{visium_10x}
   %\VignetteEngine{knitr::rmarkdown}
@@ -103,12 +104,12 @@ fromJSON(file = "outs/spatial/scalefactors_json.json")
 
 The `tissue_positions_list.csv` file contains information for the coordinates of the spots in the full resolution image and whether each spot is in tissue (`in_tissue`, 1 means yes and 0 means no) as automatically detected by Space Ranger or manually annotated in the Loupe browser.
 ```{r}
-read.csv("outs/spatial/tissue_positions.csv")
+head(read.csv("outs/spatial/tissue_positions.csv"))
 ```
 
 The `spatial_enrichment.csv` file has Moran's I (presumably for spots in tissue) and its p-value for each gene that is detected in at least 10 spots and has at least 20 UMIs. 
 ```{r}
-read.csv("outs/spatial/spatial_enrichment.csv")
+head(read.csv("outs/spatial/spatial_enrichment.csv"))
 ```
 
 Here we read the Space Ranger output into R as an SFE object:
@@ -228,7 +229,7 @@ plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2
     theme_void()
 ```
 
-More spatial analyses on this dataset is performed in [an "advanced" version of this vignette](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html).
+More spatial analyses on this dataset is performed in [an "advanced" version of this vignette](https://pachterlab.github.io/voyager/dev/articles/visium_10x_spatial.html).
 
 # Session info
 ```{r}
