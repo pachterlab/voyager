@@ -243,12 +243,12 @@ sfe <- colDataUnivariate(sfe, "localmoran", c("sum", "detected", "subsets_mito_p
 ```
 
 Here we don't have histological space. Then how to visualize the local "spatial" statistics? UMAP is bad but here PCA can somewhat separate the clusters, so in this case we can use the first 2 PCs as if they're the histological space. As a reference, we plot the metrics themselves and the clusters in the first 2 PCs. 
-```{r, fig.height=6}
+```{r, fig.width = 9, fig.height=5}
 plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent", "cluster"), ncol = 4)
 ```
 
 Here plot the local Moran's I for these metrics in the first 2 PCs:
-```{r, fig.height=6}
+```{r, fig.width=9, fig.height=6}
 plotLocalResult(sfe, "localmoran", c("sum", "detected", "subsets_mito_percent"), 
                 colGeometryName = "centroids",
                 divergent = TRUE, diverge_center = 0, ncol = 3)
@@ -311,7 +311,7 @@ LOSH indicates heterogeneity around each cell in the k nearest neighbor graph.
 sfe <- colDataUnivariate(sfe, "LOSH", c("sum", "detected", "subsets_mito_percent"))
 ```
 
-```{r, fig.height=6}
+```{r, fig.width=9, fig.height=6}
 plotLocalResult(sfe, "LOSH", c("sum", "detected", "subsets_mito_percent"), 
                 colGeometryName = "centroids", ncol = 3)
 ```
@@ -390,7 +390,7 @@ The top marker genes all have quite positive Moran's I on the k nearest neighbor
 names(rowData(sfe))[2] <- "symbol"
 ```
 
-```{r, fig.width=8, fig.height=4}
+```{r, fig.width=9, fig.height=4}
 top_moran <- head(rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)], 4)
 plotSpatialFeature(sfe, top_moran, ncol = 4)
 ```
@@ -469,7 +469,7 @@ Here we see different patterns of decay in spatial autocorrelation and different
 sfe <- runUnivariate(sfe, "localmoran", features = top_markers)
 ```
 
-```{r, fig.width=9, fig.height=7}
+```{r, fig.width=12, fig.height=7}
 plotLocalResult(sfe, "localmoran", top_markers, colGeometryName = "centroids", 
                 divergent = TRUE, diverge_center = 0, ncol = 5)
 ```
@@ -486,7 +486,7 @@ for (i in seq_along(top_markers)) {
 }
 ```
 
-```{r, fig.width=6, fig.height=10}
+```{r, fig.width=8, fig.height=12}
 plotColDataHistogram(sfe, new_colname, fill_by = "cluster") +
     scale_fill_manual(values = ditto_colors) +
     ggtitle("Local Moran's I") +
@@ -517,7 +517,7 @@ localResultAttrs(sfe, "localmoran", top_markers[1])
 sfe <- runUnivariate(sfe, "LOSH", top_markers)
 ```
 
-```{r, fig.width=9, fig.height=6}
+```{r, fig.width=12, fig.height=7}
 plotLocalResult(sfe, "LOSH", top_markers, colGeometryName = "centroids", ncol = 5)
 ```
 
@@ -534,7 +534,7 @@ for (i in seq_along(top_markers)) {
 }
 ```
 
-```{r, fig.width=6, fig.height=10}
+```{r, fig.width=8, fig.height=12}
 plotColDataHistogram(sfe, new_colname2, fill_by = "cluster") +
     scale_fill_manual(values = ditto_colors) +
     ggtitle("Local heteroscedasticity") +
