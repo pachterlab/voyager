@@ -1,0 +1,97 @@
+---
+title: "visium_10x_spatial"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{visium_10x_spatial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+# Introduction
+In a [more introductory vignette](https://lambdamoses.github.io/voyager/dev/articles/visium_10x.html), we performed basic non-spatial analyses on a mouse olfactory bulb Visium dataset from the 10X website. In this vignette, we perform spatial analyses in histological space as well as in gene expression space. 
+
+Here we load the packages used in this vignette:
+```{r}
+library(Voyager)
+library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
+library(ggplot2)
+library(scater)
+library(scuttle)
+library(scran)
+library(stringr)
+library(patchwork)
+library(bluster)
+library(rjson)
+theme_set(theme_bw())
+```
+
+Here we download the data from the 10X website. This is the unfiltered gene count matrix:
+```{r}
+if (!file.exists("visium_ob.tar.gz"))
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_raw_feature_bc_matrix.tar.gz", 
+                  destfile = "visium_ob.tar.gz")
+```
+
+This is the spatial information:
+```{r}
+if (!file.exists("visium_ob_spatial.tar.gz"))
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_spatial.tar.gz", 
+                  destfile = "visium_ob_spatial.tar.gz")
+```
+
+Decompress the downloaded content:
+```{r}
+if (!dir.exists("outs")) {
+    dir.create("outs")
+    system("tar -xvf visium_ob.tar.gz -C outs")
+    system("tar -xvf visium_ob_spatial.tar.gz -C outs")
+}
+```
+
+Contents of the `outs` directory as from Space Ranger is explained in [the introductory vignette](https://lambdamoses.github.io/voyager/dev/articles/visium_10x.html).
+
+```{r}
+knitr::include_graphics("outs/spatial/tissue_lowres_image.png")
+```
+
+Here we read the data into R as an SFE object.
+```{r}
+(sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw"))
+```
+
+Here we add QC metrics, already plotted in the introductory vignette.
+
+```{r}
+is_mt <- str_detect(rowData(sfe)$symbol, "^mt-")
+```
+
+```{r}
+sfe <- addPerCellQCMetrics(sfe, subsets = list(mito = is_mt))
+```
+
+# Tissue segmentation
+While Space Ranger can automatically detect which spots are in tissue and the Loupe browser can be used to manually annotate which spots are in tissue, it may be interesting to get the tissue outline polygon, so we would know how much each spot overlaps with the tissue and plot the outline. The tissue boundary polygon can be manually annotated with QuPath, which saves the polygon as a GeoJSON and can be directly read into R with `st_read()`. 
+
+Or we can segment the tissue computationally. R generally isn't great for image processing, but there are some packages that can perform the segmentation, such as [`EBImage`](https://bioconductor.org/packages/release/bioc/html/EBImage.html), which is based on its own in house C and C++ code, and [`imager`](https://github.com/dahtah/imager/), which is based on [`CImg`](http://cimg.eu/).
+
+```{r}
+
+```
+
