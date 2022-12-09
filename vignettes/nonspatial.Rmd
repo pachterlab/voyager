@@ -49,8 +49,10 @@ theme_set(theme_bw())
 Here we download the filtered [Cell Ranger gene count matrix from the 10X website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem?). The empty droplets have already been removed.
 
 ```{r}
-download.file("https://cf.10xgenomics.com/samples/cell-exp/3.0.2/5k_pbmc_v3_nextgem/5k_pbmc_v3_nextgem_filtered_feature_bc_matrix.tar.gz", destfile = "5kpbmc.tar.gz", quiet = TRUE)
-system("tar -xzf 5kpbmc.tar.gz")
+if (!dir.exists("filtered_feature_bc_matrix")) {
+    download.file("https://cf.10xgenomics.com/samples/cell-exp/3.0.2/5k_pbmc_v3_nextgem/5k_pbmc_v3_nextgem_filtered_feature_bc_matrix.tar.gz", destfile = "5kpbmc.tar.gz", quiet = TRUE)
+    system("tar -xzf 5kpbmc.tar.gz")
+}
 ```
 
 This is loaded into R as a `SingleCellExperiment` (SCE) object.
@@ -502,8 +504,8 @@ The scatter plots as shown in the "spatial" analyses for QC metrics section can 
 i <- 6 # Change if running this notebook
 plotExpression(sfe, top_markers[i], x = new_colname[i], color_by = "cluster") +
     scale_color_manual(values = ditto_colors) +
-    coord_flip() +
-    geom_density2d() # comment out in case of error after changing i
+    coord_flip() #+
+    #geom_density2d() # comment out in case of error after changing i
 ```
 
 For this gene, just like for total UMI counts, there are two wings and a central value where local Moran's I is around 0, and generally cells with higher expression of this gene have higher local Moran's I for this gene as well. The density contours show that cells concentrate around 0 expression and some weaker positive local Moran. The streak of cells with 0 expression means that many cells don't express this gene but their neighbors have low and slightly homogeneous expression of this gene. This pattern may be different for different genes. Also, the p-values for each cell for local Moran's I are available and corrected for multiple hypothesis testing, and can be plotted. The p-values are based on the z score of the local Moran statistic, although how the statistic is distributed for gene expression data warrants more investigation. This p-value can also be computed with permutation (see `localmoran_perm()`). 
