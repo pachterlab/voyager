@@ -1,5 +1,5 @@
 ---
-title: "visium_10x_spatial"
+title: "Spatial analysis of 10X example Visium dataset"
 author: "Lambda Moses"
 date: "`r Sys.Date()`"
 output: 
@@ -18,8 +18,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -39,6 +38,14 @@ library(stringr)
 library(patchwork)
 library(bluster)
 library(rjson)
+library(EBImage)
+library(terra)
+library(rlang)
+library(sf)
+library(rmapshaper)
+library(dplyr)
+library(BiocParallel)
+library(BiocNeighbors)
 theme_set(theme_bw())
 ```
 
@@ -67,10 +74,6 @@ if (!dir.exists("outs")) {
 
 Contents of the `outs` directory as from Space Ranger is explained in [the introductory vignette](https://lambdamoses.github.io/voyager/dev/articles/visium_10x.html).
 
-```{r}
-knitr::include_graphics("outs/spatial/tissue_lowres_image.png")
-```
-
 Here we read the data into R as an SFE object.
 ```{r}
 (sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw"))
@@ -91,7 +94,397 @@ While Space Ranger can automatically detect which spots are in tissue and the Lo
 
 Or we can segment the tissue computationally. R generally isn't great for image processing, but there are some packages that can perform the segmentation, such as [`EBImage`](https://bioconductor.org/packages/release/bioc/html/EBImage.html), which is based on its own in house C and C++ code, and [`imager`](https://github.com/dahtah/imager/), which is based on [`CImg`](http://cimg.eu/).
 
-```{r}
+Here we don't have the full resolution image. We will perform tissue segmentation on the high resolution downsampled image and then scale it to make the coordinates of the tissue boundary match those of the spots. The `EBImage` package is used here. Compared to OpenCV, `EBImage` is slow on the full resolution image, but should be fine here for the downsized image.
 
+```{r}
+img <- readImage("outs/spatial/tissue_hires_image.png")
+display(img)
+```
+
+When rendered as a static webpage, the image is static, but when run interactively, this image will be shown in an interactive widget where you can zoom and pan.
+
+Here we show the RGB channels separately
+```{r}
+img2 <- img
+colorMode(img2) <- Grayscale
+display(img2, all = TRUE)
+```
+
+```{r}
+hist(img)
+```
+
+The tissue can be discerned with thresholding. The tall peak on the right is the background. The much lower peaks from around 0.6 to 0.85 must be the tissue. To capture the faint bluish region, the blue channel is used for thresholding. The threshold here is chosen based on the histogram and experimenting with nearby values.
+
+```{r}
+mask <- img3[,,3] < 0.87
+display(mask)
+```
+
+Then we use an opening operation (erosion followed by dilation) to denoise
+```{r}
+kern <- makeBrush(3, shape='disc')
+mask_open <- opening(mask, kern)
+display(mask_open)
+```
+
+There are some small holes in the tissue, which can be removed by a closing operation (dilation followed by erosion):
+```{r}
+mask_close <- closing(mask_open, kern)
+display(mask_close)
+```
+
+There are some larger holes in the tissue mask, which may be real holes or faint regions with few nuclei missed by thresholding. They might not be large enough to affect which Visium spots intersect the tissue.
+
+Now the main piece of tissue is clear. It must be the object with the largest area. However, there are two small pieces that should belong to the tissue at the top left. The debris and fiducials can be removed by setting all pixels in the mask outside the bounding box of the main piece to 0. Here we assign a different value to each contiguous object with `bwlabel()`, and use `computeFeatures.shape()` to find the area among other shape features (e.g. perimeter) of each object.
+
+```{r}
+mask_label <- bwlabel(mask_close)
+fts <- computeFeatures.shape(mask_label)
+```
+
+```{r}
+head(fts)
+```
+
+```{r}
+summary(fts[,"s.area"])
+```
+
+```{r}
+max_ind <- which.max(fts[,"s.area"])
+inds <- which(as.array(mask_label) == max_ind, arr.ind = TRUE)
+head(inds)
+```
+
+```{r}
+row_inds1 <- c(seq_len(min(inds[,1])-1), seq(max(inds[,1])+1, nrow(mask_label), by = 1))
+col_inds1 <- c(seq_len(min(inds[,2])-1), seq(max(inds[,2])+1, nrow(mask_label), by = 1))
+mask_label[row_inds, ] <- 0
+mask_label[,col_inds] <- 0
+display(mask_label)
+```
+
+Then remove the small pieces that are debris.
+```{r}
+unique(as.vector(mask_label))
+```
+
+```{r}
+fts2 <- fts[unique(as.vector(mask_label))[-1],]
+fts2 <- fts2[order(fts2[,"s.area"], decreasing = TRUE),]
+```
+
+```{r}
+plot(fts2[,1][-1], type = "l", ylab = "Area")
+```
+
+```{r}
+head(fts2, 10)
+```
+
+Object number 797 is a piece of debris at the bottom left. The other pieces with area over 100 pixels are tissue. Since debris really is small bits of tissue, so the boundary between debris and tissue can be blurry. Here the two are distinguished by morphology on the H&E image and proximity to the main tissue.
+
+```{r}
+#display(mask_label == 797)
+```
+
+Here we remove the debris from the mask
+```{r}
+mask_label[mask_label %in% c(797, as.numeric(rownames(fts2)[fts2[,1] < 100]))] <- 0
+```
+
+Since most holes in the mask are faint regions of the tissue missed by thresholding, the holes will be filled
+```{r}
+mask_label <- fillHull(mask_label)
+```
+
+```{r}
+display(paintObjects(mask_label, img, col=c("red", "yellow"), opac=c(1, 0.3)))
+```
+
+This segmentation process took a lot of manual oversight, in choosing the threshold, choosing kernel size and shape in the opening and closing operations, deciding whether to fill the holes, and deciding what is debris and what is tissue. 
+
+Finally, the image needs to be rotated to match the spots.
+```{r}
+mask_label <- EBImage::rotate(mask_label, 270)
+display(mask_label)
+```
+
+# Convert tissue mask to polygon
+Now we have the tissue mask, which we will convert to polygon. While OpenCV can directly perform the conversion, as there isn't a comprehensive R wrapper of OpenCV, this conversion is more convoluted in R. We first convert the `Image` object to a raster as implemented in `terra`, the core R package for geospatial raster data. Then `terra` can convert the raster to polygon. As this image is downsized, the polygon will look quite pixelated. To mitigate this pixelation and save memory, the `ms_simplify()` function is used to simplify the polygon, only keeping a small proportion of all vertices. The `st_simplify()` function in `sf` can also simplify the polygons, but we can't specify what proportion of vertices to keep.
+
+```{r}
+raster2polygon <- function(seg, keep = 0.2) {
+    r <- rast(t(as.array(seg)), extent = ext(0, nrow(seg), 0, ncol(seg)))
+    r[r < 1] <- NA
+    contours <- st_as_sf(as.polygons(r, dissolve = TRUE))
+    simplified <- ms_simplify(contours, keep = keep)
+    list(full = contours,
+         simplified = simplified)
+}
+```
+
+```{r}
+tb <- raster2polygon(mask_label)
+```
+
+Before adding the geometry to the SFE object, it needs to be scaled to match the coordinates of the spots
+```{r}
+scale_factors <- fromJSON(file = "outs/spatial/scalefactors_json.json")
+```
+
+```{r}
+tb$simplified$geometry <- tb$simplified$geometry / scale_factors$tissue_hires_scalef
+```
+
+
+```{r}
+tissueBoundary(sfe) <- tb$simplified
+```
+
+```{r}
+plotSpatialFeature(sfe, "sum", annotGeometryName = "tissueBoundary", 
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black"))
+```
+
+Then we can use geometric operations to find which spots intersect tissue, which spots are covered by tissue, and how much of each spot intersects tissue.
+
+```{r}
+# Which spots intersect tissue
+sfe$int_tissue <- annotPred(sfe, colGeometryName = "spotPoly", 
+                            annotGeometryName = "tissueBoundary",
+                            pred = st_intersects)
+sfe$cov_tissue <- annotPred(sfe, colGeometryName = "spotPoly", 
+                            annotGeometryName = "tissueBoundary",
+                            pred = st_covered_by)
+```
+
+Discrepancies between Space Ranger's annotation and the annotation based on tissue segmentation here:
+```{r}
+sfe$diff_sr <- case_when(sfe$in_tissue == sfe$int_tissue ~ "same",
+                         sfe$in_tissue & !sfe$int_tissue ~ "Space Ranger",
+                         sfe$int_tissue & !sfe$in_tissue ~ "segmentation") |> 
+    factor(levels = c("Space Ranger", "same", "segmentation"))
+plotSpatialFeature(sfe, "diff_sr", 
+                   annotGeometryName = "tissueBoundary", 
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
+    scale_fill_brewer(type = "div", palette = 4)
+```
+
+Spots at the margin can intersect the tissue without being covered by it.
+```{r}
+sfe$diff_int_cov <- sfe$int_tissue != sfe$cov_tissue
+plotSpatialFeature(sfe, "diff_int_cov", 
+                   annotGeometryName = "tissueBoundary", 
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black"))
+```
+
+We can also get the geometries of the intersections between the tissue and the Visium spots, and then calculate what percentage of each spot is in tissue. However, this percentage may not be very useful if the tissue segmentation is subject to error. This percentage may be more useful for pathologist annotated histological regions or objects such as nuclei and myofibers.
+
+```{r}
+spot_ints <- annotOp(sfe, colGeometryName = "spotPoly", 
+                     annotGeometryName = "tissueBoundary", op = st_intersection)
+sfe$pct_tissue <- st_area(spot_ints) / st_area(spotPoly(sfe)) * 100
+```
+
+For spots that intersect tissue, does total counts relate to percentage of the spot in tissue?
+```{r}
+sfe_tissue <- sfe[,sfe$int_tissue]
+```
+
+```{r}
+plotColDataBin2D(sfe_tissue, x = "pct_tissue", y = "sum", subset = "diff_int_cov",
+                name_true = "Not covered", name_false = "Covered", bins = 50)
+```
+
+Spots that are not fully covered by tissue have lower total UMI counts, which can be due to both that they are not fully in tissue and the cell types with lower total counts in the histological region near the edge, as some spots fully covered by tissue also have low UMI counts.
+
+# Spatial autocorrelation of QC metrics
+```{r}
+colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
+```
+
+```{r}
+qc_features <- c("sum", "detected", "subsets_mito_percent")
+```
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, "moran.mc", qc_features, nsim = 200)
+```
+
+```{r}
+plotMoranMC(sfe_tissue, qc_features)
+```
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, "sp.correlogram", qc_features,
+                                order = 8)
+```
+
+```{r}
+plotCorrelogram(sfe_tissue, qc_features)
+```
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, "localmoran", qc_features)
+```
+
+```{r, fig.width=8, fig.height=6}
+plotLocalResult(sfe_tissue, "localmoran", qc_features, ncol = 2,
+                colGeometryName = "spotPoly", divergent = TRUE, 
+                diverge_center = 0)
+```
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, "LOSH", qc_features)
+```
+
+```{r, fig.width=8, fig.height=6}
+plotLocalResult(sfe_tissue, "LOSH", qc_features, ncol = 2,
+                colGeometryName = "spotPoly")
+```
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, "moran.plot", qc_features)
+```
+
+```{r}
+moranPlot(sfe_tissue, "subsets_mito_percent")
+```
+
+# Spatial autocorrelation of gene expression
+
+Normalize data with the `scran` method, and find highly variable genes
+```{r}
+clusters <- quickCluster(sfe_tissue)
+sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
+sfe_tissue <- logNormCounts(sfe_tissue)
+```
+
+```{r}
+dec <- modelGeneVar(sfe_tissue)
+hvgs <- getTopHVGs(dec, n = 2000)
+```
+
+Find Moran's I for all highly variable genes
+```{r}
+sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, BPPARAM = MulticoreParam(2))
+```
+
+```{r}
+plotRowDataHistogram(sfe_tissue, "moran_sample01")
+```
+
+The vast majority of genes have positive Moran's I. Here we plot the genes with the highest Moran's I.
+```{r}
+top_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
+                                        decreasing = TRUE)[1:9]]
+```
+
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe_tissue, top_moran, ncol = 3)
+```
+
+Here global Moran's I seems to be more about tissue structure. 
+
+Some genes have negative Moran's I that might not be statistically significant
+
+```{r}
+neg_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
+                                        decreasing = FALSE)[1:9]]
+```
+
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3)
+```
+
+```{r}
+sfe_tissue <- runUnivariate(sfe_tissue, "moran.mc", neg_moran, 
+                            colGraphName = "visium", nsim = 200, alternative = "less")
+```
+
+```{r}
+plotMoranMC(sfe_tissue, neg_moran)
+```
+
+```{r}
+rowData(sfe_tissue)[neg_moran, c("moran_sample01", "moran.mc_p.value_sample01")]
+```
+
+As there're 2000 highly variable genes and 2000 tests, these would no longer be significant after correcting for multiple testing. 
+
+Does global Moran's I relate to gene expression level?
+
+```{r}
+sfe_tissue <- addPerFeatureQCMetrics(sfe_tissue)
+names(rowData(sfe_tissue))
+```
+
+```{r}
+plotRowData(sfe_tissue, x = "mean", y = "moran_sample01") +
+    scale_x_log10() +
+    annotation_logticks(sides = "b") +
+    geom_density2d()
+```
+
+Genes that are more highly expressed overall tend to have higher Moran's I. 
+
+# Apply spatial analysis methods to gene expression space
+Spatial statistics that require a spatial neighborhood graph can also be applied to the k nearest neighbor graph not in histological space but in gene expression space. This is done in more depth in [this vignette](https://lambdamoses.github.io/voyager/dev/articles/nonspatial.html).
+```{r}
+sfe_tissue <- runPCA(sfe_tissue, ncomponents = 30, subset_row = hvgs,
+                     scale = TRUE) # scale as in Seurat
+```
+
+```{r}
+foo <- findKNN(reducedDim(sfe_tissue, "PCA")[,1:10], k=10, BNPARAM=AnnoyParam())
+# Split by row
+foo_nb <- asplit(foo$index, 1)
+dmat <- 1/foo$distance
+# Row normalize the weights
+dmat <- sweep(dmat, 1, rowSums(dmat), FUN = "/")
+glist <- asplit(dmat, 1)
+# Sort based on index
+ord <- lapply(foo_nb, order)
+foo_nb <- lapply(seq_along(foo_nb), function(i) foo_nb[[i]][ord[[i]]])
+class(foo_nb) <- "nb"
+glist <- lapply(seq_along(glist), function(i) glist[[i]][ord[[i]]])
+
+listw <- list(style = "W",
+              neighbours = foo_nb,
+              weights = glist)
+class(listw) <- "listw"
+attr(listw, "region.id") <- colnames(sfe_tissue)
+```
+
+```{r}
+colGraph(sfe_tissue, "knn10") <- listw
+```
+
+```{r}
+sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, BPPARAM = MulticoreParam(2),
+                         colGraphName = "knn10")
+```
+
+Caveat in the current version of Voyager: running Moran's I again with a different neighborhood graph will overwrite the existing Moran's I results. In the next version, users may specify new names for the same statistics with different parameters and the parameters will be stored in `rowData`.
+
+These are the genes that tend to be more similar to their neighbors in the 10 nearest neighbor graph in PCA space for gene expression rather than in histological space:
+```{r}
+top_moran2 <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
+                                        decreasing = TRUE)[1:9]]
+```
+
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3)
+```
+
+Although this Moran's I was not computed in histological space, these genes with the highest Moran's I in PCA space also show spatial structure, as different cell types reside in different spatial regions.
+
+# Session info
+
+```{r}
+sessionInfo()
 ```
 
