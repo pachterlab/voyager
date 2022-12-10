@@ -245,7 +245,7 @@ sfe <- colDataUnivariate(sfe, "localmoran", c("sum", "detected", "subsets_mito_p
 ```
 
 Here we don't have histological space. Then how to visualize the local "spatial" statistics? UMAP is bad but here PCA can somewhat separate the clusters, so in this case we can use the first 2 PCs as if they're the histological space. As a reference, we plot the metrics themselves and the clusters in the first 2 PCs. 
-```{r, fig.width = 9, fig.height=5}
+```{r, fig.width = 12, fig.height=6}
 plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent", "cluster"), ncol = 4)
 ```
 
@@ -301,7 +301,9 @@ For local Moran's I, `sum` vs percentage mitochondrial counts shows a more inter
 How does local Moran's I relate to the value itself?
 ```{r}
 plotColData(sfe, x = "sum", y = "sum_localmoran", color_by = "cluster") +
-    geom_density2d()
+    geom_density2d(data = as.data.frame(colData(sfe)),
+                   mapping = aes(x = sum, y = sum_localmoran), color = "blue", 
+                   linewidth = 0.3)
 ```
 
 In this case, generally cells with higher total counts also tend to have higher local Moran's I in total counts, but there's another wing where cells with lower total counts have slightly higher local Moran's I in total counts and there's a central value of total counts with near 0 local Moran's I. The density contour shows that cells are concentrated at that central value.
@@ -504,8 +506,12 @@ The scatter plots as shown in the "spatial" analyses for QC metrics section can 
 i <- 6 # Change if running this notebook
 plotExpression(sfe, top_markers[i], x = new_colname[i], color_by = "cluster") +
     scale_color_manual(values = ditto_colors) +
-    coord_flip() #+
-    #geom_density2d() # comment out in case of error after changing i
+    coord_flip() +
+    # comment out in case of error after changing i
+    geom_density2d(data = as.data.frame(colData(sfe)) |> 
+                       mutate(gene = logcounts(sfe)[top_markers[i],]),
+                   mapping = aes(x = .data[[new_colname[i]]], y = gene), 
+                   color = "blue", linewidth = 0.3) 
 ```
 
 For this gene, just like for total UMI counts, there are two wings and a central value where local Moran's I is around 0, and generally cells with higher expression of this gene have higher local Moran's I for this gene as well. The density contours show that cells concentrate around 0 expression and some weaker positive local Moran. The streak of cells with 0 expression means that many cells don't express this gene but their neighbors have low and slightly homogeneous expression of this gene. This pattern may be different for different genes. Also, the p-values for each cell for local Moran's I are available and corrected for multiple hypothesis testing, and can be plotted. The p-values are based on the z score of the local Moran statistic, although how the statistic is distributed for gene expression data warrants more investigation. This p-value can also be computed with permutation (see `localmoran_perm()`). 
@@ -551,8 +557,12 @@ Relationship between expression and LOSH is more complicated. For some genes, su
 i <- 6 # Change if running this notebook
 plotExpression(sfe, top_markers[i], x = new_colname2[i], color_by = "cluster") +
     scale_color_manual(values = ditto_colors) +
-    coord_flip() #+
-    #geom_density2d() # comment out in case of error after changing i
+    coord_flip() +
+    # comment out in case of error after changing i
+    geom_density2d(data = as.data.frame(colData(sfe)) |> 
+                       mutate(gene = logcounts(sfe)[top_markers[i],]),
+                   mapping = aes(x = .data[[new_colname2[i]]], y = gene), 
+                   color = "blue", linewidth = 0.3) 
 ```
 
 For this gene, the density contour indicates that many cells don't express this gene and have homogeneous neighborhoods also with low expression. That streak around 0 expression means that neighbors of cells that don't express this gene have different levels of heterogeneity in this gene.
