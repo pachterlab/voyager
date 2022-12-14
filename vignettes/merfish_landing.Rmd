@@ -1,0 +1,39 @@
+---
+title: "MERFISH Processing Workflows with Voyager"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{merfish_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+The MERSCOPE Platform from [Vizgen](https://vizgen.com/products/) is enabled by Multiplexed Error-Robust Fluorescence in-situ Hybridization (MERFISH). MERFISH is a spatial transcriptomics technology that expands the multiplexing capabilities of single molecule fluorescent in-situ hybridization (smFISH) via a combinatorial barcode coupled with sequential rounds of imaging. The technology enables detection of hundreds to thousands of single molecule targets at sub-cellular resolution. While MERFISH was designed to be compatible with fresh or fixed frozen tissues, Vizgen has demonstrated efficacy of the technology on FFPE tissue specimens. 
+
+
+## Getting Started
+
+Several MERFISH datasets have been generated on the MERSCOPE Platform and are publicly available from Vizgen on their [website](https://vizgen.com/data-release-program/). We provide examples available for processing the output of various spatial transcriptomics technologies into a [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html)(SFE) object for use with `Voyager` on the [Getting Started]() page. 
+
+The vignette linked below provides technology specific notes for data downloaded from Vizgen. Briefly, Vizgen provides cell metadata and the gene count matrix as CSV files which can be read in quickly with the [`vroom`](https://cran.r-project.org/web/packages/vroom/index.html) package. Cell segmentation data are provided as HDF5 files that are delineated by field of view.
+
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Create a `SpatialFeatureExperiment` object](https://pachterlab.github.io/voyager/articles/create_sfe.html) |                | Download data, create `SFE` object, Vizgen/MERFISH specific notes |
+
+
+## Analysis Workflows
+
+The vignettes below demonstrate workflows that can be implemented with `Voyager` using data generated with the MERFISH technology. The publicly available MERFISH datasets profile hundreds of genes in hundreds of thousands to millions of cells. Thus, the vignettes linked below can provide some context on the capabilities of `Voyager` for moderate to large datasets. 
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [MERFISH mouse liver analysis](https://pachterlab.github.io/voyager/articles/vig6_merfish.html) | | Perform basic QC, compute Moran's I, length scales of spatial autocorrelation, binning, variogram models, PCA for large datasets |
