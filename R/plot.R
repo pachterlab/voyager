@@ -1,7 +1,4 @@
 # 10. What to do with the image when using geom_sf
-# Shall I also allow users to plot dimension reductions as features?
-# For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
-# do that, not only for plotting functions, but also for the metrics.
 # To do:
 # 2. reverse_y? It's kind of hard to do that with sf.
 
@@ -286,10 +283,83 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
+#' @importFrom sf st_as_sfc st_bbox
+.bbox_sample <- function(df, bbox) {
+    # Only for one sample
+    bbox_use <- st_as_sfc(st_bbox(bbox))
+    df <- df[bbox_use,]
+    df$geometry <- st_geometry(df) - bbox[c("xmin", "ymin")]
+    df
+}
+
+# Burning question: what if the bboxes of different samples are very different
+# so there will be a lot of empty space in the facetted plot?
+# I suppose I'll subtract xmin and ymin. The original coordinates are known
+# from the bbox anyway.
+# But what if bboxes of different samples have very different sizes?
+# Well, it's up to the user to not to do it.
+.crop <- function(df, bbox) {
+    if (is.null(bbox)) return(df)
+    if (!is.atomic(bbox) && !is.matrix(bbox)) {
+        stop("bbox must be either a numeric vector or a matrix.")
+    }
+    names_use <- c("xmin", "ymin", "xmax", "ymax")
+    if (is.matrix(bbox)) {
+        if (nrow(bbox) == 1L) bbox <- setNames(bbox, colnames(bbox))
+        if (ncol(bbox) == 1L) bbox <- setNames(bbox, rownames(bbox))
+    }
+    if (is.atomic(bbox)) {
+        if (!is.numeric(bbox)) stop("bbox must be a numeric vector")
+        if (length(bbox) != 4L)
+            stop("bbox must have length 4, corresponding to xmin, ymin, xmax, and ymax.")
+
+        if (!is.null(names(bbox)) && !setequal(names(bbox), names_use)) {
+            stop("Names of bbox must be same as the set ",
+                 paste(names_use, collapse = ", "))
+        }
+        if (is.null(names(bbox))) {
+            warning("No names available for bbox. Assuming ",
+                    paste(names_use, collapse = ", "), ", in this order.")
+            names(bbox) <- names_use
+        }
+    }
+    if (is.matrix(bbox)) {
+        if (setequal(colnames(bbox), names_use)) bbox <- t(bbox)
+        if (nrow(bbox) != 4L)
+            stop("bbox must have length 4, corresponding to xmin, ymin, xmax, and ymax.")
+        if (!setequal(rownames(bbox), names_use))
+            stop("Row names of bbox must be same as the set ",
+                 paste(names_use, collapse = ", "))
+        if (length(setdiff(unique(df$sample_id), colnames(bbox)))) {
+            stop("Column names of bbox must match the sample IDs")
+        }
+        if (!"sample_id" %in% names(df)) {
+            warning("Only the first column of the matrix bbox will be used.")
+            bbox <- bbox[,1]
+        } else
+            bbox <- bbox[,unique(df$sample_id)]
+    }
+
+    if (!"sample_id" %in% names(df) || length(unique(df$sample_id)) == 1L) {
+        df <- .bbox_sample(df, bbox)
+    } else {
+        df_split <- split(df, df$sample_id)
+        if (is.vector(bbox)) {
+            df_split <- lapply(df_split, .bbox_sample, bbox = bbox)
+        } else {
+            samples <- names(df_split)
+            df_split <- lapply(samples, function(n)
+                .bbox_sample(df_split[[n]], bbox[,n]))
+        }
+        df <- do.call(rbind, df_split)
+    }
+    df
+}
+
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
-                                annot_fixed, aes_use, divergent,
+                                annot_fixed, bbox, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linetype,
                                 alpha, color, fill, scattermore, pointsize,
@@ -298,6 +368,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     }
+    df <- .crop(df, bbox)
+    values <- values[rownames(df),, drop = FALSE]
     if (scattermore) {
         check_installed("scattermore", reason = "to plot points with scattermore")
         type_df <- .get_generalized_geometry_type(df)
@@ -313,6 +385,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(annotGeometryName)) {
         annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
         type_annot <- .get_generalized_geometry_type(annot_df)
+        annot_df <- .crop(annot_df, bbox)
     } else {
         annot_df <- NULL
         type_annot <- NULL
@@ -347,6 +420,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
+#' @param bbox A bounding box to specify a smaller region to plot, useful when
+#'   the dataset is large. Can be a named numeric vector with names "xmin",
+#'   "xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+#'   should be a matrix with sample IDs as column names and "xmin", "ymin",
+#'   "xmax", and "ymax" as row names. If multiple samples are plotted but
+#'   \code{bbox} is a vector rather than a matrix, then the same bounding box
+#'   will be used for all samples. If \code{NULL}, then the entire tissue is
+#'   plotted.
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
 #'   palette should diverge. If \code{NULL}, then not centering.
@@ -441,7 +522,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                ncol_sample = NULL,
                                annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
-                               exprs_values = "logcounts",
+                               exprs_values = "logcounts", bbox = NULL,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NULL,
                                annot_divergent = FALSE,
@@ -459,7 +540,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
-        annot_fixed, aes_use, divergent,
+        annot_fixed, bbox, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linetype,
         alpha, color, fill, scattermore, pointsize, ...
