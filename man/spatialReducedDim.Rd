@@ -16,6 +16,7 @@ spatialReducedDim(
   annot_aes = list(),
   annot_fixed = list(),
   exprs_values = "logcounts",
+  bbox = NULL,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NULL,
@@ -75,6 +76,15 @@ relevant defaults for this function.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
+
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. All geometries that intersect the bounding box will
+be plotted. Can be a named numeric vector with names "xmin", "xmax",
+"ymin", and "ymax", in any order. If plotting multiple samples, it should
+be a matrix with sample IDs as column names and "xmin", "ymin", "xmax", and
+"ymax" as row names. If multiple samples are plotted but \code{bbox} is a
+vector rather than a matrix, then the same bounding box will be used for
+all samples. If \code{NULL}, then the entire tissue is plotted.}
 
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For

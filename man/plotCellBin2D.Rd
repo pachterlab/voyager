@@ -10,7 +10,8 @@ plotCellBin2D(
   bins = 200,
   binwidth = NULL,
   hex = FALSE,
-  ncol = NULL
+  ncol = NULL,
+  bbox = NULL
 )
 }
 \arguments{
@@ -31,6 +32,15 @@ Requires the \code{hexbin} package.}
 
 \item{ncol}{If facetting, the number of columns of facets, passed to
 \code{\link{facet_wrap}}.}
+
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. All geometries that intersect the bounding box will
+be plotted. Can be a named numeric vector with names "xmin", "xmax",
+"ymin", and "ymax", in any order. If plotting multiple samples, it should
+be a matrix with sample IDs as column names and "xmin", "ymin", "xmax", and
+"ymax" as row names. If multiple samples are plotted but \code{bbox} is a
+vector rather than a matrix, then the same bounding box will be used for
+all samples. If \code{NULL}, then the entire tissue is plotted.}
 }
 \value{
 A ggplot object.

@@ -42,18 +42,16 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (type %in% c("POINT", "MULTIPOINT")) {
         names_use <- c("size", "shape", "alpha", "color")
         if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
-        if (is.na(fixed$color)) fixed$color <- "black"
         shape <- fixed[["shape"]]
         if (!is.null(shape) && shape > 20L) {
             names_use <- c(names_use, "fill")
         }
     } else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
-        if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
-        if (is.na(fixed$color)) fixed$color <- "black"
-        names_use <- c("size", "linetype", "alpha", "color")
+        if (isTRUE(all.equal(0, fixed$linewidth))) fixed$linewidth <- 0.5
+        names_use <- c("linewidth", "linetype", "alpha", "color")
     } else {
         # i.e. polygons
-        names_use <- c("size", "linetype", "fill", "color", "alpha")
+        names_use <- c("linewidth", "linetype", "fill", "color", "alpha")
     }
     fixed_applicable <- .drop_null_list(fixed[names_use])
     fixed_applicable
@@ -120,15 +118,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 .fill_defaults <- function(fixed) {
     defaults <- list(
-        size = 0, shape = 16,
-        linetype = 1, alpha = 1, color = NA, fill = "gray80",
+        size = 0, linewidth = 0, shape = 16,
+        linetype = 1, alpha = 1, color = "black", fill = "gray80",
         divergent = FALSE, diverge_center = NULL
     )
     fill <- defaults[setdiff(names(defaults), names(fixed))]
     out <- .drop_null_list(c(fixed, fill))
-    if (is.na(out$fill) && "size" %in% names(fill)) {
-        out$size <- 0.5
-        out$color <- "black"
+    if (is.na(out$fill) && "linewidth" %in% names(fill)) {
+        out$linewidth <- 0.5
     }
     out
 }
@@ -254,18 +251,17 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 .wrap_spatial_plots <- function(df, annot_df, type_annot, values, aes_use,
-                                annot_aes, annot_fixed, size, shape, linetype,
-                                alpha, color, fill, ncol, ncol_sample,
+                                annot_aes, annot_fixed, size, shape, linewidth,
+                                linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
                                 ...) {
     feature_fixed <- list(
-        size = size, shape = shape, linetype = linetype,
+        size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
     type <- if(scattermore) "POINT" else .get_generalized_geometry_type(df)
     plots <- lapply(names(values), function(n) {
-        df[[n]] <- values[[n]]
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
         feature_aes <- setNames(list(n), feature_aes_name)
         .plot_var_sf(
@@ -283,12 +279,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-#' @importFrom sf st_as_sfc st_bbox
+#' @importFrom sf st_as_sfc st_bbox st_intersection
 .bbox_sample <- function(df, bbox) {
-    # Only for one sample
-    bbox_use <- st_as_sfc(st_bbox(bbox))
-    df <- df[bbox_use,]
-    df$geometry <- st_geometry(df) - bbox[c("xmin", "ymin")]
+    if (is(df, "sf")) {
+        # Only for one sample
+        bbox_use <- st_as_sfc(st_bbox(bbox))
+        suppressWarnings(df <- st_intersection(df, bbox_use))
+        #df <- df[bbox_use,]
+        df$geometry <- st_geometry(df) - bbox[c("xmin", "ymin")]
+    } else {
+        # i.e. centroids. Assume column names x and y
+        inds <- df$x > bbox["xmin"] & df$x < bbox["xmax"] &
+            df$y > bbox["ymin"] & df$y < bbox["ymax"]
+        df <- df[inds,, drop = FALSE]
+    }
     df
 }
 
@@ -300,7 +304,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 # Well, it's up to the user to not to do it.
 .crop <- function(df, bbox) {
     if (is.null(bbox)) return(df)
-    if (!is.atomic(bbox) && !is.matrix(bbox)) {
+    if (!is.vector(bbox) && !is.matrix(bbox)) {
         stop("bbox must be either a numeric vector or a matrix.")
     }
     names_use <- c("xmin", "ymin", "xmax", "ymax")
@@ -308,7 +312,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         if (nrow(bbox) == 1L) bbox <- setNames(bbox, colnames(bbox))
         if (ncol(bbox) == 1L) bbox <- setNames(bbox, rownames(bbox))
     }
-    if (is.atomic(bbox)) {
+    if (is.vector(bbox)) {
         if (!is.numeric(bbox)) stop("bbox must be a numeric vector")
         if (length(bbox) != 4L)
             stop("bbox must have length 4, corresponding to xmin, ymin, xmax, and ymax.")
@@ -361,15 +365,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 ncol_sample, annotGeometryName, annot_aes,
                                 annot_fixed, bbox, aes_use, divergent,
                                 diverge_center, annot_divergent,
-                                annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, scattermore, pointsize,
-                                ...) {
+                                annot_diverge_center, size, shape, linewidth,
+                                linetype, alpha, color, fill, scattermore,
+                                pointsize, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     if (length(sample_id) > 1L) {
         df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     }
+    df <- cbind(df, values)
     df <- .crop(df, bbox)
-    values <- values[rownames(df),, drop = FALSE]
     if (scattermore) {
         check_installed("scattermore", reason = "to plot points with scattermore")
         type_df <- .get_generalized_geometry_type(df)
@@ -392,7 +396,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     }
     .wrap_spatial_plots(
         df, annot_df, type_annot, values, aes_use,
-        annot_aes, annot_fixed, size, shape, linetype, alpha,
+        annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
         pointsize, ...
@@ -431,11 +435,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
 #'   palette should diverge. If \code{NULL}, then not centering.
-#' @param size Fixed size of points or width of lines, including outlines of
-#'   polygons. For polygons, this defaults to 0, meaning no outlines. For points
-#'   and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.
+#' @param size Fixed size of points. For points defaults to 0.5. Ignored if
+#'   \code{size_by} is specified.
 #' @param shape Fixed shape of points, ignored if \code{shape_by} is specified
 #'   and applicable.
+#' @param linewidth Width of lines, including outlines of polygons. For
+#'   polygons, this defaults to 0, meaning no outlines.
 #' @param linetype Fixed line type, ignored if \code{linetype_by} is specified
 #'   and applicable.
 #' @param color Fixed color for \code{colGeometry} if \code{color_by} is not
@@ -527,8 +532,9 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                divergent = FALSE, diverge_center = NULL,
                                annot_divergent = FALSE,
                                annot_diverge_center = NULL,
-                               size = 0, shape = 16, linetype = 1, alpha = 1,
-                               color = NA, fill = "gray80", show_symbol = TRUE,
+                               size = 0.5, shape = 16, linewidth = 0,
+                               linetype = 1, alpha = 1,
+                               color = "black", fill = "gray80", show_symbol = TRUE,
                                scattermore = FALSE, pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -542,7 +548,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         ncol_sample, annotGeometryName, annot_aes,
         annot_fixed, bbox, aes_use, divergent,
         diverge_center, annot_divergent,
-        annot_diverge_center, size, shape, linetype,
+        annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, ...
     )
 }
@@ -593,7 +599,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom SpatialFeatureExperiment rowGeometry df2sf
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL,
-                        weights = FALSE) {
+                        weights = FALSE, bbox = NULL) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (!is.null(geometry_name)) {
         gf <- switch(MARGIN,
@@ -606,6 +612,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         geometry <- NULL
     }
     df <- .get_graph_df(sfe, MARGIN, sample_id, graph_name, geometry)
+    df <- .crop(df, bbox)
     p <- ggplot()
     if (!is.null(geometry_name)) {
         p <- p +
@@ -677,12 +684,12 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' )
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
                          sample_id = "all", weights = FALSE, segment_size = 0.5,
-                         geometry_size = 0.5, ncol = NULL) {
+                         geometry_size = 0.5, ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
         MARGIN = 2L, sample_id = sample_id, graph_name = colGraphName,
         geometry_name = colGeometryName,
         segment_size = segment_size, geometry_size = geometry_size,
-        ncol = ncol, weights = weights
+        ncol = ncol, weights = weights, bbox = bbox
     )
 }
 
@@ -691,12 +698,12 @@ plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
 plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
                            sample_id = "all", weights = FALSE,
                            segment_size = 0.5, geometry_size = 0.5,
-                           ncol = NULL) {
+                           ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
         MARGIN = 3L, sample_id = sample_id, graph_name = annotGraphName,
         geometry_name = annotGeometryName,
         segment_size = segment_size, geometry_size = geometry_size,
-        ncol = ncol, weights = weights
+        ncol = ncol, weights = weights, bbox = bbox
     )
 }
 
@@ -714,12 +721,13 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' sfe <- HeNSCLCData()
 #' plotCellBin2D(sfe)
 plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
-                          hex = FALSE, ncol = NULL) {
+                          hex = FALSE, ncol = NULL, bbox = NULL) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     bin_fun <- if (hex) geom_hex else geom_bin2d
     df <- as.data.frame(spatialCoords(sfe))
     names(df) <- c("x", "y")
     df$sample_id <- colData(sfe)$sample_id
+    df <- .crop(df, bbox)
     x <- y <- NULL
     p <- ggplot(df, aes(x, y)) +
         bin_fun(bins = bins, binwidth = binwidth) +
@@ -751,7 +759,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, "spotPoly")
 #' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
 plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
-                         ncol = NULL) {
+                         ncol = NULL, bbox = NULL) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
     df <- fun(sfe, type, sample_id = sample_id)
@@ -761,6 +769,7 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     if (MARGIN == 3L) {
         sample_id <- unique(df$sample_id)
     }
+    df <- .crop(df, bbox)
     p <- ggplot(df) + geom_sf()
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)

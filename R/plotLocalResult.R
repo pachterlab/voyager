@@ -107,13 +107,13 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
                             sample_id = "all",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
-                            annot_aes = list(), annot_fixed = list(),
+                            annot_aes = list(), annot_fixed = list(), bbox = NULL,
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
                             annot_divergent = FALSE,
                             annot_diverge_center = NULL,
-                            size = 0, shape = 16, linetype = 1, alpha = 1,
-                            color = NA, fill = "gray80", show_symbol = TRUE,
+                            size = 0.5, shape = 16, linewidth = 0, linetype = 1, alpha = 1,
+                            color = "black", fill = "gray80", show_symbol = TRUE,
                             scattermore = FALSE, pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -133,21 +133,24 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             sfe, values, colGeometryName, sample_id,
             ncol,
             ncol_sample, annotGeometryName, annot_aes,
-            annot_fixed, aes_use, divergent,
+            annot_fixed, bbox, aes_use, divergent,
             diverge_center, annot_divergent,
-            annot_diverge_center, size, shape, linetype,
-            alpha, color, fill, show_symbol = show_symbol, 
+            annot_diverge_center, size, shape, linewidth, linetype,
+            alpha, color, fill, show_symbol = show_symbol,
             scattermore = scattermore, pointsize = pointsize, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
     } else {
         df <- annotGeometry(sfe, annotGeometryName, sample_id)
+        df <- df[,setdiff(names(df), names(values))]
+        df <- cbind(df, values)
+        df <- .crop(df, bbox)
         out <- .wrap_spatial_plots(df,
             annot_df = NULL, type_annot = NULL,
             values, aes_use,
             annot_aes = list(), annot_fixed = list(),
-            size, shape, linetype, alpha,
+            size, shape, linewidth, linetype, alpha,
             color, fill, ncol, ncol_sample, divergent,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
