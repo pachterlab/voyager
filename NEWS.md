@@ -1,4 +1,8 @@
-# Voyager 1.0.0
+# Version 1.0.5
+* Removed aes_string(), which is deprecated.
+* Fixed bug when show_symbol = TRUE and "symbol" column is absent from rowData.
+
+# Version 1.0.0
 
 * First version on Bioconductor
 * Univariate local and global spatial statistics based on spdep

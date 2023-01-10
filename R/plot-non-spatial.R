@@ -93,7 +93,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     is_ensembl <- all(grepl("^ENS", rownames(sce)))
     if (!is_ensembl) show_symbol <- FALSE # I mean, irrelevant
     loading_cols <- paste0("PC", dims)
-    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings), ]),
+    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
                 loadings[, loading_cols])
     if (!symbol_col %in% names(df) || !show_symbol) {
         df$gene_show <- rownames(loadings)
@@ -124,14 +124,14 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 }
 
 .plot_dimdata_bin2d_fun <- function(fun) {
-    function(sfe, x, y, subset = NULL, bins = 100, binwidth = NULL, 
+    function(sfe, x, y, subset = NULL, bins = 100, binwidth = NULL,
              hex = FALSE, name_true = NULL, name_false = NULL) {
         bin_fun <- if (hex) geom_hex else geom_bin2d
         df <- as.data.frame(fun(sfe))
         p <- ggplot()
         if (is.null(subset)) {
             p <- p +
-                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
                         data = df) +
                 scale_fill_distiller(palette = "Blues", direction = 1)
         } else {
@@ -143,12 +143,12 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
             name_true <- name_true %||% name_subset
             name_false <- name_false %||% paste0("!", name_subset)
             p <- p +
-                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
                         data = df[!subset,]) +
                 scale_fill_distiller(palette = "Blues", direction = 1,
                                      name = name_false) +
                 new_scale_fill() +
-                bin_fun(aes_string(x, y), bins = bins, binwidth = binwidth, 
+                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
                         data = df[subset,]) +
                 scale_fill_distiller(palette = "Reds", direction = 1,
                                      name = name_true)
@@ -207,15 +207,17 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
             df <- reshape(df, varying = feature, direction = "long",
                           v.names = "values", timevar = "variable",
                           times = feature)
-            aes_use <- do.call(aes_string, as.list(c(x = "values", fill = fill_by)))
             p <- p +
-                geom_histogram(data = df, mapping = aes_use, bins = bins, 
+                geom_histogram(data = df,
+                               mapping = aes(!!!syms(c(x = "values", fill = fill_by))),
+                               bins = bins,
                                binwidth = binwidth, position = position) +
                 facet_wrap(~ variable, scales = scales, ncol = ncol)
         } else {
-            aes_use <- do.call(aes_string, as.list(c(x = feature, fill = fill_by)))
             p <- p +
-                geom_histogram(data = df, mapping = aes_use, bins = bins, 
+                geom_histogram(data = df,
+                               mapping = aes(!!!syms(c(x = feature, fill = fill_by))),
+                               bins = bins,
                                binwidth = binwidth, position = position)
         }
         p
@@ -235,9 +237,9 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 #'   \code{rowData} to fill the histogram.
 #' @param subset Name of a logical column to only plot a subset of the data.
 #' @return A ggplot object
-#' @importFrom rlang %||%
+#' @importFrom rlang %||% .data
 #' @export
-#' @examples 
+#' @examples
 #' library(SFEData)
 #' sfe <- McKellarMuscleData()
 #' plotColDataHistogram(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",

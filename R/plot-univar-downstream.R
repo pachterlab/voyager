@@ -21,7 +21,8 @@
             divergent = divergent, diverge_center = diverge_center
         )
         p <- p + pal
-        pts <- geom_point(aes_string(shape = "is_inf", color = color_by))
+        pts <- geom_point(aes(shape = .data[["is_inf"]],
+                              color = .data[[color_by]]))
     } else {
         pts <- geom_point(aes(shape = is_inf), alpha = 0.5)
     }
@@ -54,9 +55,9 @@
     p
 }
 
-.moran_ggplot_bin2d <- function(mp, feature, is_singleton, 
-                                plot_singletons = TRUE, bins = 100, 
-                                binwidth = NULL, hex = FALSE, 
+.moran_ggplot_bin2d <- function(mp, feature, is_singleton,
+                                plot_singletons = TRUE, bins = 100,
+                                binwidth = NULL, hex = FALSE,
                                 plot_influential = TRUE) {
     if (!plot_singletons) {
         mp <- mp[!is_singleton, ]
@@ -65,9 +66,9 @@
     if (all(!is_singleton) && plot_singletons) plot_singletons <- FALSE
     bin_fun <- if (hex) geom_hex else geom_bin2d
     p <- ggplot(mapping = aes(x = x, y = wx))
-        
+
     if (plot_influential) {
-        p <- p + 
+        p <- p +
             bin_fun(bins = bins, binwidth = binwidth, data = mp[!mp$is_inf, ]) +
             scale_fill_distiller(palette = "Blues", direction = 1) +
             new_scale_fill() +
@@ -78,7 +79,7 @@
         p <- p + bin_fun(bins = bins, binwidth = binwidth, data = mp) +
             scale_fill_distiller(palette = "Blues", direction = 1)
     }
-        
+
     if (plot_singletons) {
         p <- p +
             geom_point(
@@ -123,7 +124,7 @@
         )
         p <- p + pal
         pts <- geom_point(
-            data = mp_inf, aes_string(color = color_by),
+            data = mp_inf, aes(color = .data[[color_by]]),
             shape = 9
         )
     } else {
@@ -186,11 +187,10 @@
 #'   different palette if \code{binned = TRUE}.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
-#' @importFrom ggplot2 geom_point aes_string geom_smooth geom_hline geom_vline
+#' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
 #'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
 #'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
-#'   ggplot_build
-#' @importFrom ggplot2 aes
+#'   ggplot_build aes
 #' @importFrom SpatialFeatureExperiment localResult
 #' @export
 #' @examples
@@ -211,7 +211,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE, binned = FALSE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      show_symbol = TRUE, bins = 100, binwidth = NULL, 
+                      show_symbol = TRUE, bins = 100, binwidth = NULL,
                       hex = FALSE, plot_influential = TRUE, ...) {
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
@@ -223,7 +223,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
         annotGeometryName = annotGeometryName
     )
     if (show_symbol && not_geometry) {
-        if (feature %in% rownames(sfe)) {
+        if (feature %in% rownames(sfe) && "symbol" %in% colnames(rowData(sfe))) {
             feature <- rowData(sfe)[feature, "symbol"]
         }
     }
