@@ -1,0 +1,266 @@
+---
+title: "Basic analysis of 10X example Visium dataset"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{visium_10x}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) anlaysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
+
+This vignette showcases the packages with a Visium spatial gene expression system dataset, downloaded from the 10X website, in the Space Ranger output format. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz].
+
+While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. There is [another Visium introductory vignette](https://pachterlab.github.io/voyager/articles/vig1_visium_basic.html) using a dataset in the [`SFEData`](https://bioconductor.org/packages/release/data/experiment/html/SFEData.html) package but not from the 10X website.
+
+Here we load the packages used in this vignette.
+```{r setup}
+library(Voyager)
+library(SpatialExperiment)
+library(SpatialFeatureExperiment)
+library(SingleCellExperiment)
+library(ggplot2)
+library(scater)
+library(scuttle)
+library(scran)
+library(stringr)
+library(patchwork)
+library(bluster)
+library(rjson)
+theme_set(theme_bw())
+```
+
+Here we download the data from the 10X website. This is the unfiltered gene count matrix:
+```{r}
+if (!file.exists("visium_ob.tar.gz"))
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_raw_feature_bc_matrix.tar.gz", 
+                  destfile = "visium_ob.tar.gz")
+```
+
+This is the spatial information:
+```{r}
+if (!file.exists("visium_ob_spatial.tar.gz"))
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_spatial.tar.gz", 
+                  destfile = "visium_ob_spatial.tar.gz")
+```
+
+Decompress the downloaded content:
+```{r}
+if (!dir.exists("outs")) {
+    dir.create("outs")
+    system("tar -xvf visium_ob.tar.gz -C outs")
+    system("tar -xvf visium_ob_spatial.tar.gz -C outs")
+}
+```
+
+This is what the `outs` directory in Space Ranger output looks like:
+```{r}
+list.dirs("outs")
+```
+
+In the gene count matrix directory:
+```{r}
+list.files("outs/raw_feature_bc_matrix")
+```
+
+In the spatial directory:
+
+```{r}
+list.files("outs/spatial")
+```
+
+The outputs in the spatial directory is explained [here on the 10X website](https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/spatial).
+
+The `tissue_hires_image.png` is a relatively high resolution image of the tissue, but not full resolution. The `tissue_lowres_image.png` file is a low resolution image of the tissue, suitable for quick plotting, and is shown here:
+
+```{r}
+knitr::include_graphics("outs/spatial/tissue_lowres_image.png")
+```
+
+The array of dots framing the tissue seen in this image is the fiducials, used to align the tissue image to the positions of the Visium spots, so gene expression can be matched to spatial locations. The alignment of the fiducials is shown in `aligned_fiducials.jpg`. Space Ranger can automatically detect which spots are in tissue, and these spots are highlighted in `detected_tissue_image.jpg`. 
+
+Inside the `scalefactors_json.json` file:
+
+```{r}
+fromJSON(file = "outs/spatial/scalefactors_json.json")
+```
+`spot_diameter_fullres` is the diameter of each Visium spot in the full resolution H&E image in pixels. `tissue_hires_scalef` and `tissue_lowres_scalef` are the ratio of the size of the high resolution (but not full resolution) and low resolution H&E image to the full resolution image. `fiducial_diameter_fullres` is the diameter of each fiducial spot used to align the spots to the H&E image in pixels in the full resolution image.
+
+The `tissue_positions_list.csv` file contains information for the coordinates of the spots in the full resolution image and whether each spot is in tissue (`in_tissue`, 1 means yes and 0 means no) as automatically detected by Space Ranger or manually annotated in the Loupe browser.
+```{r}
+head(read.csv("outs/spatial/tissue_positions.csv"))
+```
+
+The `spatial_enrichment.csv` file has Moran's I (presumably for spots in tissue) and its p-value for each gene that is detected in at least 10 spots and has at least 20 UMIs. 
+```{r}
+head(read.csv("outs/spatial/spatial_enrichment.csv"))
+```
+
+Here we read the Space Ranger output into R as an SFE object:
+```{r}
+sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw")
+sfe
+```
+
+# Quality control (QC)
+```{r}
+is_mt <- str_detect(rowData(sfe)$symbol, "^mt-")
+```
+
+```{r}
+sfe <- addPerCellQCMetrics(sfe, subsets = list(mito = is_mt))
+```
+
+```{r}
+names(colData(sfe))
+```
+
+```{r, fig.width=8, fig.height=6}
+plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"),
+                   ncol = 2)
+```
+
+The H&E image needs to be rotated to be aligned to the Visium spots. As the tissue can be mounted in any orientation, there is no standard rotation to align the image to the spots. The `rotateImg()` function in `SpatialExperiment` rotates the image and degrees is clockwise. The `mirroImg()` function reflects the image. At present `SpatialExperiment` does not automatically rotate or reflect the image. This much be done manually. 
+
+```{r}
+plot(imgRaster(sfe))
+```
+
+The image is stored in the `data` column `imgData` field, which is a `DataFrame`:
+```{r}
+imgData(sfe)
+```
+
+The image should be rotated 90 degrees counterclockwise.
+```{r}
+imgData(sfe)$data[[1]] <- rotateImg(imgData(sfe)$data[[1]], degrees = -90)
+```
+
+```{r}
+plot(imgRaster(sfe))
+```
+
+The current version of Voyager does not plot the image, and the current version of `SpatialFeatureExperiment` does not touch the image. In a future version, the image may be cropped when the SFE object is subsetted. Use the [`ggspavis`](https://bioconductor.org/packages/release/bioc/html/ggspavis.html) package to plot the image behind the spots.
+
+Percentage of mitochondrial counts in spots outside tissue is higher near the tissue, especially on the left.
+```{r}
+plotColData(sfe, "sum", x = "in_tissue", color_by = "in_tissue") +
+    plotColData(sfe, "detected", x = "in_tissue", color_by = "in_tissue") +
+    plotColData(sfe, "subsets_mito_percent", x = "in_tissue", color_by = "in_tissue") +
+    plot_layout(guides = "collect")
+```
+
+3 peaks, apparently histologically relevant. Also no obvious outliers.
+
+```{r}
+plotColData(sfe, x = "sum", y = "subsets_mito_percent", color_by = "in_tissue") +
+    geom_density_2d()
+```
+
+This is unlike scRNA-seq data. Spots not in tissue have a wide range of mitocondrial percentage. Spots in tissue fall into 3 clusters in this plot, seemingly related to histological regions.
+
+```{r}
+sfe_tissue <- sfe[,sfe$in_tissue]
+```
+
+```{r}
+plotColDataBin2D(sfe_tissue, x = "sum", y = "detected", bins = 75)
+```
+
+```{r}
+clusters <- quickCluster(sfe_tissue)
+sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
+sfe_tissue <- logNormCounts(sfe_tissue)
+```
+
+```{r}
+dec <- modelGeneVar(sfe_tissue)
+hvgs <- getTopHVGs(dec, n = 2000)
+```
+
+# Dimension reduction and clustering
+```{r}
+sfe_tissue <- runPCA(sfe_tissue, ncomponents = 30, subset_row = hvgs,
+                     scale = TRUE) # scale as in Seurat
+```
+
+```{r}
+ElbowPlot(sfe_tissue, ndims = 30)
+```
+
+```{r}
+names(rowData(sfe_tissue))
+```
+
+```{r}
+plotDimLoadings(sfe_tissue, dims = 1:5, show_symbol = TRUE, ncol = 3)
+```
+
+Do the clustering to show on the dimension reduction plots
+```{r}
+set.seed(29)
+colData(sfe_tissue)$cluster <- clusterRows(reducedDim(sfe_tissue, "PCA")[,1:3],
+                                           BLUSPARAM = SNNGraphParam(
+                                               cluster.fun = "leiden",
+                                               cluster.args = list(
+                                                   resolution_parameter = 0.5,
+                                                   objective_function = "modularity")))
+```
+
+```{r, fig.width=9, fig.height=9}
+plotPCA(sfe_tissue, ncomponents = 5, colour_by = "cluster")
+```
+
+```{r}
+plotSpatialFeature(sfe_tissue, features = "cluster", colGeometryName = "spotPoly")
+```
+
+```{r, fig.width=8, fig.height=8}
+spatialReducedDim(sfe_tissue, "PCA", ncomponents = 5, 
+                  colGeometryName = "spotPoly", divergent = TRUE, 
+                  diverge_center = 0, ncol = 2) &
+    theme_void()
+```
+
+```{r}
+markers <- findMarkers(sfe_tissue, groups = colData(sfe_tissue)$cluster,
+                       test.type = "wilcox", pval.type = "all", direction = "up")
+```
+
+Significant markers for each cluster can be obtained as follows:
+```{r}
+genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
+plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluster",
+               colour_by = "cluster", swap_rownames = "symbol")
+```
+
+These genes are interesting to view in spatial context:
+```{r, fig.width=8, fig.height=8}
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2) &
+    theme_void()
+```
+
+More spatial analyses on this dataset is performed in [an "advanced" version of this vignette](https://pachterlab.github.io/voyager/dev/articles/visium_10x_spatial.html).
+
+# Session info
+```{r}
+sessionInfo()
+```
