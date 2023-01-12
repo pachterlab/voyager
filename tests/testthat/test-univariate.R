@@ -243,3 +243,43 @@ test_that("Properly add localmoran results to localResults when there're multipl
     expect_true(all(!is.na(lrs[[2]]$Ii)))
     expect_true(is.numeric(lrs[[2]]$Ii))
 })
+
+library(SFEData)
+sfe1 <- McKellarMuscleData("small")
+sfe2 <- McKellarMuscleData("small2")
+sfe <- cbind(sfe1, sfe2)
+colGraphs(sfe, name = "visium", sample_id = "all") <- findVisiumGraph(sfe, sample_id = "all")
+sfe <- colDataUnivariate(sfe, "localmoran", features = "nCounts", sample_id = "all")
+res <- localResult(sfe, "localmoran", "nCounts", sample_id = "all")
+
+test_that("colDataUnivariate run on multiple samples", {
+    expect_s3_class(res, "data.frame")
+    expect_equal(names(res), names_expect_lm)
+})
+
+test_that("colGeometryUnivariate run on multiple samples", {
+    colGeometry(sfe, "spotPoly", sample_id = "all")$foo <- sfe$nCounts
+    sfe <- colGeometryUnivariate(sfe, "localmoran", features = "foo",
+                                 sample_id = "all", colGeometryName = "spotPoly")
+    res2 <- localResult(sfe, "localmoran", "foo", colGeometryName = "spotPoly",
+                        sample_id = "all")
+    class(res2) <- "data.frame"
+    expect_equal(res, res2, ignore_attr = "row.names")
+})
+
+annotGeometry(sfe, "myofiber_simplified", "all") <-
+    sf::st_buffer(annotGeometry(sfe, "myofiber_simplified", "all"), dist = 0)
+annotGraphs(sfe, name = "knn", sample_id = "all") <-
+    findSpatialNeighbors(sfe, MARGIN = 3, type = "myofiber_simplified",
+                         method = "knearneigh", k = 5, sample_id = "all")
+
+test_that("annotGeometryUnivariate run on multiple samples", {
+    sfe <- annotGeometryUnivariate(sfe, "localmoran", features = "area",
+                                   sample_id = "all",
+                                   annotGeometryName = "myofiber_simplified")
+    res3 <- localResult(sfe, "localmoran", "area",
+                        annotGeometryName = "myofiber_simplified",
+                        sample_id = "all")
+    expect_s3_class(res, "data.frame")
+    expect_equal(names(res), names_expect_lm)
+})

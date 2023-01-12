@@ -1,3 +1,6 @@
+# Version 1.0.7
+* Fixed bug with assigning local results for each sample for colData, colGeometry, and annotGeometry.
+
 # Version 1.0.5
 * Removed aes_string(), which is deprecated.
 * Fixed bug when show_symbol = TRUE and "symbol" column is absent from rowData.

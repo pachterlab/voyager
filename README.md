@@ -4,7 +4,8 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![BioC status](http://www.bioconductor.org/shields/build/devel/bioc/Voyager.svg)](https://bioconductor.org/checkResults/devel/bioc-LATEST/Voyager)
+<<<<<<< HEAD
+[![BioC status](http://www.bioconductor.org/shields/build/release/bioc/Voyager.svg)](https://bioconductor.org/checkResults/release/bioc-LATEST/Voyager)
 <!-- badges: end -->
 
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
