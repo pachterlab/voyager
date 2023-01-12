@@ -160,7 +160,7 @@
             )
             local <- .is_local(type)
             if (local) {
-                localResults(x, sample_id, type, features) <- res
+                localResults(x, s, type, features) <- res
             } else {
                 x <- .add_fd_dimData(x, MARGIN = 2, res, features, s, type, ...)
             }
@@ -200,7 +200,7 @@
             )
             local <- .is_local(type)
             if (local) {
-                localResults(x, sample_id, type, features,
+                localResults(x, s, type, features,
                     colGeometryName = colGeometryName
                 ) <- res
             } else {
@@ -247,7 +247,7 @@
             )
             local <- .is_local(type)
             if (local) {
-                localResults(x, sample_id, type, features,
+                localResults(x, s, type, features,
                     annotGeometryName = annotGeometryName
                 ) <- res
             } else {
@@ -278,7 +278,7 @@
 .sfe_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
-                        zero.policy = NULL, include_self = FALSE, 
+                        zero.policy = NULL, include_self = FALSE,
                         p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(features)) features <- rownames(x)
@@ -287,7 +287,7 @@
             out <- calculateUnivariate(x, type, features, colGraphName, s,
                 exprs_values, BPPARAM, zero.policy,
                 returnDF = TRUE,
-                include_self = include_self, p.adjust.method = p.adjust.method, 
+                include_self = include_self, p.adjust.method = p.adjust.method,
                 ...
             )
             local <- .is_local(type)
@@ -309,11 +309,11 @@
     } else {
         function(x, features = NULL, colGraphName = 1L, sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
-                 zero.policy = NULL, include_self = FALSE, 
+                 zero.policy = NULL, include_self = FALSE,
                  p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
-                exprs_values, BPPARAM, zero.policy, include_self, 
+                exprs_values, BPPARAM, zero.policy, include_self,
                 p.adjust.method, ...
             )
         }
