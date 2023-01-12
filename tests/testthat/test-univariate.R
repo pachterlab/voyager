@@ -247,7 +247,7 @@ test_that("Properly add localmoran results to localResults when there're multipl
 library(SFEData)
 sfe1 <- McKellarMuscleData("small")
 sfe2 <- McKellarMuscleData("small2")
-sfe <- cbind(sfe1, sfe2)
+sfe <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
 colGraphs(sfe, name = "visium", sample_id = "all") <- findVisiumGraph(sfe, sample_id = "all")
 sfe <- colDataUnivariate(sfe, "localmoran", features = "nCounts", sample_id = "all")
 res <- localResult(sfe, "localmoran", "nCounts", sample_id = "all")

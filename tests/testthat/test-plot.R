@@ -180,7 +180,7 @@ levels = as.character(1:5)
 test_that("moranPlot, not filled, no color_by", {
     skip_on_ci()
     expect_warning(
-        moranPlot(sfe, "B", "visium1", "sample01"),
+        moranPlot(sfe, "B", "visium", "sample01"),
         "Too few points"
     )
     expect_doppelganger(
