@@ -149,7 +149,7 @@ test_that("Everything plotLocalResult", {
     expect_doppelganger("Plot Ii for annotGeometry alone", {
         plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
             annotGeometryName = "myofiber_simplified",
-            size = 0.3, color = "cyan", divergent = TRUE,
+            linewidth = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
         )
     })
@@ -180,7 +180,7 @@ levels = as.character(1:5)
 test_that("moranPlot, not filled, no color_by", {
     skip_on_ci()
     expect_warning(
-        moranPlot(sfe, "B", "visium1", "sample01"),
+        moranPlot(sfe, "B", "visium", "sample01"),
         "Too few points"
     )
     expect_doppelganger(
@@ -223,15 +223,14 @@ test_that("moranPlot, filled, with color_by", {
     )
 })
 
-test_that("plotColGraph", {
+test_that("plot graphs", {
     expect_doppelganger(
-        "plotColGraph toy example",
-        plotColGraph(sfe,
-            colGraphName = "visium",
-            colGeometryName = "spotPoly",
-            sample_id = "sample01"
-        )
+        "plotColGraph",
+        plotColGraph(sfe_muscle, colGraphName = "visium",
+                     colGeometryName = "spotPoly")
     )
+    expect_doppelganger("plotAnnotGraph",
+                        plotAnnotGraph(sfe_muscle, "poly2nb_myo", "myofiber_simplified"))
 })
 
 sample_use <- "Vis5A"
@@ -413,7 +412,7 @@ sfe_cosmx2a <- sfe_cosmx[,!inds]
 sfe_cosmx2b <- sfe_cosmx[,inds]
 colData(sfe_cosmx2b)$sample_id <- "sample02"
 names(int_metadata(sfe_cosmx2b)$spatialGraphs) <- "sample02"
-sfe_cosmx2 <- cbind(sfe_cosmx2a, sfe_cosmx2b)
+sfe_cosmx2 <- SpatialFeatureExperiment::cbind(sfe_cosmx2a, sfe_cosmx2b)
 sfe_cosmx2 <- removeEmptySpace(sfe_cosmx2)
 
 test_that("colData and rowData bin2d", {
@@ -496,10 +495,11 @@ sfe2 <- McKellarMuscleData("small2")
 sfe <- cbind(sfe1, sfe2)
 sfe <- removeEmptySpace(sfe)
 
-annotGeometry(sfe, "myofiber_simplified", sample_id = "all") <-
+annotGeometry(sfe, "myofiber_simplified", sample_id = "all", translate = FALSE) <-
     sf::st_buffer(annotGeometry(sfe, "myofiber_simplified", sample_id = "all"), 0)
 
 bbox <- c(xmin = 5000, ymin = 175000, xmax = 6000, ymax = 176000)
+bbox_large <- c(xmin = 10000, xmax = 20000, ymin = 160000, ymax = 170000)
 bbox2 <- c(xmin = 5500, ymin = 13500, xmax = 6500, ymax = 14500)
 bbox_2s1 <- c(xmin = 500, xmax = 1500, ymin = 500, ymax = 1500)
 bbox_2s2 <- c(xmin = 0, xmax = 1000, ymin = 1000, ymax = 2000)
@@ -510,6 +510,10 @@ test_that("Using bbox with plotSpatialFeature", {
     expect_doppelganger("Only plotting colGeometry", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "cellSeg",
                            bbox = bbox)
+    })
+    expect_doppelganger("With scattermore", {
+        plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
+                           bbox = bbox_large, scattermore = TRUE, pointsize = 1)
     })
     expect_doppelganger("Both colGeometry and annotGeometry", {
         plotSpatialFeature(sfe_muscle, "nCounts",
@@ -561,7 +565,7 @@ test_that("Using bbox with plotLocalResults", {
                         colGeometryName = "spotPoly", divergent = TRUE,
                         diverge_center = 0)
     })
-    expect_doppelganger("One sample, colGeometry and annotGeometry, plotLocalResults bbox", {
+    expect_doppelganger("One sample col and annotGeometry plotLocalResults bbox", {
         plotLocalResult(sfe_muscle, "localmoran", "nCounts", bbox = bbox2,
                         colGeometryName = "spotPoly",
                         annotGeometryName = "myofiber_simplified",
@@ -574,30 +578,85 @@ test_that("Using bbox with plotLocalResults", {
                         divergent = TRUE, diverge_center = 0)
     })
     expect_doppelganger("Two samples, colGeometry, plotLocalResults bbox", {
-        plotLocalResult(sfe, "localmoran", "nCounts", bbox = bbox2,
+        plotLocalResult(sfe, "localmoran", "nCounts", bbox = bbox_2s1,
                         colGeometryName = "spotPoly",
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("One sample, colGeometry and annotGeometry, plotLocalResults bbox", {
-        plotLocalResult(sfe_muscle, "localmoran", "nCounts", bbox = bbox2,
+    expect_doppelganger("Two samples col and annotGeometry plotLocalResults bbox", {
+        plotLocalResult(sfe, "localmoran", "nCounts", bbox = bbox_2s1,
                         colGeometryName = "spotPoly",
                         annotGeometryName = "myofiber_simplified",
                         annot_fixed = list(linewidth = 0.3),
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("One sample, annotGeometry, plotLocalResults bbox", {
-        plotLocalResult(sfe_muscle, "localmoran", "area", bbox = bbox2,
+    expect_doppelganger("Two samples, annotGeometry, plotLocalResults bbox", {
+        plotLocalResult(sfe, "localmoran", "area", bbox = bbox_2s1,
                         annotGeometryName = "myofiber_simplified",
                         divergent = TRUE, diverge_center = 0)
     })
 })
+sfe <- logNormCounts(sfe)
+sfe <- runPCA(sfe, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
+test_that("Using bbox with spatialReducedDim", {
+    expect_doppelganger("Use bbox with spatialReducedDim", {
+        spatialReducedDim(sfe, dimred = "PCA", ncomponents = 1,
+                          colGeometryName = "spotPoly", bbox = bbox_2s1,
+                          divergent = TRUE, diverge_center = 0)
+    })
+    expect_doppelganger("Use bbox with spatialReducedDim, 2 PCs", {
+        spatialReducedDim(sfe, dimred = "PCA", ncomponents = 2,
+                          colGeometryName = "spotPoly", bbox = bbox_2s1,
+                          divergent = TRUE, diverge_center = 0, ncol = 1)
+    })
+})
 
-test_that("Using bbox with spatialReducedDims", {
+test_that("Plot graphs with bbox", {
+    expect_doppelganger("colGraph with bbox", {
+        plotColGraph(sfe, colGraphName = "visium",
+                     colGeometryName = "spotPoly", bbox = bbox_2s)
+    })
+    expect_doppelganger("annotGraph with bbox", {
+        plotAnnotGraph(sfe, annotGraphName = "knn",
+                     annotGeometryName = "myofiber_simplified", bbox = bbox_2s)
+    })
+})
 
+test_that("Using bbox with plotCellBin2D", {
+    expect_doppelganger("plotCellBin2D with bbox", {
+        plotCellBin2D(sfe_cosmx, bins = 50, bbox = bbox_large)
+    })
 })
 
 test_that("Incorrect formats of bbox", {
-
+    expect_error(plotSpatialFeature(sfe, "nCounts", bbox = as.list(bbox_2s1)),
+                 "numeric vector or a matrix")
+    expect_error(plotSpatialFeature(sfe, "nCounts", bbox = "foobar"),
+                 "must be a numeric vector")
+    expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox_2s1[1:3]),
+                 "must have length 4")
+    expect_error(plotSpatialFeature(sfe, "nCounts",
+                                    bbox = setNames(bbox_2s1, c("foo", "bar", "meow", "purr"))),
+                 "must be same as the set")
+    expect_warning(plotSpatialFeature(sfe, "nCounts",
+                                      bbox = unname(bbox_2s1[c("xmin", "ymin", "xmax", "ymax")])),
+                   "No names available for bbox. Assuming")
+    expect_doppelganger("OK if bbox matrix is transposed", {
+        plotSpatialFeature(sfe, "nCounts", bbox = t(bbox_2s))
+    })
+    expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox_2s[1:3,]),
+                 "must have 4 rows")
+    expect_error({
+        bbox_test <- bbox_2s
+        rownames(bbox_test) <- c("foo", "bar", "meow", "purr")
+        plotSpatialFeature(sfe, "nCounts", bbox = bbox_test)
+    }, "Row names of bbox must be same as the set")
+    expect_error({
+        bbox_test <- bbox_2s
+        colnames(bbox_test) <- c("foo", "sample02")
+        plotSpatialFeature(sfe, "nCounts", bbox = bbox_test)
+    }, "Column names of bbox must match the sample IDs")
+    expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox),
+                 "The bounding box does not overlap with the geometry")
 })
 
 sfe_muscle2 <- McKellarMuscleData()
@@ -630,5 +689,11 @@ test_that("Plot geometries", {
     })
     expect_doppelganger("plot annotGeometry 1 sample", {
         plotGeometry(sfe_muscle, "myofiber_simplified", MARGIN = 3)
+    })
+    expect_doppelganger("Plot colGeometry, with bbox", {
+        plotGeometry(sfe, "spotPoly", bbox = bbox_2s)
+    })
+    expect_doppelganger("Plot annotGeometry, with bbox", {
+        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
     })
 })

@@ -22,11 +22,12 @@ plotLocalResult(
   diverge_center = NULL,
   annot_divergent = FALSE,
   annot_diverge_center = NULL,
-  size = 0,
+  size = 0.5,
   shape = 16,
+  linewidth = 0,
   linetype = 1,
   alpha = 1,
-  color = NA,
+  color = "black",
   fill = "gray80",
   show_symbol = TRUE,
   scattermore = FALSE,
@@ -84,13 +85,15 @@ settings, such as \code{color = "gray"}. The defaults are the same as the
 relevant defaults for this function.}
 
 \item{bbox}{A bounding box to specify a smaller region to plot, useful when
-the dataset is large. All geometries that intersect the bounding box will
-be plotted. Can be a named numeric vector with names "xmin", "xmax",
-"ymin", and "ymax", in any order. If plotting multiple samples, it should
-be a matrix with sample IDs as column names and "xmin", "ymin", "xmax", and
-"ymax" as row names. If multiple samples are plotted but \code{bbox} is a
-vector rather than a matrix, then the same bounding box will be used for
-all samples. If \code{NULL}, then the entire tissue is plotted.}
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+\code{bbox} is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If \code{NULL}, then the entire tissue is
+plotted.}
 
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
@@ -110,12 +113,14 @@ case it's different.}
 \item{annot_diverge_center}{Just as \code{diverge_center}, but for the
 annotGeometry in case it's different.}
 
-\item{size}{Fixed size of points or width of lines, including outlines of
-polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.}
+\item{size}{Fixed size of points. For points defaults to 0.5. Ignored if
+\code{size_by} is specified.}
 
 \item{shape}{Fixed shape of points, ignored if \code{shape_by} is specified
 and applicable.}
+
+\item{linewidth}{Width of lines, including outlines of polygons. For
+polygons, this defaults to 0, meaning no outlines.}
 
 \item{linetype}{Fixed line type, ignored if \code{linetype_by} is specified
 and applicable.}

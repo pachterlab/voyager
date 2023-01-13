@@ -144,7 +144,7 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
     } else {
         df <- annotGeometry(sfe, annotGeometryName, sample_id)
         df <- df[,setdiff(names(df), names(values))]
-        df <- cbind(df, values)
+        df <- cbind(df[,"sample_id"], values)
         df <- .crop(df, bbox)
         out <- .wrap_spatial_plots(df,
             annot_df = NULL, type_annot = NULL,

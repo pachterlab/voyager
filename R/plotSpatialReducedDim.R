@@ -36,7 +36,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
                               divergent = FALSE, diverge_center = NULL,
                               annot_divergent = FALSE,
                               annot_diverge_center = NULL,
-                              size = 0, shape = 16, linetype = 1, alpha = 1,
+                              size = 0, shape = 16, linewidth = 0,
+                              linetype = 1, alpha = 1,
                               color = NA, fill = "gray80", scattermore = FALSE,
                               pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
@@ -47,12 +48,12 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
         dims_use <- ncomponents
     }
     sample_ind <- colData(sfe)$sample_id %in% sample_id
-    values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use])
+    values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use, drop = FALSE])
     out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName,
         annot_aes, annot_fixed, bbox, aes_use,
         divergent, diverge_center, annot_divergent,
-        annot_diverge_center, size, shape, linetype,
+        annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill,
         show_symbol = FALSE, scattermore = scattermore, pointsize = pointsize,
         ...

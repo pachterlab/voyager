@@ -145,8 +145,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
         annot_fixed <- annot_fixed[setdiff(names(annot_fixed), names(annot_aes))]
-        if ("color" %in% names(annot_aes) && annot_fixed$size == 0) {
-            annot_fixed$size <- 0.5
+        if ("color" %in% names(annot_aes) && annot_fixed$linewidth == 0) {
+            annot_fixed$linewidth <- 0.5
         }
         geom_annot <- do.call(geom_sf, c(
             list(mapping = aes(!!!syms(annot_aes)), data = annot_df),
@@ -293,6 +293,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
             df$y > bbox["ymin"] & df$y < bbox["ymax"]
         df <- df[inds,, drop = FALSE]
     }
+    if (nrow(df) == 0L)
+        stop("The bounding box does not overlap with the geometry.")
     df
 }
 
@@ -304,7 +306,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 # Well, it's up to the user to not to do it.
 .crop <- function(df, bbox) {
     if (is.null(bbox)) return(df)
-    if (!is.vector(bbox) && !is.matrix(bbox)) {
+    if (!is.atomic(bbox) && !is.matrix(bbox)) {
         stop("bbox must be either a numeric vector or a matrix.")
     }
     names_use <- c("xmin", "ymin", "xmax", "ymax")
@@ -330,7 +332,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (is.matrix(bbox)) {
         if (setequal(colnames(bbox), names_use)) bbox <- t(bbox)
         if (nrow(bbox) != 4L)
-            stop("bbox must have length 4, corresponding to xmin, ymin, xmax, and ymax.")
+            stop("bbox must have 4 rows, corresponding to xmin, ymin, xmax, and ymax.")
         if (!setequal(rownames(bbox), names_use))
             stop("Row names of bbox must be same as the set ",
                  paste(names_use, collapse = ", "))
@@ -369,10 +371,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
-    if (length(sample_id) > 1L) {
-        df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
-    }
-    df <- cbind(df, values)
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    df <- cbind(df[,c("geometry", "sample_id")], values)
     df <- .crop(df, bbox)
     if (scattermore) {
         check_installed("scattermore", reason = "to plot points with scattermore")
@@ -389,7 +389,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(annotGeometryName)) {
         annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
         type_annot <- .get_generalized_geometry_type(annot_df)
-        annot_df <- .crop(annot_df, bbox)
+        annot_df <- .crop(annot_df[,c(unlist(annot_aes), "sample_id")], bbox)
     } else {
         annot_df <- NULL
         type_annot <- NULL
@@ -430,7 +430,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   should be a matrix with sample IDs as column names and "xmin", "ymin",
 #'   "xmax", and "ymax" as row names. If multiple samples are plotted but
 #'   \code{bbox} is a vector rather than a matrix, then the same bounding box
-#'   will be used for all samples. If \code{NULL}, then the entire tissue is
+#'   will be used for all samples. You may see points at the edge of the
+#'   geometries if the intersection between the bounding box and a geometry
+#'   happens to be a point there. If \code{NULL}, then the entire tissue is
 #'   plotted.
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
@@ -522,6 +524,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'     annotGeometryName = "myofiber_simplified",
 #'     annot_aes = list(fill = "area")
 #' )
+#' # Use a bounding box to zoom in
+#' bbox <- c(xmin = 5500, ymin = 13500, xmax = 6000, ymax = 14000)
+#' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+#'                   annotGeometry = "myofiber_simplified",
+#'                   bbox = bbox, annot_fixed = list(linewidth = 0.3))
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
@@ -608,17 +615,19 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
             annotGeometry
         )
         geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
+        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id
     } else {
         geometry <- NULL
     }
     df <- .get_graph_df(sfe, MARGIN, sample_id, graph_name, geometry)
     df <- .crop(df, bbox)
+    if (!is.null(geometry)) geometry <- .crop(geometry[,"sample_id"], bbox)
     p <- ggplot()
     if (!is.null(geometry_name)) {
         p <- p +
             geom_sf(
                 data = geometry, size = geometry_size, fill = NA,
-                color = "gray80"
+                color = "gray70"
             )
     }
     if (weights) {
@@ -769,7 +778,7 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     if (MARGIN == 3L) {
         sample_id <- unique(df$sample_id)
     }
-    df <- .crop(df, bbox)
+    df <- .crop(df[,"sample_id"], bbox)
     p <- ggplot(df) + geom_sf()
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
