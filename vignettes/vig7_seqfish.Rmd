@@ -25,22 +25,24 @@ knitr::opts_chunk$set(
 # Introduction
 
 # Dataset
-The data used in this vignette are described in [Integration of spatial and single-cell transcriptomic data elucidates mouse organogenesis](https://doi.org/10.1038/s41587-021-01006-2). Briefly, seqFISH was use to profile 351 genes in several mouse embryos at the 8-12 somite stage (ss). We will focus on a single biological replicate, embryo 3. The raw and processed counts and corresponding metadata are available to download from the [Marioni lab](https://content.cruk.cam.ac.uk/jmlab/SpatialMouseAtlas2020/). Expression matrices, segmentation data, and segmented cell vertices are provided as R objects that can be readily imported into an R environment. The data relevant to this vignette have been converted to a `SFE` object and are available to download [here](https://caltech.box.com/s/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj) from Box.  
+The data used in this vignette are described in [Integration of spatial and single-cell transcriptomic data elucidates mouse organogenesis](https://doi.org/10.1038/s41587-021-01006-2). Briefly, seqFISH was use to profile 351 genes in several mouse embryos at the 8-12 somite stage (ss). We will focus on a single biological replicate, embryo 3. The raw and processed counts and corresponding metadata are available to download from the [Marioni lab](https://content.cruk.cam.ac.uk/jmlab/SpatialMouseAtlas2020/). Expression matrices, segmentation data, and segmented cell vertices are provided as R objects that can be readily imported into an R environment. The data relevant to this vignette have been converted to a `SFE` object and are available to download [here](https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj) from Box.  
 
 The data have been added to the `SFEData` package on Bioconductor and will be available in the 3.17 release. 
 
 We will begin by downloading the data and loading it in to R. 
 ```{r setup}
 library(Voyager)
-library(SFEData)
 library(SingleCellExperiment)
 library(SpatialExperiment)
-library(scater)
+library(SpatialFeatureExperiment)
 library(batchelor)
+library(scater)
 library(scran)
 library(bluster)
 library(purrr)
 library(tidyr)
+library(dplyr)
+library(fossil)
 library(ggplot2)
 library(patchwork)
 library(spdep)
@@ -52,7 +54,7 @@ theme_set(theme_bw())
 ```{r}
 # the commented line downloads the data from Box and stores it in the current directory
 
-download.file("https://caltech.box.com/s/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds')
+download.file("https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds', mode='wb', method = 'wget')
 
 sfe <- readRDS("./seqfish_em3.Rds")
 sfe
@@ -92,7 +94,7 @@ counts_spl <- split.data.frame(t(counts(sfe)), pos)
 # nCounts per FOV
 df <- map_dfr(counts_spl, rowSums, .id='pos') %>%
   pivot_longer(cols=contains('embryo'), values_to = 'nCounts') %>%
-  filter(!is.na(nCounts))
+  dplyr::filter(!is.na(nCounts))
 
 cells_fov <- ggplot(data.frame(colData(sfe)), aes(pos,)) +
   geom_bar() + 
@@ -253,6 +255,7 @@ The plot below is colored by cluster ID and by the cell types provided by the au
 plotSpatialFeature(sfe, c("cluster", "celltype_mapped_refined"), colGeometryName = "seg_coords") + guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 The authors have assigned cells to more types than are identified in the clustering step. In any case, the clustering results seem to recapitulate the major cell niches from the previous annotations. We can compute the [Rand index](https://en.wikipedia.org/wiki/Rand_index) using a function from the `fossil` package to assess the similarity between the two clustering results. A value of 1 would suggest the clustering results are identical, while a value of 0 would suggest that the results do not agree at all. 
+
 ```{r}
 g1 <- as.numeric(colData(sfe)$cluster)
 g2 <- as.numeric(colData(sfe)$celltype_mapped_refined)
