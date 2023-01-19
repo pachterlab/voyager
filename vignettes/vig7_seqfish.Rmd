@@ -54,7 +54,7 @@ theme_set(theme_bw())
 ```{r}
 # the commented line downloads the data from Box and stores it in the current directory
 
-download.file("https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds', mode='wb', method = 'wget')
+download.file("https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds', mode='wb', method = 'wget', quiet = TRUE)
 
 sfe <- readRDS("./seqfish_em3.Rds")
 sfe
@@ -232,7 +232,7 @@ pcs <- pcs[ord,]
 colData(sfe)$pc1  <- pcs[,1]
 colData(sfe)$pc2  <- pcs[,2]
 
-plotSpatialFeature(sfe, c("pc1","pc2"), colGeometryName = "seg_coords") +
+plotSpatialFeature(sfe, c("pc1","pc2"), colGeometryName = "seg_coords") &
     theme_void()
 
 ```
@@ -251,7 +251,7 @@ colData(sfe)$cluster <-
               )
 ```
 The plot below is colored by cluster ID and by the cell types provided by the author. 
-```{r}
+```{r, fig.width=9, fig.height=4}
 plotSpatialFeature(sfe, c("cluster", "celltype_mapped_refined"), colGeometryName = "seg_coords") + guides(colour = guide_legend(override.aes = list(size=2)))
 ```
 The authors have assigned cells to more types than are identified in the clustering step. In any case, the clustering results seem to recapitulate the major cell niches from the previous annotations. We can compute the [Rand index](https://en.wikipedia.org/wiki/Rand_index) using a function from the `fossil` package to assess the similarity between the two clustering results. A value of 1 would suggest the clustering results are identical, while a value of 0 would suggest that the results do not agree at all. 
@@ -304,7 +304,7 @@ The vertical line represents the observed value of Moran's I and the density rep
 The function can also be used to plot the `geary.mc` results. 
 
 Now, we might ask: which genes display the most spatial autocorrelation? 
-```{r}
+```{r, fig.width=6, fig.height=8}
 top_moran <- rownames(sfe)[order(-rowData(sfe)$moran.mc_statistic_sample01)[1:4]]
 
 plotSpatialFeature(sfe, top_moran, colGeometryName = "seg_coords")
@@ -315,17 +315,9 @@ It would be interesting to see if these genes are also differentially expressed 
 
 These analyses bring up interesting considerations. For one, it is unclear whether normalization scheme employed here effectively removes FOV batch effects. That said, there may be times where FOV differences are expected and represent biological differences, for example in the context of a tumor sample. It remains to be seen what normalization methods will perform best in these cases, and this is represents an area for research.
 
-
-
 # Session Info
 ```{r}
 sessionInfo()
 ```
 
 # References
-
-
-
-
-
-
