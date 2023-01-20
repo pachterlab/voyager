@@ -307,7 +307,7 @@ The following adds the results to the SFE object:
 ```{r}
 set.seed(29)
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"), 
-                                colGraphName = "visium", nsim = 100,
+                                colGraphName = "visium", nsim = 1000,
                                 type = "moran.mc")
 head(colFeatureData(sfe_tissue), 10)
 ```
@@ -315,13 +315,32 @@ head(colFeatureData(sfe_tissue), 10)
 Note that while the test is performed for multiple features, the p-values here are not corrected for multiple hypothesis testing.
 
 The results can be plotted:
-```{r, fig.alt="Density plot of Moran's I values from 100 simulations of nCounts and nGenes. The density plots center around 0 and deminish around 0.06 on the right. Vertical lines mark the actual Moran's I. For both nCounts and nGenes, the actual value, at 0.53 and 0.38 respectively, is far higher than the simulated ones, indicating positive spatial autocorrelation."}
+```{r, fig.alt="Density plot of Moran's I values from 1000 simulations of nCounts and nGenes. The density plots center around 0 and deminish around 0.06 on the right. Vertical lines mark the actual Moran's I. For both nCounts and nGenes, the actual value, at 0.53 and 0.38 respectively, is far higher than the simulated ones, indicating positive spatial autocorrelation."}
 plotMoranMC(sfe_tissue, c("nCounts", "nGenes"))
 ```
 
-By default, the colorblind friendly palette from [`dittoSeq`](https://bioconductor.org/packages/release/bioc/html/dittoSeq.html) is used for categorical variables. The density is of Moran's I from the simulations where the values are permuted and disconnected from spatial locations, and the vertical line is the actual Moran's I value. The simulation indicates that the spatial autocorrelation is significant. 
+By default, the colorblind friendly palette from [`dittoSeq`](https://bioconductor.org/packages/release/bioc/html/dittoSeq.html) is used for categorical variables. The density plot is of Moran's I from the simulations where the values are permuted and disconnected from spatial locations, and the vertical line is the actual Moran's I value. The simulation indicates that the actual Moran's I is much higher than that from the simulations where the values are dissociated from spatial locations and permuted among the locations, indicating that spatial autocorrelation is very significant. 
 
 Use `type = "geary.mc"` for permutation testing for Geary's C.
+
+The `spdep` package can also compute p-values of Moran's I analytically, but the theory behind the mean and variance of the null distribution of Moran's I assumes normal distribution of the data, while gene expression data is generally non-normal. However, according to [@Griffith2010-uy], with large sample size ("preferably at least 100"), mean and variance of Moran's I of several iid non-normal simulated datasets (including negative binomial, which is commonly used to model gene expression data) don't seem to deviate much from the values expected from normally distributed data. Spatial transcriptomics datasets typically have thousands or more spots or cells, so sample size is most likely large enough. Hence using the analytical test on non-normal data might not be too bad. However, with large sample size, a minuscule difference can create very significant p-values. Here we perform the analytical test for Moran's I:
+
+```{r}
+sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"), 
+                                colGraphName = "visium", type = "moran.test")
+names(colFeatureData(sfe_tissue))
+```
+
+Now compare the p-values from permutation and analytical test; in both cases here, the default alternative hypothesis is positive spatial autocorrelation:
+
+```{r}
+# permutation
+colFeatureData(sfe_tissue)[c("nCounts", "nGenes"),c("moran.mc_p.value_Vis5A", "moran.test_p.value_Vis5A")]
+```
+
+The p-values from permutation are limited by the number of permutations (1000 here). Either way, both permutation and analytical tests indicate very significant positive spatial autocorrelation.
+
+A limitation of permutation testing of Moran's I is that it assumes that each permutation of the values among the locations is equally likely, which is not necessarily true. For instance, in epidemiology, disease rate in regions with small population more likely assumes more extreme values [@Assuncao1999-xu], which is analogous to rare cell types and lowly expressed genes in histological space given that we divide by total UMI counts per spot. The extent this happens may depend on tissue, gene of interest, technology, and data normalization method.
 
 ## Correlogram
 In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. 
