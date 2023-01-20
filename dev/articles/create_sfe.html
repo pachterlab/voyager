@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.6</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,24 +43,12 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
-    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq2</a>
+    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
-    <a class="dropdown-item" href="../articles/nonspatial.html">10X Chromium V3</a>
-  </div>
-</li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-    <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
-    <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
-    <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung cancer data</a>
-    <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
-    <a class="dropdown-item" href="../articles/vig6_merfish.html">MERFISH mouse liver dataset and large data</a>
+    <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
   </div>
 </li>
 <li class="nav-item">
@@ -97,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-11</h4>
+            <h4 data-toc-skip class="date">2023-01-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/create_sfe.Rmd" class="external-link"><code>vignettes/create_sfe.Rmd</code></a></small>
       <div class="d-none name"><code>create_sfe.Rmd</code></div>
@@ -349,7 +337,7 @@ into <code>sf</code>. Example code:</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="va">cell_poly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vroom.r-lib.org/reference/vroom.html" class="external-link">vroom</a></span><span class="op">(</span><span class="st">"Lung5_Rep1-polygons.csv"</span><span class="op">)</span></span>
 <span><span class="va">cell_poly</span> <span class="op">&lt;-</span> <span class="va">cell_poly</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">unite</span><span class="op">(</span><span class="st">"ID"</span>, <span class="va">fov</span><span class="op">:</span><span class="va">cellID</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unite.html" class="external-link">unite</a></span><span class="op">(</span><span class="st">"ID"</span>, <span class="va">fov</span><span class="op">:</span><span class="va">cellID</span><span class="op">)</span></span>
 <span><span class="va">cell_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/df2sf.html" class="external-link">df2sf</a></span><span class="op">(</span><span class="va">cell_poly</span>, spatialCoordsNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_global_px"</span>, <span class="st">"y_global_px"</span><span class="op">)</span>,</span>
 <span>                 geometryType <span class="op">=</span> <span class="st">"POLYGON"</span><span class="op">)</span></span></code></pre></div>
 <p>In Vizgen MERFISH, cell polygons are in HDF5 files, with one HDF5
@@ -415,7 +403,7 @@ invalid polygons, to find why some polygons are not valid.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt; [1] Matrix_1.5-3                   rjson_0.2.21                  </span></span>
-<span><span class="co">#&gt; [3] SpatialFeatureExperiment_1.0.2 Voyager_1.0.6                 </span></span>
+<span><span class="co">#&gt; [3] SpatialFeatureExperiment_1.0.3 Voyager_1.0.7                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] bitops_1.0-7                matrixStats_0.63.0         </span></span>
@@ -447,12 +435,12 @@ invalid polygons, to find why some polygons are not valid.</p>
 <span><span class="co">#&gt;  [53] dplyr_1.0.10                R.oo_1.25.0                </span></span>
 <span><span class="co">#&gt;  [55] RCurl_1.98-1.9              magrittr_2.0.3             </span></span>
 <span><span class="co">#&gt;  [57] GenomeInfoDbData_1.2.9      scuttle_1.8.3              </span></span>
-<span><span class="co">#&gt;  [59] s2_1.1.1                    patchwork_1.1.2            </span></span>
+<span><span class="co">#&gt;  [59] s2_1.1.2                    patchwork_1.1.2            </span></span>
 <span><span class="co">#&gt;  [61] munsell_0.5.0               Rcpp_1.0.9                 </span></span>
 <span><span class="co">#&gt;  [63] S4Vectors_0.36.1            Rhdf5lib_1.20.0            </span></span>
 <span><span class="co">#&gt;  [65] fansi_1.0.3                 ggnewscale_0.4.8           </span></span>
 <span><span class="co">#&gt;  [67] lifecycle_1.0.3             R.methodsS3_1.8.2          </span></span>
-<span><span class="co">#&gt;  [69] stringi_1.7.8               yaml_2.3.6                 </span></span>
+<span><span class="co">#&gt;  [69] stringi_1.7.12              yaml_2.3.6                 </span></span>
 <span><span class="co">#&gt;  [71] edgeR_3.40.1                SummarizedExperiment_1.28.0</span></span>
 <span><span class="co">#&gt;  [73] zlibbioc_1.44.0             rhdf5_2.42.0               </span></span>
 <span><span class="co">#&gt;  [75] grid_4.2.2                  parallel_4.2.2             </span></span>
@@ -463,12 +451,12 @@ invalid polygons, to find why some polygons are not valid.</p>
 <span><span class="co">#&gt;  [85] igraph_1.3.5                GenomicRanges_1.50.2       </span></span>
 <span><span class="co">#&gt;  [87] boot_1.3-28.1               codetools_0.2-18           </span></span>
 <span><span class="co">#&gt;  [89] stats4_4.2.2                wk_0.7.1                   </span></span>
-<span><span class="co">#&gt;  [91] glue_1.6.2                  evaluate_0.19              </span></span>
+<span><span class="co">#&gt;  [91] glue_1.6.2                  evaluate_0.20              </span></span>
 <span><span class="co">#&gt;  [93] vctrs_0.5.1                 gtable_0.3.1               </span></span>
-<span><span class="co">#&gt;  [95] purrr_1.0.0                 assertthat_0.2.1           </span></span>
+<span><span class="co">#&gt;  [95] purrr_1.0.1                 assertthat_0.2.1           </span></span>
 <span><span class="co">#&gt;  [97] ggplot2_3.4.0               cachem_1.0.6               </span></span>
 <span><span class="co">#&gt;  [99] xfun_0.36                   DropletUtils_1.18.1        </span></span>
-<span><span class="co">#&gt; [101] e1071_1.7-12                ragg_1.2.4                 </span></span>
+<span><span class="co">#&gt; [101] e1071_1.7-12                ragg_1.2.5                 </span></span>
 <span><span class="co">#&gt; [103] class_7.3-20                SingleCellExperiment_1.20.0</span></span>
 <span><span class="co">#&gt; [105] tibble_3.1.8                memoise_2.0.1              </span></span>
 <span><span class="co">#&gt; [107] IRanges_2.32.0              cluster_2.1.4              </span></span>

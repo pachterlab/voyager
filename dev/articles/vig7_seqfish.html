@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.6</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,24 +43,12 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
-    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq2</a>
+    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
-    <a class="dropdown-item" href="../articles/nonspatial.html">10X Chromium V3</a>
-  </div>
-</li>
-<li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-    <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
-    <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
-    <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung cancer data</a>
-    <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
-    <a class="dropdown-item" href="../articles/vig6_merfish.html">MERFISH mouse liver dataset and large data</a>
+    <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
   </div>
 </li>
 <li class="nav-item">
@@ -97,7 +85,7 @@
                         <h4 data-toc-skip class="author">Kayla
 Jackson</h4>
             
-            <h4 data-toc-skip class="date">2023-01-11</h4>
+            <h4 data-toc-skip class="date">2023-01-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig7_seqfish.Rmd" class="external-link"><code>vignettes/vig7_seqfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig7_seqfish.Rmd</code></div>
@@ -121,36 +109,205 @@ metadata are available to download from the <a href="https://content.cruk.cam.ac
 lab</a>. Expression matrices, segmentation data, and segmented cell
 vertices are provided as R objects that can be readily imported into an
 R environment. The data relevant to this vignette have been converted to
-a <code>SFE</code> object and are available to download <a href="">here</a>.</p>
+a <code>SFE</code> object and are available to download <a href="https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj" class="external-link">here</a>
+from Box.</p>
+<p>The data have been added to the <code>SFEData</code> package on
+Bioconductor and will be available in the 3.17 release.</p>
 <p>We will begin by downloading the data and loading it in to R.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
+<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
+<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
+<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
+<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
+<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
+<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
+<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
+<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
+<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
+<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
+<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
+<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
+<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
+<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
+<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
+<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
+<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
+<span><span class="co">#&gt; Loading required package: stats4</span></span>
+<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
+<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
+<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
+<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
+<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
+<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
+<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
+<span><span class="co">#&gt; Loading required package: IRanges</span></span>
+<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
+<span><span class="co">#&gt; Loading required package: Biobase</span></span>
+<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
+<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
+<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     rowMedians</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">batchelor</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: scuttle</span></span>
+<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'purrr'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:GenomicRanges':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     reduce</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:IRanges':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     reduce</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'tidyr'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:S4Vectors':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     expand</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:Biobase':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     combine</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:GenomicRanges':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, union</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:GenomeInfoDb':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:IRanges':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     collapse, desc, intersect, setdiff, slice, union</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:S4Vectors':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     first, intersect, rename, setdiff, setequal, union</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:BiocGenerics':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     combine, intersect, setdiff, union</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:matrixStats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     count</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://matthewvavrek.com/programs-and-code/fossil/" class="external-link">fossil</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: sp</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'sp'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:SpatialFeatureExperiment':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     bbox</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:IRanges':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     %over%</span></span>
+<span><span class="co">#&gt; Loading required package: maps</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'maps'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:purrr':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     map</span></span>
+<span><span class="co">#&gt; Loading required package: shapefiles</span></span>
+<span><span class="co">#&gt; Loading required package: foreign</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'shapefiles'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:foreign':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     read.dbf, write.dbf</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: spData</span></span>
+<span><span class="co">#&gt; To access larger datasets in this package, install the spDataLarge</span></span>
+<span><span class="co">#&gt; package with: `install.packages('spDataLarge',</span></span>
+<span><span class="co">#&gt; repos='https://nowosad.github.io/drat/', type='source')`</span></span>
+<span><span class="co">#&gt; Loading required package: sf</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># download and load data</span></span>
+<code class="sourceCode R"><span><span class="co"># the commented line downloads the data from Box and stores it in the current directory</span></span>
 <span></span>
-<span><span class="co"># sfe</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="st">"https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj"</span>,<span class="st">'./seqfish_em3.Rds'</span>, mode<span class="op">=</span><span class="st">'wb'</span>, method <span class="op">=</span> <span class="st">'wget'</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./seqfish_em3.Rds"</span><span class="op">)</span></span>
+<span><span class="va">sfe</span></span>
+<span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
+<span><span class="co">#&gt; dim: 351 23194 </span></span>
+<span><span class="co">#&gt; metadata(0):</span></span>
+<span><span class="co">#&gt; assays(1): counts</span></span>
+<span><span class="co">#&gt; rownames(351): Abcc4 Acp5 ... Zfp57 Zic3</span></span>
+<span><span class="co">#&gt; rowData names(0):</span></span>
+<span><span class="co">#&gt; colnames(23194): embryo3_Pos0_cell10_z2 embryo3_Pos0_cell10_z5 ...</span></span>
+<span><span class="co">#&gt;   embryo3_Pos39_cell98_z5 embryo3_Pos39_cell99_z2</span></span>
+<span><span class="co">#&gt; colData names(15): uniqueID embryo ... celltype_mapped_refined</span></span>
+<span><span class="co">#&gt;   sample_id</span></span>
+<span><span class="co">#&gt; reducedDimNames(0):</span></span>
+<span><span class="co">#&gt; mainExpName: NULL</span></span>
+<span><span class="co">#&gt; altExpNames(0):</span></span>
+<span><span class="co">#&gt; spatialCoords names(2) : X Y</span></span>
+<span><span class="co">#&gt; imgData names(0):</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Geometries:</span></span>
+<span><span class="co">#&gt; colGeometries: seg_coords (GEOMETRY) </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Graphs:</span></span>
+<span><span class="co">#&gt; sample01:</span></span></code></pre></div>
 <p>The rows in the count matrix correspond to the 351 barcoded genes
 measured by seqFISH. Additionally, the authors provide some metadata,
 including the field of view and z-slice for each cell. We will filter
 the count matrix and metadata to include only cells from a single
 z-slice.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "uniqueID"                "embryo"                 </span></span>
+<span><span class="co">#&gt;  [3] "pos"                     "z"                      </span></span>
+<span><span class="co">#&gt;  [5] "x_global"                "y_global"               </span></span>
+<span><span class="co">#&gt;  [7] "x_global_affine"         "y_global_affine"        </span></span>
+<span><span class="co">#&gt;  [9] "embryo_pos"              "embryo_pos_z"           </span></span>
+<span><span class="co">#&gt; [11] "Area"                    "UMAP1"                  </span></span>
+<span><span class="co">#&gt; [13] "UMAP2"                   "celltype_mapped_refined"</span></span>
+<span><span class="co">#&gt; [15] "sample_id"</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">z</span> <span class="op">==</span> <span class="fl">2</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="va">mask</span><span class="op">]</span></span></code></pre></div>
@@ -175,7 +332,8 @@ it on the violin plot.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p>Notably, the cells in this dataset have fewer counts that would be
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;">
+Notably, the cells in this dataset have fewer counts that would be
 expected in a single-cell sequencing experiment and the cells with
 higher counts seem to be dispersed throughout the tissue. Fewer counts
 are expected in seqFISH experiments where probing for highly expressed
@@ -189,8 +347,8 @@ separately.</p>
 <span></span>
 <span><span class="co"># nCounts per FOV</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">counts_spl</span>, <span class="va">rowSums</span>, .id<span class="op">=</span><span class="st">'pos'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">pivot_longer</span><span class="op">(</span>cols<span class="op">=</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">'embryo'</span><span class="op">)</span>, values_to <span class="op">=</span> <span class="st">'nCounts'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">nCounts</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols<span class="op">=</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">'embryo'</span><span class="op">)</span>, values_to <span class="op">=</span> <span class="st">'nCounts'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">nCounts</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cells_fov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">pos</span>,<span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -207,11 +365,12 @@ separately.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cells_fov</span> <span class="op">/</span> <span class="va">counts_fov</span></span></code></pre></div>
-<p>There is some variability in the total number of counts in each field
-of view. It is not completely apparent what accounts for the low number
-of counts in some FOVs. For example, FOV 22 has the fewest number of
-cells, but comparably more counts are detected there than in regions
-with more cells (e.g. FOV 18).</p>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;">
+There is some variability in the total number of counts in each field of
+view. It is not completely apparent what accounts for the low number of
+counts in some FOVs. For example, FOV 22 has the fewest number of cells,
+but comparably more counts are detected there than in regions with more
+cells (e.g. FOV 18).</p>
 <p>Next, will will compute the number of genes detected per cell,
 defined here as the number of genes with non-zero counts. We will again
 plot this metric for each FOV as is done above.</p>
@@ -228,7 +387,8 @@ plot this metric for each FOV as is done above.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p>Many cells have fewer than 100 detected genes. This in part reflects
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;">
+Many cells have fewer than 100 detected genes. This in part reflects
 that the panel of 351 probed genes was chosen to distinguish cell types
 at these developmental stages and that distinct cell types will likely
 express a small subset of the 351 genes. The authors also note that the
@@ -238,7 +398,7 @@ number of counts and genes per cell.</p>
 <p>Here, we plot the number of genes detected per cell in each FOV.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">counts_spl</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">.x</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>, .id<span class="op">=</span><span class="st">'pos'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">'embryo'</span><span class="op">)</span>, values_to <span class="op">=</span> <span class="st">'nGenes'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">'embryo'</span><span class="op">)</span>, values_to <span class="op">=</span> <span class="st">'nGenes'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">nGenes</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/sp/man/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
 <span></span>
@@ -249,8 +409,9 @@ number of counts and genes per cell.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">genes_fov</span></span></code></pre></div>
-<p>This plot mirrors the plot above for total counts. No single FOV
-stands out as an obvious outlier.</p>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-8-1.png" width="700" style="display: block; margin: auto;">
+This plot mirrors the plot above for total counts. No single FOV stands
+out as an obvious outlier.</p>
 <p>The authors have provided cell type assignments as metadata. We can
 assess whether the low quality cells tend to be located in a particular
 FOV.</p>
@@ -270,9 +431,10 @@ FOV.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="va">prop_lq</span></span></code></pre></div>
-<p>It appears that FOV 26 and 31 have the largest fraction of low
-quality cells. Interestingly, these do not correspond to the FOVs with
-the largest number of cells overall.</p>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-9-1.png" width="700" style="display: block; margin: auto;">
+It appears that FOV 26 and 31 have the largest fraction of low quality
+cells. Interestingly, these do not correspond to the FOVs with the
+largest number of cells overall.</p>
 <p>Here we plot nCounts vs. nGenes for each FOV.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">count_vs_genes_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">nCounts</span>, <span class="va">nGenes</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
@@ -284,16 +446,18 @@ the largest number of cells overall.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">pos</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">count_vs_genes_p</span> </span></code></pre></div>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-10-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As in scRNA-seq, gene expression variance in seqFISH measurements is
 overdispersed compared to variance of counts that are Poisson
 distributed.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gene_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">counts_spl</span>, <span class="va">colMeans</span>, .id <span class="op">=</span> <span class="st">'pos'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu">pivot_longer</span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">pos</span>, names_to <span class="op">=</span> <span class="st">'gene'</span>, values_to <span class="op">=</span> <span class="st">'mean'</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">pos</span>, names_to <span class="op">=</span> <span class="st">'gene'</span>, values_to <span class="op">=</span> <span class="st">'mean'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">gene_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">counts_spl</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowVars.html" class="external-link">colVars</a></span><span class="op">(</span><span class="va">.x</span>, useNames <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .id <span class="op">=</span> <span class="st">'pos'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu">pivot_longer</span><span class="op">(</span><span class="op">-</span><span class="va">pos</span>, names_to <span class="op">=</span> <span class="st">'gene'</span>, values_to<span class="op">=</span><span class="st">'variance'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span><span class="va">gene_meta</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="op">-</span><span class="va">pos</span>, names_to <span class="op">=</span> <span class="st">'gene'</span>, values_to<span class="op">=</span><span class="st">'variance'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">full_join</a></span><span class="op">(</span><span class="va">gene_meta</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Joining, by = c("pos", "gene")</span></span></code></pre></div>
 <p>To understand the mean-variance relationship, we compute the mean and
 variance for each gene among cells in tissue. As above, we will perform
 this calculation separately for each FOV</p>
@@ -309,7 +473,8 @@ this calculation separately for each FOV</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The red line represents the line <span class="math inline">\(y =
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-12-1.png" width="700" style="display: block; margin: auto;">
+The red line represents the line <span class="math inline">\(y =
 x\)</span>, which is the mean-variance relationship that would be
 expected for Poisson distributed data. The data deviate from this
 expectation in each FOV. In each case, the variance is greater than what
@@ -324,17 +489,17 @@ batch aware. As the SFE object inherits from the
 <code>SpatialExperiment</code>and <code>SingleCellExperiment</code>,
 classes, we can take advantage of normalization methods implemented in
 the <code>scran</code> and <code>batchelor</code> R packages.</p>
-<p>We will first use the <code>multiBatchNorm()</code> function to scale
+<p>We will first use the <code><a href="https://rdrr.io/pkg/batchelor/man/multiBatchNorm.html" class="external-link">multiBatchNorm()</a></code> function to scale
 the data within each batch. As noted in the documentation, the function
 uses median-based normalization on the ratio of the average counts
 between batches.</p>
 <p>Batch correction and dimension reduction is accomplished using
-<code>fastMNN()</code> which performs multi-sample PCA across multiple
+<code><a href="https://rdrr.io/pkg/batchelor/man/fastMNN.html" class="external-link">fastMNN()</a></code> which performs multi-sample PCA across multiple
 gene expression matrices to project all cells to a common
 low-dimensional space.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu">multiBatchNorm</span><span class="op">(</span><span class="va">sfe</span>, batch <span class="op">=</span> <span class="va">pos</span><span class="op">)</span></span>
-<span><span class="va">sfe_red</span> <span class="op">&lt;-</span> <span class="fu">fastMNN</span><span class="op">(</span><span class="va">sfe</span>, batch <span class="op">=</span> <span class="va">pos</span>, cos.norm <span class="op">=</span> <span class="cn">FALSE</span>, d <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/batchelor/man/multiBatchNorm.html" class="external-link">multiBatchNorm</a></span><span class="op">(</span><span class="va">sfe</span>, batch <span class="op">=</span> <span class="va">pos</span><span class="op">)</span></span>
+<span><span class="va">sfe_red</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/batchelor/man/fastMNN.html" class="external-link">fastMNN</a></span><span class="op">(</span><span class="va">sfe</span>, batch <span class="op">=</span> <span class="va">pos</span>, cos.norm <span class="op">=</span> <span class="cn">FALSE</span>, d <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
 <p>The function <code>fastMNN</code> returns a batch-corrected matrix in
 the <code>reducedDims</code> slot of a <code>SingleCellExperiment</code>
 object. We will extract the relevant data and store them in the SFE
@@ -353,8 +518,9 @@ niches of cells.</p>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">pc1</span>  <span class="op">&lt;-</span> <span class="va">pcs</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">pc2</span>  <span class="op">&lt;-</span> <span class="va">pcs</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pc1"</span>,<span class="st">"pc2"</span><span class="op">)</span>, colGeometryName <span class="op">=</span> <span class="st">"seg_coords"</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pc1"</span>,<span class="st">"pc2"</span><span class="op">)</span>, colGeometryName <span class="op">=</span> <span class="st">"seg_coords"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-15-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="clustering">Clustering<a class="anchor" aria-label="anchor" href="#clustering"></a>
@@ -376,8 +542,9 @@ algorithm and plot the resulting clusters in space.</p>
 provided by the author.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"celltype_mapped_refined"</span><span class="op">)</span>, colGeometryName <span class="op">=</span> <span class="st">"seg_coords"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>override.aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The authors have assigned cells to more types than are identified in
-the clustering step. In any case, the clustering results seem to
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-17-1.png" width="864" style="display: block; margin: auto;">
+The authors have assigned cells to more types than are identified in the
+clustering step. In any case, the clustering results seem to
 recapitulate the major cell niches from the previous annotations. We can
 compute the <a href="https://en.wikipedia.org/wiki/Rand_index" class="external-link">Rand
 index</a> using a function from the <code>fossil</code> package to
@@ -388,7 +555,8 @@ would suggest that the results do not agree at all.</p>
 <code class="sourceCode R"><span><span class="va">g1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></span>
 <span><span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">celltype_mapped_refined</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">rand.index</span><span class="op">(</span><span class="va">g1</span>, <span class="va">g2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/fossil/man/rand.index.html" class="external-link">rand.index</a></span><span class="op">(</span><span class="va">g1</span>, <span class="va">g2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8417968</span></span></code></pre></div>
 <p>The relatively large Rand index suggests that cells are often found
 in the same cluster in both cases.</p>
 </div>
@@ -440,7 +608,8 @@ argument for computing a p-value for the statistic.</p>
 <p>We can plot the results of the Monte Carlo simulations:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMoranMC.html">plotMoranMC</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"Meox1"</span><span class="op">)</span></span></code></pre></div>
-<p>The vertical line represents the observed value of Moran’s I and the
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-23-1.png" width="700" style="display: block; margin: auto;">
+The vertical line represents the observed value of Moran’s I and the
 density represents Moran’s I computed from the permuted data. These
 simulations suggest that the spatial autocorrelation for this feature is
 significant.</p>
@@ -452,8 +621,9 @@ autocorrelation?</p>
 <code class="sourceCode R"><span><span class="va">top_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran.mc_statistic_sample01</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran</span>, colGeometryName <span class="op">=</span> <span class="st">"seg_coords"</span><span class="op">)</span></span></code></pre></div>
-<p>It appears that the genes with the highest spatial autocorrelation
-seem to have obvious expression patterns in the tissue.</p>
+<p><img src="vig7_seqfish_files/figure-html/unnamed-chunk-24-1.png" width="576" style="display: block; margin: auto;">
+It appears that the genes with the highest spatial autocorrelation seem
+to have obvious expression patterns in the tissue.</p>
 <p>It would be interesting to see if these genes are also differentially
 expressed in the clusters above. Non-spatial differential gene
 expression can be interrogated using the <code><a href="https://rdrr.io/pkg/scran/man/findMarkers.html" class="external-link">findMarkers()</a></code>
@@ -472,7 +642,97 @@ for research.</p>
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
+<span><span class="co">#&gt; Running under: macOS Big Sur ... 10.16</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Matrix products: default</span></span>
+<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib</span></span>
+<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; locale:</span></span>
+<span><span class="co">#&gt; [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attached base packages:</span></span>
+<span><span class="co">#&gt; [1] stats4    stats     graphics  grDevices utils     datasets  methods  </span></span>
+<span><span class="co">#&gt; [8] base     </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; other attached packages:</span></span>
+<span><span class="co">#&gt;  [1] BiocParallel_1.32.5            spdep_1.2-7                   </span></span>
+<span><span class="co">#&gt;  [3] sf_1.0-9                       spData_2.2.1                  </span></span>
+<span><span class="co">#&gt;  [5] patchwork_1.1.2                fossil_0.4.0                  </span></span>
+<span><span class="co">#&gt;  [7] shapefiles_0.7.2               foreign_0.8-84                </span></span>
+<span><span class="co">#&gt;  [9] maps_3.4.1                     sp_1.5-1                      </span></span>
+<span><span class="co">#&gt; [11] dplyr_1.0.10                   tidyr_1.2.1                   </span></span>
+<span><span class="co">#&gt; [13] purrr_1.0.1                    bluster_1.8.0                 </span></span>
+<span><span class="co">#&gt; [15] scran_1.26.1                   scater_1.27.3                 </span></span>
+<span><span class="co">#&gt; [17] ggplot2_3.4.0                  scuttle_1.8.3                 </span></span>
+<span><span class="co">#&gt; [19] batchelor_1.14.1               SpatialFeatureExperiment_1.0.3</span></span>
+<span><span class="co">#&gt; [21] SpatialExperiment_1.8.0        SingleCellExperiment_1.20.0   </span></span>
+<span><span class="co">#&gt; [23] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
+<span><span class="co">#&gt; [25] GenomicRanges_1.50.2           GenomeInfoDb_1.34.6           </span></span>
+<span><span class="co">#&gt; [27] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
+<span><span class="co">#&gt; [29] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
+<span><span class="co">#&gt; [31] matrixStats_0.63.0             Voyager_1.0.7                 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] systemfonts_1.0.4         igraph_1.3.5             </span></span>
+<span><span class="co">#&gt;   [3] digest_0.6.31             htmltools_0.5.4          </span></span>
+<span><span class="co">#&gt;   [5] viridis_0.6.2             magick_2.7.3             </span></span>
+<span><span class="co">#&gt;   [7] fansi_1.0.3               magrittr_2.0.3           </span></span>
+<span><span class="co">#&gt;   [9] memoise_2.0.1             ScaledMatrix_1.6.0       </span></span>
+<span><span class="co">#&gt;  [11] cluster_2.1.4             limma_3.54.0             </span></span>
+<span><span class="co">#&gt;  [13] R.utils_2.12.2            pkgdown_2.0.7            </span></span>
+<span><span class="co">#&gt;  [15] colorspace_2.0-3          ggrepel_0.9.2            </span></span>
+<span><span class="co">#&gt;  [17] textshaping_0.3.6         xfun_0.36                </span></span>
+<span><span class="co">#&gt;  [19] RCurl_1.98-1.9            jsonlite_1.8.4           </span></span>
+<span><span class="co">#&gt;  [21] glue_1.6.2                gtable_0.3.1             </span></span>
+<span><span class="co">#&gt;  [23] zlibbioc_1.44.0           XVector_0.38.0           </span></span>
+<span><span class="co">#&gt;  [25] DelayedArray_0.24.0       scico_1.3.1              </span></span>
+<span><span class="co">#&gt;  [27] BiocSingular_1.14.0       DropletUtils_1.18.1      </span></span>
+<span><span class="co">#&gt;  [29] Rhdf5lib_1.20.0           HDF5Array_1.26.0         </span></span>
+<span><span class="co">#&gt;  [31] scales_1.2.1              DBI_1.1.3                </span></span>
+<span><span class="co">#&gt;  [33] edgeR_3.40.1              Rcpp_1.0.9               </span></span>
+<span><span class="co">#&gt;  [35] viridisLite_0.4.1         units_0.8-1              </span></span>
+<span><span class="co">#&gt;  [37] dqrng_0.3.0               rsvd_1.0.5               </span></span>
+<span><span class="co">#&gt;  [39] proxy_0.4-27              ResidualMatrix_1.8.0     </span></span>
+<span><span class="co">#&gt;  [41] metapod_1.6.0             RColorBrewer_1.1-3       </span></span>
+<span><span class="co">#&gt;  [43] ellipsis_0.3.2            wk_0.7.1                 </span></span>
+<span><span class="co">#&gt;  [45] farver_2.1.1              pkgconfig_2.0.3          </span></span>
+<span><span class="co">#&gt;  [47] R.methodsS3_1.8.2         sass_0.4.4               </span></span>
+<span><span class="co">#&gt;  [49] deldir_1.0-6              locfit_1.5-9.7           </span></span>
+<span><span class="co">#&gt;  [51] utf8_1.2.2                labeling_0.4.2           </span></span>
+<span><span class="co">#&gt;  [53] tidyselect_1.2.0          rlang_1.0.6              </span></span>
+<span><span class="co">#&gt;  [55] munsell_0.5.0             tools_4.2.2              </span></span>
+<span><span class="co">#&gt;  [57] cachem_1.0.6              cli_3.6.0                </span></span>
+<span><span class="co">#&gt;  [59] dbscan_1.1-11             generics_0.1.3           </span></span>
+<span><span class="co">#&gt;  [61] evaluate_0.20             stringr_1.5.0            </span></span>
+<span><span class="co">#&gt;  [63] fastmap_1.1.0             yaml_2.3.6               </span></span>
+<span><span class="co">#&gt;  [65] ragg_1.2.5                knitr_1.41               </span></span>
+<span><span class="co">#&gt;  [67] fs_1.5.2                  s2_1.1.2                 </span></span>
+<span><span class="co">#&gt;  [69] sparseMatrixStats_1.10.0  R.oo_1.25.0              </span></span>
+<span><span class="co">#&gt;  [71] compiler_4.2.2            beeswarm_0.4.0           </span></span>
+<span><span class="co">#&gt;  [73] e1071_1.7-12              tibble_3.1.8             </span></span>
+<span><span class="co">#&gt;  [75] statmod_1.5.0             bslib_0.4.2              </span></span>
+<span><span class="co">#&gt;  [77] stringi_1.7.12            highr_0.10               </span></span>
+<span><span class="co">#&gt;  [79] desc_1.4.2                lattice_0.20-45          </span></span>
+<span><span class="co">#&gt;  [81] Matrix_1.5-3              classInt_0.4-8           </span></span>
+<span><span class="co">#&gt;  [83] vctrs_0.5.1               pillar_1.8.1             </span></span>
+<span><span class="co">#&gt;  [85] lifecycle_1.0.3           rhdf5filters_1.10.0      </span></span>
+<span><span class="co">#&gt;  [87] jquerylib_0.1.4           BiocNeighbors_1.16.0     </span></span>
+<span><span class="co">#&gt;  [89] cowplot_1.1.1             bitops_1.0-7             </span></span>
+<span><span class="co">#&gt;  [91] irlba_2.3.5.1             R6_2.5.1                 </span></span>
+<span><span class="co">#&gt;  [93] KernSmooth_2.23-20        gridExtra_2.3            </span></span>
+<span><span class="co">#&gt;  [95] vipor_0.4.5               codetools_0.2-18         </span></span>
+<span><span class="co">#&gt;  [97] boot_1.3-28.1             assertthat_0.2.1         </span></span>
+<span><span class="co">#&gt;  [99] rhdf5_2.42.0              rprojroot_2.0.3          </span></span>
+<span><span class="co">#&gt; [101] rjson_0.2.21              withr_2.5.0              </span></span>
+<span><span class="co">#&gt; [103] GenomeInfoDbData_1.2.9    parallel_4.2.2           </span></span>
+<span><span class="co">#&gt; [105] grid_4.2.2                beachmat_2.14.0          </span></span>
+<span><span class="co">#&gt; [107] class_7.3-20              rmarkdown_2.19           </span></span>
+<span><span class="co">#&gt; [109] DelayedMatrixStats_1.20.0 ggnewscale_0.4.8         </span></span>
+<span><span class="co">#&gt; [111] ggbeeswarm_0.7.1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

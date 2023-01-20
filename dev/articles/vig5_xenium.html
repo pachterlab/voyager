@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.6</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,24 +43,12 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
-    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq2</a>
+    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
-    <a class="dropdown-item" href="../articles/nonspatial.html">10X Chromium V3</a>
-  </div>
-</li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-vignettes">Vignettes</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-    <a class="dropdown-item" href="../articles/create_sfe.html">Create a SpatialFeatureExperiment object</a>
-    <a class="dropdown-item" href="../articles/vig1_visium_basic.html">Basic Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig2_visium.html">Spatial Visium exploratory data analysis</a>
-    <a class="dropdown-item" href="../articles/vig3_slideseq_v2.html">Slide-Seq V2 Exploratory Data Analysis</a>
-    <a class="dropdown-item" href="../articles/vig4_cosmx.html">CosMX non-small cell lung cancer data</a>
-    <a class="dropdown-item" href="../articles/vig5_xenium.html">Xenium breast cancer dataset</a>
-    <a class="dropdown-item" href="../articles/vig6_merfish.html">MERFISH mouse liver dataset and large data</a>
+    <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
   </div>
 </li>
 <li class="nav-item">
@@ -97,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-11</h4>
+            <h4 data-toc-skip class="date">2023-01-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
@@ -936,7 +924,7 @@ time of spatial autocorrelation metrics.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 108.891   0.199 109.382</span></span></code></pre></div>
+<span><span class="co">#&gt; 106.143   0.214 106.555</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -1000,7 +988,7 @@ normalize the data.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  87.402   5.485  47.656</span></span></code></pre></div>
+<span><span class="co">#&gt;  81.604   5.911  44.926</span></span></code></pre></div>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="va">is_any_neg</span></span></code></pre></div>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
@@ -1482,14 +1470,14 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [3] bluster_1.8.0                  BiocSingular_1.14.0           </span></span>
 <span><span class="co">#&gt;  [5] BiocParallel_1.32.5            scater_1.27.3                 </span></span>
 <span><span class="co">#&gt;  [7] scuttle_1.8.3                  stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  SpatialFeatureExperiment_1.0.2</span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  SpatialFeatureExperiment_1.0.3</span></span>
 <span><span class="co">#&gt; [11] SpatialExperiment_1.8.0        SingleCellExperiment_1.20.0   </span></span>
 <span><span class="co">#&gt; [13] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
 <span><span class="co">#&gt; [15] GenomicRanges_1.50.2           GenomeInfoDb_1.34.6           </span></span>
 <span><span class="co">#&gt; [17] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
 <span><span class="co">#&gt; [19] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
 <span><span class="co">#&gt; [21] matrixStats_0.63.0             SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt; [23] Voyager_1.0.6                 </span></span>
+<span><span class="co">#&gt; [23] Voyager_1.0.7                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.2               </span></span>
@@ -1497,7 +1485,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;   [5] AnnotationDbi_1.60.0          grid_4.2.2                   </span></span>
 <span><span class="co">#&gt;   [7] DropletUtils_1.18.1           munsell_0.5.0                </span></span>
 <span><span class="co">#&gt;   [9] ScaledMatrix_1.6.0            codetools_0.2-18             </span></span>
-<span><span class="co">#&gt;  [11] ragg_1.2.4                    units_0.8-1                  </span></span>
+<span><span class="co">#&gt;  [11] ragg_1.2.5                    units_0.8-1                  </span></span>
 <span><span class="co">#&gt;  [13] statmod_1.5.0                 withr_2.5.0                  </span></span>
 <span><span class="co">#&gt;  [15] colorspace_2.0-3              filelock_1.0.2               </span></span>
 <span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.41                   </span></span>
@@ -1517,27 +1505,27 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [45] beachmat_2.14.0               rlang_1.0.6                  </span></span>
 <span><span class="co">#&gt;  [47] systemfonts_1.0.4             splines_4.2.2                </span></span>
 <span><span class="co">#&gt;  [49] scico_1.3.1                   BiocManager_1.30.19          </span></span>
-<span><span class="co">#&gt;  [51] s2_1.1.1                      yaml_2.3.6                   </span></span>
-<span><span class="co">#&gt;  [53] httpuv_1.6.7                  tools_4.2.2                  </span></span>
+<span><span class="co">#&gt;  [51] s2_1.1.2                      yaml_2.3.6                   </span></span>
+<span><span class="co">#&gt;  [53] httpuv_1.6.8                  tools_4.2.2                  </span></span>
 <span><span class="co">#&gt;  [55] spData_2.2.1                  ellipsis_0.3.2               </span></span>
 <span><span class="co">#&gt;  [57] jquerylib_0.1.4               RColorBrewer_1.1-3           </span></span>
 <span><span class="co">#&gt;  [59] proxy_0.4-27                  Rcpp_1.0.9                   </span></span>
 <span><span class="co">#&gt;  [61] sparseMatrixStats_1.10.0      zlibbioc_1.44.0              </span></span>
-<span><span class="co">#&gt;  [63] classInt_0.4-8                purrr_1.0.0                  </span></span>
+<span><span class="co">#&gt;  [63] classInt_0.4-8                purrr_1.0.1                  </span></span>
 <span><span class="co">#&gt;  [65] RCurl_1.98-1.9                dbscan_1.1-11                </span></span>
 <span><span class="co">#&gt;  [67] deldir_1.0-6                  viridis_0.6.2                </span></span>
 <span><span class="co">#&gt;  [69] cowplot_1.1.1                 ggrepel_0.9.2                </span></span>
 <span><span class="co">#&gt;  [71] cluster_2.1.4                 fs_1.5.2                     </span></span>
 <span><span class="co">#&gt;  [73] magrittr_2.0.3                magick_2.7.3                 </span></span>
 <span><span class="co">#&gt;  [75] scattermore_0.8               ggnewscale_0.4.8             </span></span>
-<span><span class="co">#&gt;  [77] mime_0.12                     evaluate_0.19                </span></span>
+<span><span class="co">#&gt;  [77] mime_0.12                     evaluate_0.20                </span></span>
 <span><span class="co">#&gt;  [79] xtable_1.8-4                  gridExtra_2.3                </span></span>
 <span><span class="co">#&gt;  [81] compiler_4.2.2                tibble_3.1.8                 </span></span>
 <span><span class="co">#&gt;  [83] KernSmooth_2.23-20            crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt;  [85] R.oo_1.25.0                   htmltools_0.5.4              </span></span>
 <span><span class="co">#&gt;  [87] mgcv_1.8-41                   later_1.3.0                  </span></span>
 <span><span class="co">#&gt;  [89] spdep_1.2-7                   DBI_1.1.3                    </span></span>
-<span><span class="co">#&gt;  [91] ExperimentHub_2.6.0           dbplyr_2.2.1                 </span></span>
+<span><span class="co">#&gt;  [91] ExperimentHub_2.6.0           dbplyr_2.3.0                 </span></span>
 <span><span class="co">#&gt;  [93] MASS_7.3-58.1                 rappdirs_0.3.3               </span></span>
 <span><span class="co">#&gt;  [95] sf_1.0-9                      boot_1.3-28.1                </span></span>
 <span><span class="co">#&gt;  [97] Matrix_1.5-3                  cli_3.6.0                    </span></span>
@@ -1550,7 +1538,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [111] RcppAnnoy_0.0.20              Biostrings_2.66.0            </span></span>
 <span><span class="co">#&gt; [113] rmarkdown_2.19                uwot_0.1.14                  </span></span>
 <span><span class="co">#&gt; [115] edgeR_3.40.1                  DelayedMatrixStats_1.20.0    </span></span>
-<span><span class="co">#&gt; [117] curl_4.3.3                    shiny_1.7.4                  </span></span>
+<span><span class="co">#&gt; [117] curl_5.0.0                    shiny_1.7.4                  </span></span>
 <span><span class="co">#&gt; [119] rjson_0.2.21                  lifecycle_1.0.3              </span></span>
 <span><span class="co">#&gt; [121] nlme_3.1-161                  jsonlite_1.8.4               </span></span>
 <span><span class="co">#&gt; [123] Rhdf5lib_1.20.0               BiocNeighbors_1.16.0         </span></span>
@@ -1561,7 +1549,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [133] httr_1.4.4                    interactiveDisplayBase_1.36.0</span></span>
 <span><span class="co">#&gt; [135] glue_1.6.2                    png_0.1-8                    </span></span>
 <span><span class="co">#&gt; [137] BiocVersion_3.16.0            bit_4.0.5                    </span></span>
-<span><span class="co">#&gt; [139] class_7.3-20                  stringi_1.7.8                </span></span>
+<span><span class="co">#&gt; [139] class_7.3-20                  stringi_1.7.12               </span></span>
 <span><span class="co">#&gt; [141] sass_0.4.4                    HDF5Array_1.26.0             </span></span>
 <span><span class="co">#&gt; [143] blob_1.2.3                    textshaping_0.3.6            </span></span>
 <span><span class="co">#&gt; [145] AnnotationHub_3.6.0           memoise_2.0.1                </span></span>
