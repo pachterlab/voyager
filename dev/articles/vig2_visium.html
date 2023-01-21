@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-19</h4>
+            <h4 data-toc-skip class="date">2023-01-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig2_visium.Rmd" class="external-link"><code>vignettes/vig2_visium.Rmd</code></a></small>
       <div class="d-none name"><code>vig2_visium.Rmd</code></div>
@@ -737,7 +737,7 @@ simulations.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>, </span>
-<span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, nsim <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>                                type <span class="op">=</span> <span class="st">"moran.mc"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt; DataFrame with 10 rows and 10 columns</span></span>
@@ -763,8 +763,8 @@ simulations.</p>
 <span><span class="co">#&gt; dia                             NA                     NA</span></span>
 <span><span class="co">#&gt; tissue                          NA                     NA</span></span>
 <span><span class="co">#&gt; sample_id                       NA                     NA</span></span>
-<span><span class="co">#&gt; nCounts                        101             0.00990099</span></span>
-<span><span class="co">#&gt; nGenes                         101             0.00990099</span></span>
+<span><span class="co">#&gt; nCounts                       1001            0.000999001</span></span>
+<span><span class="co">#&gt; nGenes                        1001            0.000999001</span></span>
 <span><span class="co">#&gt;           moran.mc_alternative_Vis5A  moran.mc_method_Vis5A</span></span>
 <span><span class="co">#&gt;                          &lt;character&gt;            &lt;character&gt;</span></span>
 <span><span class="co">#&gt; barcode                           NA                     NA</span></span>
@@ -794,15 +794,67 @@ p-values here are not corrected for multiple hypothesis testing.</p>
 <p>The results can be plotted:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMoranMC.html">plotMoranMC</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-30-1.png" alt="Density plot of Moran's I values from 100 simulations of nCounts and nGenes. The density plots center around 0 and deminish around 0.06 on the right. Vertical lines mark the actual Moran's I. For both nCounts and nGenes, the actual value, at 0.53 and 0.38 respectively, is far higher than the simulated ones, indicating positive spatial autocorrelation." width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-30-1.png" alt="Density plot of Moran's I values from 1000 simulations of nCounts and nGenes. The density plots center around 0 and deminish around 0.06 on the right. Vertical lines mark the actual Moran's I. For both nCounts and nGenes, the actual value, at 0.53 and 0.38 respectively, is far higher than the simulated ones, indicating positive spatial autocorrelation." width="700" style="display: block; margin: auto;"></p>
 <p>By default, the colorblind friendly palette from <a href="https://bioconductor.org/packages/release/bioc/html/dittoSeq.html" class="external-link"><code>dittoSeq</code></a>
-is used for categorical variables. The density is of Moran’s I from the
-simulations where the values are permuted and disconnected from spatial
-locations, and the vertical line is the actual Moran’s I value. The
-simulation indicates that the spatial autocorrelation is
-significant.</p>
+is used for categorical variables. The density plot is of Moran’s I from
+the simulations where the values are permuted and disconnected from
+spatial locations, and the vertical line is the actual Moran’s I value.
+The simulation indicates that the actual Moran’s I is much higher than
+that from the simulations where the values are dissociated from spatial
+locations and permuted among the locations, indicating that spatial
+autocorrelation is very significant.</p>
 <p>Use <code>type = "geary.mc"</code> for permutation testing for
 Geary’s C.</p>
+<p>The <code>spdep</code> package can also compute p-values of Moran’s I
+analytically, but the theory behind the mean and variance of the null
+distribution of Moran’s I assumes normal distribution of the data, while
+gene expression data is generally non-normal. However, according to
+<span class="citation">(Griffith 2010)</span>, with large sample size
+(“preferably at least 100”), mean and variance of Moran’s I of several
+iid non-normal simulated datasets (including negative binomial, which is
+commonly used to model gene expression data) don’t seem to deviate much
+from the values expected from normally distributed data. Spatial
+transcriptomics datasets typically have thousands or more spots or
+cells, so sample size is most likely large enough. Hence using the
+analytical test on non-normal data might not be too bad. However, with
+large sample size, a minuscule difference can create very significant
+p-values. Here we perform the analytical test for Moran’s I:</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>, </span>
+<span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, type <span class="op">=</span> <span class="st">"moran.test"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "moran_Vis5A"                        "K_Vis5A"                           </span></span>
+<span><span class="co">#&gt;  [3] "geary_Vis5A"                        "moran.mc_statistic_Vis5A"          </span></span>
+<span><span class="co">#&gt;  [5] "moran.mc_parameter_Vis5A"           "moran.mc_p.value_Vis5A"            </span></span>
+<span><span class="co">#&gt;  [7] "moran.mc_alternative_Vis5A"         "moran.mc_method_Vis5A"             </span></span>
+<span><span class="co">#&gt;  [9] "moran.mc_data.name_Vis5A"           "moran.mc_res_Vis5A"                </span></span>
+<span><span class="co">#&gt; [11] "moran.test_statistic_Vis5A"         "moran.test_p.value_Vis5A"          </span></span>
+<span><span class="co">#&gt; [13] "moran.test_alternative_Vis5A"       "moran.test_data.name_Vis5A"        </span></span>
+<span><span class="co">#&gt; [15] "moran.test_method_Vis5A"            "moran.test_Moran.I.statistic_Vis5A"</span></span>
+<span><span class="co">#&gt; [17] "moran.test_Expectation_Vis5A"       "moran.test_Variance_Vis5A"</span></span></code></pre></div>
+<p>Now compare the p-values from permutation and analytical test; in
+both cases here, the default alternative hypothesis is positive spatial
+autocorrelation:</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># permutation</span></span>
+<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"moran.mc_p.value_Vis5A"</span>, <span class="st">"moran.test_p.value_Vis5A"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; DataFrame with 2 rows and 2 columns</span></span>
+<span><span class="co">#&gt;         moran.mc_p.value_Vis5A moran.test_p.value_Vis5A</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt;                &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; nCounts            0.000999001             5.41958e-163</span></span>
+<span><span class="co">#&gt; nGenes             0.000999001              2.82666e-87</span></span></code></pre></div>
+<p>The p-values from permutation are limited by the number of
+permutations (1000 here). Either way, both permutation and analytical
+tests indicate very significant positive spatial autocorrelation.</p>
+<p>A limitation of permutation testing of Moran’s I is that it assumes
+that each permutation of the values among the locations is equally
+likely, which is not necessarily true. For instance, in epidemiology,
+disease rate in regions with small population more likely assumes more
+extreme values <span class="citation">(Assunção and Reis 1999)</span>,
+which is analogous to rare cell types and lowly expressed genes in
+histological space given that we divide by total UMI counts per spot.
+The extent this happens may depend on tissue, gene of interest,
+technology, and data normalization method.</p>
 </div>
 <div class="section level3">
 <h3 id="correlogram">Correlogram<a class="anchor" aria-label="anchor" href="#correlogram"></a>
@@ -814,13 +866,13 @@ regular hexagonal grid, order of neighbors is a proxy for distance. For
 more irregular patterns such as single cells, different methods to find
 the spatial neighbors may give different results.</p>
 <p>For <code>colData</code>, Moran’s I correlogram is computed with</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">hvgs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, colGraphName <span class="op">=</span> <span class="st">"visium"</span>, </span>
 <span>                            order <span class="op">=</span> <span class="fl">10</span>, type <span class="op">=</span> <span class="st">"sp.correlogram"</span><span class="op">)</span></span></code></pre></div>
 <p>The results can be plotted with <code>plotCorrelogram</code>:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotCorrelogram.html">plotCorrelogram</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">hvgs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-32-1.png" alt="Line plot with order of neighbors (lags) in the x axis and Moran's I value at each lag in the y axis. The x axis ranges from 1 to 10, and the y axis ranges from 0 to 0.8. The lines show trends of decay of spatial autocorrelation with increasing distance of neighbors. Two genes, Car3 and Mb, are shown. Moran's I of both genes decay somewhat linearly from lag 1 to 10. Car3 decays from around 0.75 to around 0.23. Mb decays from around 0.7 to around 0.13. At each lag the error bars are tight (see next paragraph in the main text) and the p-values are less than 0.001 after Benjamini-Hochberg multiple testing correction over the 2 genes and 10 lags." width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-34-1.png" alt="Line plot with order of neighbors (lags) in the x axis and Moran's I value at each lag in the y axis. The x axis ranges from 1 to 10, and the y axis ranges from 0 to 0.8. The lines show trends of decay of spatial autocorrelation with increasing distance of neighbors. Two genes, Car3 and Mb, are shown. Moran's I of both genes decay somewhat linearly from lag 1 to 10. Car3 decays from around 0.75 to around 0.23. Mb decays from around 0.7 to around 0.13. At each lag the error bars are tight (see next paragraph in the main text) and the p-values are less than 0.001 after Benjamini-Hochberg multiple testing correction over the 2 genes and 10 lags." width="700" style="display: block; margin: auto;"></p>
 <p>The error bars are twice the standard deviation of the Moran’s I
 value. The standard deviation and p-values (null hypothesis is that
 Moran’s I is 0) come from <code><a href="https://r-spatial.github.io/spdep/reference/moran.test.html" class="external-link">moran.test()</a></code> (for Geary’s C
@@ -841,12 +893,12 @@ line is Moran’s I. Sometimes clusters appear in this plot, showing
 different kinds of neighborhoods.</p>
 <p>For gene expression, to use one gene (log normalized value) to
 demonstrate:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"Myh2"</span>, colGraphName <span class="op">=</span> <span class="st">"visium"</span>, </span>
 <span>                            type <span class="op">=</span> <span class="st">"moran.plot"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"Myh2"</span>, graphName <span class="op">=</span> <span class="st">"visium"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-34-1.png" alt="Moran scatter plot of log normalized values of gene Myh2. This plot is described in the upcoming main text." width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-36-1.png" alt="Moran scatter plot of log normalized values of gene Myh2. This plot is described in the upcoming main text." width="700" style="display: block; margin: auto;"></p>
 <p>The dashed lines mark the mean in Myh2 and spatially lagged Myh2.
 There are no singletons here. Some Visium spots with lower Myh2
 expression have neighbors that don’t express Myh2 but spots that don’t
@@ -857,17 +909,17 @@ and those with low expression whose neighbors also have low expression.
 Other features may show different kinds of clusters. We can use k-means
 clustering to identify clusters, though any clustering method supported
 by the <code>bluster</code> package can be used.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span><span class="va">clusts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clusterMoranPlot.html">clusterMoranPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"Myh2"</span>, BLUSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/KmeansParam-class.html" class="external-link">KmeansParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"Myh2"</span>, graphName <span class="op">=</span> <span class="st">"visium"</span>, color_by <span class="op">=</span> <span class="va">clusts</span><span class="op">$</span><span class="va">ENSMUSG00000033196</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-36-1.png" alt="Moran scatter plot of log normalized value of Myh1, colored by 2 k-means clusters, which correspond to the high-high and low-low spots." width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-38-1.png" alt="Moran scatter plot of log normalized value of Myh1, colored by 2 k-means clusters, which correspond to the high-high and low-low spots." width="700" style="display: block; margin: auto;"></p>
 <p>Plot the clusters in space</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">Myh2_moranPlot_clust</span> <span class="op">&lt;-</span> <span class="va">clusts</span><span class="op">$</span><span class="va">ENSMUSG00000033196</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"Myh2_moranPlot_clust"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-37-1.png" alt="Visium spots in space colored by the k-means clusters. Cluster 2 (high-high) are mostly in the upper left and lower left parts of the tissue, and the rest of the spots are cluster 1." width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-39-1.png" alt="Visium spots in space colored by the k-means clusters. Cluster 2 (high-high) are mostly in the upper left and lower left parts of the tissue, and the rest of the spots are cluster 1." width="700" style="display: block; margin: auto;"></p>
 <p>This can also be done for <code>colData</code>,
 <code>annotGeometry</code>, and etc. as in Moran’s I and permutation
 testing.</p>
@@ -901,31 +953,31 @@ I_i = (n-1)\frac{(x_i - \bar{x})\sum_{j=1}^n w_{ij} (x_j -
 \]</span></p>
 <p>It’s similar to global Moran’s I, but the values at locations <span class="math inline">\(i\)</span> are not summed and there’s no
 normalization by the sum of spatial weights.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, type <span class="op">=</span> <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>,</span>
 <span>                            colGraphName <span class="op">=</span> <span class="st">"visium"</span><span class="op">)</span></span></code></pre></div>
 <p>It is useful to plot the log normalized Myh2 gene expression as
 context to interpret the local results:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-39-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-41-1.png" width="700" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>,divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-40-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-42-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>We see that regions with higher Myh2 expression also have stronger
 spatial autocorrelation. It is interesting to see how spatial
 autocorrelation relates to gene expression level, much as finding how
 variance relates to mean in the expression of each gene, which usually
 indicates overdispersion compared to Poisson in scRNA-seq and Visium
 data:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/qplot.html" class="external-link">qplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">symbol</span> <span class="op">==</span> <span class="st">"Myh2"</span>,<span class="op">]</span>,</span>
 <span>      <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, <span class="st">"Myh2"</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Ii"</span><span class="op">]</span>,</span>
 <span>      xlab <span class="op">=</span> <span class="st">"Myh2 (log counts)"</span>, ylab <span class="op">=</span> <span class="st">"localmoran"</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: `qplot()` was deprecated in ggplot2 3.4.0.</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-41-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-43-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>For this gene, Visium spots with higher expression also tend to have
 higher local Moran’s I, but this may or may not apply to other
 genes.</p>
@@ -935,7 +987,7 @@ local spatial method, but other columns can be plotted as well. Use the
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultAttrs()</a></code> function to see which columns are
 present, and use the <code>attribute</code> argument to specify which
 column to plot.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultAttrs</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, <span class="st">"Myh2"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "Ii"             "E.Ii"           "Var.Ii"         "Z.Ii"          </span></span>
 <span><span class="co">#&gt;  [5] "Pr(z != E(Ii))" "mean"           "median"         "pysal"         </span></span>
@@ -950,11 +1002,11 @@ for multiple hypothesis testing with <code><a href="https://r-spatial.github.io/
 <code>spdep</code>, where the number of tests is the number of neighbors
 of each location rather than the total number of locations
 (<code>-log10p_adj</code>).</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, attribute <span class="op">=</span> <span class="st">"-log10p_adj"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-43-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-45-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>In this plot and all following plots of p-values, a divergent palette
 is used to show locations that are significant after adjusting for
 multiple testing and those that are not significant in different colors.
@@ -964,10 +1016,10 @@ significant.</p>
 <p>The “pysal” column displays the quadrants relative to the means in
 the Moran plot. The result is similar to that from k-means clustering
 shown above.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, attribute <span class="op">=</span> <span class="st">"pysal"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-44-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-46-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="getis-ord-gi">Getis-Ord Gi*<a class="anchor" aria-label="anchor" href="#getis-ord-gi"></a>
@@ -989,53 +1041,53 @@ and Gi* and is described in <a href="https://onlinelibrary.wiley.com/doi/10.1111
 paper from 1995</a> <span class="citation">(J. K. Ord and Getis
 1995)</span> and derived in the 1992 paper above.</p>
 <p>Binary weights are recommended for Getis-Ord Gi*.</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium_B"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, style <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, type <span class="op">=</span> <span class="st">"localG_perm"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>,</span>
 <span>                            colGraphName <span class="op">=</span> <span class="st">"visium_B"</span>, include_self <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-47-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-49-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>High values of Gi* indicate hotspots, while low values of Gi*
 indicate coldspots.</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultAttrs</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, <span class="st">"Myh2"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "localG"             "Gi"                 "E.Gi"              </span></span>
 <span><span class="co">#&gt;  [4] "Var.Gi"             "Pr(z != E(Gi))"     "Pr(z != E(Gi)) Sim"</span></span>
 <span><span class="co">#&gt;  [7] "Pr(folded) Sim"     "Skewness"           "Kurtosis"          </span></span>
 <span><span class="co">#&gt; [10] "-log10p Sim"        "-log10p_adj Sim"</span></span></code></pre></div>
 <p>Plot the pseudo-p-values from the simulation</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                attribute <span class="op">=</span> <span class="st">"-log10p_adj Sim"</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-49-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-51-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The hotspots are as expected.</p>
 <p>Local results can also be computed for annotation geometries.</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">annotGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"myofiber_poly2nb_B"</span><span class="op">)</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, type <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, MARGIN <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>                       method <span class="op">=</span> <span class="st">"poly2nb"</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span>, style <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">annotGeometryUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, <span class="st">"area"</span>, </span>
 <span>                                      annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>,</span>
 <span>                                      annotGraphName <span class="op">=</span> <span class="st">"myofiber_poly2nb_B"</span>,</span>
 <span>                                      include_self <span class="op">=</span> <span class="cn">TRUE</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, <span class="st">"area"</span>, </span>
 <span>                annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>,</span>
 <span>                divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-52-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-54-1.png" width="700" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localG_perm"</span>, <span class="st">"area"</span>, </span>
 <span>                annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>,</span>
 <span>                attribute <span class="op">=</span> <span class="st">"-log10p_adj Sim"</span>,</span>
 <span>                divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-53-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-55-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The hotspots and coldspots are as expected.</p>
 </div>
 <div class="section level3">
@@ -1055,16 +1107,16 @@ H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
 <p>By default, <span class="math inline">\(a = 2\)</span> so LOSH is
 like a local variance. See <span class="citation">(J. Keith Ord and
 Getis 2012)</span> for more details and interpretation.</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH.cs"</span>, <span class="st">"Myh2"</span>, </span>
 <span>                            colGraphName <span class="op">=</span> <span class="st">"visium"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH.cs"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-55-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-57-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>For this gene, it isn’t clear whether LOSH relates to gene expression
 levels.</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultAttrs</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH.cs"</span>, <span class="st">"Myh2"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Hi"          "E.Hi"        "Var.Hi"      "Z.Hi"        "x_bar_i"    </span></span>
 <span><span class="co">#&gt; [6] "ei"          "Pr()"        "-log10p"     "-log10p_adj"</span></span></code></pre></div>
@@ -1074,11 +1126,11 @@ chi-squared approximation is described in the 2012 LOSH paper to account
 for non-normality of the data and to approximate the mean and variance
 of the permutation distributions, so p-values of LOSH can be more
 quickly computed, with <code><a href="https://r-spatial.github.io/spdep/reference/LOSH.cs.html" class="external-link">LOSH.cs()</a></code>.</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH.cs"</span>, features <span class="op">=</span> <span class="st">"Myh2"</span>, </span>
 <span>                attribute <span class="op">=</span> <span class="st">"-log10p_adj"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>,</span>
 <span>                divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig2_visium_files/figure-html/unnamed-chunk-57-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig2_visium_files/figure-html/unnamed-chunk-59-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>For this gene, the local conditions are mostly homogenous, with a few
 exceptions around the edge of the tissue.</p>
 </div>
@@ -1134,7 +1186,7 @@ reduction should be interpretable, and scalable.</li>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
@@ -1155,8 +1207,8 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt;  [1] bluster_1.8.0                  BiocParallel_1.32.5           </span></span>
 <span><span class="co">#&gt;  [3] patchwork_1.1.2                scales_1.2.1                  </span></span>
 <span><span class="co">#&gt;  [5] sf_1.0-9                       SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt;  [7] scran_1.26.1                   scater_1.27.3                 </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  scuttle_1.8.3                 </span></span>
+<span><span class="co">#&gt;  [7] scran_1.26.2                   scater_1.27.3                 </span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  scuttle_1.8.4                 </span></span>
 <span><span class="co">#&gt; [11] SingleCellExperiment_1.20.0    SummarizedExperiment_1.28.0   </span></span>
 <span><span class="co">#&gt; [13] Biobase_2.58.0                 GenomicRanges_1.50.2          </span></span>
 <span><span class="co">#&gt; [15] GenomeInfoDb_1.34.6            IRanges_2.32.0                </span></span>
@@ -1220,7 +1272,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [105] dqrng_0.3.0                   XVector_0.38.0               </span></span>
 <span><span class="co">#&gt; [107] stringr_1.5.0                 digest_0.6.31                </span></span>
 <span><span class="co">#&gt; [109] Biostrings_2.66.0             rmarkdown_2.19               </span></span>
-<span><span class="co">#&gt; [111] edgeR_3.40.1                  DelayedMatrixStats_1.20.0    </span></span>
+<span><span class="co">#&gt; [111] edgeR_3.40.2                  DelayedMatrixStats_1.20.0    </span></span>
 <span><span class="co">#&gt; [113] curl_5.0.0                    shiny_1.7.4                  </span></span>
 <span><span class="co">#&gt; [115] rjson_0.2.21                  lifecycle_1.0.3              </span></span>
 <span><span class="co">#&gt; [117] nlme_3.1-161                  jsonlite_1.8.4               </span></span>
@@ -1247,6 +1299,11 @@ reduction should be interpretable, and scalable.</li>
 Anselin, Luc. 1995. <span>“Local Indicators of Spatial <span class="nocase">association-LISA</span>.”</span> <em>Geogr. Anal.</em> 27
 (2): 93–115.
 </div>
+<div id="ref-Assuncao1999-xu" class="csl-entry">
+Assunção, R M, and E A Reis. 1999. <span>“A New Proposal to Adjust
+Moran’s <span>I</span> for Population Density.”</span> <em>Stat.
+Med.</em> 18 (16): 2147–62.
+</div>
 <div id="ref-Fotheringham2009-ak" class="csl-entry">
 Fotheringham, A Stewart. 2009. <span>“<span>‘The Problem of Spatial
 Autocorrelation’</span> and Local Spatial Statistics.”</span> <em>Geogr.
@@ -1257,6 +1314,10 @@ Getis, Arthur, and J Keith Ord. 1992. <span>“The Analysis of Spatial
 Association by Use of Distance Statistics.”</span> In <em>Perspectives
 on Spatial Data Analysis</em>, edited by Luc Anselin and Sergio J Rey,
 127–45. Berlin, Heidelberg: Springer Berlin Heidelberg.
+</div>
+<div id="ref-Griffith2010-uy" class="csl-entry">
+Griffith, Daniel A. 2010. <span>“The Moran Coefficient for Non-Normal
+Data.”</span> <em>J. Stat. Plan. Inference</em> 140 (11): 2980–90.
 </div>
 <div id="ref-Lun2016-yq" class="csl-entry">
 Lun, Aaron T L, Karsten Bach, and John C Marioni. 2016. <span>“Pooling

@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-19</h4>
+            <h4 data-toc-skip class="date">2023-01-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -385,7 +385,7 @@ distributed counts. The coefficient of variation shows the same.</p>
 <div class="section level2">
 <h2 id="normalize-data">Normalize data<a class="anchor" aria-label="anchor" href="#normalize-data"></a>
 </h2>
-<p>We demonstrate the use of <code>scran</code> <span class="citation">(Lun, Bach, and Marioni 2016)</span> for normalization
+<p>We demonstrate the use of <code>scater</code> for normalization
 below, although we note that it is not necessarily the best approach to
 normalizing spatial transcriptomics data. The problem of when and how to
 normalize spatial transcriptomics data is non-trivial because, as the
@@ -402,15 +402,52 @@ artifact to be normalized away as in scRNA-seq data normalization
 methods. In other words, the issue of normalization for spatial
 transcriptomics data, and Visium in particular, is complex and is
 currently unsolved.</p>
+<p>There is no one way to normalize non-spatial scRNA-seq data. The
+commented out code implements the <code>scran</code> method <span class="citation">(Lun, Bach, and Marioni 2016)</span>. To simplify the
+matter, we only perform <code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code> in this
+introductory vignette.</p>
+<p>Note that <code>scater</code>’s <code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code> is quite
+different from that in Seurat. Let <span class="math inline">\(N\)</span> denote the total UMI count in one
+Visium spot, <span class="math inline">\(\bar N\)</span> the average
+total UMI count in all spots in this dataset, and <span class="math inline">\(x\)</span> denote the UMI count of one gene in the
+Visium spot of interest. Seurat performs log normalization as <span class="math inline">\(\mathrm{log}\left( \frac{x}{N/10000} + 1
+\right)\)</span>, where the natural log is used. In contrast, with
+default parameters, <code>scater</code> uses <span class="math inline">\(\mathrm{log_2}\left( \frac{x}{N/\bar N} + 1
+\right)\)</span>. The pseudocount (default to 1), library size factors
+(default to <span class="math inline">\(N/\bar N\)</span>), and
+transform (default to log2) can be changed. Log 2 is used because
+differences in values can be interpreted as log fold change.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/quickCluster.html" class="external-link">quickCluster</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
-<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/computeSumFactors.html" class="external-link">computeSumFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, clusters<span class="op">=</span><span class="va">clusters</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (x, sizes, min.mean = NULL, positive = FALSE, scaling =</span></span>
-<span><span class="co">#&gt; NULL) : encountered non-positive size factor estimates</span></span>
-<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">sizeFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="co"># clusters &lt;- quickCluster(sfe_tissue)</span></span>
+<span><span class="co"># sfe_tissue &lt;- computeSumFactors(sfe_tissue, clusters=clusters)</span></span>
+<span><span class="co"># sfe_tissue &lt;- sfe_tissue[, sizeFactors(sfe_tissue) &gt; 0]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
-<p>Next, we identify highly variable genes, which will be used for
-principal component analysis (PCA) dimensionality reduction.</p>
+<p>Next, we identify highly variable genes (HVGs), which will be used
+for principal component analysis (PCA) dimensionality reduction. Again,
+there are different ways to identify HVGs, and <code>scater</code> does
+so differently from Seurat. In both frameworks, the log normalized data
+is used by default. In summary, in Seurat, with default parameters, a
+Loess curve is fitted to the log transformed data (the log normalized
+data is log transformed for fitting purposes), and the fitted values are
+exponentiated as the expected variance for each gene. Then the expected
+variance and the mean are used to standardize the log normalized gene
+expression; the standardized values are used to calculate a standardized
+variance for each gene. The top HVGs are the genes with the largest
+standardized variance.</p>
+<p>In <code>scater</code>, with default parameters, a parametric
+non-linear curve of variance vs. mean for each gene of the log
+normalized data. Then the log ratio of the actual variance to the fitted
+variance from the curve calculated, and a Loess curve is fitted to this
+log ratio vs. mean for each gene. The “technical” component of the
+variance is the fitted values from the Loess curve. The “biological”
+component is the difference between the actual variance and the Loess
+fitted variance. The top HVGs are genes with the largest biological
+component. See the documentation of <code><a href="https://rdrr.io/pkg/scran/man/modelGeneVar.html" class="external-link">modelGeneVar()</a></code>,
+<code><a href="https://rdrr.io/pkg/scran/man/fitTrendVar.html" class="external-link">fitTrendVar()</a></code>, and <code><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs()</a></code> for more
+details.</p>
+<p>These differences can lead to different downstream results. While we
+don’t comment on which way is better in this vignette, it’s important to
+be aware of such differences.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/modelGeneVar.html" class="external-link">modelGeneVar</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
 <span><span class="va">hvgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="va">dec</span>, n <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span></code></pre></div>
@@ -526,33 +563,33 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.1     AUC.2</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000098178 5.11184e-12 7.68974e-08    0.751120  0.751120  0.874454</span></span>
-<span><span class="co">#&gt; ENSMUSG00000028031 5.80429e-02 1.00000e+00    0.525188  0.540976  0.545455</span></span>
-<span><span class="co">#&gt; ENSMUSG00000041052 8.66625e-02 1.00000e+00    0.508908  0.511364  0.511364</span></span>
-<span><span class="co">#&gt; ENSMUSG00000044349 1.40816e-01 1.00000e+00    0.505682  0.505682  0.505682</span></span>
-<span><span class="co">#&gt; ENSMUSG00000095676 1.40816e-01 1.00000e+00    0.505682  0.505682  0.505682</span></span>
-<span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000087095           1           1         0.5       0.5  0.495192</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5       0.5  0.495192</span></span>
-<span><span class="co">#&gt;                        AUC.3     AUC.4     AUC.5</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000098178  0.911037  0.809641  0.793627</span></span>
-<span><span class="co">#&gt; ENSMUSG00000028031  0.537921  0.525188  0.531750</span></span>
-<span><span class="co">#&gt; ENSMUSG00000041052  0.511364  0.511364  0.508908</span></span>
-<span><span class="co">#&gt; ENSMUSG00000044349  0.505682  0.505682  0.505682</span></span>
-<span><span class="co">#&gt; ENSMUSG00000095676  0.505682  0.505682  0.505682</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000087095  0.497238       0.5  0.497487</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.497238       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.497238       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.494475       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000       0.5  0.500000</span></span></code></pre></div>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 9 columns</span></span>
+<span><span class="co">#&gt;                        p.value       FDR summary.AUC     AUC.1     AUC.2</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000042485 2.60365e-05  0.391667    0.623770  0.827870  0.833725</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030852 2.13967e-03  1.000000    0.599081  0.606773  0.631471</span></span>
+<span><span class="co">#&gt; ENSMUSG00000031636 2.15022e-03  1.000000    0.587406  0.711131  0.720882</span></span>
+<span><span class="co">#&gt; ENSMUSG00000024381 6.46127e-03  1.000000    0.575990  0.651090  0.692941</span></span>
+<span><span class="co">#&gt; ENSMUSG00000035923 7.47808e-03  1.000000    0.570797  0.611401  0.714265</span></span>
+<span><span class="co">#&gt; ...                        ...       ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000025094           1         1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969           1         1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1         1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1         1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1         1         0.5       0.5  0.493333</span></span>
+<span><span class="co">#&gt;                        AUC.3     AUC.4     AUC.5     AUC.7</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000042485  0.623770  0.647269  0.697165  0.873020</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030852  0.587892  0.599081  0.634080  0.848416</span></span>
+<span><span class="co">#&gt; ENSMUSG00000031636  0.587406  0.635609  0.679869  0.776301</span></span>
+<span><span class="co">#&gt; ENSMUSG00000024381  0.575990  0.590047  0.658450  0.786906</span></span>
+<span><span class="co">#&gt; ENSMUSG00000035923  0.570797  0.642437  0.624749  0.845588</span></span>
+<span><span class="co">#&gt; ...                      ...       ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000025094  0.498054       0.5  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.500000       0.5  0.496212       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.500000       0.5  0.496212       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.500000       0.5  0.492424       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649  0.500000       0.5  0.500000       0.5</span></span></code></pre></div>
 <p>Significant markers for each cluster can be obtained as follows:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -658,13 +695,13 @@ SNOW backend.</p>
 <span><span class="co">#&gt; ENSMUSG00000096126  0.00107296 932.00000          NA        NA</span></span>
 <span><span class="co">#&gt; ENSMUSG00000033845  0.47048031   3.22458          NA        NA</span></span>
 <span><span class="co">#&gt; ENSMUSG00000025903  0.34686963   4.19497          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033813  0.32388797   4.61140   0.0197543   29.6881</span></span>
+<span><span class="co">#&gt; ENSMUSG00000033813  0.32388797   4.61140   0.0489758   19.2181</span></span>
 <span><span class="co">#&gt; ...                        ...       ...         ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 2.47976e+03  0.778314    0.605694   4.70819</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064363 1.45282e+04  0.944991    0.680026   4.79491</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064367 2.34858e+02  1.094895    0.635612   2.74170</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 2.47976e+03  0.778314    0.410657  11.31069</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064363 1.45282e+04  0.944991    0.546964  13.62886</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064367 2.34858e+02  1.094895    0.480634   3.75345</span></span>
 <span><span class="co">#&gt; ENSMUSG00000064368 1.31941e-01 11.015664          NA        NA</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064370 1.48225e+04  1.007833    0.722350   3.95620</span></span></code></pre></div>
+<span><span class="co">#&gt; ENSMUSG00000064370 1.48225e+04  1.007833    0.621060  10.71784</span></span></code></pre></div>
 <p>The <code>NA</code>’s are for genes that are not highly variable and
 Moran’s I was not computed for those genes. We rank the genes by Moran’s
 I and plot them in space as follows:</p>
@@ -675,17 +712,17 @@ I and plot them in space as follows:</p>
 <span><span class="co">#&gt; DataFrame with 2000 rows and 2 columns</span></span>
 <span><span class="co">#&gt;                         symbol moran_Vis5A</span></span>
 <span><span class="co">#&gt;                    &lt;character&gt;   &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064351      mt-Co1    0.814980</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064345      mt-Nd2    0.784339</span></span>
-<span><span class="co">#&gt; ENSMUSG00000018893          Mb    0.761522</span></span>
-<span><span class="co">#&gt; ENSMUSG00000056328        Myh1    0.727282</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064370     mt-Cytb    0.722350</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064351      mt-Co1    0.764044</span></span>
+<span><span class="co">#&gt; ENSMUSG00000050335      Lgals3    0.741474</span></span>
+<span><span class="co">#&gt; ENSMUSG00000029304        Spp1    0.734937</span></span>
+<span><span class="co">#&gt; ENSMUSG00000021939        Ctsb    0.708362</span></span>
+<span><span class="co">#&gt; ENSMUSG00000004207        Psap    0.706552</span></span>
 <span><span class="co">#&gt; ...                        ...         ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000055436      Srsf11  -0.0397929</span></span>
-<span><span class="co">#&gt; ENSMUSG00000067713      Prkag1  -0.0404949</span></span>
-<span><span class="co">#&gt; ENSMUSG00000090262       Mpv17  -0.0423579</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030061        Uba3  -0.0424449</span></span>
-<span><span class="co">#&gt; ENSMUSG00000020964       Sel1l  -0.0507095</span></span></code></pre></div>
+<span><span class="co">#&gt; ENSMUSG00000039911       Spsb1  -0.0333357</span></span>
+<span><span class="co">#&gt; ENSMUSG00000015711       Prune  -0.0354638</span></span>
+<span><span class="co">#&gt; ENSMUSG00000042675       Ypel3  -0.0369055</span></span>
+<span><span class="co">#&gt; ENSMUSG00000090262       Mpv17  -0.0412250</span></span>
+<span><span class="co">#&gt; ENSMUSG00000020964       Sel1l  -0.0443975</span></span></code></pre></div>
 <p>We see that some genes that have strong positive spatial
 autocorrelation, but don’t observe strong negative spatial
 autocorrelation. We can plot the genes with the strongest positive
@@ -745,8 +782,8 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [1] sparseMatrixStats_1.10.0       stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt;  [3] BiocParallel_1.32.5            SFEData_1.0.2                 </span></span>
 <span><span class="co">#&gt;  [5] bluster_1.8.0                  patchwork_1.1.2               </span></span>
-<span><span class="co">#&gt;  [7] scran_1.26.1                   scater_1.27.3                 </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  scuttle_1.8.3                 </span></span>
+<span><span class="co">#&gt;  [7] scran_1.26.2                   scater_1.27.3                 </span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  scuttle_1.8.4                 </span></span>
 <span><span class="co">#&gt; [11] SpatialExperiment_1.8.0        SingleCellExperiment_1.20.0   </span></span>
 <span><span class="co">#&gt; [13] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
 <span><span class="co">#&gt; [15] GenomicRanges_1.50.2           GenomeInfoDb_1.34.6           </span></span>
@@ -776,7 +813,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [35] scico_1.3.1                   BiocSingular_1.14.0          </span></span>
 <span><span class="co">#&gt;  [37] DropletUtils_1.18.1           Rhdf5lib_1.20.0              </span></span>
 <span><span class="co">#&gt;  [39] HDF5Array_1.26.0              scales_1.2.1                 </span></span>
-<span><span class="co">#&gt;  [41] DBI_1.1.3                     edgeR_3.40.1                 </span></span>
+<span><span class="co">#&gt;  [41] DBI_1.1.3                     edgeR_3.40.2                 </span></span>
 <span><span class="co">#&gt;  [43] Rcpp_1.0.9                    xtable_1.8-4                 </span></span>
 <span><span class="co">#&gt;  [45] viridisLite_0.4.1             spData_2.2.1                 </span></span>
 <span><span class="co">#&gt;  [47] units_0.8-1                   dqrng_0.3.0                  </span></span>
