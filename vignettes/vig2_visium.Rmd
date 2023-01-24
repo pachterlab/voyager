@@ -76,9 +76,9 @@ sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
 ```
 
 ```{r}
-clusters <- quickCluster(sfe_tissue)
-sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
-sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
+#clusters <- quickCluster(sfe_tissue)
+#sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+#sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
 sfe_tissue <- logNormCounts(sfe_tissue)
 ```
 
@@ -96,8 +96,7 @@ The myofiber polygons from `annotGeometries` can be plotted as shown below, colo
 plotSpatialFeature(sfe_tissue, features = "nCounts", 
                    colGeometryName = "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), 
-                   aes_use = "color", size = 0.5, fill = NA)
+                   annot_aes = list(fill = "area"), alpha = 0.5)
 ```
 
 The larger myofibers seem to have fewer total counts, possibly because the larger size of these myofibers dilutes the transcripts. This hints at the need for a normalization procedure.
@@ -153,15 +152,13 @@ The `exprs_values` argument specifies the assay to use, which is by default "log
 plot_counts_logcounts <- function(sfe, feature) {
   p1 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), aes_use = "color",
-                   fill = NA, size = 0.5, show_symbol = TRUE, 
-                   exprs_values = "counts") +
+                   annot_aes = list(fill = "area"), show_symbol = TRUE, 
+                   exprs_values = "counts", alpha = 0.5) +
     ggtitle("Raw counts")
   p2 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), aes_use = "color",
-                   fill = NA, size = 0.5, show_symbol = TRUE, 
-                   exprs_values = "logcounts") +
+                   annot_aes = list(fill = "area"), show_symbol = TRUE, 
+                   exprs_values = "logcounts", alpha = 0.5) +
     ggtitle("Log normalized counts")
   p1 + p2 +
     plot_annotation(title = feature)
@@ -254,7 +251,7 @@ To add the results to the SFE object, specifically for colData:
 ```{r}
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"),
                                 colGraphName = "visium", type = "moran")
-head(colFeatureData(sfe_tissue), 10)
+colFeatureData(sfe_tissue)[c("nCounts", "nGenes"),]
 ```
 
 For `colData`, the results are added to `colFeatureData(sfe)`, and features for which Moran's I is not calculated have NA. The column names of `featureData` distinguishes between different samples (there's only one sample in this dataset), and are parsed by plotting functions. 
@@ -293,7 +290,7 @@ To compute Geary's C for features of interest replace `type = "moran"` in the pr
 ```{r}
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"),
                                 colGraphName = "visium", type = "geary")
-head(colFeatureData(sfe_tissue), 10)
+colFeatureData(sfe_tissue)[c("nCounts", "nGenes"),]
 ```
 
 There's only one column for K since it's the same for Moran's I and Geary's C. Here both Moran's I and Geary's C suggest positive spatial autocorrelation for `nCounts` and `nGenes`.
@@ -309,7 +306,7 @@ set.seed(29)
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"), 
                                 colGraphName = "visium", nsim = 1000,
                                 type = "moran.mc")
-head(colFeatureData(sfe_tissue), 10)
+colFeatureData(sfe_tissue)[c("nCounts", "nGenes"),]
 ```
 
 Note that while the test is performed for multiple features, the p-values here are not corrected for multiple hypothesis testing.
@@ -335,7 +332,7 @@ Now compare the p-values from permutation and analytical test; in both cases her
 
 ```{r}
 # permutation
-colFeatureData(sfe_tissue)[c("nCounts", "nGenes"),c("moran.mc_p.value_Vis5A", "moran.test_p.value_Vis5A")]
+colFeatureData(sfe_tissue)[c("nCounts", "nGenes"), c("moran.mc_p.value_Vis5A", "moran.test_p.value_Vis5A")]
 ```
 
 The p-values from permutation are limited by the number of permutations (1000 here). Either way, both permutation and analytical tests indicate very significant positive spatial autocorrelation.
@@ -458,7 +455,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 ```
 
 ## Getis-Ord Gi\*
-Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in the 1992 paper above.
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in [@Getis1992-fr].
 
 Binary weights are recommended for Getis-Ord Gi\*.
 ```{r}
