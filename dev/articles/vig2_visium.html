@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-23</h4>
+            <h4 data-toc-skip class="date">2023-01-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig2_visium.Rmd" class="external-link"><code>vignettes/vig2_visium.Rmd</code></a></small>
       <div class="d-none name"><code>vig2_visium.Rmd</code></div>
@@ -289,11 +289,9 @@ currently unsolved.</p>
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/quickCluster.html" class="external-link">quickCluster</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span>
-<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/computeSumFactors.html" class="external-link">computeSumFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, clusters<span class="op">=</span><span class="va">clusters</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (x, sizes, min.mean = NULL, positive = FALSE, scaling =</span></span>
-<span><span class="co">#&gt; NULL) : encountered non-positive size factor estimates</span></span>
-<span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">sizeFactors</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="co">#clusters &lt;- quickCluster(sfe_tissue)</span></span>
+<span><span class="co">#sfe_tissue &lt;- computeSumFactors(sfe_tissue, clusters=clusters)</span></span>
+<span><span class="co">#sfe_tissue &lt;- sfe_tissue[, sizeFactors(sfe_tissue) &gt; 0]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 <p>Myofiber and nuclei segmentation polygons are available in this
 dataset in the <code>annotGeometries</code> field. Myofibers were
@@ -339,8 +337,7 @@ for the <code>annotGeometry</code>.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="st">"nCounts"</span>, </span>
 <span>                   colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>,</span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, </span>
-<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, </span>
-<span>                   aes_use <span class="op">=</span> <span class="st">"color"</span>, size <span class="op">=</span> <span class="fl">0.5</span>, fill <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
+<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig2_visium_files/figure-html/unnamed-chunk-8-1.png" alt="Plot of Visium spots in tissue and myofiber polygons in physical space. Visium spots are colored by nCounts, and myofibers are colored by area." width="700" style="display: block; margin: auto;"></p>
 <p>The larger myofibers seem to have fewer total counts, possibly
 because the larger size of these myofibers dilutes the transcripts. This
@@ -429,15 +426,13 @@ both the raw counts and the log normalized counts:</p>
 <span><span class="va">plot_counts_logcounts</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span>, <span class="st">"spotPoly"</span>,</span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, </span>
-<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, aes_use <span class="op">=</span> <span class="st">"color"</span>,</span>
-<span>                   fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                   exprs_values <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                   exprs_values <span class="op">=</span> <span class="st">"counts"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Raw counts"</span><span class="op">)</span></span>
 <span>  <span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span>, <span class="st">"spotPoly"</span>,</span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, </span>
-<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, aes_use <span class="op">=</span> <span class="st">"color"</span>,</span>
-<span>                   fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                   exprs_values <span class="op">=</span> <span class="st">"logcounts"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                   exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Log normalized counts"</span><span class="op">)</span></span>
 <span>  <span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="va">feature</span><span class="op">)</span></span>
@@ -605,20 +600,12 @@ matrix.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,</span>
 <span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, type <span class="op">=</span> <span class="st">"moran"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; DataFrame with 10 rows and 2 columns</span></span>
-<span><span class="co">#&gt;           moran_Vis5A   K_Vis5A</span></span>
-<span><span class="co">#&gt;             &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; barcode            NA        NA</span></span>
-<span><span class="co">#&gt; col                NA        NA</span></span>
-<span><span class="co">#&gt; row                NA        NA</span></span>
-<span><span class="co">#&gt; x                  NA        NA</span></span>
-<span><span class="co">#&gt; y                  NA        NA</span></span>
-<span><span class="co">#&gt; dia                NA        NA</span></span>
-<span><span class="co">#&gt; tissue             NA        NA</span></span>
-<span><span class="co">#&gt; sample_id          NA        NA</span></span>
-<span><span class="co">#&gt; nCounts      0.528705   3.00082</span></span>
-<span><span class="co">#&gt; nGenes       0.384028   3.88036</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="co">#&gt; DataFrame with 2 rows and 2 columns</span></span>
+<span><span class="co">#&gt;         moran_Vis5A   K_Vis5A</span></span>
+<span><span class="co">#&gt;           &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; nCounts    0.528705   3.00082</span></span>
+<span><span class="co">#&gt; nGenes     0.384028   3.88036</span></span></code></pre></div>
 <p>For <code>colData</code>, the results are added to
 <code>colFeatureData(sfe)</code>, and features for which Moran’s I is
 not calculated have NA. The column names of <code>featureData</code>
@@ -663,20 +650,20 @@ with the <code>BPPARAM</code> argument.</p>
 <span><span class="co">#&gt; DataFrame with 6 rows and 8 columns</span></span>
 <span><span class="co">#&gt;                               Ensembl      symbol            type     means</span></span>
 <span><span class="co">#&gt;                           &lt;character&gt; &lt;character&gt;     &lt;character&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000018893 ENSMUSG00000018893          Mb Gene Expression   2.11118</span></span>
-<span><span class="co">#&gt; ENSMUSG00000027559 ENSMUSG00000027559        Car3 Gene Expression   2.32632</span></span>
-<span><span class="co">#&gt; ENSMUSG00000056328 ENSMUSG00000056328        Myh1 Gene Expression   4.82572</span></span>
 <span><span class="co">#&gt; ENSMUSG00000029304 ENSMUSG00000029304        Spp1 Gene Expression   1.63722</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033196 ENSMUSG00000033196        Myh2 Gene Expression   0.97476</span></span>
+<span><span class="co">#&gt; ENSMUSG00000050708 ENSMUSG00000050708        Ftl1 Gene Expression   2.37981</span></span>
 <span><span class="co">#&gt; ENSMUSG00000050335 ENSMUSG00000050335      Lgals3 Gene Expression   1.43189</span></span>
+<span><span class="co">#&gt; ENSMUSG00000021939 ENSMUSG00000021939        Ctsb Gene Expression   2.73117</span></span>
+<span><span class="co">#&gt; ENSMUSG00000021190 ENSMUSG00000021190        Lgmn Gene Expression   1.11278</span></span>
+<span><span class="co">#&gt; ENSMUSG00000018893 ENSMUSG00000018893          Mb Gene Expression   2.11118</span></span>
 <span><span class="co">#&gt;                         vars       cv2 moran_Vis5A   K_Vis5A</span></span>
 <span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000018893   74.1782   16.6428    0.761522   1.80210</span></span>
-<span><span class="co">#&gt; ENSMUSG00000027559   74.3233   13.7336    0.706457   1.76082</span></span>
-<span><span class="co">#&gt; ENSMUSG00000056328  302.2385   12.9785    0.727282   2.14464</span></span>
-<span><span class="co">#&gt; ENSMUSG00000029304   60.1583   22.4430    0.656386   1.72563</span></span>
-<span><span class="co">#&gt; ENSMUSG00000033196   24.0374   25.2984    0.706747   2.45049</span></span>
-<span><span class="co">#&gt; ENSMUSG00000050335   48.0739   23.4471    0.652904   1.93371</span></span></code></pre></div>
+<span><span class="co">#&gt; ENSMUSG00000029304   60.1583   22.4430    0.734937   1.63516</span></span>
+<span><span class="co">#&gt; ENSMUSG00000050708  162.1931   28.6384    0.665563   1.81841</span></span>
+<span><span class="co">#&gt; ENSMUSG00000050335   48.0739   23.4471    0.741474   1.68098</span></span>
+<span><span class="co">#&gt; ENSMUSG00000021939  131.6232   17.6455    0.708362   1.86896</span></span>
+<span><span class="co">#&gt; ENSMUSG00000021190   21.4505   17.3228    0.659916   1.66838</span></span>
+<span><span class="co">#&gt; ENSMUSG00000018893   74.1782   16.6428    0.675840   1.82510</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="gearys-c">Geary’s C<a class="anchor" aria-label="anchor" href="#gearys-c"></a>
@@ -695,20 +682,12 @@ example, for <code>colData</code></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,</span>
 <span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, type <span class="op">=</span> <span class="st">"geary"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; DataFrame with 10 rows and 3 columns</span></span>
-<span><span class="co">#&gt;           moran_Vis5A   K_Vis5A geary_Vis5A</span></span>
-<span><span class="co">#&gt;             &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; barcode            NA        NA          NA</span></span>
-<span><span class="co">#&gt; col                NA        NA          NA</span></span>
-<span><span class="co">#&gt; row                NA        NA          NA</span></span>
-<span><span class="co">#&gt; x                  NA        NA          NA</span></span>
-<span><span class="co">#&gt; y                  NA        NA          NA</span></span>
-<span><span class="co">#&gt; dia                NA        NA          NA</span></span>
-<span><span class="co">#&gt; tissue             NA        NA          NA</span></span>
-<span><span class="co">#&gt; sample_id          NA        NA          NA</span></span>
-<span><span class="co">#&gt; nCounts      0.528705   3.00082    0.474892</span></span>
-<span><span class="co">#&gt; nGenes       0.384028   3.88036    0.605797</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="co">#&gt; DataFrame with 2 rows and 3 columns</span></span>
+<span><span class="co">#&gt;         moran_Vis5A   K_Vis5A geary_Vis5A</span></span>
+<span><span class="co">#&gt;           &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; nCounts    0.528705   3.00082    0.474892</span></span>
+<span><span class="co">#&gt; nGenes     0.384028   3.88036    0.605797</span></span></code></pre></div>
 <p>There’s only one column for K since it’s the same for Moran’s I and
 Geary’s C. Here both Moran’s I and Geary’s C suggest positive spatial
 autocorrelation for <code>nCounts</code> and <code>nGenes</code>.</p>
@@ -739,56 +718,24 @@ simulations.</p>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>, </span>
 <span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>                                type <span class="op">=</span> <span class="st">"moran.mc"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; DataFrame with 10 rows and 10 columns</span></span>
-<span><span class="co">#&gt;           moran_Vis5A   K_Vis5A geary_Vis5A moran.mc_statistic_Vis5A</span></span>
-<span><span class="co">#&gt;             &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;                &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; barcode            NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; col                NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; row                NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; x                  NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; y                  NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; dia                NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; tissue             NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; sample_id          NA        NA          NA                       NA</span></span>
-<span><span class="co">#&gt; nCounts      0.528705   3.00082    0.474892                 0.528705</span></span>
-<span><span class="co">#&gt; nGenes       0.384028   3.88036    0.605797                 0.384028</span></span>
-<span><span class="co">#&gt;           moran.mc_parameter_Vis5A moran.mc_p.value_Vis5A</span></span>
-<span><span class="co">#&gt;                          &lt;numeric&gt;              &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; barcode                         NA                     NA</span></span>
-<span><span class="co">#&gt; col                             NA                     NA</span></span>
-<span><span class="co">#&gt; row                             NA                     NA</span></span>
-<span><span class="co">#&gt; x                               NA                     NA</span></span>
-<span><span class="co">#&gt; y                               NA                     NA</span></span>
-<span><span class="co">#&gt; dia                             NA                     NA</span></span>
-<span><span class="co">#&gt; tissue                          NA                     NA</span></span>
-<span><span class="co">#&gt; sample_id                       NA                     NA</span></span>
-<span><span class="co">#&gt; nCounts                       1001            0.000999001</span></span>
-<span><span class="co">#&gt; nGenes                        1001            0.000999001</span></span>
-<span><span class="co">#&gt;           moran.mc_alternative_Vis5A  moran.mc_method_Vis5A</span></span>
-<span><span class="co">#&gt;                          &lt;character&gt;            &lt;character&gt;</span></span>
-<span><span class="co">#&gt; barcode                           NA                     NA</span></span>
-<span><span class="co">#&gt; col                               NA                     NA</span></span>
-<span><span class="co">#&gt; row                               NA                     NA</span></span>
-<span><span class="co">#&gt; x                                 NA                     NA</span></span>
-<span><span class="co">#&gt; y                                 NA                     NA</span></span>
-<span><span class="co">#&gt; dia                               NA                     NA</span></span>
-<span><span class="co">#&gt; tissue                            NA                     NA</span></span>
-<span><span class="co">#&gt; sample_id                         NA                     NA</span></span>
-<span><span class="co">#&gt; nCounts                      greater Monte-Carlo simulati..</span></span>
-<span><span class="co">#&gt; nGenes                       greater Monte-Carlo simulati..</span></span>
-<span><span class="co">#&gt;           moran.mc_data.name_Vis5A                      moran.mc_res_Vis5A</span></span>
-<span><span class="co">#&gt;                        &lt;character&gt;                                  &lt;list&gt;</span></span>
-<span><span class="co">#&gt; barcode                         NA                                      NA</span></span>
-<span><span class="co">#&gt; col                             NA                                      NA</span></span>
-<span><span class="co">#&gt; row                             NA                                      NA</span></span>
-<span><span class="co">#&gt; x                               NA                                      NA</span></span>
-<span><span class="co">#&gt; y                               NA                                      NA</span></span>
-<span><span class="co">#&gt; dia                             NA                                      NA</span></span>
-<span><span class="co">#&gt; tissue                          NA                                      NA</span></span>
-<span><span class="co">#&gt; sample_id                       NA                                      NA</span></span>
-<span><span class="co">#&gt; nCounts    x[i, ] \nweights: lis..  0.01412148,-0.00176052,-0.04080756,...</span></span>
-<span><span class="co">#&gt; nGenes     x[i, ] \nweights: lis..    0.02184113,0.02509103,0.00585069,...</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="co">#&gt; DataFrame with 2 rows and 10 columns</span></span>
+<span><span class="co">#&gt;         moran_Vis5A   K_Vis5A geary_Vis5A moran.mc_statistic_Vis5A</span></span>
+<span><span class="co">#&gt;           &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;                &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; nCounts    0.528705   3.00082    0.474892                 0.528705</span></span>
+<span><span class="co">#&gt; nGenes     0.384028   3.88036    0.605797                 0.384028</span></span>
+<span><span class="co">#&gt;         moran.mc_parameter_Vis5A moran.mc_p.value_Vis5A</span></span>
+<span><span class="co">#&gt;                        &lt;numeric&gt;              &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; nCounts                     1001            0.000999001</span></span>
+<span><span class="co">#&gt; nGenes                      1001            0.000999001</span></span>
+<span><span class="co">#&gt;         moran.mc_alternative_Vis5A  moran.mc_method_Vis5A</span></span>
+<span><span class="co">#&gt;                        &lt;character&gt;            &lt;character&gt;</span></span>
+<span><span class="co">#&gt; nCounts                    greater Monte-Carlo simulati..</span></span>
+<span><span class="co">#&gt; nGenes                     greater Monte-Carlo simulati..</span></span>
+<span><span class="co">#&gt;         moran.mc_data.name_Vis5A                      moran.mc_res_Vis5A</span></span>
+<span><span class="co">#&gt;                      &lt;character&gt;                                  &lt;list&gt;</span></span>
+<span><span class="co">#&gt; nCounts  x[i, ] \nweights: lis.. -0.00244073,-0.01476250,-0.00826943,...</span></span>
+<span><span class="co">#&gt; nGenes   x[i, ] \nweights: lis.. -0.00955170, 0.00243942, 0.00585069,...</span></span></code></pre></div>
 <p>Note that while the test is performed for multiple features, the
 p-values here are not corrected for multiple hypothesis testing.</p>
 <p>The results can be plotted:</p>
@@ -837,7 +784,7 @@ both cases here, the default alternative hypothesis is positive spatial
 autocorrelation:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># permutation</span></span>
-<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"moran.mc_p.value_Vis5A"</span>, <span class="st">"moran.test_p.value_Vis5A"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/colFeatureData.html">colFeatureData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"moran.mc_p.value_Vis5A"</span>, <span class="st">"moran.test_p.value_Vis5A"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; DataFrame with 2 rows and 2 columns</span></span>
 <span><span class="co">#&gt;         moran.mc_p.value_Vis5A moran.test_p.value_Vis5A</span></span>
 <span><span class="co">#&gt;                      &lt;numeric&gt;                &lt;numeric&gt;</span></span>
@@ -1039,7 +986,8 @@ and variance of the lagged value, while Gi* includes the location <span class="m
 similar results. The mean and variance used in the z-score differ in Gi
 and Gi* and is described in <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x" class="external-link">this
 paper from 1995</a> <span class="citation">(J. K. Ord and Getis
-1995)</span> and derived in the 1992 paper above.</p>
+1995)</span> and derived in <span class="citation">(Getis and Ord
+1992)</span>.</p>
 <p>Binary weights are recommended for Getis-Ord Gi*.</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium_B"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, style <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span></code></pre></div>
