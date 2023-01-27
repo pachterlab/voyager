@@ -529,16 +529,10 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NA,
                                annot_divergent = FALSE,
-<<<<<<< HEAD
                                annot_diverge_center = NULL,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
                                color = "black", fill = "gray80", show_symbol = TRUE,
-=======
-                               annot_diverge_center = NA,
-                               size = 0, shape = 16, linetype = 1, alpha = 1,
-                               color = NA, fill = "gray80", show_symbol = TRUE,
->>>>>>> main
                                scattermore = FALSE, pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
