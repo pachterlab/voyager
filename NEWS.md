@@ -1,6 +1,9 @@
 # Version 1.1.7
 * Added bbox argument to spatial plotting functions to zoom in with a bounding box
 
+# Version 1.0.8
+* Flipped the divergent palettes so the warm color means high value.
+
 # Version 1.0.7
 * Fixed bug with assigning local results for each sample for colData, colGeometry, and annotGeometry.
 

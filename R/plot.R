@@ -79,15 +79,6 @@ getDivergeRange <- function(values, diverge_center = 0) {
         pal <- pal_fun(values = .pal, na.value = "gray", name = name)
     } else {
         if (divergent) {
-            if (!is.null(diverge_center)) {
-                r <- df[[feature_aes[[.aes]]]]
-                pal_range <- getDivergeRange(r, diverge_center)
-                pal_begin <- pal_range[1]
-                pal_end <- pal_range[2]
-            } else {
-                pal_begin <- 0
-                pal_end <- 1
-            }
             .pal <- switch(option,
                 "roma",
                 "bam"
@@ -97,8 +88,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 color = scale_color_scico
             )
             pal <- pal_fun(
-                palette = .pal, begin = pal_begin,
-                end = pal_end, na.value = "gray", name = name
+                palette = .pal, direction = -1, midpoint = diverge_center,
+                na.value = "gray", name = name
             )
         } else {
             pal_fun <- switch(.aes,
@@ -536,12 +527,18 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts", bbox = NULL,
                                aes_use = c("fill", "color", "shape", "linetype"),
-                               divergent = FALSE, diverge_center = NULL,
+                               divergent = FALSE, diverge_center = NA,
                                annot_divergent = FALSE,
+<<<<<<< HEAD
                                annot_diverge_center = NULL,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
                                color = "black", fill = "gray80", show_symbol = TRUE,
+=======
+                               annot_diverge_center = NA,
+                               size = 0, shape = 16, linetype = 1, alpha = 1,
+                               color = NA, fill = "gray80", show_symbol = TRUE,
+>>>>>>> main
                                scattermore = FALSE, pointsize = 0, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
