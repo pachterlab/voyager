@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) anlaysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
+In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) analysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
 
 This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz]. The code can be run on [Google Colab](https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing).
 
@@ -97,7 +97,9 @@ Next we find number of genes detected per spot. The commented out line of code s
 violin <- plotColData(sfe, "nGenes", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary",
+                              annot_fixed = list(fill = NA, color = "black", 
+                                                 size = 0.5)) +
     theme_void()
 violin + spatial
 ```
@@ -116,7 +118,9 @@ As is commonly done for scRNA-seq data, we plot the proportion of mitochondriall
 violin <- plotColData(sfe, "prop_mito", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "prop_mito", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary",
+                              annot_fixed = list(fill = NA, color = "black", 
+                                                 size = 0.5)) +
     theme_void()
 violin + spatial
 ```
@@ -229,7 +233,7 @@ spatialReducedDim(sfe_tissue, "PCA", ncomponents = 4,
     theme_void()
 ```
 
-PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
+PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
 
 It is also possible to run UMAP following the PCA, as is done for scRNA-seq. We do not recommend producing a UMAP since the procedure distorts distances, and does not respect either local or global structure in the data [@Chari2021-hb]. However, for completeness, we show how to compute a UMAP below:
 ```{r}
@@ -274,8 +278,8 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 ```
 
 These genes are interesting to view in spatial context:
-```{r, fig.width=9, fig.height=9}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly") &
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 4) &
     theme_void()
 ```
 

@@ -134,7 +134,7 @@ names(colData(sfe))
 
 ```{r, fig.width=8, fig.height=6}
 plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"),
-                   ncol = 2)
+                   ncol = 2) & theme_void()
 ```
 
 The H&E image needs to be rotated to be aligned to the Visium spots. As the tissue can be mounted in any orientation, there is no standard rotation to align the image to the spots. The `rotateImg()` function in `SpatialExperiment` rotates the image and degrees is clockwise. The `mirroImg()` function reflects the image. At present `SpatialExperiment` does not automatically rotate or reflect the image. This much be done manually. 
@@ -230,7 +230,9 @@ plotPCA(sfe_tissue, ncomponents = 5, colour_by = "cluster")
 ```
 
 ```{r}
-plotSpatialFeature(sfe_tissue, features = "cluster", colGeometryName = "spotPoly")
+plotSpatialFeature(sfe_tissue, features = "cluster", 
+                   colGeometryName = "spotPoly") +
+    theme_void()
 ```
 
 ```{r, fig.width=8, fig.height=8}

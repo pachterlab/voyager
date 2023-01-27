@@ -245,7 +245,8 @@ tissueBoundary(sfe) <- tb$simplified
 
 ```{r}
 plotSpatialFeature(sfe, "sum", annotGeometryName = "tissueBoundary", 
-                   annot_fixed = list(fill = NA, size = 0.5, color = "black"))
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
+    theme_void()
 ```
 
 Then we can use geometric operations to find which spots intersect tissue, which spots are covered by tissue, and how much of each spot intersects tissue.
@@ -269,7 +270,8 @@ sfe$diff_sr <- case_when(sfe$in_tissue == sfe$int_tissue ~ "same",
 plotSpatialFeature(sfe, "diff_sr", 
                    annotGeometryName = "tissueBoundary", 
                    annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
-    scale_fill_brewer(type = "div", palette = 4)
+    scale_fill_brewer(type = "div", palette = 4) +
+    theme_void()
 ```
 
 Spots at the margin can intersect the tissue without being covered by it.
@@ -277,7 +279,8 @@ Spots at the margin can intersect the tissue without being covered by it.
 sfe$diff_int_cov <- sfe$int_tissue != sfe$cov_tissue
 plotSpatialFeature(sfe, "diff_int_cov", 
                    annotGeometryName = "tissueBoundary", 
-                   annot_fixed = list(fill = NA, size = 0.5, color = "black"))
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
+    theme_void()
 ```
 
 We can also get the geometries of the intersections between the tissue and the Visium spots, and then calculate what percentage of each spot is in tissue. However, this percentage may not be very useful if the tissue segmentation is subject to error. This percentage may be more useful for pathologist annotated histological regions or objects such as nuclei and myofibers.
@@ -333,7 +336,8 @@ sfe_tissue <- colDataUnivariate(sfe_tissue, "localmoran", qc_features)
 ```{r, fig.width=8, fig.height=6}
 plotLocalResult(sfe_tissue, "localmoran", qc_features, ncol = 2,
                 colGeometryName = "spotPoly", divergent = TRUE, 
-                diverge_center = 0)
+                diverge_center = 0) &
+    theme_void()
 ```
 
 ```{r}
@@ -342,7 +346,8 @@ sfe_tissue <- colDataUnivariate(sfe_tissue, "LOSH", qc_features)
 
 ```{r, fig.width=8, fig.height=6}
 plotLocalResult(sfe_tissue, "LOSH", qc_features, ncol = 2,
-                colGeometryName = "spotPoly")
+                colGeometryName = "spotPoly") &
+    theme_void()
 ```
 
 ```{r}
@@ -384,7 +389,7 @@ top_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 ```
 
 ```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, top_moran, ncol = 3)
+plotSpatialFeature(sfe_tissue, top_moran, ncol = 3) & theme_void()
 ```
 
 Here global Moran's I seems to be more about tissue structure. 
@@ -397,7 +402,7 @@ neg_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 ```
 
 ```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3)
+plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3) & theme_void()
 ```
 
 ```{r}
@@ -477,7 +482,7 @@ top_moran2 <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 ```
 
 ```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3)
+plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3) & theme_void()
 ```
 
 Although this Moran's I was not computed in histological space, these genes with the highest Moran's I in PCA space also show spatial structure, as different cell types reside in different spatial regions.
