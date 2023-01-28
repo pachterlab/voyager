@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-26</h4>
+            <h4 data-toc-skip class="date">2023-01-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -292,7 +292,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  32.211   1.649  34.145</span></span></code></pre>
+<span><span class="co">#&gt;  31.258   1.372  32.773</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -304,7 +304,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.054   0.271   2.338</span></span></code></pre>
+<span><span class="co">#&gt;   2.212   0.247   2.461</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code> took about 2
 seconds. Using <code>geom_scattermore()</code> and plotting cell density
@@ -571,7 +571,8 @@ counts?</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
 <span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span>
-<span><span class="co">#&gt; Warning: Removed 1332 rows containing non-finite values (`stat_bin2d()`).</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning: Removed 1332 rows containing non-finite values</span></span>
+<span><span class="co">#&gt; (`stat_bin2d()`).</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
 <p>The outliers in percentage of blank counts have low total counts. But
 some seemingly real cells with sizable nCounts also have not so low
@@ -688,7 +689,7 @@ approximation of contiguity based on the visual inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 378.060   1.498 380.849</span></span></code></pre></div>
+<span><span class="co">#&gt; 412.455   1.725 417.116</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -730,7 +731,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 158.467   2.053 161.038</span></span></code></pre></div>
+<span><span class="co">#&gt; 164.958   3.324 169.050</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -796,7 +797,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 220.114  22.588 134.420</span></span></code></pre></div>
+<span><span class="co">#&gt; 286.679  41.646 201.664</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1054,11 +1055,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.852   1.723  25.617</span></span>
+<span><span class="co">#&gt;  28.784   2.062  30.986</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19508246 1041.9   34947216 1866.4         NA  34947216 1866.4</span></span>
-<span><span class="co">#&gt; Vcells 261756382 1997.1  585324222 4465.7      16384 585141617 4464.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19507592 1041.9   34942145 1866.2         NA  34942145 1866.2</span></span>
+<span><span class="co">#&gt; Vcells 261754215 1997.1  585321800 4465.7      16384 585139598 4464.3</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1208,7 +1209,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [21] GenomeInfoDb_1.34.7            IRanges_2.32.0                </span></span>
 <span><span class="co">#&gt; [23] S4Vectors_0.36.1               BiocGenerics_0.44.0           </span></span>
 <span><span class="co">#&gt; [25] MatrixGenerics_1.10.0          matrixStats_0.63.0            </span></span>
-<span><span class="co">#&gt; [27] SFEData_1.0.2                  Voyager_1.0.7                 </span></span>
+<span><span class="co">#&gt; [27] SFEData_1.0.2                  Voyager_1.0.8                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.2               </span></span>
@@ -1219,7 +1220,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [11] codetools_0.2-18              ragg_1.2.5                   </span></span>
 <span><span class="co">#&gt;  [13] units_0.8-1                   withr_2.5.0                  </span></span>
 <span><span class="co">#&gt;  [15] colorspace_2.1-0              filelock_1.0.2               </span></span>
-<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.41                   </span></span>
+<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.42                   </span></span>
 <span><span class="co">#&gt;  [19] wk_0.7.1                      labeling_0.4.2               </span></span>
 <span><span class="co">#&gt;  [21] GenomeInfoDbData_1.2.9        bit64_4.0.5                  </span></span>
 <span><span class="co">#&gt;  [23] farver_2.1.1                  rhdf5_2.42.0                 </span></span>
@@ -1242,7 +1243,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [57] proxy_0.4-27                  Rcpp_1.0.10                  </span></span>
 <span><span class="co">#&gt;  [59] plyr_1.8.8                    sparseMatrixStats_1.10.0     </span></span>
 <span><span class="co">#&gt;  [61] zlibbioc_1.44.0               classInt_0.4-8               </span></span>
-<span><span class="co">#&gt;  [63] purrr_1.0.1                   RCurl_1.98-1.9               </span></span>
+<span><span class="co">#&gt;  [63] purrr_1.0.1                   RCurl_1.98-1.10              </span></span>
 <span><span class="co">#&gt;  [65] dbscan_1.1-11                 deldir_1.0-6                 </span></span>
 <span><span class="co">#&gt;  [67] viridis_0.6.2                 cowplot_1.1.1                </span></span>
 <span><span class="co">#&gt;  [69] zoo_1.8-11                    ggrepel_0.9.2                </span></span>
@@ -1270,7 +1271,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [113] shiny_1.7.4                   rjson_0.2.21                 </span></span>
 <span><span class="co">#&gt; [115] lifecycle_1.0.3               jsonlite_1.8.4               </span></span>
 <span><span class="co">#&gt; [117] Rhdf5lib_1.20.0               desc_1.4.2                   </span></span>
-<span><span class="co">#&gt; [119] viridisLite_0.4.1             limma_3.54.0                 </span></span>
+<span><span class="co">#&gt; [119] viridisLite_0.4.1             limma_3.54.1                 </span></span>
 <span><span class="co">#&gt; [121] fansi_1.0.4                   pillar_1.8.1                 </span></span>
 <span><span class="co">#&gt; [123] lattice_0.20-45               KEGGREST_1.38.0              </span></span>
 <span><span class="co">#&gt; [125] fastmap_1.1.0                 httr_1.4.4                   </span></span>

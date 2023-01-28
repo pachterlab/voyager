@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-26</h4>
+            <h4 data-toc-skip class="date">2023-01-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig4_cosmx.Rmd" class="external-link"><code>vignettes/vig4_cosmx.Rmd</code></a></small>
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -627,9 +627,13 @@ value for k in each scenario. For the purpose of this vignette, say use
 <span class="math inline">\(k = 5\)</span>, and the execution time isn’t
 outrageous. The argument <code>style = "W"</code> is to row normalize
 the adjacency matrix of the spatial neighborhood graph as this is
-necessary for Moran scatter plot. In this tissue, many cells appear
-contiguous, but since cell segmentation is imperfect, there are many
-false singletons, which makes polygon contiguity neighbors from
+necessary for Moran scatter plot. Inverse distance edge weights can take
+small values but what matter is the relative rather than the absolute
+values as the distance itself is in arbitrary unit; row normalizing the
+adjacency matrix makes the weighted average value from the neighbors
+comparable to the value at the cell itself. In this tissue, many cells
+appear contiguous, but since cell segmentation is imperfect, there are
+many false singletons, which makes polygon contiguity neighbors from
 <code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> problematic without some modification. But based
 on the distribution of the number of neighbors based on contiguity,
 <span class="math inline">\(k = 5\)</span> doesn’t seem to be a bad
@@ -641,7 +645,7 @@ approximate for contiguity.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 113.957   2.386 118.571</span></span></code></pre></div>
+<span><span class="co">#&gt; 105.648   0.947 108.136</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -679,7 +683,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 352.084  13.291 386.092</span></span></code></pre></div>
+<span><span class="co">#&gt; 349.953  13.596 386.341</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -806,68 +810,7 @@ highest loadings to find what the other PCs mean.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span></code></pre></div>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density_2d.html" class="external-link">geom_density2d</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig4_cosmx_files/figure-html/unnamed-chunk-49-1.png" width="768" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plot_reddim.html" class="external-link">plotUMAP</a></span><span class="op">(</span><span class="va">sfe</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
@@ -1029,7 +972,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt; [21] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
 <span><span class="co">#&gt; [23] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
 <span><span class="co">#&gt; [25] matrixStats_0.63.0             SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt; [27] Voyager_1.0.7                 </span></span>
+<span><span class="co">#&gt; [27] Voyager_1.0.8                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.2               </span></span>
@@ -1040,7 +983,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                    units_0.8-1                  </span></span>
 <span><span class="co">#&gt;  [13] statmod_1.5.0                 withr_2.5.0                  </span></span>
 <span><span class="co">#&gt;  [15] colorspace_2.1-0              filelock_1.0.2               </span></span>
-<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.41                   </span></span>
+<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.42                   </span></span>
 <span><span class="co">#&gt;  [19] wk_0.7.1                      labeling_0.4.2               </span></span>
 <span><span class="co">#&gt;  [21] GenomeInfoDbData_1.2.9        pheatmap_1.0.12              </span></span>
 <span><span class="co">#&gt;  [23] bit64_4.0.5                   farver_2.1.1                 </span></span>
@@ -1048,63 +991,62 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [27] vctrs_0.5.2                   generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [29] xfun_0.36                     BiocFileCache_2.6.0          </span></span>
 <span><span class="co">#&gt;  [31] R6_2.5.1                      ggbeeswarm_0.7.1             </span></span>
-<span><span class="co">#&gt;  [33] rsvd_1.0.5                    isoband_0.2.7                </span></span>
-<span><span class="co">#&gt;  [35] locfit_1.5-9.7                bitops_1.0-7                 </span></span>
-<span><span class="co">#&gt;  [37] rhdf5filters_1.10.0           cachem_1.0.6                 </span></span>
-<span><span class="co">#&gt;  [39] DelayedArray_0.24.0           assertthat_0.2.1             </span></span>
-<span><span class="co">#&gt;  [41] promises_1.2.0.1              scales_1.2.1                 </span></span>
-<span><span class="co">#&gt;  [43] beeswarm_0.4.0                gtable_0.3.1                 </span></span>
-<span><span class="co">#&gt;  [45] beachmat_2.14.0               rlang_1.0.6                  </span></span>
-<span><span class="co">#&gt;  [47] systemfonts_1.0.4             splines_4.2.2                </span></span>
-<span><span class="co">#&gt;  [49] scico_1.3.1                   BiocManager_1.30.19          </span></span>
-<span><span class="co">#&gt;  [51] s2_1.1.2                      yaml_2.3.7                   </span></span>
-<span><span class="co">#&gt;  [53] httpuv_1.6.8                  tools_4.2.2                  </span></span>
-<span><span class="co">#&gt;  [55] ellipsis_0.3.2                jquerylib_0.1.4              </span></span>
-<span><span class="co">#&gt;  [57] RColorBrewer_1.1-3            proxy_0.4-27                 </span></span>
-<span><span class="co">#&gt;  [59] Rcpp_1.0.10                   sparseMatrixStats_1.10.0     </span></span>
-<span><span class="co">#&gt;  [61] zlibbioc_1.44.0               classInt_0.4-8               </span></span>
-<span><span class="co">#&gt;  [63] purrr_1.0.1                   RCurl_1.98-1.9               </span></span>
-<span><span class="co">#&gt;  [65] dbscan_1.1-11                 deldir_1.0-6                 </span></span>
-<span><span class="co">#&gt;  [67] viridis_0.6.2                 cowplot_1.1.1                </span></span>
-<span><span class="co">#&gt;  [69] ggrepel_0.9.2                 cluster_2.1.4                </span></span>
-<span><span class="co">#&gt;  [71] fs_1.6.0                      magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [73] magick_2.7.3                  scattermore_0.8              </span></span>
-<span><span class="co">#&gt;  [75] ggnewscale_0.4.8              mime_0.12                    </span></span>
-<span><span class="co">#&gt;  [77] evaluate_0.20                 xtable_1.8-4                 </span></span>
-<span><span class="co">#&gt;  [79] gridExtra_2.3                 compiler_4.2.2               </span></span>
-<span><span class="co">#&gt;  [81] tibble_3.1.8                  KernSmooth_2.23-20           </span></span>
-<span><span class="co">#&gt;  [83] crayon_1.5.2                  R.oo_1.25.0                  </span></span>
-<span><span class="co">#&gt;  [85] htmltools_0.5.4               mgcv_1.8-41                  </span></span>
-<span><span class="co">#&gt;  [87] later_1.3.0                   DBI_1.1.3                    </span></span>
-<span><span class="co">#&gt;  [89] ExperimentHub_2.6.0           dbplyr_2.3.0                 </span></span>
-<span><span class="co">#&gt;  [91] MASS_7.3-58.2                 rappdirs_0.3.3               </span></span>
-<span><span class="co">#&gt;  [93] boot_1.3-28.1                 Matrix_1.5-3                 </span></span>
-<span><span class="co">#&gt;  [95] cli_3.6.0                     R.methodsS3_1.8.2            </span></span>
-<span><span class="co">#&gt;  [97] parallel_4.2.2                metapod_1.6.0                </span></span>
-<span><span class="co">#&gt;  [99] igraph_1.3.5                  pkgconfig_2.0.3              </span></span>
-<span><span class="co">#&gt; [101] pkgdown_2.0.7                 vipor_0.4.5                  </span></span>
-<span><span class="co">#&gt; [103] bslib_0.4.2                   dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt; [105] XVector_0.38.0                digest_0.6.31                </span></span>
-<span><span class="co">#&gt; [107] RcppAnnoy_0.0.20              Biostrings_2.66.0            </span></span>
-<span><span class="co">#&gt; [109] rmarkdown_2.20                uwot_0.1.14                  </span></span>
-<span><span class="co">#&gt; [111] edgeR_3.40.2                  DelayedMatrixStats_1.20.0    </span></span>
-<span><span class="co">#&gt; [113] curl_5.0.0                    shiny_1.7.4                  </span></span>
-<span><span class="co">#&gt; [115] rjson_0.2.21                  lifecycle_1.0.3              </span></span>
-<span><span class="co">#&gt; [117] nlme_3.1-161                  jsonlite_1.8.4               </span></span>
-<span><span class="co">#&gt; [119] Rhdf5lib_1.20.0               BiocNeighbors_1.16.0         </span></span>
-<span><span class="co">#&gt; [121] desc_1.4.2                    viridisLite_0.4.1            </span></span>
-<span><span class="co">#&gt; [123] limma_3.54.0                  fansi_1.0.4                  </span></span>
-<span><span class="co">#&gt; [125] pillar_1.8.1                  lattice_0.20-45              </span></span>
-<span><span class="co">#&gt; [127] KEGGREST_1.38.0               fastmap_1.1.0                </span></span>
-<span><span class="co">#&gt; [129] httr_1.4.4                    interactiveDisplayBase_1.36.0</span></span>
-<span><span class="co">#&gt; [131] glue_1.6.2                    png_0.1-8                    </span></span>
-<span><span class="co">#&gt; [133] BiocVersion_3.16.0            bit_4.0.5                    </span></span>
-<span><span class="co">#&gt; [135] class_7.3-21                  stringi_1.7.12               </span></span>
-<span><span class="co">#&gt; [137] sass_0.4.5                    HDF5Array_1.26.0             </span></span>
-<span><span class="co">#&gt; [139] blob_1.2.3                    textshaping_0.3.6            </span></span>
-<span><span class="co">#&gt; [141] AnnotationHub_3.6.0           memoise_2.0.1                </span></span>
-<span><span class="co">#&gt; [143] dplyr_1.0.10                  irlba_2.3.5.1                </span></span>
-<span><span class="co">#&gt; [145] e1071_1.7-12</span></span></code></pre></div>
+<span><span class="co">#&gt;  [33] rsvd_1.0.5                    locfit_1.5-9.7               </span></span>
+<span><span class="co">#&gt;  [35] bitops_1.0-7                  rhdf5filters_1.10.0          </span></span>
+<span><span class="co">#&gt;  [37] cachem_1.0.6                  DelayedArray_0.24.0          </span></span>
+<span><span class="co">#&gt;  [39] assertthat_0.2.1              promises_1.2.0.1             </span></span>
+<span><span class="co">#&gt;  [41] scales_1.2.1                  beeswarm_0.4.0               </span></span>
+<span><span class="co">#&gt;  [43] gtable_0.3.1                  beachmat_2.14.0              </span></span>
+<span><span class="co">#&gt;  [45] rlang_1.0.6                   systemfonts_1.0.4            </span></span>
+<span><span class="co">#&gt;  [47] splines_4.2.2                 scico_1.3.1                  </span></span>
+<span><span class="co">#&gt;  [49] BiocManager_1.30.19           s2_1.1.2                     </span></span>
+<span><span class="co">#&gt;  [51] yaml_2.3.7                    httpuv_1.6.8                 </span></span>
+<span><span class="co">#&gt;  [53] tools_4.2.2                   ellipsis_0.3.2               </span></span>
+<span><span class="co">#&gt;  [55] jquerylib_0.1.4               RColorBrewer_1.1-3           </span></span>
+<span><span class="co">#&gt;  [57] proxy_0.4-27                  Rcpp_1.0.10                  </span></span>
+<span><span class="co">#&gt;  [59] sparseMatrixStats_1.10.0      zlibbioc_1.44.0              </span></span>
+<span><span class="co">#&gt;  [61] classInt_0.4-8                purrr_1.0.1                  </span></span>
+<span><span class="co">#&gt;  [63] RCurl_1.98-1.10               dbscan_1.1-11                </span></span>
+<span><span class="co">#&gt;  [65] deldir_1.0-6                  viridis_0.6.2                </span></span>
+<span><span class="co">#&gt;  [67] cowplot_1.1.1                 ggrepel_0.9.2                </span></span>
+<span><span class="co">#&gt;  [69] cluster_2.1.4                 fs_1.6.0                     </span></span>
+<span><span class="co">#&gt;  [71] magrittr_2.0.3                magick_2.7.3                 </span></span>
+<span><span class="co">#&gt;  [73] scattermore_0.8               ggnewscale_0.4.8             </span></span>
+<span><span class="co">#&gt;  [75] mime_0.12                     evaluate_0.20                </span></span>
+<span><span class="co">#&gt;  [77] xtable_1.8-4                  gridExtra_2.3                </span></span>
+<span><span class="co">#&gt;  [79] compiler_4.2.2                tibble_3.1.8                 </span></span>
+<span><span class="co">#&gt;  [81] KernSmooth_2.23-20            crayon_1.5.2                 </span></span>
+<span><span class="co">#&gt;  [83] R.oo_1.25.0                   htmltools_0.5.4              </span></span>
+<span><span class="co">#&gt;  [85] mgcv_1.8-41                   later_1.3.0                  </span></span>
+<span><span class="co">#&gt;  [87] DBI_1.1.3                     ExperimentHub_2.6.0          </span></span>
+<span><span class="co">#&gt;  [89] dbplyr_2.3.0                  rappdirs_0.3.3               </span></span>
+<span><span class="co">#&gt;  [91] boot_1.3-28.1                 Matrix_1.5-3                 </span></span>
+<span><span class="co">#&gt;  [93] cli_3.6.0                     R.methodsS3_1.8.2            </span></span>
+<span><span class="co">#&gt;  [95] parallel_4.2.2                metapod_1.6.0                </span></span>
+<span><span class="co">#&gt;  [97] igraph_1.3.5                  pkgconfig_2.0.3              </span></span>
+<span><span class="co">#&gt;  [99] pkgdown_2.0.7                 vipor_0.4.5                  </span></span>
+<span><span class="co">#&gt; [101] bslib_0.4.2                   dqrng_0.3.0                  </span></span>
+<span><span class="co">#&gt; [103] XVector_0.38.0                digest_0.6.31                </span></span>
+<span><span class="co">#&gt; [105] RcppAnnoy_0.0.20              Biostrings_2.66.0            </span></span>
+<span><span class="co">#&gt; [107] rmarkdown_2.20                uwot_0.1.14                  </span></span>
+<span><span class="co">#&gt; [109] edgeR_3.40.2                  DelayedMatrixStats_1.20.0    </span></span>
+<span><span class="co">#&gt; [111] curl_5.0.0                    shiny_1.7.4                  </span></span>
+<span><span class="co">#&gt; [113] rjson_0.2.21                  lifecycle_1.0.3              </span></span>
+<span><span class="co">#&gt; [115] nlme_3.1-161                  jsonlite_1.8.4               </span></span>
+<span><span class="co">#&gt; [117] Rhdf5lib_1.20.0               BiocNeighbors_1.16.0         </span></span>
+<span><span class="co">#&gt; [119] desc_1.4.2                    viridisLite_0.4.1            </span></span>
+<span><span class="co">#&gt; [121] limma_3.54.1                  fansi_1.0.4                  </span></span>
+<span><span class="co">#&gt; [123] pillar_1.8.1                  lattice_0.20-45              </span></span>
+<span><span class="co">#&gt; [125] KEGGREST_1.38.0               fastmap_1.1.0                </span></span>
+<span><span class="co">#&gt; [127] httr_1.4.4                    interactiveDisplayBase_1.36.0</span></span>
+<span><span class="co">#&gt; [129] glue_1.6.2                    png_0.1-8                    </span></span>
+<span><span class="co">#&gt; [131] BiocVersion_3.16.0            bit_4.0.5                    </span></span>
+<span><span class="co">#&gt; [133] class_7.3-21                  stringi_1.7.12               </span></span>
+<span><span class="co">#&gt; [135] sass_0.4.5                    HDF5Array_1.26.0             </span></span>
+<span><span class="co">#&gt; [137] blob_1.2.3                    textshaping_0.3.6            </span></span>
+<span><span class="co">#&gt; [139] AnnotationHub_3.6.0           memoise_2.0.1                </span></span>
+<span><span class="co">#&gt; [141] dplyr_1.0.10                  irlba_2.3.5.1                </span></span>
+<span><span class="co">#&gt; [143] e1071_1.7-12</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

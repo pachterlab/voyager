@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-27</h4>
+            <h4 data-toc-skip class="date">2023-01-28</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/visium_10x_spatial.Rmd" class="external-link"><code>vignettes/visium_10x_spatial.Rmd</code></a></small>
       <div class="d-none name"><code>visium_10x_spatial.Rmd</code></div>
@@ -293,8 +293,8 @@ introductory vignette</a>.</p>
 <p>Here we read the data into R as an SFE object.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/read10xVisiumSFE.html" class="external-link">read10xVisiumSFE</a></span><span class="op">(</span>samples <span class="op">=</span> <span class="st">"outs"</span>, type <span class="op">=</span> <span class="st">"sparse"</span>, data <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: as(&lt;dgTMatrix&gt;, "dgCMatrix") is deprecated since Matrix 1.5-0; do as(.,</span></span>
-<span><span class="co">#&gt; "CsparseMatrix") instead</span></span>
+<span><span class="co">#&gt; Warning: as(&lt;dgTMatrix&gt;, "dgCMatrix") is deprecated since Matrix 1.5-0; do</span></span>
+<span><span class="co">#&gt; as(., "CsparseMatrix") instead</span></span>
 <span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
 <span><span class="co">#&gt; dim: 32285 4992 </span></span>
 <span><span class="co">#&gt; metadata(0):</span></span>
@@ -516,7 +516,8 @@ to match the coordinates of the spots</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/annotGeometries.html" class="external-link">tissueBoundary</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">tb</span><span class="op">$</span><span class="va">simplified</span></span></code></pre></div>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"sum"</span>, annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>, </span>
-<span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 <p>Then we can use geometric operations to find which spots intersect
 tissue, which spots are covered by tissue, and how much of each spot
@@ -539,7 +540,8 @@ based on tissue segmentation here:</p>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"diff_sr"</span>, </span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>, </span>
 <span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"div"</span>, palette <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"div"</span>, palette <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
 <span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
@@ -549,7 +551,8 @@ it.</p>
 <code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">diff_int_cov</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">int_tissue</span> <span class="op">!=</span> <span class="va">sfe</span><span class="op">$</span><span class="va">cov_tissue</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"diff_int_cov"</span>, </span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>, </span>
-<span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
 <p>We can also get the geometries of the intersections between the
 tissue and the Visium spots, and then calculate what percentage of each
@@ -598,13 +601,15 @@ counts.</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, <span class="va">qc_features</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-48-1.png" width="768"></p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH"</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH"</span>, <span class="va">qc_features</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
+<span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-50-1.png" width="768"></p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran.plot"</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
@@ -638,7 +643,7 @@ genes with the highest Moran’s I.</p>
 <code class="sourceCode R"><span><span class="va">top_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, </span>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-58-1.png" width="864"></p>
 <p>Here global Moran’s I seems to be more about tissue structure.</p>
 <p>Some genes have negative Moran’s I that might not be statistically
@@ -647,7 +652,7 @@ significant</p>
 <code class="sourceCode R"><span><span class="va">neg_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, </span>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">neg_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">neg_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-60-1.png" width="864"></p>
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran.mc"</span>, <span class="va">neg_moran</span>, </span>
@@ -741,7 +746,7 @@ than in histological space:</p>
 <code class="sourceCode R"><span><span class="va">top_moran2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, </span>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran2</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran2</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-71-1.png" width="864"></p>
 <p>Although this Moran’s I was not computed in histological space, these
 genes with the highest Moran’s I in PCA space also show spatial
@@ -782,7 +787,7 @@ regions.</p>
 <span><span class="co">#&gt; [21] GenomeInfoDb_1.34.7            IRanges_2.32.0                </span></span>
 <span><span class="co">#&gt; [23] S4Vectors_0.36.1               BiocGenerics_0.44.0           </span></span>
 <span><span class="co">#&gt; [25] MatrixGenerics_1.10.0          matrixStats_0.63.0            </span></span>
-<span><span class="co">#&gt; [27] SpatialFeatureExperiment_1.0.3 Voyager_1.0.7                 </span></span>
+<span><span class="co">#&gt; [27] SpatialFeatureExperiment_1.0.3 Voyager_1.0.8                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] systemfonts_1.0.4         igraph_1.3.5             </span></span>
@@ -794,12 +799,12 @@ regions.</p>
 <span><span class="co">#&gt;  [13] fansi_1.0.4               magrittr_2.0.3           </span></span>
 <span><span class="co">#&gt;  [15] memoise_2.0.1             geojsonsf_2.0.3          </span></span>
 <span><span class="co">#&gt;  [17] ScaledMatrix_1.6.0        SpatialExperiment_1.8.0  </span></span>
-<span><span class="co">#&gt;  [19] cluster_2.1.4             limma_3.54.0             </span></span>
+<span><span class="co">#&gt;  [19] cluster_2.1.4             limma_3.54.1             </span></span>
 <span><span class="co">#&gt;  [21] R.utils_2.12.2            pkgdown_2.0.7            </span></span>
 <span><span class="co">#&gt;  [23] jpeg_0.1-10               colorspace_2.1-0         </span></span>
 <span><span class="co">#&gt;  [25] ggrepel_0.9.2             jsonvalidate_1.3.2       </span></span>
 <span><span class="co">#&gt;  [27] textshaping_0.3.6         xfun_0.36                </span></span>
-<span><span class="co">#&gt;  [29] RCurl_1.98-1.9            jsonlite_1.8.4           </span></span>
+<span><span class="co">#&gt;  [29] RCurl_1.98-1.10           jsonlite_1.8.4           </span></span>
 <span><span class="co">#&gt;  [31] glue_1.6.2                gtable_0.3.1             </span></span>
 <span><span class="co">#&gt;  [33] zlibbioc_1.44.0           XVector_0.38.0           </span></span>
 <span><span class="co">#&gt;  [35] V8_4.2.2                  DelayedArray_0.24.0      </span></span>
@@ -825,7 +830,7 @@ regions.</p>
 <span><span class="co">#&gt;  [75] generics_0.1.3            evaluate_0.20            </span></span>
 <span><span class="co">#&gt;  [77] fastmap_1.1.0             fftwtools_0.9-11         </span></span>
 <span><span class="co">#&gt;  [79] yaml_2.3.7                ragg_1.2.5               </span></span>
-<span><span class="co">#&gt;  [81] knitr_1.41                fs_1.6.0                 </span></span>
+<span><span class="co">#&gt;  [81] knitr_1.42                fs_1.6.0                 </span></span>
 <span><span class="co">#&gt;  [83] purrr_1.0.1               s2_1.1.2                 </span></span>
 <span><span class="co">#&gt;  [85] nlme_3.1-161              sparseMatrixStats_1.10.0 </span></span>
 <span><span class="co">#&gt;  [87] R.oo_1.25.0               compiler_4.2.2           </span></span>

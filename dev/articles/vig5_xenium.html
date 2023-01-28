@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.7</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-01-26</h4>
+            <h4 data-toc-skip class="date">2023-01-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
@@ -744,7 +744,8 @@ have no transcripts detected.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span>sides <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Transformation introduced infinite values in continuous x-axis</span></span>
-<span><span class="co">#&gt; Warning: Removed 565577 rows containing non-finite values (`stat_bin()`).</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning: Removed 565577 rows containing non-finite values</span></span>
+<span><span class="co">#&gt; (`stat_bin()`).</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-31-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The vast majority of these cells have less than 1% of transcript
 counts from negative controls, but there are outliers with up to
@@ -924,7 +925,7 @@ time of spatial autocorrelation metrics.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 116.816   1.124 118.843</span></span></code></pre></div>
+<span><span class="co">#&gt; 115.607   0.385 116.693</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -988,7 +989,7 @@ normalize the data.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  85.217   6.542  47.818</span></span></code></pre></div>
+<span><span class="co">#&gt;  97.471   6.425  53.788</span></span></code></pre></div>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="va">is_any_neg</span></span></code></pre></div>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
@@ -1477,7 +1478,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [17] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
 <span><span class="co">#&gt; [19] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
 <span><span class="co">#&gt; [21] matrixStats_0.63.0             SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt; [23] Voyager_1.0.7                 </span></span>
+<span><span class="co">#&gt; [23] Voyager_1.0.8                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.2                    R.utils_2.12.2               </span></span>
@@ -1488,7 +1489,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                    units_0.8-1                  </span></span>
 <span><span class="co">#&gt;  [13] statmod_1.5.0                 withr_2.5.0                  </span></span>
 <span><span class="co">#&gt;  [15] colorspace_2.1-0              filelock_1.0.2               </span></span>
-<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.41                   </span></span>
+<span><span class="co">#&gt;  [17] highr_0.10                    knitr_1.42                   </span></span>
 <span><span class="co">#&gt;  [19] wk_0.7.1                      labeling_0.4.2               </span></span>
 <span><span class="co">#&gt;  [21] GenomeInfoDbData_1.2.9        pheatmap_1.0.12              </span></span>
 <span><span class="co">#&gt;  [23] bit64_4.0.5                   farver_2.1.1                 </span></span>
@@ -1512,7 +1513,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [59] proxy_0.4-27                  Rcpp_1.0.10                  </span></span>
 <span><span class="co">#&gt;  [61] sparseMatrixStats_1.10.0      zlibbioc_1.44.0              </span></span>
 <span><span class="co">#&gt;  [63] classInt_0.4-8                purrr_1.0.1                  </span></span>
-<span><span class="co">#&gt;  [65] RCurl_1.98-1.9                dbscan_1.1-11                </span></span>
+<span><span class="co">#&gt;  [65] RCurl_1.98-1.10               dbscan_1.1-11                </span></span>
 <span><span class="co">#&gt;  [67] deldir_1.0-6                  viridis_0.6.2                </span></span>
 <span><span class="co">#&gt;  [69] cowplot_1.1.1                 ggrepel_0.9.2                </span></span>
 <span><span class="co">#&gt;  [71] cluster_2.1.4                 fs_1.6.0                     </span></span>
@@ -1543,7 +1544,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [121] nlme_3.1-161                  jsonlite_1.8.4               </span></span>
 <span><span class="co">#&gt; [123] Rhdf5lib_1.20.0               BiocNeighbors_1.16.0         </span></span>
 <span><span class="co">#&gt; [125] desc_1.4.2                    viridisLite_0.4.1            </span></span>
-<span><span class="co">#&gt; [127] limma_3.54.0                  fansi_1.0.4                  </span></span>
+<span><span class="co">#&gt; [127] limma_3.54.1                  fansi_1.0.4                  </span></span>
 <span><span class="co">#&gt; [129] pillar_1.8.1                  lattice_0.20-45              </span></span>
 <span><span class="co">#&gt; [131] KEGGREST_1.38.0               fastmap_1.1.0                </span></span>
 <span><span class="co">#&gt; [133] httr_1.4.4                    interactiveDisplayBase_1.36.0</span></span>
