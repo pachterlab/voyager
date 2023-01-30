@@ -492,7 +492,7 @@ test_that("plotCellBin2D", {
 # Using bbox
 sfe1 <- McKellarMuscleData("small")
 sfe2 <- McKellarMuscleData("small2")
-sfe <- cbind(sfe1, sfe2)
+sfe <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
 sfe <- removeEmptySpace(sfe)
 
 annotGeometry(sfe, "myofiber_simplified", sample_id = "all", translate = FALSE) <-
