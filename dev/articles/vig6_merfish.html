@@ -121,7 +121,7 @@ downloaded as CSV files and read into R. While 7 z-planes were imaged,
 cell segmentation is only available in one z-plane. The cell polygons
 are in HDF5 files, with one HDF5 file per field of view (FOV), and
 there’re over 1000 FOVs in this dataset. Converting these HDF5 files
-into an <code>sf</code> data frame is not trivial. See the <a href="https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes" class="external-link">vignette
+into an <code>sf</code> data frame is not trivial. See the <a href="https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes">vignette
 on creating a <code>SpatialFeatureExperiment</code> (SFE) object</a> for
 code used to do the conversion, and the polygons are included in the SFE
 object. The cell metadata already has cell volume. If the polygons are
@@ -292,7 +292,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  31.723   1.443  33.329</span></span></code></pre>
+<span><span class="co">#&gt;  30.743   1.468  32.320</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -304,7 +304,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.918   0.278   2.196</span></span></code></pre>
+<span><span class="co">#&gt;   2.051   0.239   2.292</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code> took about 2
 seconds. Using <code>geom_scattermore()</code> and plotting cell density
@@ -474,7 +474,7 @@ datasets with different numbers of genes.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts_normed"</span>, <span class="st">"nGenes_normed"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
-<p>As with the <a href="https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells" class="external-link">Xenium
+<p>As with the <a href="https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells">Xenium
 dataset</a>, there are mysterious regular notches in the histogram of
 the number of genes detected.</p>
 <p>We also plot the number of genes detected per cell, with
@@ -689,7 +689,7 @@ approximation of contiguity based on the visual inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 399.453   1.294 402.431</span></span></code></pre></div>
+<span><span class="co">#&gt; 382.321   1.309 384.972</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -731,7 +731,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 164.867   2.184 167.719</span></span></code></pre></div>
+<span><span class="co">#&gt; 162.168   2.883 165.723</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -797,7 +797,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 261.104  26.632 162.785</span></span></code></pre></div>
+<span><span class="co">#&gt; 255.194  26.063 155.901</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1055,11 +1055,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  26.010   1.951  28.070</span></span>
+<span><span class="co">#&gt;  28.935   2.025  31.184</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19507170 1041.8   34708697 1853.7         NA  34708697 1853.7</span></span>
-<span><span class="co">#&gt; Vcells 261753422 1997.1  585320670 4465.7      16384 585138657 4464.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19508520 1041.9   28923431 1544.7         NA  28923431 1544.7</span></span>
+<span><span class="co">#&gt; Vcells 262805051 2005.1  586582803 4475.3      16384 586387609 4473.8</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
