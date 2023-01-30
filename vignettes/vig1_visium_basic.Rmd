@@ -84,7 +84,9 @@ Below we plot the total unique molecular identifier (UMI) counts per spot. The c
 violin <- plotColData(sfe, "nCounts", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary",
+                              annot_fixed = list(fill = NA, color = "black", 
+                                                 size = 0.5)) +
     theme_void()
 violin + spatial
 ```

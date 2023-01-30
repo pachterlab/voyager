@@ -383,7 +383,9 @@ clusts <- clusterMoranPlot(sfe_tissue, "Myh2", BLUSPARAM = KmeansParam(2))
 ```
 
 ```{r, fig.alt="Moran scatter plot of log normalized value of Myh1, colored by 2 k-means clusters, which correspond to the high-high and low-low spots."}
-moranPlot(sfe_tissue, "Myh2", graphName = "visium", color_by = clusts$ENSMUSG00000033196)
+moranPlot(sfe_tissue, "Myh2", graphName = "visium", 
+          color_by = clusts$ENSMUSG00000033196) +
+    labs(color = "cluster")
 ```
 
 Plot the clusters in space
@@ -466,7 +468,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 ```
 
 ## Getis-Ord Gi\*
-Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in [@Getis1992-fr].
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij} x_j$), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in [@Getis1992-fr].
 
 Binary weights are recommended for Getis-Ord Gi\*.
 ```{r}
