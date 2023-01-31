@@ -4,7 +4,6 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-<<<<<<< HEAD
 [![BioC status](http://www.bioconductor.org/shields/build/release/bioc/Voyager.svg)](https://bioconductor.org/checkResults/release/bioc-LATEST/Voyager)
 <!-- badges: end -->
 
@@ -17,6 +16,16 @@
 Thus, `Voyager` : `SpatialFeatureExperiment` is as `scater` / `scran` / `scuttle` : `SingleCellExperiment`. `Voyager` also builds on the geospatial tradition, especially the [`spdep`](https://r-spatial.github.io/spdep/) package, which is one of the main R packages for spatial dependence analyses. Specifically, `Voyager` focuses on spatial autocorrelation, which measures the extent of similarity or dissimilarity of spatially proximal regions, and that can be quantified in terms of length scale, and variation in space.
 
 Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
+
+# Installation
+`SpatialFeatureExperiment` and `Voyager` can be installed from Bioconductor version 3.16 or higher:
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(version = "3.16") # or 'devel'
+BiocManager::install(c("SpatialFeatureExperiment", "Voyager"))
+```
 
 <img src="https://github.com/pachterlab/voyager/raw/documentation/vignettes/voyager_schematics.png" width="1024"/>
 
