@@ -51,7 +51,7 @@ theme_set(theme_void())
 
 Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
 ```{r}
-ggplot(cellSeg(sfe)) + geom_sf(size = 0.1) +
+ggplot(cellSeg(sfe)) + geom_sf() +
     theme_bw() +
     scale_x_continuous(expand = expansion()) +
     scale_y_continuous(expand = expansion())
@@ -267,7 +267,7 @@ However, data analysis methods for areal and geostatistical data can still be re
 
 Spatial autocorrelation metrics seek to measure how nearby things tend to be more similar or dissimilar, and the neighborhood graph and edge weights define what we mean by "nearby" in areal data. Note that because each Visium spot can contain from several to dozens of cells, the spatial neighborhood graphs of Visium spots describe neighborhood relationships of much longer length scales than spatial neighborhood graphs of single cells, so spatial autocorrelation metrics using the Visium graph have different meanings from cellular neighborhood graphs. 
 
-For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot. In this tissue, many cells appear contiguous, but since cell segmentation is imperfect, there are many false singletons, which makes polygon contiguity neighbors from `poly2nb()` problematic without some modification. But based on the distribution of the number of neighbors based on contiguity, $k = 5$ doesn't seem to be a bad approximate for contiguity.
+For now, just to demonstrate software usage, we use the k nearest neighborhood graph with distance based edge weights, as commonly done in graph based clustering in scRNA-seq, although we don't yet know the best value for k in each scenario. For the purpose of this vignette, say use $k = 5$, and the execution time isn't outrageous. The argument `style = "W"` is to row normalize the adjacency matrix of the spatial neighborhood graph as this is necessary for Moran scatter plot. Inverse distance edge weights can take small values but what matter is the relative rather than the absolute values as the distance itself is in arbitrary unit; row normalizing the adjacency matrix makes the weighted average value from the neighbors comparable to the value at the cell itself. In this tissue, many cells appear contiguous, but since cell segmentation is imperfect, there are many false singletons, which makes polygon contiguity neighbors from `poly2nb()` problematic without some modification. But based on the distribution of the number of neighbors based on contiguity, $k = 5$ doesn't seem to be a bad approximate for contiguity.
 
 ```{r}
 system.time(
@@ -405,8 +405,7 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
 ```
 
 ```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
-    geom_density2d()
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster")
 ```
 
 ```{r}

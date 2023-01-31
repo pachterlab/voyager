@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) anlaysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
+In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) analysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
 
 This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz]. The code can be run on [Google Colab](https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing).
 
@@ -97,7 +97,9 @@ Next we find number of genes detected per spot. The commented out line of code s
 violin <- plotColData(sfe, "nGenes", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary",
+                              annot_fixed = list(fill = NA, color = "black", 
+                                                 size = 0.5)) +
     theme_void()
 violin + spatial
 ```
@@ -116,7 +118,9 @@ As is commonly done for scRNA-seq data, we plot the proportion of mitochondriall
 violin <- plotColData(sfe, "prop_mito", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "prop_mito", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary",
+                              annot_fixed = list(fill = NA, color = "black", 
+                                                 size = 0.5)) +
     theme_void()
 violin + spatial
 ```
@@ -170,15 +174,24 @@ plotRowDataBin2D(sfe, "means", "cv2", bins = 50) +
 
 # Normalize data
 
-We demonstrate the use of `scran` [@Lun2016-yq] for normalization below, although we note that it is not necessarily the best approach to normalizing spatial transcriptomics data. The problem of when and how to normalize spatial transcriptomics data is non-trivial because, as the `nCounts` plot in space shows above, spatial autocorrelation is evident. Furthemrore, in Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Artifacts may be subsequently introduced from the amplification step, and these would not be associated with spatial origin. Spatial artifacts may arise from the diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. In other words, the issue of normalization for spatial transcriptomics data, and Visium in particular, is complex and is currently unsolved.
+We demonstrate the use of `scater` for normalization below, although we note that it is not necessarily the best approach to normalizing spatial transcriptomics data. The problem of when and how to normalize spatial transcriptomics data is non-trivial because, as the `nCounts` plot in space shows above, spatial autocorrelation is evident. Furthemrore, in Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Artifacts may be subsequently introduced from the amplification step, and these would not be associated with spatial origin. Spatial artifacts may arise from the diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. In other words, the issue of normalization for spatial transcriptomics data, and Visium in particular, is complex and is currently unsolved.
+
+There is no one way to normalize non-spatial scRNA-seq data. The commented out code implements the `scran` method [@Lun2016-yq]. To simplify the matter, we only perform `logNormCounts()` in this introductory vignette. 
+
+Note that `scater`'s `logNormCounts()` is quite different from that in Seurat. Let $N$ denote the total UMI count in one Visium spot, $\bar N$ the average total UMI count in all spots in this dataset, and $x$ denote the UMI count of one gene in the Visium spot of interest. Seurat performs log normalization as $\mathrm{log}\left( \frac{x}{N/10000} + 1 \right)$, where the natural log is used. In contrast, with default parameters, `scater` uses $\mathrm{log_2}\left( \frac{x}{N/\bar N} + 1 \right)$. The pseudocount (default to 1), library size factors (default to $N/\bar N$), and transform (default to log2) can be changed. Log 2 is used because differences in values can be interpreted as log fold change.
+
 ```{r}
-clusters <- quickCluster(sfe_tissue)
-sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
-sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
+# clusters <- quickCluster(sfe_tissue)
+# sfe_tissue <- computeSumFactors(sfe_tissue, clusters=clusters)
+# sfe_tissue <- sfe_tissue[, sizeFactors(sfe_tissue) > 0]
 sfe_tissue <- logNormCounts(sfe_tissue)
 ```
 
-Next, we identify highly variable genes, which will be used for principal component analysis (PCA) dimensionality reduction.
+Next, we identify highly variable genes (HVGs), which will be used for principal component analysis (PCA) dimensionality reduction. Again, there are different ways to identify HVGs, and `scater` does so differently from Seurat. In both frameworks, the log normalized data is used by default. In summary, in Seurat, with default parameters, a Loess curve is fitted to the log transformed data (the log normalized data is log transformed for fitting purposes), and the fitted values are exponentiated as the expected variance for each gene. Then the expected variance and the mean are used to standardize the log normalized gene expression; the standardized values are used to calculate a standardized variance for each gene. The top HVGs are the genes with the largest standardized variance.
+
+In `scater`, with default parameters, a parametric non-linear curve of variance vs. mean for each gene of the log normalized data. Then the log ratio of the actual variance to the fitted variance from the curve calculated, and a Loess curve is fitted to this log ratio vs. mean for each gene. The "technical" component of the variance is the fitted values from the Loess curve. The "biological" component is the difference between the actual variance and the Loess fitted variance. The top HVGs are genes with the largest biological component. See the documentation of `modelGeneVar()`, `fitTrendVar()`, and `getTopHVGs()` for more details.
+
+These differences can lead to different downstream results. While we don't comment on which way is better in this vignette, it's important to be aware of such differences.
 ```{r}
 dec <- modelGeneVar(sfe_tissue)
 hvgs <- getTopHVGs(dec, n = 2000)
@@ -220,7 +233,7 @@ spatialReducedDim(sfe_tissue, "PCA", ncomponents = 4,
     theme_void()
 ```
 
-PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
+PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
 
 It is also possible to run UMAP following the PCA, as is done for scRNA-seq. We do not recommend producing a UMAP since the procedure distorts distances, and does not respect either local or global structure in the data [@Chari2021-hb]. However, for completeness, we show how to compute a UMAP below:
 ```{r}
@@ -265,8 +278,8 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 ```
 
 These genes are interesting to view in spatial context:
-```{r, fig.width=9, fig.height=9}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly") &
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 4) &
     theme_void()
 ```
 

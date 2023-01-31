@@ -60,7 +60,7 @@ theme_set(theme_void())
 
 There are 395215 cells in this dataset. Plotting them all as polygons takes a while, but it isn't too bad.
 ```{r, fig.width=9, fig.height=6}
-ggplot(colGeometry(sfe, "cellSeg")) + geom_sf(size = 0.1) +
+ggplot(colGeometry(sfe, "cellSeg")) + geom_sf() +
     scale_x_continuous(expand = expansion()) +
     scale_y_continuous(expand = expansion()) +
     theme_bw()
@@ -419,7 +419,7 @@ sfe <- colDataUnivariate(sfe, type = "localmoran",
 ```{r, fig.width=9, fig.height=7}
 plotLocalResult(sfe, "localmoran", c("nCounts", "nGenes", "volume"),
                 colGeometryName = "centroids", scattermore = TRUE,
-                ncol = 2, divergent = TRUE, diverge_center = 0) & theme_bw()
+                ncol = 2, divergent = TRUE, diverge_center = 0)
 ```
 
 There are some niches around smaller blood vessels with positive local Moran's I for nCounts and nGenes. This is most likely due to the more homogeneous endothelial cells compared to hepatocytes.
@@ -486,7 +486,7 @@ Plot the binned values
 ```{r, fig.width=9, fig.height=7}
 # Not using facet_wrap to give each panel its own color scale
 plts <- lapply(c("nCounts", "nGenes", "volume"), function(f) {
-    ggplot(df_binned[,f]) + geom_sf(aes_string(fill = f), size = 0) +
+    ggplot(df_binned[,f]) + geom_sf(aes_string(fill = f), linewidth = 0) +
         scale_fill_distiller(palette = "Blues", direction = 1)
 })
 wrap_plots(plts, nrow = 2)
