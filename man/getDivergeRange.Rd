@@ -16,7 +16,10 @@ A numeric vector of length 2, the first element is for beginning, and
 the second for end. The values are between 0 and 1.
 }
 \description{
-The title is self-explanatory.
+This function is no longer used internally as it's unnecessary for
+\code{scico} divergent palettes. But it can be useful when using divergent
+palettes outside \code{scico} where one must specify beginning and end but
+not midpoint, to override the default palette.
 }
 \examples{
 v <- rnorm(10)

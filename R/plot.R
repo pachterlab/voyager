@@ -7,7 +7,10 @@
 
 #' Get beginning and end of palette to center a divergent palette
 #'
-#' The title is self-explanatory.
+#' This function is no longer used internally as it's unnecessary for
+#' \code{scico} divergent palettes. But it can be useful when using divergent
+#' palettes outside \code{scico} where one must specify beginning and end but
+#' not midpoint, to override the default palette.
 #'
 #' @param values Numeric vector to be colored.
 #' @param diverge_center Value to center on, defaults to 0.
