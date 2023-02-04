@@ -118,7 +118,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
         geom_segment(aes(yend = gene), xend = 0, show.legend = FALSE) +
         geom_point(color = "blue") +
         geom_vline(xintercept = 0, linetype = 2) +
-        facet_wrap(~PC, scales = "free_y", ncol = 2) +
+        facet_wrap(~PC, scales = "free_y", ncol = ncol) +
         scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
         labs(x = "Loading", y = "Gene")
 }

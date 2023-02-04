@@ -332,6 +332,9 @@ test_that("plotDimLoadings for PCA", {
         "plotDimLoadings, not balanced",
         plotDimLoadings(sfe_muscle, 1:2, balanced = FALSE)
     )
+    expect_doppelganger("Change the number of columns",
+                        plotDimLoadings(sfe_muscle, 1:2, balanced = TRUE,
+                                        ncol = 1))
 })
 
 test_that("Everything spatialReducedDim", {
