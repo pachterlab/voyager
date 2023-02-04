@@ -20,7 +20,7 @@ BiocManager::install(version = "3.16") # Or a higher version in the future
 BiocManager::install("Voyager")
 ```
 
-The main branch in this repo is the release version. The development version of Voyager can be from [GitHub](https://github.com/) with:
+The main branch in this repo is the release version. The development version of Voyager can be installed from [GitHub](https://github.com/) with:
 
 ```r
 # install.packages("remotes")
