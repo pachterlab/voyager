@@ -6,6 +6,14 @@ library(vdiffr)
 library(scater)
 library(Matrix)
 library(ggplot2)
+
+test_that("Divergent palette beginning and end", {
+    expect_equal(getDivergeRange(1:8, diverge_center = 5), c(0, 0.875))
+    expect_equal(getDivergeRange(1:8, diverge_center = 4), c(0.125, 1))
+    expect_equal(getDivergeRange(1:8, diverge_center = 0), c(9/16, 1))
+    expect_equal(getDivergeRange(1:8, diverge_center = 9), c(0, 8/18))
+})
+
 # Toy example
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
@@ -323,6 +331,9 @@ test_that("plotDimLoadings for PCA", {
         "plotDimLoadings, not balanced",
         plotDimLoadings(sfe_muscle, 1:2, balanced = FALSE)
     )
+    expect_doppelganger("Change the number of columns",
+                        plotDimLoadings(sfe_muscle, 1:2, balanced = TRUE,
+                                        ncol = 1))
 })
 
 test_that("Everything spatialReducedDim", {

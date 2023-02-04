@@ -1,6 +1,9 @@
 # Version 1.1.7
 * Added bbox argument to spatial plotting functions to zoom in with a bounding box
 
+# Version 1.0.9
+* Fixed the bug of hardcoded ncol in plotDimLoadings.
+
 # Version 1.0.8
 * Flipped the divergent palettes so the warm color means high value.
 
