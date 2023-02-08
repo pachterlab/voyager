@@ -70,12 +70,7 @@ However, we do not wish to save this plot as PDF. To avoid this problem, we can 
 
 Cell density can be vaguely seen in the plot above. Here we count the number of cells in bins to better visualize cell density.
 ```{r, fig.width=9, fig.height=6}
-ggplot(as.data.frame(spatialCoords(sfe))) +
-    geom_bin2d(aes(center_x, center_y), bins = 300) +
-    scale_fill_distiller(palette = "Blues", direction = 1) +
-    scale_x_continuous(expand = expansion()) +
-    scale_y_continuous(expand = expansion()) +
-    theme_bw() + coord_equal()
+plotCellBin2D(sfe, bins = 300)
 ```
 
 Cell density is for the most part homogeneous but shows some structure with denser regions that seem to relate to the blood vessels.
@@ -101,7 +96,7 @@ system.time({
 })
 ```
 
-When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` took about 2 seconds. Using `geom_scattermore()` and plotting cell density in space will be added to the next release of `Voyager`. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
+When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` (`scattermore = TRUE`) took about 2 seconds. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
 
 In the next release we will add to all spatial plotting functions the use of a bounding box to only plot a portion of the tissue. This function here is simplified and not generalizable, compared to what will be provided with the next release. While interactive data visualization is useful for ESDA, there is a need for static figures in publications. 
 ```{r}
