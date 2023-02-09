@@ -114,7 +114,8 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
                             annot_diverge_center = NULL,
                             size = 0.5, shape = 16, linewidth = 0, linetype = 1, alpha = 1,
                             color = "black", fill = "gray80", show_symbol = TRUE,
-                            scattermore = FALSE, pointsize = 0, ...) {
+                            scattermore = FALSE, pointsize = 0, bins = NULL,
+                            summary_fun = sum, hex = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_localResult_values(sfe, type, features, attribute,
@@ -137,7 +138,8 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             diverge_center, annot_divergent,
             annot_diverge_center, size, shape, linewidth, linetype,
             alpha, color, fill, show_symbol = show_symbol,
-            scattermore = scattermore, pointsize = pointsize, ...
+            scattermore = scattermore, pointsize = pointsize,
+            bins = bins, summary_fun = summary_fun, hex = hex, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -154,7 +156,8 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             color, fill, ncol, ncol_sample, divergent,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
-            pointsize = pointsize, ...
+            pointsize = pointsize, bins = bins, summary_fun = summary_fun,
+            hex = hex, ...
         )
     }
     # Add title to not to confuse with gene expression

@@ -62,7 +62,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 .get_pal <- function(df, feature_aes, option, divergent, diverge_center,
                      name = waiver()) {
-    feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color")]
+    feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color", "z")]
     if (length(feature_aes)) {
         # color_by is set to NULL if fill_by is applicable and present
         m <- df[[unlist(feature_aes)]]
@@ -88,7 +88,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
             )
             pal_fun <- switch(.aes,
                 fill = scale_fill_scico,
-                color = scale_color_scico
+                color = scale_color_scico,
+                z = scale_fill_scico
             )
             pal <- pal_fun(
                 palette = .pal, direction = -1, midpoint = diverge_center,
@@ -97,7 +98,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
         } else {
             pal_fun <- switch(.aes,
                 fill = scale_fill_distiller,
-                color = scale_color_distiller
+                color = scale_color_distiller,
+                z = scale_fill_distiller
             )
             .pal <- switch(option,
                 "Blues",
@@ -127,14 +129,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom sf st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot geom_sf scale_fill_manual
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
-#' geom_segment stat_density2d waiver
+#' geom_segment stat_density2d waiver stat_summary_2d stat_summary_hex
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
 .plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
-                         ncol_sample, scattermore, pointsize) {
+                         ncol_sample, scattermore, pointsize,
+                         bins, summary_fun, hex) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -182,6 +185,16 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                                            feature_aes))),
                                    data = df, pointsize = pointsize),
                               feature_fixed))
+    } else if (!is.null(bins)) {
+        names(feature_aes)[names(feature_aes) == "color"] <- "z"
+        name_show <- paste("Aggregated", feature_aes[["z"]], sep = "\n")
+        feature_fixed <- feature_fixed["alpha"]
+        stat_fun <- if (hex) stat_summary_hex else stat_summary_2d
+        geom_use <- do.call(stat_fun,
+                            c(list(mapping = aes(!!!syms(c(list(x = "X", y = "Y"),
+                                                           feature_aes))),
+                                   data = df, bins = bins, fun = summary_fun),
+                              feature_fixed))
     } else {
         geom_use <- do.call(geom_sf, c(
             list(mapping = aes(!!!syms(feature_aes)), data = df),
@@ -189,7 +202,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         ))
     }
     p <- p + geom_use
-    if (scattermore) p <- p + coord_equal()
+    if (scattermore || !is.null(bins)) p <- p + coord_equal()
     # Palette
     pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center,
                     name = name_show)
@@ -209,7 +222,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p +
             facet_wrap(~sample_id, ncol = ncol_sample)
     }
-    p
+    p + theme_void()
 }
 
 .get_feature_aes <- function(m, type, aes_spec, shape) {
@@ -249,12 +262,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
-                                ...) {
+                                bins, summary_fun, hex, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
-    type <- if(scattermore) "POINT" else .get_generalized_geometry_type(df)
+    type <- if(scattermore || !is.null(bins)) "POINT" else .get_generalized_geometry_type(df)
     plots <- lapply(names(values), function(n) {
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
         feature_aes <- setNames(list(n), feature_aes_name)
@@ -262,7 +275,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             df, annot_df, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
             annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize
+            pointsize, bins, summary_fun, hex
         )
     })
     if (length(plots) > 1L) {
@@ -363,16 +376,18 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
-                                pointsize, ...) {
+                                pointsize, bins, summary_fun, hex, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     df <- cbind(df[,c("geometry", "sample_id")], values)
     df <- .crop(df, bbox)
-    if (scattermore) {
-        check_installed("scattermore", reason = "to plot points with scattermore")
+    if (scattermore || !is.null(bins)) {
+        if (scattermore)
+            check_installed("scattermore",
+                            reason = "to plot points with scattermore")
         type_df <- .get_generalized_geometry_type(df)
         if (type_df != "POINT") {
-            warning("scattermore only applies to points. Using centroids.")
+            message("scattermore and binning only apply to points. Using centroids.")
             df_coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(df))))
         } else {
             df_coords <- as.data.frame(st_coordinates(df))
@@ -393,7 +408,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, ...
+        pointsize, bins, summary_fun, hex, ...
     )
 }
 
@@ -481,6 +496,16 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   the cell polygons can't be seen when plotted due to the large number of
 #'   cells and small plot size such as when plotting multiple panels for
 #'   multiple features.
+#' @param bins If binning the \code{colGeometry} in space due to large number of
+#'   cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+#'   \code{\link{geom_hex}}. If \code{NULL} (default), then the
+#'   \code{colGeometry} is plotted without binning. If binning, a point geometry
+#'   is recommended. If the geometry is not point, then the centroids will be
+#'   used.
+#' @param summary_fun Function to summarize the feature value when the
+#'   \code{colGeometry} is binned.
+#' @param hex Logical, whether to use \code{\link{geom_hex}}. Note that
+#'   \code{geom_hex} is broken in \code{ggplot2} version 3.4.0.
 #' @param pointsize Radius of rasterized point in \code{scattermore}. Default to
 #'   0 for single pixels (fastest).
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
@@ -536,7 +561,9 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
                                color = "black", fill = "gray80", show_symbol = TRUE,
-                               scattermore = FALSE, pointsize = 0, ...) {
+                               scattermore = FALSE, pointsize = 0,
+                               bins = NULL, summary_fun = sum, hex = FALSE,
+                               ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -550,7 +577,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         annot_fixed, bbox, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
-        alpha, color, fill, scattermore, pointsize, ...
+        alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex, ...
     )
 }
 

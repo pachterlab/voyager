@@ -392,7 +392,7 @@ test_that("scattermore in plotSpatialFeature", {
                            annotGeometryName = "foo", scattermore = TRUE,
                            size = 0)
     })
-    expect_warning(plotSpatialFeature(sfe_cosmx, "nCounts",
+    expect_message(plotSpatialFeature(sfe_cosmx, "nCounts",
                                       colGeometryName = "cellSeg",
                                       scattermore = TRUE),
                    "Using centroids.")
@@ -499,7 +499,21 @@ test_that("plotCellBin2D", {
     })
 })
 
+test_that("Binning values", {
+    expect_doppelganger("Bin and summarize feature", {
+        plotSpatialFeature(sfe_cosmx, features = "nCounts",
+                           colGeometryName = "centroids", bins = 50)
+    })
+    expect_doppelganger("Bin and summarize dimension reduction values", {
+        spatialReducedDim(sfe_cosmx, dimred = "PCA", ncomponents = 1,
+                          colGeometryName = "centroids", bins = 50)
+    })
+    expect_doppelganger("Bin and summarize local results", {
+        plotLocalResult(sfe_cosmx, "localG", "KRT19",
+                        colGeometryName = "centroids", bins = 50)
+    })
 
+})
 # Using bbox
 sfe1 <- McKellarMuscleData("small")
 sfe2 <- McKellarMuscleData("small2")

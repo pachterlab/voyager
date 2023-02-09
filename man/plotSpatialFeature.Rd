@@ -31,6 +31,9 @@ plotSpatialFeature(
   show_symbol = TRUE,
   scattermore = FALSE,
   pointsize = 0,
+  bins = NULL,
+  summary_fun = sum,
+  hex = FALSE,
   ...
 )
 }
@@ -137,6 +140,19 @@ multiple features.}
 
 \item{pointsize}{Radius of rasterized point in \code{scattermore}. Default to
 0 for single pixels (fastest).}
+
+\item{bins}{If binning the \code{colGeometry} in space due to large number of
+cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}. If \code{NULL} (default), then the
+\code{colGeometry} is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.}
+
+\item{summary_fun}{Function to summarize the feature value when the
+\code{colGeometry} is binned.}
+
+\item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }

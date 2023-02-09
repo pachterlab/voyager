@@ -75,14 +75,18 @@ palette should diverge. If \code{NULL}, then not centering.}
 plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
 be a column in \code{rowData(sfe)} called "symbol" for this to work.}
 
-\item{bins}{Numeric vector giving number of bins in both vertical and
-horizontal directions. Set to 100 by default.}
+\item{bins}{If binning the \code{colGeometry} in space due to large number of
+cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}. If \code{NULL} (default), then the
+\code{colGeometry} is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.}
 
 \item{binwidth}{Numeric vector giving bin width in both vertical and
 horizontal directions. Overrides \code{bins} if both set.}
 
-\item{hex}{Logical, whether to use hexagon rather than rectangular bins.
-Requires the \code{hexbin} package.}
+\item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
