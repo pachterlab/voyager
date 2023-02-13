@@ -13,7 +13,8 @@ plotMoranMC(
   colGeometryName = NULL,
   annotGeometryName = NULL,
   ptype = c("density", "histogram", "freqpoly"),
-  show_symbol = TRUE,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
   ...
 )
 }
@@ -44,9 +45,14 @@ annotate the gene expression plot.}
 
 \item{ptype}{Plot type, one of "density", "histogram", or "freqpoly".}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Name of a column in \code{rowData} to identify features
+instead of the row names of the SFE object. For example, if the row names
+of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
+column in \code{rowData}, then putting "symbol" for this argument will use
+the gene symbols to identify which gene's local results to get or set.}
 
 \item{...}{Other arguments passed to \code{\link{geom_density}},
 \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on

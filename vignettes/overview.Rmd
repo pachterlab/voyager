@@ -82,7 +82,7 @@ features_use <- c("Myh1", "Myh2")
 
 ```{r}
 sfe <- runUnivariate(sfe, type = "moran", features = features_use, 
-                     colGraphName = "visium")
+                     colGraphName = "visium", swap_rownames = "symbol")
 # Look at the results
 rowData(sfe)[rowData(sfe)$symbol %in% features_use,]
 ```
@@ -92,7 +92,8 @@ Since Moran's I is very commonly used, one can call `runMoransI` rather than `ru
 Compute a local spatial statistic, Getis-Ord Gi\*, which is commonly used to detect hotspots and coldspots. The `include_self` argument is only for Getis-Ord Gi\*; when set to `TRUE` Gi\* is computed as the spatial graph includes self-directing edges, and otherwise Gi is computed.
 ```{r}
 sfe <- runUnivariate(sfe, type = "localG", features = features_use,
-                     colGraphName = "visium", include_self = TRUE)
+                     colGraphName = "visium", include_self = TRUE, 
+                     swap_rownames = "symbol")
 # Look at the results
 DataFrame(localResults(sfe, name = "localG"))
 ```
@@ -105,14 +106,14 @@ Plot gene expression and `colData(sfe)` together with annotation geometry. Here 
 plotSpatialFeature(sfe, c("nCounts", "Myh1"), colGeometryName = "spotPoly", 
                    annotGeometryName = "myofiber_simplified", 
                    aes_use = "color", size = 0.4, fill = NA,
-                   annot_aes = list(fill = "area"))
+                   annot_aes = list(fill = "area"), swap_rownames = "symbol")
 ```
 
 Plot local results
 ```{r}
 plotLocalResult(sfe, "localG", features = features_use, 
                 colGeometryName = "spotPoly", divergent = TRUE, 
-                diverge_center = 0)
+                diverge_center = 0, swap_rownames = "symbol")
 ```
 
 # Session info

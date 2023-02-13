@@ -8,8 +8,9 @@ plotDimLoadings(
   sce,
   dims = 1:4,
   nfeatures = 10,
-  show_symbol = TRUE,
-  symbol_col = "symbol",
+  swap_rownames = NULL,
+  show_symbol = deprecated(),
+  symbol_col = deprecated(),
   reduction = "PCA",
   balanced = TRUE,
   ncol = 2
@@ -23,14 +24,16 @@ from \code{SingleCellExperiment}.}
 
 \item{nfeatures}{Number of genes to plot.}
 
-\item{show_symbol}{Logical; if the row names of the matrix are Ensembl
-accessions, indicate whether to show more human readable gene symbols in
-the plot instead. Ignored if the column specified in \code{symbol_col} is
-absent from rowData.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
-\item{symbol_col}{If the row names of the gene expression matrix are Ensembl
-accessions to avoid ambiguity in analysis. If not found in \code{rowData},
-then rownames of the gene count matrix will be used.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{symbol_col}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
 
 \item{reduction}{Name of the dimension reduction to use. It must have an
 attribute called "percentVar". Defaults to "PCA".}

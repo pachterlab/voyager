@@ -28,7 +28,8 @@ plotSpatialFeature(
   alpha = 1,
   color = "black",
   fill = "gray80",
-  show_symbol = TRUE,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
   scattermore = FALSE,
   pointsize = 0,
   bins = NULL,
@@ -126,9 +127,14 @@ specified or not applicable, or for \code{annotGeometry} if
 
 \item{fill}{Similar to \code{color}, but for fill.}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Name of a column in \code{rowData} to identify features
+instead of the row names of the SFE object. For example, if the row names
+of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
+column in \code{rowData}, then putting "symbol" for this argument will use
+the gene symbols to identify which gene's local results to get or set.}
 
 \item{scattermore}{Logical, whether to use the \code{scattermore} package to
 greatly speed up plotting numerous points. Only used for POINT
@@ -176,6 +182,11 @@ if \code{divergent = TRUE}. For discrete variables, the \code{dittoSeq}
 palette is used. The defaults are colorblind friendly. For annotation, the
 PuRd colorbrewer palette is used for continuous variables and the other end
 of the \code{dittoSeq} palette is used for discrete variables.
+
+\code{theme_void} is used for all spatial plots in this package, because the
+units in the spatial coordinates are often arbitrary. This can be overriden
+to show the axes by using a different theme as normally done in
+\code{ggplot2}.
 }
 \examples{
 library(SFEData)

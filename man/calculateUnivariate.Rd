@@ -43,6 +43,7 @@
   returnDF = TRUE,
   include_self = FALSE,
   p.adjust.method = "BH",
+  swap_rownames = NULL,
   ...
 )
 
@@ -59,6 +60,7 @@
   returnDF = TRUE,
   include_self = FALSE,
   p.adjust.method = "BH",
+  swap_rownames = NULL,
   ...
 )
 
@@ -149,6 +151,7 @@ runUnivariate(
   sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
+  swap_rownames = NULL,
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
@@ -162,6 +165,7 @@ runMoransI(
   sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
+  swap_rownames = NULL,
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
@@ -205,12 +209,12 @@ numeric columns of \code{colData(x)} (\code{colData*}) or any
 univariate metric is to be computed. Default to \code{NULL}. When
 \code{NULL}, then the metric is computed for all genes with the values in
 the assay specified in the argument \code{exprs_values}. This can be
-parallelized with the argument \code{BPPARAM}. For genes, if the column
-"symbol" is present in \code{rowData} and the row names of the SFE object
-are Ensembl IDs, then the gene symbol can be used and converted to IDs
-behind the scene. However, if one symbol matches multiple IDs, a warning
-will be given and the first match will be used. Internally, the results are
-always stored by the Ensembl ID rather than symbol.}
+parallelized with the argument \code{BPPARAM}. For genes, if the row names
+of the SFE object are Ensembl IDs, then the gene symbol can be used and
+converted to IDs behind the scene with a column in \code{rowData} can be
+specified in \code{swap_rownames}. However, if one symbol matches multiple
+IDs, a warning will be given and the first match will be used. Internally,
+the results are always stored by the Ensembl ID rather than symbol.}
 
 \item{colGraphName}{Name of the listw graph in the SFE object that
 corresponds to entities represented by columns of the gene count matrix.
@@ -228,6 +232,12 @@ contains the expression values.}
 \item{include_self}{Logical, whether the spatial neighborhood graph should
 include edges from each location to itself. This is for Getis-Ord Gi* as in
 \code{localG} and \code{localG_perm}, not to be used for any other method.}
+
+\item{swap_rownames}{Name of a column in \code{rowData} to identify features
+instead of the row names of the SFE object. For example, if the row names
+of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
+column in \code{rowData}, then putting "symbol" for this argument will use
+the gene symbols to identify which gene's local results to get or set.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use

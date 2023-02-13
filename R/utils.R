@@ -125,8 +125,8 @@ rowFeatureData <- function(sfe) {
 .get_feature_values <- function(sfe, features, sample_id,
                                 colGeometryName = NULL, annotGeometryName = NULL,
                                 exprs_values = "logcounts", cbind_all = TRUE,
-                                show_symbol = TRUE) {
-    features_list <- .check_features(sfe, features, colGeometryName)
+                                show_symbol = TRUE, swap_rownames = "symbol") {
+    features_list <- .check_features(sfe, features, colGeometryName, swap_rownames)
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
@@ -135,8 +135,8 @@ rowFeatureData <- function(sfe) {
             drop = FALSE
         ]
         # So symbol is shown instead of Ensembl ID
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-            rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
+            rownames(values_assay) <- rowData(sfe)[rownames(values_assay), swap_rownames]
         }
         values_assay <- as.data.frame(as.matrix(t(values_assay)))
         values[["assay"]] <- values_assay
@@ -170,9 +170,9 @@ rowFeatureData <- function(sfe) {
 
 #' @importFrom SpatialFeatureExperiment localResultFeatures
 .check_features_lr <- function(sfe, type, features, sample_id, colGeometryName,
-                               annotGeometryName) {
+                               annotGeometryName, swap_rownames) {
     features_assay <- localResultFeatures(sfe, type) # includes colData
-    features <- .symbol2id(sfe, features)
+    features <- .symbol2id(sfe, features, swap_rownames)
     features_assay <- intersect(features_assay, features)
     if (!is.null(colGeometryName)) {
         # Because colGeometryName is also specified for plotting
@@ -246,10 +246,11 @@ rowFeatureData <- function(sfe) {
 .get_localResult_values <- function(sfe, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
-                                    cbind_all = TRUE, show_symbol = TRUE) {
+                                    cbind_all = TRUE, show_symbol = TRUE,
+                                    swap_rownames = "symbol") {
     features_list <- .check_features_lr(
         sfe, type, features, sample_id,
-        colGeometryName, annotGeometryName
+        colGeometryName, annotGeometryName, swap_rownames
     )
     if (is.null(attribute)) {
         attribute <- .get_default_attribute(type)
@@ -258,9 +259,9 @@ rowFeatureData <- function(sfe) {
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
         lrs <- localResults(sfe, sample_id, type, features_list[["assay"]])
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
             ind <- names(lrs) %in% rownames(sfe)
-            names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], "symbol"]
+            names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], swap_rownames]
         }
         values[["assay"]] <- .get_localResult_attrs(lrs, attribute)
     }
@@ -297,22 +298,22 @@ rowFeatureData <- function(sfe) {
 
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
-                                  show_symbol) {
+                                  show_symbol, swap_rownames) {
     colname_use <- .add_sample_id(name, sample_id)
     out_rd <- out_cd <- out_cg <- out_ag <- NULL
     features_rd <- intersect(features, rownames(sfe))
-    if (!length(features_rd) && "symbol" %in% names(rowData(sfe))) {
-        features_symbol <- intersect(features, rowData(sfe)$symbol)
+    if (!length(features_rd) && show_symbol && swap_rownames %in% names(rowData(sfe))) {
+        features_symbol <- intersect(features, rowData(sfe)[[swap_rownames]])
         .warn_symbol_duplicate(sfe, features_rd)
         features <- setdiff(features, features_symbol)
-        features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)$symbol)]
+        features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)[[swap_rownames]])]
         if (all(is.na(features_rd))) features_rd <- NULL
     }
     if (length(features_rd)) {
         out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
         features <- setdiff(features, names(out_rd))
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-            names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
+            names(out_rd) <- rowData(sfe)[names(out_rd), swap_rownames]
             .warn_symbol_duplicate(sfe, names(out_rd))
         }
     }
@@ -374,4 +375,14 @@ rowFeatureData <- function(sfe) {
         moran.plot = "Moran plot"
     )
     paste0(base, " (", attribute, ")")
+}
+
+.deprecate_show_symbol <- function(fun_name, show_symbol, swap_rownames) {
+    if (is_present(show_symbol)) {
+        deprecate_warn("1.2.0", paste0(fun_name, "(show_symbol = )"),
+                       paste0(fun_name, "(swap_rownames = )"))
+        # The old behavior
+        if (show_symbol) swap_rownames <- "symbol"
+    } else show_symbol <- !is.null(swap_rownames)
+    list(show_symbol, swap_rownames)
 }

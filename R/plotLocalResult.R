@@ -32,6 +32,7 @@
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams calculateUnivariate
+#' @inheritParams plotDimLoadings
 #' @param type Which local spatial results. Use
 #'   \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types
 #'   of results have already been calculated.
@@ -113,15 +114,19 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
                             annot_divergent = FALSE,
                             annot_diverge_center = NULL,
                             size = 0.5, shape = 16, linewidth = 0, linetype = 1, alpha = 1,
-                            color = "black", fill = "gray80", show_symbol = TRUE,
+                            color = "black", fill = "gray80",
+                            show_symbol = deprecated(), swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
                             summary_fun = sum, hex = FALSE, ...) {
+    l <- .deprecate_show_symbol("plotLocalResult", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_localResult_values(sfe, type, features, attribute,
         sample_id, colGeometryName,
         annotGeometryName,
-        show_symbol = show_symbol
+        show_symbol = show_symbol, swap_rownames = swap_rownames
     )
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
@@ -137,7 +142,7 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             annot_fixed, bbox, aes_use, divergent,
             diverge_center, annot_divergent,
             annot_diverge_center, size, shape, linewidth, linetype,
-            alpha, color, fill, show_symbol = show_symbol,
+            alpha, color, fill,
             scattermore = scattermore, pointsize = pointsize,
             bins = bins, summary_fun = summary_fun, hex = hex, ...
         )

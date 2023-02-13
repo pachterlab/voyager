@@ -7,6 +7,7 @@
 #' @inheritParams clusterMoranPlot
 #' @inheritParams calculateUnivariate
 #' @inheritParams plotCorrelogram
+#' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object with correlograms
 #' computed for features of interest.
 #' @param features Features whose correlograms to cluster.
@@ -31,15 +32,19 @@
 #'     BLUSPARAM = KmeansParam(2)
 #' )
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
-                                method = "I",
-                                colGeometryName = NULL,
-                                annotGeometryName = NULL, show_symbol = TRUE) {
+                                method = "I", colGeometryName = NULL,
+                                annotGeometryName = NULL,
+                                show_symbol = deprecated(),
+                                swap_rownames = NULL) {
+    l <- .deprecate_show_symbol("clusterCorrelograms", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     name <- paste("sp.correlogram", method, sep = "_")
     out <- lapply(sample_id, function(s) {
         ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
             annotGeometryName,
-            show_symbol = show_symbol
+            show_symbol = show_symbol, swap_rownames = swap_rownames
         )
         if (method %in% c("I", "C")) {
             # First column is the metric, second column expectation, third is variance
@@ -74,6 +79,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' @inheritParams bluster::clusterRows
 #' @inheritParams calculateUnivariate
 #' @inheritParams moranPlot
+#' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
 #'   been computed for that feature in this sample_id, it will be calculated and
@@ -83,8 +89,6 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #'   features.
 #' @param features Features whose Moran plot are to be cluster. Features whose
 #'   Moran plots have not been computed will be skipped, with a warning.
-#' @param show_symbol Logical, whether to show gene symbol instead when Ensembl
-#'   ID is supplied.
 #' @return A \code{DataFrame} each column of which is a factor for cluster
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
@@ -108,11 +112,15 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' )
 clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
                              colGeometryName = NULL,
-                             annotGeometryName = NULL, show_symbol = TRUE) {
+                             annotGeometryName = NULL,
+                             show_symbol = deprecated(), swap_rownames = NULL) {
+    l <- .deprecate_show_symbol("clusterMoranPlot", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     use_col <- is.null(annotGeometryName) || !is.null(colGeometryName)
     if (is.null(colGeometryName) && is.null(annotGeometryName)) {
-        features <- .symbol2id(sfe, features)
+        features <- .symbol2id(sfe, features, swap_rownames)
     }
     out <- lapply(sample_id, function(s) {
         mps <- localResults(sfe,

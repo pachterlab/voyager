@@ -99,7 +99,8 @@ sfe_muscle <- McKellarMuscleData("small")
 colGraph(sfe_muscle, "visium") <- findVisiumGraph(sfe_muscle)
 sfe_muscle <- logNormCounts(sfe_muscle)
 sfe_muscle <- runUnivariate(sfe_muscle, type = "localmoran",
-                            c("Myh1", "Myh2"), "visium")
+                            c("Myh1", "Myh2"), "visium",
+                            swap_rownames = "symbol")
 
 annotGeometry(sfe_muscle, "myofiber_simplified") <-
     sf::st_buffer(annotGeometry(sfe_muscle, "myofiber_simplified"), 0)
@@ -125,33 +126,33 @@ test_that("Everything plotLocalResult", {
     expect_doppelganger("Plot localmoran Ii for gene", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly", divergent = TRUE,
-            diverge_center = 0
+            diverge_center = 0, swap_rownames = "symbol"
         )
     })
     expect_doppelganger("Plot Ii for gene on top of an annotation", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly",
             annotGeometryName = "tissueBoundary", divergent = TRUE,
-            diverge_center = 0
+            diverge_center = 0, swap_rownames = "symbol"
         )
     })
     expect_doppelganger("Plot another column", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             attribute = "Z.Ii",
             colGeometryName = "spotPoly", divergent = TRUE,
-            diverge_center = 0
+            diverge_center = 0, swap_rownames = "symbol"
         )
     })
     expect_doppelganger("Plot a categorical attribute", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             attribute = "mean",
-            colGeometryName = "spotPoly"
+            colGeometryName = "spotPoly", swap_rownames = "symbol"
         )
     })
     expect_doppelganger("Plot 2 features", {
         plotLocalResult(sfe_muscle, "localmoran", c("Myh1", "Myh2"),
             colGeometryName = "spotPoly", divergent = TRUE,
-            diverge_center = 0
+            diverge_center = 0, swap_rownames = "symbol"
         )
     })
     expect_doppelganger("Plot Ii for annotGeometry alone", {
@@ -172,7 +173,7 @@ feature_use <- "Myh1"
 sfe_muscle <- runUnivariate(sfe_muscle,
     type = "moran.plot",
     colGraphName = "visium", features = feature_use,
-    exprs_values = "counts"
+    exprs_values = "counts", swap_rownames = "symbol"
 )
 sfe_muscle <- colDataUnivariate(sfe_muscle,
     type = "moran.plot",
@@ -193,7 +194,7 @@ test_that("moranPlot, not filled, no color_by", {
     )
     expect_doppelganger(
         "moranPlot, not filled",
-        moranPlot(sfe_muscle, feature_use, "visium")
+        moranPlot(sfe_muscle, feature_use, "visium", swap_rownames = "symbol")
     )
     expect_doppelganger(
         "moranPlot, not filled, colData",
@@ -206,7 +207,8 @@ test_that("moranPlot, not filled, with color_by", {
     expect_doppelganger(
         "moranPlot, not filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
-            color_by = "GraphBased", contour_color = "blue"
+            color_by = "GraphBased", contour_color = "blue",
+            swap_rownames = "symbol"
         )
     )
 })
@@ -216,7 +218,7 @@ test_that("moranPlot, filled, no color_by", {
     expect_doppelganger(
         "moranPlot, filled",
         moranPlot(sfe_muscle, feature_use, "visium",
-            filled = TRUE
+            filled = TRUE, swap_rownames = "symbol"
         )
     )
 })
@@ -226,7 +228,7 @@ test_that("moranPlot, filled, with color_by", {
     expect_doppelganger(
         "moranPlot, filled, with color_by",
         moranPlot(sfe_muscle, feature_use, "visium",
-            filled = TRUE, color_by = "GraphBased"
+            filled = TRUE, color_by = "GraphBased", swap_rownames = "symbol"
         )
     )
 })
@@ -245,22 +247,22 @@ sample_use <- "Vis5A"
 sfe_muscle <- runUnivariate(sfe_muscle,
     type = "sp.correlogram",
     features = feature_use, colGraphName = "visium",
-    sample_id = sample_use,
-    order = 5, zero.policy = TRUE, exprs_values = "counts"
+    sample_id = sample_use, order = 5, zero.policy = TRUE,
+    exprs_values = "counts", swap_rownames = "symbol"
 )
 sfe_muscle <- runUnivariate(sfe_muscle,
     type = "sp.correlogram",
     features = feature_use, colGraphName = "visium",
     sample_id = sample_use, order = 5,
     zero.policy = TRUE, method = "corr",
-    exprs_values = "counts"
+    exprs_values = "counts", swap_rownames = "symbol"
 )
 sfe_muscle <- runUnivariate(sfe_muscle,
     type = "sp.correlogram",
     features = feature_use, colGraphName = "visium",
     sample_id = sample_use, order = 5,
     zero.policy = TRUE, method = "C",
-    exprs_values = "counts"
+    exprs_values = "counts", swap_rownames = "symbol"
 )
 sfe_muscle <- colDataUnivariate(sfe_muscle,
     type = "sp.correlogram",
@@ -271,15 +273,18 @@ sfe_muscle <- colDataUnivariate(sfe_muscle,
 test_that("plotCorrelogram", {
     expect_doppelganger(
         "plotCorrelogram, one gene, I",
-        plotCorrelogram(sfe_muscle, feature_use, sample_use)
+        plotCorrelogram(sfe_muscle, feature_use, sample_use,
+                        swap_rownames = "symbol")
     )
     expect_doppelganger(
         "plotCorrelogram, one gene, corr",
-        plotCorrelogram(sfe_muscle, feature_use, sample_use, method = "corr")
+        plotCorrelogram(sfe_muscle, feature_use, sample_use,
+                        method = "corr", swap_rownames = "symbol")
     )
     expect_doppelganger(
         "plotCorrelogram, one gene, C",
-        plotCorrelogram(sfe_muscle, feature_use, sample_use, method = "C")
+        plotCorrelogram(sfe_muscle, feature_use, sample_use,
+                        method = "C", swap_rownames = "symbol")
     )
     expect_doppelganger(
         "plotCorrelogram, colData, I",
@@ -287,18 +292,19 @@ test_that("plotCorrelogram", {
     )
     expect_doppelganger(
         "plotCorrelogram, specify gene and colData, I",
-        plotCorrelogram(sfe_muscle, c(feature_use, "nCounts"), sample_use)
+        plotCorrelogram(sfe_muscle, c(feature_use, "nCounts"), sample_use,
+                        swap_rownames = "symbol")
     )
     expect_doppelganger(
         "plotCorrelogram, categorical color_by",
         plotCorrelogram(sfe_muscle, c(feature_use, "nCounts"), sample_use,
-            color_by = c("foo", "bar")
+            color_by = c("foo", "bar"), swap_rownames = "symbol"
         )
     )
     expect_doppelganger(
         "plotCorrelogram, continuous color_by",
         plotCorrelogram(sfe_muscle, c(feature_use, "nCounts"), sample_use,
-            color_by = 1:2
+            color_by = 1:2, swap_rownames = "symbol"
         ) +
             ggplot2::theme_dark()
     )
@@ -348,14 +354,12 @@ test_that("Everything spatialReducedDim", {
 test_that("When a gene symbol rowname is not a valid R object name", {
     rownames(sfe_muscle)[1] <- "HLA-foo" # Just toy example
     expect_doppelganger("plotSpatialFeature with illegal gene name",
-                        plotSpatialFeature(sfe_muscle, "HLA-foo", "spotPoly",
-                                           show_symbol = FALSE))
+                        plotSpatialFeature(sfe_muscle, "HLA-foo", "spotPoly"))
     sfe_muscle <- runUnivariate(sfe_muscle, "localmoran", "HLA-foo",
                                 colGraphName = "visium")
     expect_doppelganger("plotLocalResult with illegal gene name",
                         plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
-                                        colGeometryName = "spotPoly",
-                                        show_symbol = FALSE))
+                                        colGeometryName = "spotPoly"))
 })
 
 # scattermore

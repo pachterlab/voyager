@@ -159,6 +159,7 @@
 #' @inheritParams clusterMoranPlot
 #' @inheritParams calculateUnivariate
 #' @inheritParams plotColDataBin2D
+#' @inheritParams plotDimLoadings
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
@@ -180,9 +181,6 @@
 #'   determine which points are singletons to plot differently on this plot.
 #' @param contour_color Color of the point density contours, which can be
 #'   changed so the contours stand out from the points.
-#' @param show_symbol Logical, whether to show human readable gene symbol on the
-#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param plot_influential Logical, whether to plot influential points with
 #'   different palette if \code{binned = TRUE}.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
@@ -203,28 +201,35 @@
 #' sfe <- sfe[, colData(sfe)$in_tissue]
 #' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
-#' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
-#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1])
+#' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1",
+#'                      swap_rownames = "symbol")
+#' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2),
+#'                           swap_rownames = "symbol")
+#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1],
+#'           swap_rownames = "symbol")
 moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE, binned = FALSE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      show_symbol = TRUE, bins = 100, binwidth = NULL,
-                      hex = FALSE, plot_influential = TRUE, ...) {
+                      swap_rownames = NULL, show_symbol = deprecated(),
+                      bins = 100, binwidth = NULL, hex = FALSE,
+                      plot_influential = TRUE, ...) {
+    l <- .deprecate_show_symbol("moranPlot", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
-    if (not_geometry) feature <- .symbol2id(sfe, feature)
+    if (not_geometry) feature <- .symbol2id(sfe, feature, swap_rownames)
     mp <- localResult(sfe,
         type = "moran.plot", feature = feature,
         sample_id = sample_id, colGeometryName = colGeometryName,
         annotGeometryName = annotGeometryName
     )
     if (show_symbol && not_geometry) {
-        if (feature %in% rownames(sfe) && "symbol" %in% colnames(rowData(sfe))) {
-            feature <- rowData(sfe)[feature, "symbol"]
+        if (feature %in% rownames(sfe) && swap_rownames %in% colnames(rowData(sfe))) {
+            feature <- rowData(sfe)[feature, swap_rownames]
         }
     }
 
@@ -285,10 +290,10 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 
 .get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
                                      colGeometryName, annotGeometryName, name,
-                                     show_symbol) {
+                                     show_symbol, swap_rownames) {
     ress <- .get_feature_metadata(
         sfe, features, name, sample_id, colGeometryName,
-        annotGeometryName, show_symbol
+        annotGeometryName, show_symbol, swap_rownames
     )
     if (!is.null(color_by)) {
         # Different from moranPlot
@@ -296,7 +301,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
             color_value <- .get_feature_metadata(
                 sfe, features, color_by, sample_id,
                 colGeometryName, annotGeometryName,
-                show_symbol
+                show_symbol, swap_rownames
             )
             color_value <- color_value[names(ress)]
         } else if (length(color_by) == length(features)) {
@@ -374,6 +379,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' @inheritParams plotSpatialFeature
 #' @inheritParams calculateUnivariate
 #' @inheritParams spdep::sp.correlogram
+#' @inheritParams plotDimLoadings
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
 #'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 #'   \code{colGeometry}, or \code{annotGeometry} by which to color the
@@ -430,7 +436,10 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            show_symbol = TRUE) {
+                            show_symbol = deprecated(), swap_rownames = NULL) {
+    l <- .deprecate_show_symbol("plotCorrelogram", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
         facet_by <- match.arg(facet_by)
@@ -442,7 +451,7 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
         o <- .get_plot_correlogram_df(
             sfe, features, s, method, color_by,
             colGeometryName, annotGeometryName, name,
-            show_symbol
+            show_symbol, swap_rownames
         )
         o$sample_id <- s
         o
@@ -570,18 +579,19 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
 }
 
 .get_plot_mc_df <- function(sfe, features, sample_id, name,
-                            colGeometryName, annotGeometryName, show_symbol) {
+                            colGeometryName, annotGeometryName, show_symbol,
+                            swap_rownames) {
     # Ah, the weight of tradition. .get_feature_metadata only works for one sample at a time
     # As a result, this function deals with one sample at a time.
     ress <- .get_feature_metadata(sfe, features,
         name = paste0(name, "_res"),
         sample_id = sample_id, colGeometryName,
-        annotGeometryName, show_symbol
+        annotGeometryName, show_symbol, swap_rownames
     )
     res_stats <- .get_feature_metadata(sfe, features,
         name = paste0(name, "_statistic"),
         sample_id = sample_id, colGeometryName,
-        annotGeometryName, show_symbol
+        annotGeometryName, show_symbol, swap_rownames
     )
     dfs <- lapply(seq_along(ress), function(i) {
         if (isTRUE(is.na(ress[[i]]))) {
@@ -630,7 +640,10 @@ plotMoranMC <- function(sfe, features, sample_id = "all",
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
                         ptype = c("density", "histogram", "freqpoly"),
-                        show_symbol = TRUE, ...) {
+                        show_symbol = deprecated(), swap_rownames = NULL, ...) {
+    l <- .deprecate_show_symbol("plotMoranMC", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     ptype <- match.arg(ptype)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
@@ -652,7 +665,7 @@ plotMoranMC <- function(sfe, features, sample_id = "all",
             sfe, features, s, name,
             colGeometryName,
             annotGeometryName,
-            show_symbol
+            show_symbol, swap_rownames
         )
     })
     if (length(sample_id) > 1L) {

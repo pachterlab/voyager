@@ -44,11 +44,12 @@
                         sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, returnDF = TRUE,
-                        include_self = FALSE, p.adjust.method = "BH", ...) {
+                        include_self = FALSE, p.adjust.method = "BH",
+                        swap_rownames = NULL, ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         out <- lapply(sample_id, function(s) {
-            features <- .check_features(x, features)[["assay"]]
+            features <- .check_features(x, features, swap_rownames = swap_rownames)[["assay"]]
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
             if (include_self) {
                 nb2 <- include.self(listw_use$neighbours)
@@ -73,11 +74,12 @@
         function(x, features = NULL, colGraphName = 1L, sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, returnDF = TRUE,
-                 include_self = FALSE, p.adjust.method = "BH",...) {
+                 include_self = FALSE, p.adjust.method = "BH",
+                 swap_rownames = NULL, ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
                 exprs_values, BPPARAM, zero.policy, returnDF,
-                include_self, p.adjust.method, ...
+                include_self, p.adjust.method, swap_rownames, ...
             )
         }
     }
@@ -278,11 +280,13 @@
 .sfe_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
+                        swap_rownames = NULL,
                         zero.policy = NULL, include_self = FALSE,
                         p.adjust.method = "BH", ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(features)) features <- rownames(x)
-        features <- .symbol2id(x, features)
+        # Requires devel version of SFE
+        features <- .symbol2id(x, features, swap_rownames)
         for (s in sample_id) {
             out <- calculateUnivariate(x, type, features, colGraphName, s,
                 exprs_values, BPPARAM, zero.policy,
@@ -298,7 +302,7 @@
                 localResults(x, type, features, sample_id = s) <- out
             } else {
                 out <- .add_name_sample_id(out, s)
-                features <- .symbol2id(x, features)
+                features <- .symbol2id(x, features, swap_rownames)
                 rowData(x)[features, names(out)] <- out
             }
         }
@@ -309,11 +313,12 @@
     } else {
         function(x, features = NULL, colGraphName = 1L, sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
+                 swap_rownames = NULL,
                  zero.policy = NULL, include_self = FALSE,
                  p.adjust.method = "BH", ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
-                exprs_values, BPPARAM, zero.policy, include_self,
+                exprs_values, BPPARAM, swap_rownames, zero.policy, include_self,
                 p.adjust.method, ...
             )
         }

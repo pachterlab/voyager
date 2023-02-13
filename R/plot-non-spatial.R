@@ -62,13 +62,14 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' @inheritParams ElbowPlot
 #' @param dims Numeric vector specifying which PCs to plot.
 #' @param nfeatures Number of genes to plot.
-#' @param show_symbol Logical; if the row names of the matrix are Ensembl
-#'   accessions, indicate whether to show more human readable gene symbols in
-#'   the plot instead. Ignored if the column specified in \code{symbol_col} is
-#'   absent from rowData.
-#' @param symbol_col If the row names of the gene expression matrix are Ensembl
-#'   accessions to avoid ambiguity in analysis. If not found in \code{rowData},
-#'   then rownames of the gene count matrix will be used.
+#' @param show_symbol Deprecated. Use argument \code{swap_rownames} instead, to
+#'   be consistent with \code{scater} plotting functions.
+#' @param symbol_col Deprecated. Use argument \code{swap_rownames} instead, to
+#'   be consistent with \code{scater} plotting functions.
+#' @param swap_rownames Column name of \code{rowData(object)} to be used to
+#'   identify features instead of \code{rownames(object)} when labeling plot
+#'   elements. If not found in \code{rowData}, then rownames of the gene count
+#'   matrix will be used.
 #' @param balanced Return an equal number of genes with + and - scores. If
 #'   FALSE, returns the top genes ranked by the scores absolute values.
 #' @param ncol Number of columns in the facetted plot.
@@ -77,6 +78,7 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' @importFrom SingleCellExperiment reducedDim
 #' @importFrom ggplot2 facet_wrap scale_y_discrete
 #' @importFrom stats reorder
+#' @importFrom lifecycle deprecated is_present deprecate_warn
 #' @export
 #' @examples
 #' library(SFEData)
@@ -85,20 +87,26 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 #' plotDimLoadings(sfe, dims = 1:2)
 plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
-                            show_symbol = TRUE, symbol_col = "symbol",
+                            swap_rownames = NULL,
+                            show_symbol = deprecated(),
+                            symbol_col = deprecated(),
                             reduction = "PCA",
                             balanced = TRUE, ncol = 2) {
+    if (is_present(show_symbol)) {
+        deprecate_warn("1.2.0", "plotDimLoadings(show_symbol = )",
+                       "plotDimLoadings(swap_rownames = )")
+        if (is_present(symbol_col) && is.null(swap_rownames))
+            swap_rownames <- symbol_col
+    }
     # For scater::runPCA results
     loadings <- attr(reducedDim(sce, reduction), "rotation")
-    is_ensembl <- all(grepl("^ENS", rownames(sce)))
-    if (!is_ensembl) show_symbol <- FALSE # I mean, irrelevant
     loading_cols <- paste0("PC", dims)
     df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
                 loadings[, loading_cols])
-    if (!symbol_col %in% names(df) || !show_symbol) {
+    if (is.null(swap_rownames) || !swap_rownames %in% names(df)) {
         df$gene_show <- rownames(loadings)
     } else {
-        df$gene_show <- df[[symbol_col]]
+        df$gene_show <- df[[swap_rownames]]
     }
     df_plt <- lapply(loading_cols, function(p) {
         df_use <- df[, c("gene_show", p)]

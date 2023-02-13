@@ -42,6 +42,7 @@
 #'
 #' @inheritParams spdep::moran
 #' @inheritParams SpatialFeatureExperiment::localResults
+#' @inheritParams plotDimLoadings
 #' @param x A numeric matrix whose rows are features/genes, or a
 #'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 #'   assay.
@@ -54,12 +55,12 @@
 #'   univariate metric is to be computed. Default to \code{NULL}. When
 #'   \code{NULL}, then the metric is computed for all genes with the values in
 #'   the assay specified in the argument \code{exprs_values}. This can be
-#'   parallelized with the argument \code{BPPARAM}. For genes, if the column
-#'   "symbol" is present in \code{rowData} and the row names of the SFE object
-#'   are Ensembl IDs, then the gene symbol can be used and converted to IDs
-#'   behind the scene. However, if one symbol matches multiple IDs, a warning
-#'   will be given and the first match will be used. Internally, the results are
-#'   always stored by the Ensembl ID rather than symbol.
+#'   parallelized with the argument \code{BPPARAM}. For genes, if the row names
+#'   of the SFE object are Ensembl IDs, then the gene symbol can be used and
+#'   converted to IDs behind the scene with a column in \code{rowData} can be
+#'   specified in \code{swap_rownames}. However, if one symbol matches multiple
+#'   IDs, a warning will be given and the first match will be used. Internally,
+#'   the results are always stored by the Ensembl ID rather than symbol.
 #' @param exprs_values Integer scalar or string indicating which assay of x
 #'   contains the expression values.
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether

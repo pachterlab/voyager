@@ -429,7 +429,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' PuRd colorbrewer palette is used for continuous variables and the other end
 #' of the \code{dittoSeq} palette is used for discrete variables.
 #'
+#' \code{theme_void} is used for all spatial plots in this package, because the
+#' units in the spatial coordinates are often arbitrary. This can be overriden
+#' to show the axes by using a different theme as normally done in
+#' \code{ggplot2}.
+#'
 #' @inheritParams calculateUnivariate
+#' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
@@ -486,9 +492,6 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   case it's different.
 #' @param annot_diverge_center Just as \code{diverge_center}, but for the
 #'   annotGeometry in case it's different.
-#' @param show_symbol Logical, whether to show human readable gene symbol on the
-#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param scattermore Logical, whether to use the \code{scattermore} package to
 #'   greatly speed up plotting numerous points. Only used for POINT
 #'   \code{colGeometries}. If the geometry is not POINT, then the centroids are
@@ -560,15 +563,20 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                annot_diverge_center = NA,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
-                               color = "black", fill = "gray80", show_symbol = TRUE,
+                               color = "black", fill = "gray80",
+                               show_symbol = deprecated(), swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
                                ...) {
+    l <- .deprecate_show_symbol("plotSpatialFeature", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
         colGeometryName = colGeometryName,
         exprs_values = exprs_values,
+        swap_rownames = swap_rownames,
         show_symbol = show_symbol
     )
     .plotSpatialFeature(
@@ -623,7 +631,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     do.call(rbind, dfs)
 }
 
-#' @importFrom ggplot2 geom_line
+#' @importFrom ggplot2 geom_line theme_void
 #' @importFrom SpatialFeatureExperiment rowGeometry df2sf
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL,
@@ -804,5 +812,5 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
-    p
+    p + theme_void()
 }
