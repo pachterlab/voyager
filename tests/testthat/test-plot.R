@@ -422,9 +422,9 @@ test_that("colData and rowData bin2d", {
     expect_doppelganger("colData bin2d", {
         plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
     })
-    #expect_doppelganger("colData bin2d with hexbin", {
-    #    plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
-    #})
+    expect_doppelganger("colData bin2d with hexbin", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
+    })
     expect_doppelganger("rowData bin2d", {
         plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
             scale_x_log10() + scale_y_log10()
@@ -464,9 +464,9 @@ test_that("plotCellBin2D", {
     expect_doppelganger("Cell density, rectangular", {
         plotCellBin2D(sfe_cosmx, bins = 50)
     })
-    #expect_doppelganger("Cell density, hex", {
-    #    plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
-    #})
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
+    })
 })
 
 sfe_muscle2 <- McKellarMuscleData()
@@ -481,7 +481,7 @@ test_that("Moran plot bin2d", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
                   plot_influential = FALSE)
     })
-    #expect_doppelganger("Moran plot hex bin", {
-    #    moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
-    #})
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
 })
