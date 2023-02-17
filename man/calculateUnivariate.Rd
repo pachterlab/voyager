@@ -233,11 +233,10 @@ contains the expression values.}
 include edges from each location to itself. This is for Getis-Ord Gi* as in
 \code{localG} and \code{localG_perm}, not to be used for any other method.}
 
-\item{swap_rownames}{Name of a column in \code{rowData} to identify features
-instead of the row names of the SFE object. For example, if the row names
-of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
-column in \code{rowData}, then putting "symbol" for this argument will use
-the gene symbols to identify which gene's local results to get or set.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use

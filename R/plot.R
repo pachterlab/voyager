@@ -508,7 +508,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param summary_fun Function to summarize the feature value when the
 #'   \code{colGeometry} is binned.
 #' @param hex Logical, whether to use \code{\link{geom_hex}}. Note that
-#'   \code{geom_hex} is broken in \code{ggplot2} version 3.4.0.
+#'   \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+#'   \code{ggplot2} if you are getting horizontal stripes when
+#'   \code{hex = TRUE}.
 #' @param pointsize Radius of rasterized point in \code{scattermore}. Default to
 #'   0 for single pixels (fastest).
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.

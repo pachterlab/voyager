@@ -72,11 +72,10 @@ non-influential points and only plot influential points as points.}
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
 
-\item{swap_rownames}{Name of a column in \code{rowData} to identify features
-instead of the row names of the SFE object. For example, if the row names
-of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
-column in \code{rowData}, then putting "symbol" for this argument will use
-the gene symbols to identify which gene's local results to get or set.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
 be consistent with \code{scater} plotting functions.}
@@ -92,7 +91,9 @@ used.}
 horizontal directions. Overrides \code{bins} if both set.}
 
 \item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
-\code{geom_hex} is broken in \code{ggplot2} version 3.4.0.}
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+\code{ggplot2} if you are getting horizontal stripes when
+\code{hex = TRUE}.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
