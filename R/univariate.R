@@ -170,44 +170,57 @@
 #' ))
 NULL
 
+types <- c(
+    "moran", "geary", "moran.mc", "geary.mc",
+    "moran.test", "geary.test", "globalG.test",
+    "sp.correlogram", "moran.plot", "localmoran",
+    "localmoran_perm", "localC", "localC_perm",
+    "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
+    "gwss"
+)
+
 #' @rdname calculateUnivariate
 #' @export
 setMethod(
-    "calculateUnivariate", "ANY",
-    function(x, listw, type = c(
-                 "moran", "geary", "moran.mc", "geary.mc",
-                 "moran.test", "geary.test", "globalG.test",
-                 "sp.correlogram", "moran.plot", "localmoran",
-                 "localmoran_perm", "localC", "localC_perm",
-                 "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
-                 "gwss"
-             ),
+    "calculateUnivariate", c("ANY", "SFEMethod"),
+    function(x, type, listw,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH", ...) {
-        type <- match.arg(type)
-        # I wrote a thin wrapper to make the argument names consistent
-        if (type == "sp.correlogram") {
-            fun <- .sp.correlogram
-        } else {
-            fun <- match.fun(type)
+        if (info(type, "package") %in% c("spdep", "Voyager", NA)) {
+            rlang::check_installed(info(type, "package"))
         }
-        local <- .is_local(type)
-        obscure_args <- switch(type,
-            moran = c("n", "S0"),
-            geary = c("n", "n1", "S0")
-        )
-        defaults <- .obscure_arg_defaults(listw, type)
         other_args <- list(...)
-        defaults_use <- defaults[setdiff(names(defaults), names(other_args))]
         all_args <- list(
-            x = x, listw = listw, fun = fun,
+            x = x, listw = listw, fun = fun(type),
             BPPARAM = BPPARAM, zero.policy = zero.policy
         )
         all_args <- c(all_args, other_args, defaults_use)
         out <- do.call(.calc_univar, all_args)
-        if (returnDF) out <- .res2df(out, type, local, nb = listw$neighbours,
-                                     p.adjust.method = p.adjust.method, ...)
+        if (returnDF) {
+            if (is_local(type)) {
+                out <- to_df_fun(type)(out, nb = listw$neighbours,
+                                       p.adjust.method = p.adjust.method)
+                out <- .value2df(out, use_geometry = FALSE)
+            } else {
+                out <- to_df_fun(type)(out, name = info(type, "name"))
+                # To do: what if there are duplicates, from runs with different parameters?
+                # Also store the parameters.
+            }
+        }
         out
+    }
+)
+
+#' @rdname calculateUnivariate
+#' @export
+setMethod(
+    "calculateUnivariate", c("ANY", "character"),
+    function(x, type, listw,
+             BPPARAM = SerialParam(),
+             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH", ...) {
+        type <- get(type, mode = "S4")
+        calculateUnivariate(x, type, listw, BPPARAM, zero.policy, returnDF,
+                            p.adjust.method, ...)
     }
 )
 

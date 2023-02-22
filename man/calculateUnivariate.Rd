@@ -3,8 +3,9 @@
 \name{calculateUnivariate}
 \alias{calculateUnivariate}
 \alias{calculateMoransI}
-\alias{calculateUnivariate,ANY-method}
-\alias{calculateUnivariate,SpatialFeatureExperiment-method}
+\alias{calculateUnivariate,ANY,SFEMethod-method}
+\alias{calculateUnivariate,ANY,character-method}
+\alias{calculateUnivariate,SpatialFeatureExperiment,ANY-method}
 \alias{calculateMoransI,ANY-method}
 \alias{calculateMoransI,SpatialFeatureExperiment-method}
 \alias{colDataUnivariate}
@@ -17,13 +18,10 @@
 \alias{runMoransI}
 \title{Univariate spatial stiatistics}
 \usage{
-\S4method{calculateUnivariate}{ANY}(
+\S4method{calculateUnivariate}{ANY,SFEMethod}(
   x,
+  type,
   listw,
-  type = c("moran", "geary", "moran.mc", "geary.mc", "moran.test", "geary.test",
-    "globalG.test", "sp.correlogram", "moran.plot", "localmoran", "localmoran_perm",
-    "localC", "localC_perm", "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
-    "gwss"),
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
@@ -31,7 +29,18 @@
   ...
 )
 
-\S4method{calculateUnivariate}{SpatialFeatureExperiment}(
+\S4method{calculateUnivariate}{ANY,character}(
+  x,
+  type,
+  listw,
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  returnDF = TRUE,
+  p.adjust.method = "BH",
+  ...
+)
+
+\S4method{calculateUnivariate}{SpatialFeatureExperiment,ANY}(
   x,
   type,
   features = NULL,
@@ -177,12 +186,12 @@ runMoransI(
 \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 assay.}
 
-\item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
-object.}
-
 \item{type}{An integer specifying the index or string specifying the name of
 the *Geometry to query or replace. If missing, then the first item in the
 *Geometries will be returned or replaced.}
+
+\item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
+object.}
 
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized.}
@@ -233,10 +242,11 @@ contains the expression values.}
 include edges from each location to itself. This is for Getis-Ord Gi* as in
 \code{localG} and \code{localG_perm}, not to be used for any other method.}
 
-\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
-identify features instead of \code{rownames(object)} when labeling plot
-elements. If not found in \code{rowData}, then rownames of the gene count
-matrix will be used.}
+\item{swap_rownames}{Name of a column in \code{rowData} to identify features
+instead of the row names of the SFE object. For example, if the row names
+of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
+column in \code{rowData}, then putting "symbol" for this argument will use
+the gene symbols to identify which gene's local results to get or set.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use

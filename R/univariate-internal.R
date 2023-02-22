@@ -20,10 +20,6 @@
     return(out)
 }
 
-.sp.correlogram <- function(x, listw, ...) {
-    sp.correlogram(neighbours = listw$neighbours, var = x, ...)
-}
-
 .obscure_arg_defaults <- function(listw, type) {
     nb <- listw$neighbours
     switch(type,
@@ -56,7 +52,7 @@
                 listw_use <- nb2listw(nb2)
             }
             mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s]
-            o <- calculateUnivariate(mat, listw_use,
+            o <- calculateUnivariate(mat, listw = listw_use,
                 type = type,
                 BPPARAM = BPPARAM,
                 zero.policy = zero.policy,
@@ -157,8 +153,9 @@
             }
             res <- calculateUnivariate(colData(x)[colData(x)$sample_id == s,
                                                   features, drop = FALSE],
-                listw_use, type, BPPARAM, zero.policy,
-                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
+                listw = listw_use, type = type, BPPARAM = BPPARAM,
+                zero.policy = zero.policy, returnDF = TRUE,
+                p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
             if (local) {
@@ -196,8 +193,9 @@
                 listw_use <- nb2listw(nb2)
             }
             cg <- colGeometry(x, type = colGeometryName, sample_id = s)
-            res <- calculateUnivariate(cg[, features, drop = FALSE], listw_use,
-                type, BPPARAM, zero.policy,
+            res <- calculateUnivariate(cg[, features, drop = FALSE],
+                                       listw = listw_use,
+                type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
                 returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
@@ -243,8 +241,9 @@
             }
             ag <- annotGeometry(x, type = annotGeometryName, sample_id = s)
             ag <- .rm_empty_geometries(ag, MARGIN = 3)
-            res <- calculateUnivariate(ag[, features, drop = FALSE], listw_use,
-                type, BPPARAM, zero.policy,
+            res <- calculateUnivariate(
+                ag[, features, drop = FALSE], listw = listw_use,
+                type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
                 returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
             local <- .is_local(type)
