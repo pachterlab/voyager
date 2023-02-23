@@ -1,5 +1,5 @@
 ---
-title: "Codex exploratory data analysis"
+title: "CODEX exploratory data analysis"
 author: "Kayla Jackson"
 date: "`r Sys.Date()`"
 output: 
@@ -24,10 +24,6 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-# Dataset
-
-
-We will begin by downloading the data and loading it in to R. 
 ```{r setup}
 library(Voyager)
 library(SingleCellExperiment)
@@ -47,7 +43,16 @@ library(BiocParallel)
 
 theme_set(theme_bw())
 ```
+## Dataset
+The dataset used in this vignette is from the paper [Strategies for Accurate Cell Type Identification in CODEX Multiplexed Imaging Data](doi.org/10.3389/fimmu.2021.727626)(Hickey, et.al 2021). The data were collected as part of the HuBMap consortium which seeks to characterize healthy tissue and make data publicly avaialble. More specifically, this dataset characterizes 4 regions of the large intestine (colon) from a single donor. This vignette will focus on data from the sigmoid colon. 
 
+The intestinal sections were interrogated using the multiplexed imaging method CO-Detection by indEXing (CODEX). CODEX involves cyclical staining of a tissue with DNA-barcoded antibodies. At each round of experimentation, fluoresently labeled probes hybridize to the tissue bound DNA-conjugated antibodies are subsequently imaged and the stripped from the tissue. At present, the technology quantifies up to 60 markers in a single experiment. Raw images generated from this process are subjected to image stitching, drift compensation, deconvolution, and cycle concatenation using publicly avaialable [software](https://github.com/nolanlab/CODEX). The result of this pre-processing is a matrix that contains the location of individual cells and the quantified markers for each cell. Cell types were assigned as described in the manuscript linked above. Briefly, the authors used a hand-gating strategy to define cell types and create a standard to compare the effect of normalization methods on clustering and cell annotation. 
+
+The raw intensity data are available for download from HubMap with identifier HBM and the cell type annotations are provided as supplementary data in the manuscript [here](). The data relevant to this vignette have been converted to a `SFE` object and are available to download [here]() from Box.  
+
+These data will be submitted to the `SFEData` package on Bioconductor and will be available there in future releases. 
+
+We will begin by downloading the data and loading it in to R. 
 ```{r}
 sfe <- readRDS("~/Downloads/doi_10/codex.Rds")
 sfe
@@ -62,7 +67,6 @@ celldensity <- plotCellBin2D(sfe)
 celldensity
 ```
 We can see from the figure above that the colonic epithelium is enriched with cells while the loose connective tissue and muscle layers beneath the epithelial layer is more sparsely populated with cells. This is in line with known colon histology. The epithelium is enriched with Goblet and has invaginations that project inwards towards the connective tissue. Smooth muscle cells are also prominent in the colon, where bands of muscle contract to move colonic contents towards the rectum.  
-
 
 Next, we will compute some gene level metrics for each of the 47 barcoded genes. In contrast to RNA-based methods, the fields in the matrix represent intensities rather than counts.  
 ```{r}
