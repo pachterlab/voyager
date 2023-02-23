@@ -6,6 +6,14 @@ library(vdiffr)
 library(scater)
 library(Matrix)
 library(ggplot2)
+
+test_that("Divergent palette beginning and end", {
+    expect_equal(getDivergeRange(1:8, diverge_center = 5), c(0, 0.875))
+    expect_equal(getDivergeRange(1:8, diverge_center = 4), c(0.125, 1))
+    expect_equal(getDivergeRange(1:8, diverge_center = 0), c(9/16, 1))
+    expect_equal(getDivergeRange(1:8, diverge_center = 9), c(0, 8/18))
+})
+
 # Toy example
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 sfe <- runUnivariate(sfe,
@@ -324,6 +332,9 @@ test_that("plotDimLoadings for PCA", {
         "plotDimLoadings, not balanced",
         plotDimLoadings(sfe_muscle, 1:2, balanced = FALSE)
     )
+    expect_doppelganger("Change the number of columns",
+                        plotDimLoadings(sfe_muscle, 1:2, balanced = TRUE,
+                                        ncol = 1))
 })
 
 test_that("Everything spatialReducedDim", {
@@ -411,9 +422,9 @@ test_that("colData and rowData bin2d", {
     expect_doppelganger("colData bin2d", {
         plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
     })
-    #expect_doppelganger("colData bin2d with hexbin", {
-    #    plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
-    #})
+    expect_doppelganger("colData bin2d with hexbin", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
+    })
     expect_doppelganger("rowData bin2d", {
         plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
             scale_x_log10() + scale_y_log10()
@@ -439,13 +450,33 @@ test_that("colData and rowData histograms", {
         plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
     })
     expect_doppelganger("One variable, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg", 
+                             position = "stack")
     })
     expect_doppelganger("Multiple variables, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg",
+                             position = "stack")
     })
     expect_doppelganger("with subset", {
         plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
+    })
+})
+
+test_that("colData and rowData freqpoly", {
+    expect_doppelganger("colData freqpoly, one variable", {
+        plotColDataFreqpoly(sfe_cosmx, "nCounts")
+    })
+    expect_doppelganger("colData freqpoly, multiple variables", {
+        plotColDataFreqpoly(sfe_cosmx, c("nCounts", "nGenes"))
+    })
+    expect_doppelganger("One variable, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", color_by = "is_neg")
+    })
+    expect_doppelganger("Multiple variables, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, c("means", "vars"), color_by = "is_neg")
+    })
+    expect_doppelganger("with subset, freqpoly", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", subset = "is_neg")
     })
 })
 
@@ -453,9 +484,9 @@ test_that("plotCellBin2D", {
     expect_doppelganger("Cell density, rectangular", {
         plotCellBin2D(sfe_cosmx, bins = 50)
     })
-    #expect_doppelganger("Cell density, hex", {
-    #    plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
-    #})
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
+    })
 })
 
 sfe_muscle2 <- McKellarMuscleData()
@@ -470,7 +501,7 @@ test_that("Moran plot bin2d", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
                   plot_influential = FALSE)
     })
-    #expect_doppelganger("Moran plot hex bin", {
-    #    moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
-    #})
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
 })

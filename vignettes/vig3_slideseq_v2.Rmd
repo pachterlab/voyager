@@ -80,7 +80,7 @@ Given the density of points, we may choose to aggregate points into a hexagonal 
 ```{r}
 as.data.frame(cbind(spatialCoords(sfe), colData(sfe))) |> 
     ggplot(aes(xcoord, ycoord, z=nCounts)) +
-    stat_summary_2d(fun = function(x) sum(x), bins=100) + 
+    stat_summary_hex(fun = function(x) sum(x), bins=100) + 
     scale_fill_distiller(palette = "Blues", direction = 1) +
     labs(fill='nCounts')  +
     theme_bw() + coord_equal() +
