@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,14 +61,7 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
-      </ul>
+      <ul class="navbar-nav"></ul>
 </div>
 
     
@@ -84,9 +77,9 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-02-08</h4>
+            <h4 data-toc-skip class="date">2023-02-23</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
+      
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
     </div>
 
@@ -121,7 +114,7 @@ polygon geometry was added to the SFE object, which is in the
 <code>SFEData</code> package.</p>
 <p>Here we load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span> <span class="co"># Pushed fix to Bioc but changes may take a while to show up</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -924,7 +917,7 @@ time of spatial autocorrelation metrics.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 104.108   0.159 104.360</span></span></code></pre></div>
+<span><span class="co">#&gt; 106.736   0.206 107.061</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -988,7 +981,7 @@ normalize the data.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  82.631   5.733  44.718</span></span></code></pre></div>
+<span><span class="co">#&gt;  83.746   7.107  46.780</span></span></code></pre></div>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="va">is_any_neg</span></span></code></pre></div>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
@@ -1221,20 +1214,20 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] patchwork_1.1.2                scran_1.26.2                  </span></span>
 <span><span class="co">#&gt;  [3] bluster_1.8.0                  BiocSingular_1.14.0           </span></span>
-<span><span class="co">#&gt;  [5] BiocParallel_1.32.5            scater_1.27.5                 </span></span>
+<span><span class="co">#&gt;  [5] BiocParallel_1.32.5            scater_1.27.6                 </span></span>
 <span><span class="co">#&gt;  [7] scuttle_1.8.4                  stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.4.0                  SpatialFeatureExperiment_1.0.3</span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.4.1                  SpatialFeatureExperiment_1.0.3</span></span>
 <span><span class="co">#&gt; [11] SpatialExperiment_1.8.0        SingleCellExperiment_1.20.0   </span></span>
 <span><span class="co">#&gt; [13] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
 <span><span class="co">#&gt; [15] GenomicRanges_1.50.2           GenomeInfoDb_1.34.9           </span></span>
 <span><span class="co">#&gt; [17] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
 <span><span class="co">#&gt; [19] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
 <span><span class="co">#&gt; [21] matrixStats_0.63.0             SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt; [23] Voyager_1.0.8                 </span></span>
+<span><span class="co">#&gt; [23] Voyager_1.0.10                </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.3                    R.utils_2.12.2               </span></span>
-<span><span class="co">#&gt;   [3] tidyselect_1.2.0              RSQLite_2.2.20               </span></span>
+<span><span class="co">#&gt;   [3] tidyselect_1.2.0              RSQLite_2.3.0                </span></span>
 <span><span class="co">#&gt;   [5] AnnotationDbi_1.60.0          grid_4.2.2                   </span></span>
 <span><span class="co">#&gt;   [7] DropletUtils_1.18.1           munsell_0.5.0                </span></span>
 <span><span class="co">#&gt;   [9] ScaledMatrix_1.6.0            codetools_0.2-19             </span></span>
@@ -1247,7 +1240,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [23] bit64_4.0.5                   farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [25] rhdf5_2.42.0                  rprojroot_2.0.3              </span></span>
 <span><span class="co">#&gt;  [27] vctrs_0.5.2                   generics_0.1.3               </span></span>
-<span><span class="co">#&gt;  [29] xfun_0.37                     BiocFileCache_2.6.0          </span></span>
+<span><span class="co">#&gt;  [29] xfun_0.37                     BiocFileCache_2.6.1          </span></span>
 <span><span class="co">#&gt;  [31] R6_2.5.1                      ggbeeswarm_0.7.1             </span></span>
 <span><span class="co">#&gt;  [33] rsvd_1.0.5                    locfit_1.5-9.7               </span></span>
 <span><span class="co">#&gt;  [35] bitops_1.0-7                  rhdf5filters_1.10.0          </span></span>
@@ -1258,7 +1251,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [45] rlang_1.0.6                   systemfonts_1.0.4            </span></span>
 <span><span class="co">#&gt;  [47] splines_4.2.2                 scico_1.3.1                  </span></span>
 <span><span class="co">#&gt;  [49] BiocManager_1.30.19           s2_1.1.2                     </span></span>
-<span><span class="co">#&gt;  [51] yaml_2.3.7                    httpuv_1.6.8                 </span></span>
+<span><span class="co">#&gt;  [51] yaml_2.3.7                    httpuv_1.6.9                 </span></span>
 <span><span class="co">#&gt;  [53] tools_4.2.2                   spData_2.2.1                 </span></span>
 <span><span class="co">#&gt;  [55] ellipsis_0.3.2                jquerylib_0.1.4              </span></span>
 <span><span class="co">#&gt;  [57] RColorBrewer_1.1-3            proxy_0.4-27                 </span></span>
@@ -1268,7 +1261,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [65] dbscan_1.1-11                 deldir_1.0-6                 </span></span>
 <span><span class="co">#&gt;  [67] viridis_0.6.2                 cowplot_1.1.1                </span></span>
 <span><span class="co">#&gt;  [69] ggrepel_0.9.3                 cluster_2.1.4                </span></span>
-<span><span class="co">#&gt;  [71] fs_1.6.0                      magrittr_2.0.3               </span></span>
+<span><span class="co">#&gt;  [71] fs_1.6.1                      magrittr_2.0.3               </span></span>
 <span><span class="co">#&gt;  [73] magick_2.7.3                  scattermore_0.8              </span></span>
 <span><span class="co">#&gt;  [75] ggnewscale_0.4.8              mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [77] evaluate_0.20                 xtable_1.8-4                 </span></span>
@@ -1282,7 +1275,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [93] sf_1.0-9                      boot_1.3-28.1                </span></span>
 <span><span class="co">#&gt;  [95] Matrix_1.5-3                  cli_3.6.0                    </span></span>
 <span><span class="co">#&gt;  [97] R.methodsS3_1.8.2             parallel_4.2.2               </span></span>
-<span><span class="co">#&gt;  [99] metapod_1.6.0                 igraph_1.3.5                 </span></span>
+<span><span class="co">#&gt;  [99] metapod_1.6.0                 igraph_1.4.0                 </span></span>
 <span><span class="co">#&gt; [101] pkgconfig_2.0.3               pkgdown_2.0.7                </span></span>
 <span><span class="co">#&gt; [103] sp_1.6-0                      vipor_0.4.5                  </span></span>
 <span><span class="co">#&gt; [105] bslib_0.4.2                   dqrng_0.3.0                  </span></span>

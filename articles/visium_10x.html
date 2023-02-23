@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,14 +61,7 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
-      </ul>
+      <ul class="navbar-nav"></ul>
 </div>
 
     
@@ -84,9 +77,9 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-02-08</h4>
+            <h4 data-toc-skip class="date">2023-02-23</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/visium_10x.Rmd" class="external-link"><code>vignettes/visium_10x.Rmd</code></a></small>
+      
       <div class="d-none name"><code>visium_10x.Rmd</code></div>
     </div>
 
@@ -113,7 +106,7 @@ Visium introductory vignette</a> using a dataset in the <a href="https://biocond
 package but not from the 10X website.</p>
 <p>Here we load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SingleCellExperiment</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -395,10 +388,7 @@ near the tissue, especially on the left.</p>
 outliers.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"sum"</span>, y <span class="op">=</span> <span class="st">"subsets_mito_percent"</span>, color_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density_2d.html" class="external-link">geom_density_2d</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `stat_contour()`: Zero contours were generated</span></span>
-<span><span class="co">#&gt; Warning in min(x): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in max(x): no non-missing arguments to max; returning -Inf</span></span></code></pre></div>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density_2d.html" class="external-link">geom_density_2d</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>This is unlike scRNA-seq data. Spots not in tissue have a wide range
 of mitocondrial percentage. Spots in tissue fall into 3 clusters in this
@@ -495,22 +485,22 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] rjson_0.2.21                   bluster_1.8.0                 </span></span>
 <span><span class="co">#&gt;  [3] patchwork_1.1.2                stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [5] scran_1.26.2                   scater_1.27.5                 </span></span>
-<span><span class="co">#&gt;  [7] scuttle_1.8.4                  ggplot2_3.4.0                 </span></span>
+<span><span class="co">#&gt;  [5] scran_1.26.2                   scater_1.27.6                 </span></span>
+<span><span class="co">#&gt;  [7] scuttle_1.8.4                  ggplot2_3.4.1                 </span></span>
 <span><span class="co">#&gt;  [9] SpatialFeatureExperiment_1.0.3 SpatialExperiment_1.8.0       </span></span>
 <span><span class="co">#&gt; [11] SingleCellExperiment_1.20.0    SummarizedExperiment_1.28.0   </span></span>
 <span><span class="co">#&gt; [13] Biobase_2.58.0                 GenomicRanges_1.50.2          </span></span>
 <span><span class="co">#&gt; [15] GenomeInfoDb_1.34.9            IRanges_2.32.0                </span></span>
 <span><span class="co">#&gt; [17] S4Vectors_0.36.1               BiocGenerics_0.44.0           </span></span>
 <span><span class="co">#&gt; [19] MatrixGenerics_1.10.0          matrixStats_0.63.0            </span></span>
-<span><span class="co">#&gt; [21] Voyager_1.0.8                 </span></span>
+<span><span class="co">#&gt; [21] Voyager_1.0.10                </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] ggbeeswarm_0.7.1          ggnewscale_0.4.8         </span></span>
 <span><span class="co">#&gt;   [3] colorspace_2.1-0          deldir_1.0-6             </span></span>
 <span><span class="co">#&gt;   [5] class_7.3-21              rprojroot_2.0.3          </span></span>
 <span><span class="co">#&gt;   [7] XVector_0.38.0            BiocNeighbors_1.16.0     </span></span>
-<span><span class="co">#&gt;   [9] fs_1.6.0                  proxy_0.4-27             </span></span>
+<span><span class="co">#&gt;   [9] fs_1.6.1                  proxy_0.4-27             </span></span>
 <span><span class="co">#&gt;  [11] farver_2.1.1              scico_1.3.1              </span></span>
 <span><span class="co">#&gt;  [13] ggrepel_0.9.3             fansi_1.0.4              </span></span>
 <span><span class="co">#&gt;  [15] codetools_0.2-19          R.methodsS3_1.8.2        </span></span>
@@ -523,7 +513,7 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt;  [29] limma_3.54.1              cli_3.6.0                </span></span>
 <span><span class="co">#&gt;  [31] s2_1.1.2                  BiocSingular_1.14.0      </span></span>
 <span><span class="co">#&gt;  [33] htmltools_0.5.4           tools_4.2.2              </span></span>
-<span><span class="co">#&gt;  [35] rsvd_1.0.5                igraph_1.3.5             </span></span>
+<span><span class="co">#&gt;  [35] rsvd_1.0.5                igraph_1.4.0             </span></span>
 <span><span class="co">#&gt;  [37] gtable_0.3.1              glue_1.6.2               </span></span>
 <span><span class="co">#&gt;  [39] GenomeInfoDbData_1.2.9    dplyr_1.1.0              </span></span>
 <span><span class="co">#&gt;  [41] wk_0.7.1                  Rcpp_1.0.10              </span></span>
