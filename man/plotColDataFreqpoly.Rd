@@ -38,6 +38,9 @@ plotRowDataFreqpoly(
 When multiple features are specified, they will be plotted in separate
 facets.}
 
+\item{color_by}{Name of a categorical column in \code{colData} or
+\code{rowData} to color the polygons.}
+
 \item{subset}{Name of a logical column to only plot a subset of the data.}
 
 \item{bins}{Number of bins. Overridden by \code{binwidth}. Defaults to 30.}
@@ -76,7 +79,7 @@ causes problems in stacked histograms.
 \examples{
 library(SFEData)
 sfe <- McKellarMuscleData()
-plotColDataFreqpoly(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",
+plotColDataFreqpoly(sfe, c("nCounts", "nGenes"), color_by = "in_tissue",
                     bins = 50)
 plotColDataFreqpoly(sfe, "nCounts", subset = "in_tissue")
 sfe2 <- sfe[, sfe$in_tissue]
