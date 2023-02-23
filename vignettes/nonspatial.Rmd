@@ -284,10 +284,9 @@ data("ditto_colors")
 ```
 
 ```{r}
-plotColDataHistogram(sfe, c("sum_localmoran", "detected_localmoran", 
-                            "pct_mito_localmoran"), bins = 50, 
-                     fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, c("sum_localmoran", "detected_localmoran", 
+                           "pct_mito_localmoran"), bins = 50, 
+                    color_by = "cluster") +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
@@ -344,10 +343,9 @@ sfe$pct_mito_losh <- localResult(sfe, "LOSH", "subsets_mito_percent")[,"Hi"]
 ```
 
 ```{r}
-plotColDataHistogram(sfe, c("sum_losh", "detected_losh", 
-                            "pct_mito_losh"), bins = 50, 
-                     fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, c("sum_losh", "detected_losh", 
+                           "pct_mito_losh"), bins = 50, 
+                     color_by = "cluster") +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
@@ -499,8 +497,7 @@ for (i in seq_along(top_markers)) {
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotColDataHistogram(sfe, new_colname, fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, new_colname, color_by = "cluster") +
     ggtitle("Local Moran's I") +
     theme(legend.position = "top") +
     scale_y_log10() +
@@ -551,8 +548,7 @@ for (i in seq_along(top_markers)) {
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotColDataHistogram(sfe, new_colname2, fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, new_colname2, color_by = "cluster") +
     ggtitle("Local heteroscedasticity") +
     theme(legend.position = "top") +
     scale_y_log10() +
