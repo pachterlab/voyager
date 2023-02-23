@@ -118,7 +118,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
         geom_segment(aes(yend = gene), xend = 0, show.legend = FALSE) +
         geom_point(color = "blue") +
         geom_vline(xintercept = 0, linetype = 2) +
-        facet_wrap(~PC, scales = "free_y", ncol = 2) +
+        facet_wrap(~PC, scales = "free_y", ncol = ncol) +
         scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
         labs(x = "Loading", y = "Gene")
 }
@@ -237,13 +237,14 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 #'   \code{rowData} to fill the histogram.
 #' @param subset Name of a logical column to only plot a subset of the data.
 #' @return A ggplot object
+#' @seealso plotColDataFreqpoly
 #' @importFrom rlang %||% .data
 #' @export
 #' @examples
 #' library(SFEData)
 #' sfe <- McKellarMuscleData()
 #' plotColDataHistogram(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",
-#'                      bins = 50)
+#'                      bins = 50, position = "stack")
 #' plotColDataHistogram(sfe, "nCounts", subset = "in_tissue")
 #' sfe2 <- sfe[, sfe$in_tissue]
 #' plotColDataHistogram(sfe2, c("nCounts", "nGenes"), bins = 50)
@@ -252,3 +253,59 @@ plotColDataHistogram <- .plot_dimdata_hist(colData)
 #' @rdname plotColDataHistogram
 #' @export
 plotRowDataHistogram <- .plot_dimdata_hist(rowData)
+
+.plot_dimdata_freqpoly <- function(fun) {
+    function(sfe, feature, color_by = NULL, subset = NULL, bins = 100,
+             binwidth = NULL, linewidth = 1.2,
+             scales = "free", ncol = 1, position = "identity") {
+        df <- as.data.frame(fun(sfe))[, c(feature, color_by, subset), drop = FALSE]
+        if (!is.null(subset)) df <- df[df[[subset]],]
+        p <- ggplot()
+        if (length(feature) > 1L) {
+            df <- reshape(df, varying = feature, direction = "long",
+                          v.names = "values", timevar = "variable",
+                          times = feature)
+            p <- p +
+                geom_freqpoly(data = df,
+                              mapping = aes(!!!syms(c(x = "values", color = color_by))),
+                              bins = bins, linewidth = linewidth,
+                              binwidth = binwidth, position = position) +
+                facet_wrap(~ variable, scales = scales, ncol = ncol)
+        } else {
+            p <- p +
+                geom_freqpoly(data = df,
+                              mapping = aes(!!!syms(c(x = feature, color = color_by))),
+                              bins = bins, linewidth = linewidth,
+                              binwidth = binwidth, position = position)
+        }
+        p <- p + scale_color_manual(values = ditto_colors)
+        p
+    }
+}
+
+#' Plot frequency polygons for colData and rowData columns
+#'
+#' This function is recommended instead of \code{\link{plotColDataHistogram}}
+#' when coloring by multiple categories and log transforming the y axis, which
+#' causes problems in stacked histograms.
+#'
+#' @inheritParams ggplot2::geom_freqpoly
+#' @inheritParams plotColDataHistogram
+#' @param linewidth Line width of the polygons, defaults to a thicker 1.2.
+#' @param color_by Name of a categorical column in \code{colData} or
+#'   \code{rowData} to color the polygons.
+#' @seealso plotColDataHistogram
+#' @export
+#' @examples
+#' library(SFEData)
+#' sfe <- McKellarMuscleData()
+#' plotColDataFreqpoly(sfe, c("nCounts", "nGenes"), color_by = "in_tissue",
+#'                     bins = 50)
+#' plotColDataFreqpoly(sfe, "nCounts", subset = "in_tissue")
+#' sfe2 <- sfe[, sfe$in_tissue]
+#' plotColDataFreqpoly(sfe2, c("nCounts", "nGenes"), bins = 50)
+plotColDataFreqpoly <- .plot_dimdata_freqpoly(colData)
+
+#' @rdname plotColDataFreqpoly
+#' @export
+plotRowDataFreqpoly <- .plot_dimdata_freqpoly(rowData)
