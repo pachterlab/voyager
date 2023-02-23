@@ -52,16 +52,9 @@ theme_set(theme_bw())
 sfe <- readRDS("~/Downloads/doi_10/codex.Rds")
 sfe
 ```
-The rows in the count matrix correspond to the 47 barcoded genes measured by CODEX. Additionally, the authors provide some metadata for the cells, including the cell type. In the cell below, we plot the cell types in space. 
+The rows in the count matrix correspond to the 47 barcoded genes measured by CODEX. Additionally, the authors provide some metadata for the cells, including the cell type. 
 
 ## Exploratory Data Analysis
-```{r}
-
-spatial <- plotSpatialFeature(sfe, "cell_type") +
-    theme_void()
-
-spatial
-```
 
 ```{r}
 celldensity <- plotCellBin2D(sfe)
@@ -69,3 +62,15 @@ celldensity <- plotCellBin2D(sfe)
 celldensity
 ```
 We can see from the figure above that the colonic epithelium is enriched with cells while the loose connective tissue and muscle layers beneath the epithelial layer is more sparsely populated with cells. This is in line with known colon histology. The epithelium is enriched with Goblet and has invaginations that project inwards towards the connective tissue. Smooth muscle cells are also prominent in the colon, where bands of muscle contract to move colonic contents towards the rectum.  
+
+
+Next, we will compute some gene level metrics for each of the 47 barcoded genes. In contrast to RNA-based methods, the fields in the matrix represent intensities rather than counts.  
+```{r}
+rowData(sfe)$mean <- rowMeans(assay(sfe))
+rowData(sfe)$var <- rowVars(assay(sfe))
+
+data.frame(rowData(sfe)) |>
+  ggplot(aes(mean, var)) + 
+  geom_point()
+```
+Interestingly, the there is a sigmoid relationship between the mean and variance of the protein expression. The pattern is remncient of what might be expected if the intensity values were derived from a Gamma distribution, the continuous analog of the Negative Binomial distribution that is typcially used to describe count data from scRNA-seq experiments. 
