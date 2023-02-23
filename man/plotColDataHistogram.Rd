@@ -73,3 +73,6 @@ plotColDataHistogram(sfe, "nCounts", subset = "in_tissue")
 sfe2 <- sfe[, sfe$in_tissue]
 plotColDataHistogram(sfe2, c("nCounts", "nGenes"), bins = 50)
 }
+\seealso{
+plotColDataFreqpoly
+}

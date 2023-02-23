@@ -450,13 +450,33 @@ test_that("colData and rowData histograms", {
         plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
     })
     expect_doppelganger("One variable, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg", 
+                             position = "stack")
     })
     expect_doppelganger("Multiple variables, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg",
+                             position = "stack")
     })
     expect_doppelganger("with subset", {
         plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
+    })
+})
+
+test_that("colData and rowData freqpoly", {
+    expect_doppelganger("colData freqpoly, one variable", {
+        plotColDataFreqpoly(sfe_cosmx, "nCounts")
+    })
+    expect_doppelganger("colData freqpoly, multiple variables", {
+        plotColDataFreqpoly(sfe_cosmx, c("nCounts", "nGenes"))
+    })
+    expect_doppelganger("One variable, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", color_by = "is_neg")
+    })
+    expect_doppelganger("Multiple variables, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, c("means", "vars"), color_by = "is_neg")
+    })
+    expect_doppelganger("with subset, freqpoly", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", subset = "is_neg")
     })
 })
 
