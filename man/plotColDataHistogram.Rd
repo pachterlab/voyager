@@ -83,8 +83,11 @@ Plot histograms for colData and rowData columns
 library(SFEData)
 sfe <- McKellarMuscleData()
 plotColDataHistogram(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",
-                     bins = 50)
+                     bins = 50, position = "stack")
 plotColDataHistogram(sfe, "nCounts", subset = "in_tissue")
 sfe2 <- sfe[, sfe$in_tissue]
 plotColDataHistogram(sfe2, c("nCounts", "nGenes"), bins = 50)
+}
+\seealso{
+plotColDataFreqpoly
 }
