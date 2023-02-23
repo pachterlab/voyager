@@ -1,0 +1,71 @@
+---
+title: "Codex exploratory data analysis"
+author: "Kayla Jackson"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{codex_basic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>", fig.align = "center"
+)
+```
+
+# Introduction
+
+# Dataset
+
+
+We will begin by downloading the data and loading it in to R. 
+```{r setup}
+library(Voyager)
+library(SingleCellExperiment)
+library(SpatialExperiment)
+library(SpatialFeatureExperiment)
+library(batchelor)
+library(scater)
+library(scran)
+library(bluster)
+library(purrr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(spdep)
+library(BiocParallel)
+
+theme_set(theme_bw())
+```
+
+```{r}
+sfe <- readRDS("~/Downloads/doi_10/codex.Rds")
+sfe
+```
+The rows in the count matrix correspond to the 47 barcoded genes measured by CODEX. Additionally, the authors provide some metadata for the cells, including the cell type. In the cell below, we plot the cell types in space. 
+
+## Exploratory Data Analysis
+```{r}
+
+spatial <- plotSpatialFeature(sfe, "cell_type") +
+    theme_void()
+
+spatial
+```
+
+```{r}
+celldensity <- plotCellBin2D(sfe)
+
+celldensity
+```
+We can see from the figure above that the colonic epithelium is enriched with cells while the loose connective tissue and muscle layers beneath the epithelial layer is more sparsely populated with cells. This is in line with known colon histology. The epithelium is enriched with Goblet and has invaginations that project inwards towards the connective tissue. Smooth muscle cells are also prominent in the colon, where bands of muscle contract to move colonic contents towards the rectum.  
