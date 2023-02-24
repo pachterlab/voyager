@@ -28,7 +28,6 @@
 }
 
 #' @importFrom S4Vectors make_zero_col_DFrame
-#' @importFrom SingleCellExperiment int_metadata int_metadata<-
 .initialize_featureData <- function(df) {
     if (is.null(attr(df, "featureData"))) {
         fd <- make_zero_col_DFrame(nrow = ncol(df))
@@ -47,43 +46,38 @@
     df
 }
 
+#' @importFrom S4Vectors metadata metadata<-
 .initialize_fd_dimData <- function(x, MARGIN) {
-    fd_name <- switch(MARGIN,
-        "rowFeatureData",
-        "colFeatureData"
-    )
-    if (is.null(int_metadata(x)[[fd_name]])) {
-        rownames_use <- switch(MARGIN,
-            names(rowData(x)),
-            names(colData(x))
-        )
+    fd_name <- "featureData"
+    dimData <- switch(MARGIN, rowData, colData)
+    `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
+    if (is.null(metadata(dimData(x))[[fd_name]])) {
+        rownames_use <- names(dimData(x))
         fd <- make_zero_col_DFrame(nrow = length(rownames_use))
         rownames(fd) <- rownames_use
-        int_metadata(x)[[fd_name]] <- fd
+        metadata(dimData(x))[[fd_name]] <- fd
     }
     x
 }
 
-# Because adding a new column to S4 DataFrame will remove the attributes
-# Put the featureData of colData and rowData in int_metadata instead
 .add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
     res <- .add_name_sample_id(res, sample_id)
     x <- .initialize_fd_dimData(x, MARGIN)
-    fd_name <- switch(MARGIN,
-        "rowFeatureData",
-        "colFeatureData"
-    )
-    fd <- int_metadata(x)[[fd_name]]
+    fd_name <- "featureData"
+    dimData <- switch(MARGIN, rowData, colData)
+    `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
+    fd <- metadata(dimData(x))[[fd_name]]
     fd[features, names(res)] <- res
-    int_metadata(x)[[fd_name]] <- fd
+    metadata(dimData(x))[[fd_name]] <- fd
     x
 }
 
 #' Get metadata of colData and rowData
 #'
 #' Results of spatial analyses on columns in \code{colData} and \code{rowData}
-#' are stored in \code{int_metadata(sfe)}, or internal metadata. This function
-#' allows the users to access these results.
+#' are stored in the metadata of \code{colData} and \code{rowData}, which can be
+#' accessed by the \code{\link{metadata}} function. This function allows the
+#' users to more directly access these results.
 #'
 #' @param sfe An SFE object.
 #' @return A \code{DataFrame}.
@@ -99,13 +93,13 @@
 #' sfe <- colDataMoransI(sfe, "nCounts")
 #' colFeatureData(sfe)
 colFeatureData <- function(sfe) {
-    int_metadata(sfe)$colFeatureData
+    metadata(colData(sfe))$featureData
 }
 
 #' @rdname colFeatureData
 #' @export
 rowFeatureData <- function(sfe) {
-    int_metadata(sfe)$rowFeatureData
+    metadata(rowData(sfe))$featureData
 }
 
 .cbind_all <- function(values, features_list) {

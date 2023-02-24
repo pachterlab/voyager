@@ -17,8 +17,9 @@ A \code{DataFrame}.
 }
 \description{
 Results of spatial analyses on columns in \code{colData} and \code{rowData}
-are stored in \code{int_metadata(sfe)}, or internal metadata. This function
-allows the users to access these results.
+are stored in the metadata of \code{colData} and \code{rowData}, which can be
+accessed by the \code{\link{metadata}} function. This function allows the
+users to more directly access these results.
 }
 \examples{
 library(SpatialFeatureExperiment)

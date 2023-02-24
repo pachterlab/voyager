@@ -20,20 +20,6 @@
     return(out)
 }
 
-.obscure_arg_defaults <- function(listw, type) {
-    nb <- listw$neighbours
-    switch(type,
-        moran = list(n = length(nb), S0 = Szero(listw)),
-        geary = list(
-            n = length(nb), n1 = length(nb) - 1,
-            S0 = Szero(listw)
-        ),
-        lee = list(n = length(nb)),
-        sp.correlogram = list(method = "I"),
-        moran.plot = list(plot = FALSE)
-    )
-}
-
 #' @importFrom spdep include.self nb2listw
 .calc_univar_sfe_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L,

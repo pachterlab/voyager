@@ -143,7 +143,9 @@ LOSH.cs <- SFEMethod(
 moran.plot <- SFEMethod(
     c(name = "moran.plot", title = "Moran plot", uni_local,
       default_attr = "wx"),
-    fun = spdep::moran.plot,
+    fun = function(x, listw, ..., zero.policy = NULL)
+        spdep::moran.plot(x, listw, zero.policy = zero.policy,
+                          plot = FALSE, return_df = TRUE),
     reorganize_fun = .to_df_identity
 )
 
