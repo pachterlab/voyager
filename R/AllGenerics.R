@@ -17,7 +17,7 @@ setGeneric("info", function(x, type) standardGeneric("info"))
 setGeneric("fun", function(x) standardGeneric("fun"))
 
 #' @export
-setGeneric("to_df_fun", function(x) standardGeneric("to_df_fun"))
+setGeneric("reorganize_fun", function(x) standardGeneric("reorganize_fun"))
 
 #' @export
 setGeneric("is_local", function(x) standardGeneric("is_local"))

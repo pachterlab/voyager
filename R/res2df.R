@@ -14,19 +14,19 @@
     if (any(ind_sim)) {
       col_use <- colnames(out)[ind_sim][1]
       out <- cbind(out, `-log10p Sim` = -log10(out[,col_use]),
-                   `-log10p_adj Sim` = -log10(p.adjustSP(out[,col_use],nb, 
+                   `-log10p_adj Sim` = -log10(p.adjustSP(out[,col_use],nb,
                                                         method = p.adjust.method)))
     } else if (any(ind)) {
       col_use <- colnames(out)[ind][1]
       out <- cbind(out, `-log10p` = -log10(out[,col_use]),
-                   `-log10p_adj` = -log10(p.adjustSP(out[,col_use], nb, 
+                   `-log10p_adj` = -log10(p.adjustSP(out[,col_use], nb,
                                                     method = p.adjust.method)))
     }
   }
   out
 }
 
-.res2df <- function(out, type, local = FALSE, use_geometry = FALSE, nb = NULL, 
+.res2df <- function(out, type, local = FALSE, use_geometry = FALSE, nb = NULL,
                     p.adjust.method = "none", ...) {
     if (local) {
         fun_use <- if (type %in% c("localmoran", "localmoran_perm")) {
@@ -114,7 +114,7 @@
         method <- other_args[["method"]]
     } else {
         method <- "I"
-    } # My default set in .obscure_arg_defaults
+    }
     name <- paste(name, method, sep = "_")
     if (method %in% c("I", "C")) {
         out <- lapply(out, function(o) {
@@ -160,11 +160,11 @@
     }
 }
 
-.localG2df <- function(out, nb, p.adjust.method) 
+.localG2df <- function(out, nb, p.adjust.method)
     .attrmat2df(out, "internals", "localG", nb, p.adjust.method)
 
-.localCperm2df <- function(out, nb, p.adjust.method) 
+.localCperm2df <- function(out, nb, p.adjust.method)
     .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method)
 
-.LOSHmc2df <- function(out, nb, p.adjust.method) 
+.LOSHmc2df <- function(out, nb, p.adjust.method)
     lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)

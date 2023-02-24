@@ -139,7 +139,7 @@ test_that("MoranMC results properly added to rowData", {
     expect_equal(rd$moran.mc_statistic_sample01, out_m$moran)
 })
 
-test_that("DataFrame results for sp.correlogram", {
+test_that("DataFrame results for sp.correlogram, method = I", {
     out <- calculateUnivariate(mat1,
         type = "sp.correlogram",
         listw = colGraph(sfe, "visium",
@@ -151,6 +151,20 @@ test_that("DataFrame results for sp.correlogram", {
     expect_equal(rownames(out), rownames(mat1))
     i1 <- vapply(out[, 1], function(o) o[1, 1], FUN.VALUE = numeric(1))
     expect_equal(unname(i1), out_m$moran)
+})
+
+test_that("DataFrame results for sp.correlogram, method = corr", {
+    out <- calculateUnivariate(mat1,
+                               type = "sp.correlogram",
+                               listw = colGraph(sfe, "visium",
+                                                sample_id = "sample01"
+                               ),
+                               order = 2, method = "corr"
+    )
+    expect_s4_class(out, "DFrame")
+    expect_equal(rownames(out), rownames(mat1))
+    expect_true(all(vapply(out[,1], function(x) is.numeric(x) & length(x) == 2L,
+                           FUN.VALUE = logical(1))))
 })
 
 names_expect_mp <- c(

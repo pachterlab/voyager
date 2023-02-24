@@ -170,15 +170,6 @@
 #' ))
 NULL
 
-types <- c(
-    "moran", "geary", "moran.mc", "geary.mc",
-    "moran.test", "geary.test", "globalG.test",
-    "sp.correlogram", "moran.plot", "localmoran",
-    "localmoran_perm", "localC", "localC_perm",
-    "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
-    "gwss"
-)
-
 #' @rdname calculateUnivariate
 #' @export
 setMethod(
@@ -194,15 +185,15 @@ setMethod(
             x = x, listw = listw, fun = fun(type),
             BPPARAM = BPPARAM, zero.policy = zero.policy
         )
-        all_args <- c(all_args, other_args, defaults_use)
+        all_args <- c(all_args, other_args)
         out <- do.call(.calc_univar, all_args)
         if (returnDF) {
             if (is_local(type)) {
-                out <- to_df_fun(type)(out, nb = listw$neighbours,
-                                       p.adjust.method = p.adjust.method)
+                out <- reorganize_fun(type)(out, nb = listw$neighbours,
+                                            p.adjust.method = p.adjust.method)
                 out <- .value2df(out, use_geometry = FALSE)
             } else {
-                out <- to_df_fun(type)(out, name = info(type, "name"))
+                out <- reorganize_fun(type)(out, name = info(type, "name"), ...)
                 # To do: what if there are duplicates, from runs with different parameters?
                 # Also store the parameters.
             }

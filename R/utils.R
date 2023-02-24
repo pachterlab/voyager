@@ -229,20 +229,6 @@ rowFeatureData <- function(sfe) {
     data.frame(out, check.names = FALSE)
 }
 
-.get_default_attribute <- function(type) {
-    switch(type,
-        localmoran = "Ii",
-        localmoran_perm = "Ii",
-        localC_perm = "localC",
-        localG = "localG",
-        localG_perm = "localG",
-        LOSH = "Hi",
-        LOSH.mc = "Hi",
-        LOSH.cs = "Hi",
-        moran.plot = "wx"
-    )
-}
-
 .get_localResult_values <- function(sfe, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
@@ -253,7 +239,8 @@ rowFeatureData <- function(sfe) {
         colGeometryName, annotGeometryName, swap_rownames
     )
     if (is.null(attribute)) {
-        attribute <- .get_default_attribute(type)
+        if (is.character(type)) type2 <- get(type, mode = "S4")
+        attribute <- info(type2, "default_attr")
     }
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
@@ -361,19 +348,9 @@ rowFeatureData <- function(sfe) {
 }
 
 .local_type2title <- function(type, attribute) {
-    if (is.null(attribute)) attribute <- .get_default_attribute(type)
-    base <- switch(type,
-        localmoran = "Local Moran's I",
-        localmoran_perm = "Local Moran's I permutation testing",
-        localC = "Local Geary's C",
-        localC_perm = "Local Geary's C permutation testing",
-        localG = "Getis-Ord Gi(*)",
-        localG_perm = "Getis-Ord Gi(*) with permutation testing",
-        LOSH = "Local spatial heteroscedasticity",
-        LOSH.mc = "Local spatial heteroscedasticity permutation testing",
-        LOSH.cs = "Local spatial heteroscedasticity Chi-square test",
-        moran.plot = "Moran plot"
-    )
+    if (is.character(type)) type <- get(type, mode = "S4")
+    if (is.null(attribute)) attribute <- info(type, "default_attr")
+    base <- info(type, "title")
     paste0(base, " (", attribute, ")")
 }
 
