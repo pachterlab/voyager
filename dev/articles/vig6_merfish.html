@@ -78,7 +78,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-02-26</h4>
+            <h4 data-toc-skip class="date">2023-02-27</h4>
       
       
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -280,7 +280,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  29.995   1.248  31.384</span></span></code></pre>
+<span><span class="co">#&gt;  29.089   1.176  30.311</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -292,7 +292,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.947   0.213   2.162</span></span></code></pre>
+<span><span class="co">#&gt;   1.790   0.202   1.998</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -676,7 +676,7 @@ approximation of contiguity based on the visual inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 386.822   1.072 389.282</span></span></code></pre></div>
+<span><span class="co">#&gt; 356.522   0.649 357.578</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -718,7 +718,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 159.425   1.848 161.833</span></span></code></pre></div>
+<span><span class="co">#&gt; 153.172   1.808 155.204</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -784,7 +784,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 224.747  28.221 145.430</span></span></code></pre></div>
+<span><span class="co">#&gt; 213.926  18.375 126.318</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1042,11 +1042,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.182   1.616  26.003</span></span>
+<span><span class="co">#&gt;  23.300   1.610  24.964</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19458874 1039.3   28591108 1527.0         NA  28591108 1527.0</span></span>
-<span><span class="co">#&gt; Vcells 262719313 2004.4  570389542 4351.8      16384 568969035 4340.9</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19459030 1039.3   28591057 1527.0         NA  28591057 1527.0</span></span>
+<span><span class="co">#&gt; Vcells 262719660 2004.4  570390041 4351.8      16384 568969382 4340.9</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1194,7 +1194,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [17] SingleCellExperiment_1.20.0    SummarizedExperiment_1.28.0   </span></span>
 <span><span class="co">#&gt; [19] Biobase_2.58.0                 GenomicRanges_1.50.2          </span></span>
 <span><span class="co">#&gt; [21] GenomeInfoDb_1.34.9            IRanges_2.32.0                </span></span>
-<span><span class="co">#&gt; [23] S4Vectors_0.36.1               BiocGenerics_0.44.0           </span></span>
+<span><span class="co">#&gt; [23] S4Vectors_0.36.2               BiocGenerics_0.44.0           </span></span>
 <span><span class="co">#&gt; [25] MatrixGenerics_1.10.0          matrixStats_0.63.0            </span></span>
 <span><span class="co">#&gt; [27] SFEData_1.0.2                  Voyager_1.0.10                </span></span>
 <span><span class="co">#&gt; </span></span>
