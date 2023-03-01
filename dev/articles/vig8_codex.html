@@ -78,7 +78,7 @@
                         <h4 data-toc-skip class="author">Kayla
 Jackson</h4>
             
-            <h4 data-toc-skip class="date">2023-02-27</h4>
+            <h4 data-toc-skip class="date">2023-03-01</h4>
       
       
       <div class="d-none name"><code>vig8_codex.Rmd</code></div>
@@ -98,25 +98,29 @@ Jackson</h4>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/tidyverse/glue" class="external-link">glue</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yutannihilation.github.io/gghighlight/" class="external-link">gghighlight</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sales-lab/spatialDE" class="external-link">spatialDE</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="dataset">Dataset<a class="anchor" aria-label="anchor" href="#dataset"></a>
-</h3>
+</div>
+<div class="section level2">
+<h2 id="dataset">Dataset<a class="anchor" aria-label="anchor" href="#dataset"></a>
+</h2>
 <p>The dataset used in this vignette is from the paper <a href="doi.org/10.3389/fimmu.2021.727626">Strategies for Accurate Cell
 Type Identification in CODEX Multiplexed Imaging Data</a>(Hickey, et.al
-2021). The data were collected as part of the HuBMap consortium which
-seeks to characterize healthy tissue and make data publicly avaialble.
-More specifically, this dataset characterizes 4 regions of the large
-intestine (colon) from a single donor. This vignette will focus on data
-from the sigmoid colon.</p>
+2021). The data were collected as part of the HuBMapa consortium which
+seeks to characterize healthy human tissues and make data broadly
+available. More specifically, this dataset characterizes 4 regions of
+the large intestine (colon) from a single donor. This vignette will
+focus on data from the sigmoid colon.</p>
 <p>The intestinal sections were interrogated using the multiplexed
 imaging method CO-Detection by indEXing (CODEX). CODEX involves cyclical
 staining of a tissue with DNA-barcoded antibodies. At each round of
@@ -132,39 +136,62 @@ as described in the manuscript linked above. Briefly, the authors used a
 hand-gating strategy to define cell types and create a standard to
 compare the effect of normalization methods on clustering and cell
 annotation.</p>
-<p>The raw intensity data are available for download from HubMap with
-identifier HBM and the cell type annotations are provided as
-supplementary data in the manuscript <a href="">here</a>. The data
-relevant to this vignette have been converted to a <code>SFE</code>
-object and are available to download <a href="">here</a> from Box.</p>
+<p>The raw intensity data are available for download from HuBMAP with
+identifier <a href="https://portal.hubmapconsortium.org/browse/dataset/e6fd525b837f4cf736c8af830f4f750f" class="external-link">HBM575.THQMM.284</a>
+and the cell type annotations are provided as supplementary data in the
+manuscript. The data relevant to this vignette have been converted to a
+<code>SFE</code> object and are available to download <a href="https://caltech.box.com/public/static/zfr8l20450n2z28lnp0ugdj471ph9eyx" class="external-link">here</a>
+from Box.</p>
 <p>These data will be submitted to the <code>SFEData</code> package on
-Bioconductor and will be available there in future releases.</p>
+Bioconductor and will be available there in a future release.</p>
 <p>We will begin by downloading the data and loading it in to R.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"~/Downloads/doi_10/codex.Rds"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="st">"https://caltech.box.com/public/static/zfr8l20450n2z28lnp0ugdj471ph9eyx"</span>,<span class="st">'./codex.Rds'</span>, mode<span class="op">=</span><span class="st">'wb'</span>, method <span class="op">=</span> <span class="st">'wget'</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./codex.Rds"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span></span></code></pre></div>
 <p>The rows in the count matrix correspond to the 47 barcoded genes
 measured by CODEX. Additionally, the authors provide some metadata for
 the cells, including the cell type.</p>
-</div>
+<p>It turns out the column names are not unique which will cause errors
+in downstream analysis. We will update the column names below</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cellids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{colData(sfe)$fn}_{colData(sfe)$cell_id}"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">cellids</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="exploratory-data-analysis">Exploratory Data Analysis<a class="anchor" aria-label="anchor" href="#exploratory-data-analysis"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">celldensity</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotCellBin2D.html">plotCellBin2D</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">celldensity</span></span></code></pre></div>
 <p>We can see from the figure above that the colonic epithelium is
 enriched with cells while the loose connective tissue and muscle layers
-beneath the epithelial layer is more sparsely populated with cells. This
-is in line with known colon histology. The epithelium is enriched with
-Goblet and has invaginations that project inwards towards the connective
+beneath the epithelial layer are more sparsely populated. This is in
+line with known colon histology. The epithelium is enriched with goblet
+cells and has invaginations that project inwards towards the connective
 tissue. Smooth muscle cells are also prominent in the colon, where bands
 of muscle contract to move colonic contents towards the rectum.</p>
+<p>We can visualize these cell types in space using the
+<code><a href="../reference/plotSpatialFeature.html">plotSpatialFeature()</a></code> function. We will highlight Goblet and
+smooth muscle cells to display their relative distribution in the
+tissue. Since CODEX image processing relies on segmentation, each dot in
+the plot represents a single cell. Here, each cell is represented by its
+centroid, but can also be visualized as cell polygons in cases where the
+segmentation mask is available.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">gghighligh</span><span class="op">(</span><span class="va">cell_type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Goblet"</span>, <span class="st">"SmoothMuscleEM"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The goblet cells clearly define the epithelial border of the tissue
+and the thick bands of smooth muscle cells are prominent below the
+mucosa.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">immune</span>, <span class="va">epithelial</span>, <span class="op">)</span></span></code></pre></div>
 <p>Next, we will compute some gene level metrics for each of the 47
 barcoded genes. In contrast to RNA-based methods, the fields in the
 matrix represent intensities rather than counts.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowVars.html" class="external-link">rowVars</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -172,12 +199,145 @@ matrix represent intensities rather than counts.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">mean</span>, <span class="va">var</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Interestingly, the there is a sigmoid relationship between the mean
-and variance of the protein expression. The pattern is remncient of what
-might be expected if the intensity values were derived from a Gamma
+and variance of the protein expression. The pattern is reminiscent of
+what might be expected if the intensity values were derived from a Gamma
 distribution, the continuous analog of the Negative Binomial
-distribution that is typcially used to describe count data from
+distribution that is typically used to describe count data from
 scRNA-seq experiments.</p>
+<p>CODEX data is subject to noise from several sources including
+segmentation artifacts, nonspecific staining, and imperfect tissue
+processing. These are factors that can limit accurate quantification of
+signal intensity and impede accurate cell annotation. The authors of the
+dataset tested the effects of several normalization methods on cell type
+annotation and clustering and found that Z-score normalization of each
+marker resulted in accurate identification of both rare and common cell
+types. In the cell below, we demonstrate how to accomplish this using
+standard matrix operations. The normalized count matrix is typically
+stored in the <code>logcounts</code> slot for scRNA-seq data, but we
+will instead store the normalized matrix in a slot called
+<code>normalizedIntensity</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mtx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">'protein'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">'normalizedIntensity'</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">mtx</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">mtx</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowSds.html" class="external-link">rowSds</a></span><span class="op">(</span><span class="va">mtx</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assays</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
 </div>
+</div>
+<div class="section level2">
+<h2 id="spatial-eda">Spatial EDA<a class="anchor" aria-label="anchor" href="#spatial-eda"></a>
+</h2>
+<p>Neighbor definition is a critical step in computation of metrics of
+spatial dependency like Moran’s I and Geary’s C. The definition of
+neighbors is complex, even when cell polygons are available. In the
+latter case, the <code>poly2nb</code> method might be appropriate to
+assign two cells as neighbors if they physically touch each other or
+share a border. This may not be tenable in cases where cells are sparse
+or cells are represented by their centroids, as in this dataset.</p>
+<p>We will compute the spatial neighborhood graph using the
+<code>knearestneigh</code> function as it is implemented in
+<code>spdep</code>. In brief, Euclidean distances are computed between
+each pair of cells and the <code>k</code> nearest cells are considered
+neighbors. In the following code cell, we will consdier
+<code>k=10</code> for speed purposes, but this may not be ideal in
+general.</p>
+<p>The weights of the neighborhood matrix are inverse-distance weighted,
+such that the the weight of regions listed as neighbors increases as the
+distance between pairs of points decreases. Setting
+<code>style = "W"</code> ensures that the weights are row
+standardized.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn10"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span></span>
+<span>  <span class="va">sfe</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>, dist_type <span class="op">=</span> <span class="st">"idw"</span>, </span>
+<span>  k <span class="op">=</span> <span class="fl">10</span>, style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span></code></pre></div>
+<p>The <code><a href="../reference/plotColGraph.html">plotColGraph()</a></code> function plots the graph in space
+along with its corresponding <code>colGeometry</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># plotColGraph(sfe, colGraphName = "knn10", colGeometryName = 'centroids')</span></span></code></pre></div>
+<p>Next, we will explore univariate metrics for global spatial
+autocorrelation. Since few genes are quantified in this study, we will
+compute the metrics for all genes. For larger datasets, it may be useful
+to restrict analysis to the most variable genes.</p>
+<p>We use the <code><a href="../reference/calculateUnivariate.html">runUnivariate()</a></code> function to compute the
+spatial autocorrelation metrics and save the results in the SFE
+object.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span></span>
+<span>  <span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"moran.mc"</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span>,</span>
+<span> exprs_values <span class="op">=</span> <span class="st">"normalizedIntensity"</span>, colGraphName <span class="op">=</span> <span class="st">"knn10"</span>, nsim <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span></span>
+<span>  <span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"geary.mc"</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span>,</span>
+<span>  exprs_values <span class="op">=</span> <span class="st">"normalizedIntensity"</span>, colGraphName <span class="op">=</span> <span class="st">"knn10"</span>, nsim <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<p>The results of these computations are accessible in the
+<code>rowData</code> attribute.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="differential-expression">Differential Expression<a class="anchor" aria-label="anchor" href="#differential-expression"></a>
+</h2>
+<p>While Moran’s I and other global spatial autocorrelation metrics
+provide insight to the spatial patterns of gene expression, it is
+necessarily limited by the structure imposed by the spatial weights
+matrix. A complimentary task might be to identify spatially variable
+(SV) genes. One such method to do this is described in <a href="">SpatialDE: identification of spatially variable genes</a>. The
+method described in the manuscript relies on Gaussian process regression
+and decomposes variability in expression into spatial and non-spatial
+components. In contrast to Moran’s I, the covariance between each pair
+of cells is modeled as a function of the distance between them. Notably,
+it does not require an explicit specification of hte neighborhood graph,
+but rather the a parameter controls the decay in covariance as distance
+increases.</p>
+<p>The <code>spatialDE</code> package is implemented in R and requires a
+normalized matrix as input. The <code><a href="https://rdrr.io/pkg/spatialDE/man/spatialDE.html" class="external-link">spatialDE()</a></code> function from
+the package peforms normalization steps before running the algorithm.
+Because the data has already been normalized, we will use the
+<code><a href="https://rdrr.io/pkg/spatialDE/man/run.html" class="external-link">run()</a></code> function directly to run spatialDE. We will first
+have to convert the centroid coordinates to a data frame as requried by
+the function.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Store coordinates in a data frame object</span></span>
+<span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">centroids</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">geometry</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span>\<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="va">x</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">de_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spatialDE/man/run.html" class="external-link">run</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sfe</span>,<span class="st">"normalizedIntensity"</span><span class="op">)</span>, <span class="va">coords</span>, verbose<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>We can plot the normalized expression of the top 5 genes in
+space.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">top_genes</span> <span class="op">&lt;-</span> <span class="va">de_res</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">pval</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_head</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">6</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_genes</span>, colGeometryName<span class="op">=</span><span class="st">"centroids"</span>,</span>
+<span>                   exprs_values <span class="op">=</span> <span class="st">"normalizedIntensity"</span><span class="op">)</span></span></code></pre></div>
+<p>Perhaps unsurprisingly, the expression of the top DE genes seems to
+highlight the spatial distribution of known cell types in the tissue
+rather than identify spatially restricted gene expression. This is
+related to the experimental design where the targeted genes were chosen
+to differentiate cell types. Perhaps in genome-wide technologies, the
+potential for discovery of neew gene expression patterns is more
+plausible. There is an open question as to whether these results offer
+new information compared to what is inferred by typical DE expression
+methods.</p>
+<p>These analyses represent a minority of the types of inferences that
+can be made from protein expression data. It would be interested to
+investigate how the protein expression results compare or inform data
+from spatail scRNA-sequencing experiments. Already, there is work being
+done to obtain multimodal spatial measurements on the same sample.
+Importantly however, considerations should be made on the types of
+biases each individual technology adds to the measurements. These are
+active areas of research that are ripe for future exploration.</p>
+</div>
+<div class="section level2">
+<h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
+</h2>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
