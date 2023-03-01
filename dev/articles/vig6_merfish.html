@@ -78,7 +78,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-02-28</h4>
+            <h4 data-toc-skip class="date">2023-03-01</h4>
       
       
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -280,7 +280,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  29.640   1.328  31.051</span></span></code></pre>
+<span><span class="co">#&gt;  28.516   1.211  29.751</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -292,7 +292,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.839   0.213   2.055</span></span></code></pre>
+<span><span class="co">#&gt;   1.717   0.204   1.923</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -676,7 +676,7 @@ approximation of contiguity based on the visual inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 367.635   0.989 369.494</span></span></code></pre></div>
+<span><span class="co">#&gt; 355.611   0.629 356.520</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -718,7 +718,7 @@ flexible for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 156.470   1.803 158.725</span></span></code></pre></div>
+<span><span class="co">#&gt; 152.321   2.888 158.922</span></span></code></pre></div>
 <p>This took about half the time as <code>spdep</code>, so we will
 formalize it and add it to the next release. But this is not necessarily
 that Annoy by itself is faster than the kd tree method in
@@ -784,7 +784,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 106.622  10.000 127.926</span></span></code></pre></div>
+<span><span class="co">#&gt; 224.754  19.753 133.061</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1042,11 +1042,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.689   1.666  25.467</span></span>
+<span><span class="co">#&gt;  23.885   1.554  25.465</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19459030 1039.3   28591067 1527.0         NA  28591067 1527.0</span></span>
-<span><span class="co">#&gt; Vcells 262719662 2004.4  570390045 4351.8      16384 568969384 4340.9</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19459022 1039.3   28591028 1527.0         NA  28591028 1527.0</span></span>
+<span><span class="co">#&gt; Vcells 262719666 2004.4  570390051 4351.8      16384 568969388 4340.9</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1257,7 +1257,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [111] shiny_1.7.4                   rjson_0.2.21                 </span></span>
 <span><span class="co">#&gt; [113] lifecycle_1.0.3               jsonlite_1.8.4               </span></span>
 <span><span class="co">#&gt; [115] Rhdf5lib_1.20.0               desc_1.4.2                   </span></span>
-<span><span class="co">#&gt; [117] viridisLite_0.4.1             limma_3.54.1                 </span></span>
+<span><span class="co">#&gt; [117] viridisLite_0.4.1             limma_3.54.2                 </span></span>
 <span><span class="co">#&gt; [119] fansi_1.0.4                   pillar_1.8.1                 </span></span>
 <span><span class="co">#&gt; [121] lattice_0.20-45               KEGGREST_1.38.0              </span></span>
 <span><span class="co">#&gt; [123] fastmap_1.1.1                 httr_1.4.5                   </span></span>
