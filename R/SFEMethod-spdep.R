@@ -4,7 +4,12 @@ spdep_uni <- c(package = "spdep", variate = "uni")
 uni_global <- c(spdep_uni, scope = "global", default_attr = NA)
 uni_local <- c(spdep_uni, scope = "local")
 
-.to_df_identity <- function(out, nb, p.adjust.method) out
+.to_df_identity <- function(out, nb, p.adjust.method, call) {
+    lapply(out, function(o) {
+        attr(o, "call") <- call
+        o
+    })
+}
 
 # Construct SFEMethod object for Moran's I
 moran <- SFEMethod(

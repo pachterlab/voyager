@@ -20,6 +20,8 @@
     return(out)
 }
 
+# Turn these function factories into methods for SFEMethod
+
 #' @importFrom spdep include.self nb2listw
 .calc_univar_sfe_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L,
@@ -27,7 +29,7 @@
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, returnDF = TRUE,
                         include_self = FALSE, p.adjust.method = "BH",
-                        swap_rownames = NULL, ...) {
+                        swap_rownames = NULL, name = NULL, ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         out <- lapply(sample_id, function(s) {
@@ -42,7 +44,8 @@
                 type = type,
                 BPPARAM = BPPARAM,
                 zero.policy = zero.policy,
-                returnDF = returnDF, p.adjust.method = p.adjust.method, ...
+                returnDF = returnDF, p.adjust.method = p.adjust.method,
+                name = name, call = match.call(), ...
             )
             o
         })
@@ -57,11 +60,11 @@
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, returnDF = TRUE,
                  include_self = FALSE, p.adjust.method = "BH",
-                 swap_rownames = NULL, ...) {
+                 swap_rownames = NULL, name = NULL, ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
                 exprs_values, BPPARAM, zero.policy, returnDF,
-                include_self, p.adjust.method, swap_rownames, ...
+                include_self, p.adjust.method, swap_rownames, name, ...
             )
         }
     }
@@ -114,23 +117,13 @@
 # And functions to compute the spatial metrics for reducedDims
 # And plot reducedDims values in space
 
-.is_local <- function(type) {
-    if (type %in% c(
-        "localmoran", "localmoran_perm", "localC", "localC_perm",
-        "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs", "gwss",
-        "lee", "localmoran_bv", "moran.plot"
-    )) {
-        TRUE
-    } else {
-        FALSE
-    }
-}
-
 .coldata_univar_fun <- function(type = NULL) {
     fun_use <- function(x, type, features, colGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH", ...) {
+                        include_self = FALSE, p.adjust.method = "BH",
+                        name = NULL, ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        if (is.null(name)) name <- info(type, "name")
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
             if (include_self) {
@@ -141,13 +134,16 @@
                                                   features, drop = FALSE],
                 listw = listw_use, type = type, BPPARAM = BPPARAM,
                 zero.policy = zero.policy, returnDF = TRUE,
-                p.adjust.method = p.adjust.method, ...
+                p.adjust.method = p.adjust.method, name = name,
+                call = match.call(), ...
             )
-            local <- .is_local(type)
+            local <- is_local(type)
             if (local) {
-                localResults(x, s, type, features) <- res
+                x <- .add_localResults_info(x, sample_id = s, type = type,
+                                            name = name,
+                                            feature = feature, res = res)
             } else {
-                x <- .add_fd_dimData(x, MARGIN = 2, res, features, s, type, ...)
+                x <- .add_fd_dimData(x, MARGIN = 2, res, features, s, ...)
             }
         }
         x
@@ -157,10 +153,11 @@
     } else {
         function(x, features, colGraphName = 1L, sample_id = "all",
                  BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, p.adjust.method = "BH", ...) {
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
             )
         }
     }
@@ -170,7 +167,8 @@
     fun_use <- function(x, type, features, colGeometryName = 1L,
                         colGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH", ...) {
+                        include_self = FALSE, p.adjust.method = "BH",
+                        name = NULL, ...) {
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
@@ -182,18 +180,20 @@
             res <- calculateUnivariate(cg[, features, drop = FALSE],
                                        listw = listw_use,
                 type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
-                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
+                returnDF = TRUE, p.adjust.method = p.adjust.method, name = name,
+                ...
             )
             local <- .is_local(type)
             if (local) {
-                localResults(x, s, type, features,
-                    colGeometryName = colGeometryName
-                ) <- res
+                metadata(res)$call <- match.call()
+                x <- .add_localResults_info(x, sample_id = s, type = type,
+                                            name = name,
+                                            feature = feature, res = res)
             } else {
                 colGeometry(x, colGeometryName, sample_id = "all") <-
                     .add_fd(
                         x, colGeometry(x, colGeometryName, sample_id = "all"),
-                        res, features, s, type
+                        res, features, s
                     )
             }
         }

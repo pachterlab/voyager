@@ -92,8 +92,8 @@ setClass("SFEMethod", slots = c(
             if (!identical(names(formals(object@reorganize_fun)), c("out", "name", "...")))
                 outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'name', and '...'")
         } else {
-            if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
-                outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', and 'p.adjust.method'")
+            if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method", "call")))
+                outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', 'p.adjust.method', and 'call'")
         }
     }
     if (!length(outs)) return(TRUE)
@@ -119,7 +119,9 @@ SFEMethod <- function(info, fun, reorganize_fun) {
 
 #' @export
 #' @rdname SFEMethod
-setMethod("info", "SFEMethod", function(x, type) x@info[type])
+setMethod("info", "SFEMethod", function(x, type) {
+    if (missing(type)) x@info else x@info[type]
+})
 
 #' @export
 #' @rdname SFEMethod

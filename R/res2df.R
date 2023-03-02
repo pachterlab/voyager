@@ -2,8 +2,7 @@
 # Input: list of results, each element is for each feature
 # Output: For global results, a DataFrame each row of which is for a feature,
 # to be added to rowData or featureData.
-# For local results, the results for each feature is reformatted as a vector or
-# a matrix or data frame if necessary,
+# For local results, the results for each feature is reformatted as a DataFrame,
 # and a DataFrame or data.frame (for geometries) each column of which is for
 # a feature is returned.
 #' @importFrom spdep p.adjustSP
@@ -24,42 +23,6 @@
     }
   }
   out
-}
-
-.res2df <- function(out, type, local = FALSE, use_geometry = FALSE, nb = NULL,
-                    p.adjust.method = "none", ...) {
-    if (local) {
-        fun_use <- if (type %in% c("localmoran", "localmoran_perm")) {
-            .localmoran2df
-        } else if (type %in% c("localG", "localG_perm")) {
-            .localG2df
-        } else if (type == "localC_perm") {
-            .localCperm2df
-        } else if (type %in% c("LOSH.mc", "LOSH.cs")) {
-            .LOSHmc2df
-        } else{
-            function(x, nb, p.adjust.method) x
-        }
-        out <- fun_use(out, nb, p.adjust.method)
-        out <- .value2df(out, use_geometry)
-    } else {
-        fun_use <- if (type %in% c("moran", "geary")) {
-            .moran2df
-        } else if (type %in% c(
-            "moran.mc", "geary.mc", "sp.mantel.mc", "EBImoran.mc",
-            "lee.mc"
-        )) {
-            .mcsim2df
-        } else if (type %in% c("moran.test", "geary.test", "globalG.test")) {
-            .htest2df
-        } else if (type == "sp.correlogram") {
-            .correlogram2df
-        } else {
-            .other2df
-        }
-        out <- fun_use(out, type, ...)
-    }
-    out
 }
 
 .moran2df <- function(out, name, ...) {
@@ -137,34 +100,47 @@
     out_df
 }
 
-.localmoran2df <- function(out, nb, p.adjust.method) {
+.localmoran2df <- function(out, nb, p.adjust.method, call) {
     features <- names(out)
     out <- lapply(out, function(o) {
         o1 <- as.data.frame(o)
         quadr <- attr(o, "quadr")
-        I(.add_log_p(cbind(o1, quadr), nb, p.adjust.method))
+        o <- I(.add_log_p(cbind(o1, quadr), nb, p.adjust.method))
+        attr(o, "call") <- call
+        o
     })
     out
 }
 
-.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method) {
+.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method, call) {
     if (attr_name %in% names(attributes(out[[1]]))) {
-        lapply(out, function(o) {
+        out <- lapply(out, function(o) {
             attr_mat <- attr(o, attr_name)
             attr_mat <- cbind(o, attr_mat)
             colnames(attr_mat)[1] <- type
             .add_log_p(attr_mat, nb, p.adjust.method)
         })
     } else {
-        lapply(out, as.vector)
+        out <- lapply(out, as.vector)
     }
+    out <- lapply(out, function(o) {
+        attr(o, "call") <- call
+        o
+    })
+    out
 }
 
-.localG2df <- function(out, nb, p.adjust.method)
-    .attrmat2df(out, "internals", "localG", nb, p.adjust.method)
+.localG2df <- function(out, nb, p.adjust.method, call)
+    .attrmat2df(out, "internals", "localG", nb, p.adjust.method, call)
 
-.localCperm2df <- function(out, nb, p.adjust.method)
-    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method)
+.localCperm2df <- function(out, nb, p.adjust.method, call)
+    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method, call)
 
-.LOSHmc2df <- function(out, nb, p.adjust.method)
-    lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
+.LOSHmc2df <- function(out, nb, p.adjust.method, call) {
+    out <- lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
+    out <- lapply(out, function(o) {
+        attr(o, "call") <- call
+        o
+    })
+    out
+}

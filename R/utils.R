@@ -29,22 +29,22 @@
 
 #' @importFrom S4Vectors make_zero_col_DFrame
 .initialize_featureData <- function(df) {
-    if (is.null(attr(df, "featureData"))) {
+    if (is.null(metadata(df)$featureData)) {
         fd <- make_zero_col_DFrame(nrow = ncol(df))
         rownames(fd) <- colnames(df)
-        attr(df, "featureData") <- fd
+        metadata(df)$featureData <- fd
     }
     df
 }
 
-.add_fd <- function(x, df, res, features, sample_id, name) {
+.add_fd <- function(x, df, res, features, sample_id) {
     res <- .add_name_sample_id(res, sample_id)
     df <- .initialize_featureData(df)
-    fd <- attr(df, "featureData")
+    fd <- metadata(df)$featureData
     fd[features, names(res)] <- res
-    attr(df, "featureData") <- fd
+    metadata(df)$featureData <- fd
     df
-}
+} # Update unit tests, examples, and vignettes
 
 #' @importFrom S4Vectors metadata metadata<-
 .initialize_fd_dimData <- function(x, MARGIN) {
@@ -60,7 +60,7 @@
     x
 }
 
-.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
+.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, ...) {
     res <- .add_name_sample_id(res, sample_id)
     x <- .initialize_fd_dimData(x, MARGIN)
     fd_name <- "featureData"
@@ -72,14 +72,17 @@
     x
 }
 
-#' Get metadata of colData and rowData
+#' Get metadata of colData, rowData, and geometries
 #'
-#' Results of spatial analyses on columns in \code{colData} and \code{rowData}
-#' are stored in the metadata of \code{colData} and \code{rowData}, which can be
-#' accessed by the \code{\link{metadata}} function. This function allows the
-#' users to more directly access these results.
+#' Results of spatial analyses on columns in \code{colData}, \code{rowData}, and
+#' geometries are stored in their metadata, which can be accessed by the
+#' \code{\link{metadata}} function. This function allows the users to more
+#' directly access these results.
 #'
 #' @param sfe An SFE object.
+#' @param type Which geometry, can be name (character) or index (integer)
+#' @param MARGIN Integer, 1 means rowGeometry, 2 means colGeometry, and 3 means
+#' annotGeometry. Defaults to 2, colGeometry.
 #' @return A \code{DataFrame}.
 #' @export
 #' @name colFeatureData
@@ -100,6 +103,14 @@ colFeatureData <- function(sfe) {
 #' @export
 rowFeatureData <- function(sfe) {
     metadata(rowData(sfe))$featureData
+}
+
+#' @rdname colFeatureData
+#' @export
+geometryFeatureData <- function(sfe, type, MARGIN = 2L) {
+    geo_fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
+    df <- geo_fun(sfe, type, sample_id = "all")
+    metadata(df)$featureData
 }
 
 .cbind_all <- function(values, features_list) {
@@ -357,3 +368,16 @@ rowFeatureData <- function(sfe) {
     } else show_symbol <- !is.null(swap_rownames)
     list(show_symbol, swap_rownames)
 }
+
+# Add param info to metadata
+.add_localResults_info <- function(x, sample_id, type, name, feature, res) {
+    old_length <- length(localResults(x, sample_id = "all", name))
+    localResults(x, sample_id, name, features) <- res
+    if (old_length == 0L) {
+        metadata(localResults(x, sample_id = "all", name))$info <- info(type)
+    }
+    x
+}
+
+# Record the parameters
+

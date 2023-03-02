@@ -41,11 +41,21 @@
 #' is used.
 #'
 #' @inheritParams spdep::moran
-#' @inheritParams SpatialFeatureExperiment::localResults
 #' @inheritParams plotDimLoadings
 #' @param x A numeric matrix whose rows are features/genes, or a
 #'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 #'   assay.
+#' @param type A string, must be one of the following: moran, geary, moran.test,
+#'   geary.test, moran.mc, geary.mc, sp.mantel.mc, globalG.test, sp.correlogram,
+#'   localmoran, localmoran_perm, localC, localC_perm, localG, localG_perm,
+#'   LOSH, LOSH.mc, LOSH.cs, and moran.plot. See \code{spdep} documentation for
+#'   the corresponding functions for method specific arguments. Can also be an
+#'   \code{\link{SFEMethod}} object, or a string matching the name of an
+#'   \code{SFEMethod} object. The methods mentioned above correspond to
+#'   \code{SFEMethod} objects already implemented in the Voyager package. You
+#'   can implement new \code{SFEMethod} objects to apply Voyager functions to
+#'   other spatial analysis methods. This is in part inspired by the
+#'   \code{caret}, \code{parsnip}, and \code{BiocSingular} packages.
 #' @param listw Weighted neighborhood graph as a \code{spdep} \code{listw}
 #'   object.
 #' @param features Genes (\code{calculate*} SFE method and \code{run*}) or
@@ -93,26 +103,28 @@
 #' @param p.adjust.method Method to correct for multiple testing, passed to
 #'   \code{\link[spdep]{p.adjustSP}}. Methods allowed are in
 #'   \code{\link{p.adjust.methods}}.
+#' @param name Name to use to store the results, defaults to the name in the
+#'   \code{SFEMethod} object passed to argument \code{type}.
+#' @param call Internal use only.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like
-#'   \code{calculateUnivariate}). See documentation in the \code{spdep} package
-#'   for the latter.
+#'   \code{calculateUnivariate}). See documentation of functions with the same
+#'   name as specified in \code{type} in the \code{spdep} package for the method
+#'   specific arguments.
 #' @return In \code{calculateUnivariate}, if \code{returnDF = TRUE}, then a
 #'   \code{DataFrame}, otherwise a list each element of which is the results for
 #'   each feature. For \code{run*}, a \code{SpatialFeatureExperiment} object
 #'   with the results added. See Details for where the results are stored.
 #' @name calculateUnivariate
 #' @aliases calculateMoransI
-#' @importFrom spdep moran geary Szero moran.mc geary.mc moran.test geary.test
-#'   globalG.test sp.correlogram moran.plot localmoran localmoran_perm localC
-#'   localC_perm localG localG_perm LOSH LOSH.mc LOSH.cs
 #' @importFrom BiocParallel SerialParam bplapply
 #' @importFrom S4Vectors DataFrame
 #' @importClassesFrom SpatialFeatureExperiment SpatialFeatureExperiment
 #' @importFrom SummarizedExperiment assay rowData<-
 #' @importFrom SpatialFeatureExperiment colGraph annotGraph localResults<-
 #' @importFrom SingleCellExperiment colData rowData
+#' @importFrom S4Vectors Rle
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SingleCellExperiment)
@@ -176,7 +188,8 @@ setMethod(
     "calculateUnivariate", c("ANY", "SFEMethod"),
     function(x, type, listw,
              BPPARAM = SerialParam(),
-             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH", ...) {
+             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
+             name = NULL, call = NULL, ...) {
         if (info(type, "package") %in% c("spdep", "Voyager", NA)) {
             rlang::check_installed(info(type, "package"))
         }
@@ -187,17 +200,19 @@ setMethod(
         )
         all_args <- c(all_args, other_args)
         out <- do.call(.calc_univar, all_args)
+        if (is.null(call)) call <- match.call()
         if (returnDF) {
             if (is_local(type)) {
                 out <- reorganize_fun(type)(out, nb = listw$neighbours,
-                                            p.adjust.method = p.adjust.method)
+                                            p.adjust.method = p.adjust.method,
+                                            call = call)
                 out <- .value2df(out, use_geometry = FALSE)
             } else {
-                out <- reorganize_fun(type)(out, name = info(type, "name"), ...)
-                # To do: what if there are duplicates, from runs with different parameters?
-                # Also store the parameters.
+                if (is.null(name)) name <- info(type, "name")
+                out <- reorganize_fun(type)(out, name = name, ...)
+                out$call <- call
             }
-        }
+        } else attr(out, "call") <- call
         out
     }
 )
@@ -208,10 +223,11 @@ setMethod(
     "calculateUnivariate", c("ANY", "character"),
     function(x, type, listw,
              BPPARAM = SerialParam(),
-             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH", ...) {
+             zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
+             name = NULL, call = NULL, ...) {
         type <- get(type, mode = "S4")
         calculateUnivariate(x, type, listw, BPPARAM, zero.policy, returnDF,
-                            p.adjust.method, ...)
+                            p.adjust.method, name, call, ...)
     }
 )
 
@@ -226,10 +242,11 @@ setMethod(
 #' @export
 setMethod(
     "calculateMoransI", "ANY",
-    function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL) {
+    function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL,
+             name = "moran", call = NULL) {
         calculateUnivariate(x,
             type = "moran", BPPARAM = BPPARAM,
-            zero.policy = zero.policy, ...
+            zero.policy = zero.policy, name = name, call = call, ...
         )
     }
 )

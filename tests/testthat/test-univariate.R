@@ -6,7 +6,7 @@ sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 set.seed(29)
 mat <- assay(sfe, "counts")
 mat1 <- mat[, colData(sfe)$sample_id == "sample01"]
-
+# to do: test that calls are added to univariate results stored in SFE
 out_m <- calculateMoransI(mat1, listw = colGraph(sfe, "visium", sample_id = "sample01"))
 test_that("Correct structure of calculateMoransI output (matrix)", {
     expect_s4_class(out_m, "DataFrame")
@@ -48,7 +48,7 @@ test_that("Correct structure of colGeometryMoransI output", {
         colGraphName = "visium", features = "foo",
         sample_id = "sample01"
     )
-    fd <- attr(colGeometry(out, "spotPoly", sample_id = "all"), "featureData")
+    fd <- geometryFeatureData(out, "spotPoly")
     expect_s4_class(fd, "DataFrame")
     expect_equal(names(fd), c("moran_sample01", "K_sample01"))
     expect_equal(rownames(fd), c("geometry", "foo"))
@@ -119,7 +119,7 @@ test_that("Correct structure of colGeometryUnivariate output, with list column",
         colGraphName = "visium", features = "foo",
         sample_id = "sample01", nsim = 10
     )
-    fd <- attr(colGeometry(out, "spotPoly", sample_id = "all"), "featureData")
+    fd <- geometryFeatureData(out, "spotPoly")
     expect_s4_class(fd, "DataFrame")
     expect_equal(names(fd), names_expect_mc_sample)
     expect_equal(rownames(fd), c("geometry", "foo"))
