@@ -27,6 +27,32 @@
     out
 }
 
+.check_old_params <- function(params, old_params, name) {
+    if (length(old_params)) {
+        old_params <- old_params[names(params)]
+        is_matched <- vapply(seq_along(params), function(i) {
+            isTRUE(all.equal(params[[i]], old_params[[i]]))
+        }, FUN.VALUE = logical(1L))
+        if (any(!is_matched[names(params) %in% c("version", "package")])) {
+            stop("New results were computed with different parameters ",
+                 "from existing results in localResult ", name,
+                 "; please use a different name for different parameters.")
+            # What if some parameters don't make results incomparable, such as
+            # order in correlograms?
+        } else if (!is_matched[name(params) == "version"]) {
+            message("New resuls were computed with package ", params[["package"]],
+                    " while existing results used ", old_params[["package"]],
+                    "; please verify consistency between packages.")
+        } else if (!is_matched[name(params) == "version"]) {
+            message("New results were computed with version ",
+                    params[["version"]], " of package ",
+                    params[["package"]], ", while existing results used ",
+                    "version ", old_params[["version"]], " in localResult ",
+                    name, "; please verify consistency between versions.")
+        }
+    }
+}
+
 #' @importFrom S4Vectors make_zero_col_DFrame
 .initialize_featureData <- function(df) {
     if (is.null(metadata(df)$featureData)) {
@@ -370,14 +396,27 @@ geometryFeatureData <- function(sfe, type, MARGIN = 2L) {
 }
 
 # Add param info to metadata
-.add_localResults_info <- function(x, sample_id, type, name, feature, res) {
+.add_localResults_info <- function(x, sample_id, type, name, feature,
+                                   colGraphName = NULL, annotGraphName = NULL,
+                                   zero.policy = NULL, include_self = FALSE,
+                                   p.adjust.method = "BH",
+                                   ..., res) {
     old_length <- length(localResults(x, sample_id = "all", name))
-    localResults(x, sample_id, name, features) <- res
-    if (old_length == 0L) {
-        metadata(localResults(x, sample_id = "all", name))$info <- info(type)
+    other_args <- list(...)
+    if (is.null(colGraphName))
+        g <- annotGraph(x, type = annotGraphName, sample_id = sample_id)
+    else
+        g <- colGraph(x, type = colGraphName, sample_id = sample_id)
+    params <- list(name = info(type, "name"), package = info(type, "package"),
+                   version = packageVersion(info(type, "package")),
+                   zero.policy = zero.policy, include_self = include_self,
+                   p.adjust.method = p.adjust.method, other_args,
+                   graph_params = attr(g, "method"))
+    if (old_length)  {
+        old_params <- metadata(localResults(x, sample_id = "all", name))$params
+        .check_old_params(params, old_params, name)
     }
+    localResults(x, sample_id, name, features) <- res
+    metadata(localResults(x, sample_id = "all", name))$params <- params
     x
 }
-
-# Record the parameters
-

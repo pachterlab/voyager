@@ -1,3 +1,6 @@
+# Version 1.1.9 (02/12/2023)
+* Deprecated show_symbol argument, replacing with swap_rownames to be consistent with scater
+
 # Version 1.1.7
 * Added bbox argument to spatial plotting functions to zoom in with a bounding box
 

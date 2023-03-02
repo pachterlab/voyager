@@ -100,47 +100,34 @@
     out_df
 }
 
-.localmoran2df <- function(out, nb, p.adjust.method, call) {
+.localmoran2df <- function(out, nb, p.adjust.method, params) {
     features <- names(out)
-    out <- lapply(out, function(o) {
+    lapply(out, function(o) {
         o1 <- as.data.frame(o)
         quadr <- attr(o, "quadr")
-        o <- I(.add_log_p(cbind(o1, quadr), nb, p.adjust.method))
-        attr(o, "call") <- call
-        o
+        I(.add_log_p(cbind(o1, quadr), nb, p.adjust.method))
     })
-    out
 }
 
-.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method, call) {
+.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method, params) {
     if (attr_name %in% names(attributes(out[[1]]))) {
-        out <- lapply(out, function(o) {
+        lapply(out, function(o) {
             attr_mat <- attr(o, attr_name)
             attr_mat <- cbind(o, attr_mat)
             colnames(attr_mat)[1] <- type
             .add_log_p(attr_mat, nb, p.adjust.method)
         })
     } else {
-        out <- lapply(out, as.vector)
+        lapply(out, as.vector)
     }
-    out <- lapply(out, function(o) {
-        attr(o, "call") <- call
-        o
-    })
-    out
 }
 
-.localG2df <- function(out, nb, p.adjust.method, call)
-    .attrmat2df(out, "internals", "localG", nb, p.adjust.method, call)
+.localG2df <- function(out, nb, p.adjust.method, params)
+    .attrmat2df(out, "internals", "localG", nb, p.adjust.method, params)
 
-.localCperm2df <- function(out, nb, p.adjust.method, call)
-    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method, call)
+.localCperm2df <- function(out, nb, p.adjust.method, params)
+    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method, params)
 
-.LOSHmc2df <- function(out, nb, p.adjust.method, call) {
-    out <- lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
-    out <- lapply(out, function(o) {
-        attr(o, "call") <- call
-        o
-    })
-    out
-}
+.LOSHmc2df <- function(out, nb, p.adjust.method, params)
+    lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
+

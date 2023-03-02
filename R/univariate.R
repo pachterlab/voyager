@@ -104,8 +104,9 @@
 #'   \code{\link[spdep]{p.adjustSP}}. Methods allowed are in
 #'   \code{\link{p.adjust.methods}}.
 #' @param name Name to use to store the results, defaults to the name in the
-#'   \code{SFEMethod} object passed to argument \code{type}.
-#' @param call Internal use only.
+#'   \code{SFEMethod} object passed to argument \code{type}. Can be set to
+#'   distinguish between results from the same method but with different
+#'   parameters.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like
@@ -189,7 +190,7 @@ setMethod(
     function(x, type, listw,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
-             name = NULL, call = NULL, ...) {
+             name = NULL, ...) {
         if (info(type, "package") %in% c("spdep", "Voyager", NA)) {
             rlang::check_installed(info(type, "package"))
         }
@@ -200,19 +201,20 @@ setMethod(
         )
         all_args <- c(all_args, other_args)
         out <- do.call(.calc_univar, all_args)
-        if (is.null(call)) call <- match.call()
+        params <- list(graph_params = attr(listw, "method"),
+                       method_params = c(info(type, c("name", "package")),
+                                         zero.policy = zero.policy,
+                                         other_args))
         if (returnDF) {
             if (is_local(type)) {
                 out <- reorganize_fun(type)(out, nb = listw$neighbours,
-                                            p.adjust.method = p.adjust.method,
-                                            call = call)
+                                            p.adjust.method = p.adjust.method)
                 out <- .value2df(out, use_geometry = FALSE)
             } else {
                 if (is.null(name)) name <- info(type, "name")
                 out <- reorganize_fun(type)(out, name = name, ...)
-                out$call <- call
             }
-        } else attr(out, "call") <- call
+        }
         out
     }
 )
@@ -224,10 +226,10 @@ setMethod(
     function(x, type, listw,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
-             name = NULL, call = NULL, ...) {
+             name = NULL, ...) {
         type <- get(type, mode = "S4")
         calculateUnivariate(x, type, listw, BPPARAM, zero.policy, returnDF,
-                            p.adjust.method, name, call, ...)
+                            p.adjust.method, name, ...)
     }
 )
 
@@ -243,10 +245,10 @@ setMethod(
 setMethod(
     "calculateMoransI", "ANY",
     function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL,
-             name = "moran", call = NULL) {
+             name = "moran") {
         calculateUnivariate(x,
             type = "moran", BPPARAM = BPPARAM,
-            zero.policy = zero.policy, name = name, call = call, ...
+            zero.policy = zero.policy, name = name, ...
         )
     }
 )

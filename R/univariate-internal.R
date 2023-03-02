@@ -134,8 +134,7 @@
                                                   features, drop = FALSE],
                 listw = listw_use, type = type, BPPARAM = BPPARAM,
                 zero.policy = zero.policy, returnDF = TRUE,
-                p.adjust.method = p.adjust.method, name = name,
-                call = match.call(), ...
+                p.adjust.method = p.adjust.method, name = name, ...
             )
             local <- is_local(type)
             if (local) {

@@ -92,8 +92,8 @@ setClass("SFEMethod", slots = c(
             if (!identical(names(formals(object@reorganize_fun)), c("out", "name", "...")))
                 outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'name', and '...'")
         } else {
-            if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method", "call")))
-                outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', 'p.adjust.method', and 'call'")
+            if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
+                outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', and 'p.adjust.method'")
         }
     }
     if (!length(outs)) return(TRUE)
