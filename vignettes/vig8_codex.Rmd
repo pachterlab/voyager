@@ -19,7 +19,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>", fig.align = "center",
-  eval=FALSE
+  eval=TRUE
 )
 ```
 
@@ -83,13 +83,13 @@ We can see from the figure above that the colonic epithelium is enriched with ce
 
 We can visualize these cell types in space using the `plotSpatialFeature()` function. We will highlight Goblet and smooth muscle cells to display their relative distribution in the tissue. Since CODEX image processing relies on segmentation, each dot in the plot represents a single cell. Here, each cell is represented by its centroid, but can also be visualized as cell polygons in cases where the segmentation mask is available.  
 ```{r}
-plotSpatialFeature() +
-  gghighligh(cell_type %in% c("Goblet", "SmoothMuscleEM"))
+spatial <- plotSpatialFeature(sfe, features='cell_type', colGeometryName = "centroids") +
+  gghighlight(cell_type %in% c("Goblet", "SmoothMuscleME"))
+
+spatial
 ```
 The goblet cells clearly define the epithelial border of the tissue and the thick bands of smooth muscle cells are prominent below the mucosa. 
-```{r}
-plotSpatialFeature(immune, epithelial, )
-```
+
 Next, we will compute some gene level metrics for each of the 47 barcoded genes. In contrast to RNA-based methods, the fields in the matrix represent intensities rather than counts.  
 ```{r}
 rowData(sfe)$mean <- rowMeans(assay(sfe))
@@ -99,7 +99,7 @@ data.frame(rowData(sfe)) |>
   ggplot(aes(mean, var)) + 
   geom_point()
 ```
-Interestingly, the there is a sigmoid relationship between the mean and variance of the protein expression. The pattern is reminiscent of what might be expected if the intensity values were derived from a Gamma distribution, the continuous analog of the Negative Binomial distribution that is typically used to describe count data from scRNA-seq experiments.
+There appears to be a sigmoid relationship between the mean and variance of the protein expression. The pattern is reminiscent of what might be expected if the intensity values were derived from a Gamma distribution, the continuous analog of the Negative Binomial distribution that is typically used to describe count data from scRNA-seq experiments. This may have implications for how CODEX data is variance stabilized in the future. 
 
 CODEX data is subject to noise from several sources including segmentation artifacts, nonspecific staining, and imperfect tissue processing. These are factors that can limit accurate quantification of signal intensity and impede accurate cell annotation. The authors of the dataset tested the effects of several normalization methods on cell type annotation and clustering and found that Z-score normalization of each marker resulted in accurate identification of both rare and common cell types. In the cell below, we demonstrate how to accomplish this using standard matrix operations. The normalized count matrix is typically stored in the `logcounts` slot for scRNA-seq data, but we will instead store the normalized matrix in a slot called `normalizedIntensity`. 
 
@@ -125,7 +125,7 @@ colGraph(sfe, "knn10") <- findSpatialNeighbors(
 
 The `plotColGraph()` function plots the graph in space along with its corresponding `colGeometry`.
 ```{r}
-# plotColGraph(sfe, colGraphName = "knn10", colGeometryName = 'centroids')
+plotColGraph(sfe, colGraphName = "knn10", colGeometryName = 'centroids')
 ```
 Next, we will explore univariate metrics for global spatial autocorrelation. Since few genes are quantified in this study, we will compute the metrics for all genes. For larger datasets, it may be useful to restrict analysis to the most variable genes. 
 
@@ -136,13 +136,33 @@ sfe <- runUnivariate(
  exprs_values = "normalizedIntensity", colGraphName = "knn10", nsim = 100)
 
 sfe <- runUnivariate(
-  sfe, type = "geary.mc", features = rownames(sfe),
+  sfe, type = "moran.plot", features = rownames(sfe),
   exprs_values = "normalizedIntensity", colGraphName = "knn10", nsim = 100)
 ```
-The results of these computations are accessible in the `rowData` attribute. 
+The results of these computations are accessible in the `rowData` attribute of the SFE object. 
 ```{r}
 colnames(rowData(sfe))
 ```
+Next, we plot the results of the genes with the highest Moran's I statistic. 
+```{r}
+top_moran <- data.frame(rowData(sfe)) |>
+  arrange(desc(moran.mc_statistic_sample01)) |>
+  head(6) |> 
+  rownames()
+
+moran <- plotMoranMC(sfe, features = top_moran, facet_by = 'features')
+moran
+```
+The vertical line in each plot represents the observed Moran's I while the density represents the Moran's I statistic for each of the random permutations of the data. Each of these plots suggests that the Moran's I statistic is significant. We can  plot the normalized intensity for these genes in space. 
+
+```{r, fig.width = 12, fig.height=10}
+moran_spatial <- plotSpatialFeature(
+  sfe, features=top_moran, colGeometryName = "centroids",
+  exprs_values = "normalizedIntensity")
+
+moran_spatial
+```
+While most of these genes appear to have some spatial distribution, it also seems that it may overlap with cell type. The cells that appear to express the genes of interest seem to be spatially restricted to known boundaries in the tissue. 
 
 # Differential Expression
 
@@ -155,18 +175,18 @@ The `spatialDE` package is implemented in R and requires a normalized matrix as 
 coords <- centroids(sfe)$geometry |>
   purrr::map_dfr(\(x) c(x = x[1], y = x[2]))
 
-de_res <- run(assay(sfe,"normalizedIntensity"), coords, verbose=TRUE)
+#de_res <- spatialDE::run(assay(sfe,"normalizedIntensity"), coords, verbose=TRUE)
 ```
 
 We can plot the normalized expression of the top 5 genes in space.
 ```{r}
-top_genes <- de_res |>
-  arrange(pval) |>
-  slice_head(n=6) |>
-  pull(g)
-
-plotSpatialFeature(sfe, top_genes, colGeometryName="centroids",
-                   exprs_values = "normalizedIntensity")
+# top_genes <- de_res |>
+#   arrange(pval) |>
+#   slice_head(n=6) |>
+#   pull(g)
+# 
+# plotSpatialFeature(sfe, top_genes, colGeometryName="centroids",
+#                    exprs_values = "normalizedIntensity")
 ```
 
 Perhaps unsurprisingly, the expression of the top DE genes seems to highlight the spatial distribution of known cell types in the tissue rather than identify spatially restricted gene expression. This is related to the experimental design where the targeted genes were chosen to differentiate cell types. Perhaps in genome-wide technologies, the potential for discovery of neew gene expression patterns is more plausible. There is an open question as to whether these results offer new information compared to what is inferred by typical DE expression methods.  
