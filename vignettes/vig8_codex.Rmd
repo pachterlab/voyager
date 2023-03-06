@@ -123,7 +123,7 @@ colGraph(sfe, "knn10") <- findSpatialNeighbors(
   k = 10, style = "W")
 ```
 
-The `plotColGraph()` function plots the graph in space along with its corresponding `colGeometry`.
+The `plotColGraph()` function plots the graph in space along with its corresponding `colGeometry`, but since there are so many cells in this dataset, plotting the neighborhood graph may not be as useful as many connections will be obscure by overlapping lines. In any case, we will demonstrate use of the function below. 
 ```{r}
 plotColGraph(sfe, colGraphName = "knn10", colGeometryName = 'centroids')
 ```
@@ -139,6 +139,7 @@ sfe <- runUnivariate(
   sfe, type = "moran.plot", features = rownames(sfe),
   exprs_values = "normalizedIntensity", colGraphName = "knn10", nsim = 100)
 ```
+
 The results of these computations are accessible in the `rowData` attribute of the SFE object. 
 ```{r}
 colnames(rowData(sfe))
@@ -164,18 +165,26 @@ moran_spatial
 ```
 While most of these genes appear to have some spatial distribution, it also seems that it may overlap with cell type. The cells that appear to express the genes of interest seem to be spatially restricted to known boundaries in the tissue. 
 
+The `moranPlot()` function plots spatial data against its spatially lagged values and enables users to assess how similar observed values are to its neighbors. When the variable is centered, the plot is divided into four quadrants defined by the horizontal line y = 0 and the vertical line x = 0. Points in the upper right (or high-high) and lower left (or low-low) quadrants indicate positive spatial association, and points in the lower right (or high-low) and upper left (or low-high) quadrants include observations that exhibit negative spatial association.
+
+```{r}
+mp <- moranPlot(sfe, top_moran[1])
+
+mp
+```
+
 # Differential Expression
 
 While Moran's I and other global spatial autocorrelation metrics provide insight to the spatial patterns of gene expression, it is necessarily limited by the structure imposed by the spatial weights matrix. A complimentary task might be to identify spatially variable (SV) genes. One such method to do this is described in [SpatialDE: identification of spatially variable genes](). The method described in the manuscript relies on Gaussian process regression and decomposes variability in expression into spatial and non-spatial components. In contrast to Moran's I, the covariance between each pair of cells is modeled as a function of the distance between them. Notably, it does not require an explicit specification of hte neighborhood graph, but rather the a parameter controls the decay in covariance as distance increases. 
 
-The `spatialDE` package is implemented in R and requires a normalized matrix as input. The `spatialDE()` function from the package peforms normalization steps before running the algorithm. Because the data has already been normalized, we will use the `run()` function directly to run spatialDE. We will first have to convert the centroid coordinates to a data frame as requried by the function.
+The `spatialDE` package is implemented in R and requires a normalized matrix as input. The `spatialDE()` function from the package performs normalization steps before running the algorithm. Because the data has already been normalized, we will use the `run()` function directly to run spatialDE. We will first have to convert the centroid coordinates to a data frame as required by the function.
 
 ```{r}
 # Store coordinates in a data frame object
 coords <- centroids(sfe)$geometry |>
   purrr::map_dfr(\(x) c(x = x[1], y = x[2]))
 
-#de_res <- spatialDE::run(assay(sfe,"normalizedIntensity"), coords, verbose=TRUE)
+# de_res <- spatialDE::run(assay(sfe,"normalizedIntensity"), coords, verbose=TRUE)
 ```
 
 We can plot the normalized expression of the top 5 genes in space.
