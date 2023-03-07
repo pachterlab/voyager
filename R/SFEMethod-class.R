@@ -59,12 +59,16 @@
 #' @slot fun The function implementing the method. See Details.
 #' @slot reorganize_fun Function to convert output from \code{fun} into a format to
 #'   store in the SFE object. See Details.
+#' @slot arts_not_check A character vector specifying which arguments in
+#' \code{fun} should not be checked when comparing parameters used in results.
+#' Defaults to NA, meaning all arguments are checked.
 #' @name SFEMethod
 #' @aliases SFEMethod-class
 setClass("SFEMethod", slots = c(
     info = "character",
     fun = "function",
-    reorganize_fun = "function"
+    reorganize_fun = "function",
+    args_not_check = "character"
 ))
 
 .valid_SFEMethod <- function(object) {
@@ -109,12 +113,15 @@ setValidity("SFEMethod", .valid_SFEMethod)
 #' @param reorganize_fun See Details.
 #' @param x A \code{SFEMethod} object
 #' @param type One of the names of the \code{info} slot, see slot documentation.
+#' @param args_not_check See slot documentation.
 #' @return The constructor returns a \code{SFEMethod} object. The getters return
 #' the content of the corresponding slots.
 #' @export
 #' @rdname SFEMethod
-SFEMethod <- function(info, fun, reorganize_fun) {
-    new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun)
+SFEMethod <- function(info, fun, reorganize_fun,
+                      args_not_check = NA_character_) {
+    new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun,
+        args_not_check = args_not_check)
 }
 
 #' @export
@@ -134,3 +141,7 @@ setMethod("fun", "SFEMethod", function(x) x@fun)
 #' @export
 #' @rdname SFEMethod
 setMethod("reorganize_fun", "SFEMethod", function(x) x@reorganize_fun)
+
+#' @export
+#' @rdname SFEMethod
+setMethod("args_not_check", "SFEMethod", function(x) x@args_not_check)

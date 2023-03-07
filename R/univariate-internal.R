@@ -1,11 +1,11 @@
 # Internal function for univariate metrics
 .calc_univar <- function(x, listw, fun, BPPARAM, ...) {
-    if (is.null(listw)) {
-        stop("The graph specified is absent from the SFE object.")
-    }
-    if (is.vector(x)) {
-        x <- matrix(x, nrow = 1)
-    }
+    #if (is.null(listw)) {
+    #    stop("The graph specified is absent from the SFE object.")
+    #}
+    #if (is.vector(x)) {
+    #    x <- matrix(x, nrow = 1)
+    #}
     if (is(x, "DFrame") || is.data.frame(x)) {
         if (is(x, "sf")) x <- st_drop_geometry(x)
         x <- t(as.matrix(x))
@@ -39,13 +39,13 @@
                 nb2 <- include.self(listw_use$neighbours)
                 listw_use <- nb2listw(nb2)
             }
-            mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s]
+            mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s, drop = FALSE]
             o <- calculateUnivariate(mat, listw = listw_use,
                 type = type,
                 BPPARAM = BPPARAM,
                 zero.policy = zero.policy,
                 returnDF = returnDF, p.adjust.method = p.adjust.method,
-                name = name, call = match.call(), ...
+                name = name, ...
             )
             o
         })
@@ -122,8 +122,22 @@
                         BPPARAM = SerialParam(), zero.policy = NULL,
                         include_self = FALSE, p.adjust.method = "BH",
                         name = NULL, ...) {
+        if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(name)) name <- info(type, "name")
+        other_args <- list(...)
+        # But what if different parameters were used to make the graph for
+        # different samples? But why would that be a good idea?
+        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        params <- c(info(type, c("name", "package")),
+                    list(version = packageVersion(info(type, "package")),
+                         zero.policy = zero.policy, include_self = include_self,
+                         p.adjust.method = p.adjust.method,
+                         graph_params = attr(g, "method")), other_args)
+        local <- is_local(type)
+        if (!local) params$p.adjust.method <- NULL
+        old_params <- getParams(x, name, colData = TRUE, local = local)
+        .check_old_params(params, old_params, name, args_not_check(type))
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
             if (include_self) {
@@ -136,13 +150,14 @@
                 zero.policy = zero.policy, returnDF = TRUE,
                 p.adjust.method = p.adjust.method, name = name, ...
             )
-            local <- is_local(type)
             if (local) {
-                x <- .add_localResults_info(x, sample_id = s, type = type,
-                                            name = name,
-                                            feature = feature, res = res)
+                x <- .add_localResults_info(x, sample_id = s,
+                                            name = name, features = features,
+                                            res = res, params = params)
             } else {
-                x <- .add_fd_dimData(x, MARGIN = 2, res, features, s, ...)
+                x <- .add_fd_dimData(x, MARGIN = 2, sample_id = s, name = name,
+                                     features = features, res = res,
+                                     params = params)
             }
         }
         x
@@ -168,7 +183,21 @@
                         BPPARAM = SerialParam(), zero.policy = NULL,
                         include_self = FALSE, p.adjust.method = "BH",
                         name = NULL, ...) {
+        if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        if (is.null(name)) name <- info(type, "name")
+        other_args <- list(...)
+        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        params <- c(info(type, c("name", "package")),
+                    list(version = packageVersion(info(type, "package")),
+                         zero.policy = zero.policy, include_self = include_self,
+                         p.adjust.method = p.adjust.method,
+                         graph_params = attr(g, "method")), other_args)
+        local <- is_local(type)
+        if (!local) params$p.adjust.method <- NULL
+        old_params <- getParams(x, name, colGeometryName = colGeometryName,
+                                local = local)
+        .check_old_params(params, old_params, name, args_not_check(type))
         for (s in sample_id) {
             listw_use <- colGraph(x, type = colGraphName, sample_id = s)
             if (include_self) {
@@ -182,18 +211,17 @@
                 returnDF = TRUE, p.adjust.method = p.adjust.method, name = name,
                 ...
             )
-            local <- .is_local(type)
             if (local) {
-                metadata(res)$call <- match.call()
-                x <- .add_localResults_info(x, sample_id = s, type = type,
-                                            name = name,
-                                            feature = feature, res = res)
+                x <- .add_localResults_info(x, sample_id = s,
+                                            name = name, features = features,
+                                            res = res, params = params,
+                                            colGeometryName = colGeometryName)
             } else {
+
                 colGeometry(x, colGeometryName, sample_id = "all") <-
-                    .add_fd(
-                        x, colGeometry(x, colGeometryName, sample_id = "all"),
-                        res, features, s
-                    )
+                    .add_fd(x, df = colGeometry(x, colGeometryName, sample_id = "all"),
+                            sample_id = s, name = name, features = features,
+                            res = res, params = params)
             }
         }
         x
@@ -203,10 +231,10 @@
     } else {
         function(x, features, colGeometryName = 1L, colGraphName = 1L,
                  sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, p.adjust.method = "BH", ...) {
+                 include_self = FALSE, p.adjust.method = "BH", name = NULL, ...) {
             fun_use(
                 x, type, features, colGeometryName, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
             )
         }
     }
@@ -216,8 +244,23 @@
     fun_use <- function(x, type, features, annotGeometryName = 1L,
                         annotGraphName = 1L, sample_id = "all",
                         BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH", ...) {
+                        include_self = FALSE, p.adjust.method = "BH",
+                        name = NULL, ...) {
+        if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        if (is.null(name)) name <- info(type, "name")
+        other_args <- list(...)
+        g <- annotGraph(x, type = annotGraphName, sample_id = sample_id[1])
+        params <- c(info(type, c("name", "package")),
+                    list(version = packageVersion(info(type, "package")),
+                         zero.policy = zero.policy, include_self = include_self,
+                         p.adjust.method = p.adjust.method,
+                         graph_params = attr(g, "method")), other_args)
+        local <- is_local(type)
+        if (!local) params$p.adjust.method <- NULL
+        old_params <- getParams(x, name, annotGeometryName = annotGeometryName,
+                                local = local)
+        .check_old_params(params, old_params, name, args_not_check(type))
         for (s in sample_id) {
             listw_use <- annotGraph(x, type = annotGraphName, sample_id = s)
             if (include_self) {
@@ -231,17 +274,17 @@
                 type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
                 returnDF = TRUE, p.adjust.method = p.adjust.method, ...
             )
-            local <- .is_local(type)
             if (local) {
-                localResults(x, s, type, features,
-                    annotGeometryName = annotGeometryName
-                ) <- res
+                x <- .add_localResults_info(x, sample_id = s,
+                                            name = name, features = features,
+                                            res = res, params = params,
+                                            annotGeometryName = annotGeometryName)
             } else {
                 annotGeometry(x, annotGeometryName, sample_id = "all") <-
                     .add_fd(
-                        x, annotGeometry(x, annotGeometryName,
-                                         sample_id = "all"),
-                        res, features, s, type
+                        x, df = annotGeometry(x, annotGeometryName, sample_id = "all"),
+                        sample_id = s, name = name, features = features,
+                        res = res, params = params
                     )
             }
         }
@@ -252,10 +295,10 @@
     } else {
         function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
                  sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, p.adjust.method = "BH", ...) {
+                 include_self = FALSE, p.adjust.method = "BH", name = NULL, ...) {
             fun_use(
                 x, type, features, annotGeometryName, annotGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, ...
+                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
             )
         }
     }
@@ -266,8 +309,22 @@
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         swap_rownames = NULL,
                         zero.policy = NULL, include_self = FALSE,
-                        p.adjust.method = "BH", ...) {
+                        p.adjust.method = "BH", name = NULL, ...) {
+        if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        if (is.null(name)) name <- info(type, "name")
+        other_args <- list(...)
+        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        params <- c(info(type, c("name", "package")),
+                    list(version = packageVersion(info(type, "package")),
+                         zero.policy = zero.policy, include_self = include_self,
+                         p.adjust.method = p.adjust.method,
+                         graph_params = attr(g, "method")), other_args)
+        local <- is_local(type)
+        if (!local) params$p.adjust.method <- NULL
+        old_params <- getParams(x, name, local = local)
+        .check_old_params(params, old_params, name, args_not_check(type))
+
         if (is.null(features)) features <- rownames(x)
         # Requires devel version of SFE
         features <- .symbol2id(x, features, swap_rownames)
@@ -278,16 +335,14 @@
                 include_self = include_self, p.adjust.method = p.adjust.method,
                 ...
             )
-            local <- .is_local(type)
             if (local) {
-                if (length(features) == 1L) {
-                    names(out) <- features
-                }
-                localResults(x, type, features, sample_id = s) <- out
+                x <- .add_localResults_info(x, sample_id = s,
+                                            name = name, features = features,
+                                            res = out, params = params)
             } else {
                 out <- .add_name_sample_id(out, s)
-                features <- .symbol2id(x, features, swap_rownames)
                 rowData(x)[features, names(out)] <- out
+                metadata(rowData(x))$params[[name]] <- params
             }
         }
         x
@@ -299,11 +354,11 @@
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  swap_rownames = NULL,
                  zero.policy = NULL, include_self = FALSE,
-                 p.adjust.method = "BH", ...) {
+                 p.adjust.method = "BH", name = NULL, ...) {
             fun_use(
                 x, type, features, colGraphName, sample_id,
                 exprs_values, BPPARAM, swap_rownames, zero.policy, include_self,
-                p.adjust.method, ...
+                p.adjust.method, name, ...
             )
         }
     }

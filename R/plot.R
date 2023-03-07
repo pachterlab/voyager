@@ -381,11 +381,16 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     df <- cbind(df[,c("geometry", "sample_id")], values)
     df <- .crop(df, bbox)
+    type_df <- .get_generalized_geometry_type(df)
+    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && size > 0 &&
+        linewidth == 0) {
+        message("Please use linewidth instead of size for thickness of polygon outlines.")
+        linewidth <- size
+    }
     if (scattermore || !is.null(bins)) {
         if (scattermore)
             check_installed("scattermore",
                             reason = "to plot points with scattermore")
-        type_df <- .get_generalized_geometry_type(df)
         if (type_df != "POINT") {
             message("scattermore and binning only apply to points. Using centroids.")
             df_coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(df))))

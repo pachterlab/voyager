@@ -140,11 +140,10 @@ specified or not applicable, or for \code{annotGeometry} if
 \item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
 be consistent with \code{scater} plotting functions.}
 
-\item{swap_rownames}{Name of a column in \code{rowData} to identify features
-instead of the row names of the SFE object. For example, if the row names
-of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
-column in \code{rowData}, then putting "symbol" for this argument will use
-the gene symbols to identify which gene's local results to get or set.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{scattermore}{Logical, whether to use the \code{scattermore} package to
 greatly speed up plotting numerous points. Only used for POINT

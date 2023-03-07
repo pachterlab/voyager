@@ -6,7 +6,7 @@ sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 set.seed(29)
 mat <- assay(sfe, "counts")
 mat1 <- mat[, colData(sfe)$sample_id == "sample01"]
-# to do: test that calls are added to univariate results stored in SFE
+
 out_m <- calculateMoransI(mat1, listw = colGraph(sfe, "visium", sample_id = "sample01"))
 test_that("Correct structure of calculateMoransI output (matrix)", {
     expect_s4_class(out_m, "DataFrame")
@@ -40,6 +40,14 @@ test_that("Correct structure of colDataMoransI output", {
     expect_equal(rownames(fd), c("barcode", "sample_id", "nCounts"))
     expect_true(is.na(fd["barcode", "moran_sample01"]))
     expect_false(is.na(fd["nCounts", "moran_sample01"]))
+    # Check the params field
+    params <- getParams(out, "moran", colData = TRUE)
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$graph_params,
+                 attr(colGraph(out, "visium", "sample01"), "method"))
 })
 
 test_that("Correct structure of colGeometryMoransI output", {
@@ -54,6 +62,14 @@ test_that("Correct structure of colGeometryMoransI output", {
     expect_equal(rownames(fd), c("geometry", "foo"))
     expect_true(is.na(fd["geometry", "moran_sample01"]))
     expect_false(is.na(fd["foo", "moran_sample01"]))
+    # Check the params field
+    params <- getParams(out, "moran", colGeometryName = "spotPoly")
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$graph_params,
+                 attr(colGraph(out, "visium", "sample01"), "method"))
 })
 
 test_that("Correct structure of calculateMoransI output (SFE)", {
@@ -77,7 +93,16 @@ test_that("Properly add Moran's I results (no permutation) to SFE rowData", {
     rd <- rowData(sfe2)
     expect_equal(names(rd), c("moran_sample01", "K_sample01"))
     names(rd) <- c("moran", "K")
-    expect_equal(rd, out_m)
+    # just check the values, checking attributes a little later
+    expect_equal(rd, out_m, ignore_attr = TRUE)
+    # Check the params field
+    params <- getParams(sfe2, "moran")
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$graph_params,
+                 attr(colGraph(sfe2, "visium", "sample01"), "method"))
 })
 
 names_expect_mc <- c(
@@ -266,9 +291,30 @@ colGraphs(sfe, name = "visium", sample_id = "all") <- findVisiumGraph(sfe, sampl
 sfe <- colDataUnivariate(sfe, "localmoran", features = "nCounts", sample_id = "all")
 res <- localResult(sfe, "localmoran", "nCounts", sample_id = "all")
 
+test_that("Properly add moran.plot results to localResults when only one gene is used", {
+    colGraph(sfe1, "visium") <- findVisiumGraph(sfe1)
+    sfe1 <- logNormCounts(sfe1)
+    sfe1 <- runUnivariate(sfe1, "moran.plot", features = "Myh1", colGraphName = "visium",
+                          swap_rownames = "symbol")
+    expect_equal(localResultFeatures(sfe1, "moran.plot"),
+                 .symbol2id(sfe1, "Myh1", "symbol"))
+    lr <- localResult(sfe1, "moran.plot", "Myh1", swap_rownames = "symbol")
+    expect_s3_class(lr, "data.frame")
+    expect_equal(names(lr), names_expect_mp)
+})
+
 test_that("colDataUnivariate run on multiple samples", {
     expect_s3_class(res, "data.frame")
     expect_equal(names(res), names_expect_lm)
+    # parameters
+    params <- getParams(sfe, "localmoran", local = TRUE, colData = TRUE)
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$p.adjust.method, "BH")
+    expect_equal(params$graph_params,
+                 attr(colGraph(sfe, "visium", "Vis5A"), "method"))
 })
 
 test_that("colGeometryUnivariate run on multiple samples", {
@@ -296,4 +342,14 @@ test_that("annotGeometryUnivariate run on multiple samples", {
                         sample_id = "all")
     expect_s3_class(res, "data.frame")
     expect_equal(names(res), names_expect_lm)
+    # parameters
+    params <- getParams(sfe, "localmoran", local = TRUE,
+                        annotGeometryName = "myofiber_simplified")
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$p.adjust.method, "BH")
+    expect_equal(params$graph_params,
+                 attr(annotGraph(sfe, "knn", "Vis5A"), "method"))
 })

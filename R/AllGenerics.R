@@ -21,3 +21,6 @@ setGeneric("reorganize_fun", function(x) standardGeneric("reorganize_fun"))
 
 #' @export
 setGeneric("is_local", function(x) standardGeneric("is_local"))
+
+#' @export
+setGeneric("args_not_check", function(x) standardGeneric("args_not_check"))

@@ -8,9 +8,10 @@
 \alias{is_local,SFEMethod-method}
 \alias{fun,SFEMethod-method}
 \alias{reorganize_fun,SFEMethod-method}
+\alias{args_not_check,SFEMethod-method}
 \title{SFEMethod class}
 \usage{
-SFEMethod(info, fun, reorganize_fun)
+SFEMethod(info, fun, reorganize_fun, args_not_check = NA_character_)
 
 \S4method{info}{SFEMethod}(x, type)
 
@@ -19,6 +20,8 @@ SFEMethod(info, fun, reorganize_fun)
 \S4method{fun}{SFEMethod}(x)
 
 \S4method{reorganize_fun}{SFEMethod}(x)
+
+\S4method{args_not_check}{SFEMethod}(x)
 }
 \arguments{
 \item{info}{See slot documentation}
@@ -26,6 +29,8 @@ SFEMethod(info, fun, reorganize_fun)
 \item{fun}{See Details.}
 
 \item{reorganize_fun}{See Details.}
+
+\item{args_not_check}{See slot documentation.}
 
 \item{x}{A \code{SFEMethod} object}
 
@@ -101,5 +106,9 @@ plotting.}
 
 \item{\code{reorganize_fun}}{Function to convert output from \code{fun} into a format to
 store in the SFE object. See Details.}
+
+\item{\code{arts_not_check}}{A character vector specifying which arguments in
+\code{fun} should not be checked when comparing parameters used in results.
+Defaults to NA, meaning all arguments are checked.}
 }}
 

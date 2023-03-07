@@ -26,6 +26,7 @@
   zero.policy = NULL,
   returnDF = TRUE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -37,6 +38,7 @@
   zero.policy = NULL,
   returnDF = TRUE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -53,10 +55,17 @@
   include_self = FALSE,
   p.adjust.method = "BH",
   swap_rownames = NULL,
+  name = NULL,
   ...
 )
 
-\S4method{calculateMoransI}{ANY}(x, ..., BPPARAM = SerialParam(), zero.policy = NULL)
+\S4method{calculateMoransI}{ANY}(
+  x,
+  ...,
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  name = "moran"
+)
 
 \S4method{calculateMoransI}{SpatialFeatureExperiment}(
   x,
@@ -70,6 +79,7 @@
   include_self = FALSE,
   p.adjust.method = "BH",
   swap_rownames = NULL,
+  name = NULL,
   ...
 )
 
@@ -83,6 +93,7 @@ colDataUnivariate(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -95,6 +106,7 @@ colDataMoransI(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -109,6 +121,7 @@ colGeometryUnivariate(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -122,6 +135,7 @@ colGeometryMoransI(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -136,6 +150,7 @@ annotGeometryUnivariate(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -149,6 +164,7 @@ annotGeometryMoransI(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -164,6 +180,7 @@ runUnivariate(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -178,6 +195,7 @@ runMoransI(
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 }
@@ -186,9 +204,17 @@ runMoransI(
 \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 assay.}
 
-\item{type}{An integer specifying the index or string specifying the name of
-the *Geometry to query or replace. If missing, then the first item in the
-*Geometries will be returned or replaced.}
+\item{type}{A string, must be one of the following: moran, geary, moran.test,
+geary.test, moran.mc, geary.mc, sp.mantel.mc, globalG.test, sp.correlogram,
+localmoran, localmoran_perm, localC, localC_perm, localG, localG_perm,
+LOSH, LOSH.mc, LOSH.cs, and moran.plot. See \code{spdep} documentation for
+the corresponding functions for method specific arguments. Can also be an
+\code{\link{SFEMethod}} object, or a string matching the name of an
+\code{SFEMethod} object. The methods mentioned above correspond to
+\code{SFEMethod} objects already implemented in the Voyager package. You
+can implement new \code{SFEMethod} objects to apply Voyager functions to
+other spatial analysis methods. This is in part inspired by the
+\code{caret}, \code{parsnip}, and \code{BiocSingular} packages.}
 
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
 object.}
@@ -205,11 +231,17 @@ whether the results should be formatted as a \code{DataFrame}.}
 \code{\link[spdep]{p.adjustSP}}. Methods allowed are in
 \code{\link{p.adjust.methods}}.}
 
+\item{name}{Name to use to store the results, defaults to the name in the
+\code{SFEMethod} object passed to argument \code{type}. Can be set to
+distinguish between results from the same method but with different
+parameters.}
+
 \item{...}{Other arguments passed to S4 method (for convenience wrappers like
 \code{calculateMoransI}) or method used to compute metrics as specified by
 the argument \code{type} (as in more general functions like
-\code{calculateUnivariate}). See documentation in the \code{spdep} package
-for the latter.}
+\code{calculateUnivariate}). See documentation of functions with the same
+name as specified in \code{type} in the \code{spdep} package for the method
+specific arguments.}
 
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
@@ -242,11 +274,10 @@ contains the expression values.}
 include edges from each location to itself. This is for Getis-Ord Gi* as in
 \code{localG} and \code{localG_perm}, not to be used for any other method.}
 
-\item{swap_rownames}{Name of a column in \code{rowData} to identify features
-instead of the row names of the SFE object. For example, if the row names
-of the SFE object are Ensembl IDs and gene symbols are in the "symbol"
-column in \code{rowData}, then putting "symbol" for this argument will use
-the gene symbols to identify which gene's local results to get or set.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -296,18 +327,31 @@ The following methods are local, meaning each location has its own results:
 Global results for genes are stored in \code{rowData}. For \code{colGeometry}
 and \code{annotGeometry}, the results are added to an attribute of the data
 frame called \code{featureData}, which is a DataFrame analogous to
-\code{rowData} for the gene count matrix. New column names in
+\code{rowData} for the gene count matrix, and can be accessed with the
+\code{\link{geometryFeatureData}} function. New column names in
 \code{featureData} would follow the same rules as in \code{rowData}. For
-\code{colData}, the results can be accessed with the \code{colFeatureData}
-function.
+\code{colData}, the results can be accessed with the
+\code{\link{colFeatureData}} function.
 
 Local results are stored in the field \code{localResults} field of the SFE
 object, which can be accessed with
 \code{\link[SpatialFeatureExperiment]{localResults}} or
 \code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
-p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-Note that in the multiple testing correction, \code{\link[spdep]{p.adjustSP}}
-is used.
+p-values, then -log10 p and adjusted -log10 p are added. Note that in the
+multiple testing correction, \code{\link[spdep]{p.adjustSP}} is used.
+
+When the results are stored in the SFE object, parameters used to compute the
+results as well as to construct the spatial neighborhood graph are also
+added. For \code{localResults}, the parameters are added to the metadata
+field \code{params} of the \code{localResults} sorted by \code{name}, which
+defaults to the name in the \code{SFEMethod} object as specified in the
+\code{type} argument. For global methods, parameters for results for genes
+are in the metadata of \code{rowData(x)}, organized by \code{name}
+(\code{metadata(rowData(x))$params[[name]]}). For \code{colData}, the global
+method parameters are stored in metadata of \code{colData} in the field
+\code{params} (\code{metadata(colData(x))$params[[name]]}). For geometries,
+the global method parameters are in an attribute named "params" of the
+corresponding \code{sf} data frame (\code{attr(df, "params")[[name]]}).
 }
 \examples{
 library(SpatialFeatureExperiment)

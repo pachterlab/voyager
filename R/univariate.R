@@ -27,18 +27,31 @@
 #' Global results for genes are stored in \code{rowData}. For \code{colGeometry}
 #' and \code{annotGeometry}, the results are added to an attribute of the data
 #' frame called \code{featureData}, which is a DataFrame analogous to
-#' \code{rowData} for the gene count matrix. New column names in
+#' \code{rowData} for the gene count matrix, and can be accessed with the
+#' \code{\link{geometryFeatureData}} function. New column names in
 #' \code{featureData} would follow the same rules as in \code{rowData}. For
-#' \code{colData}, the results can be accessed with the \code{colFeatureData}
-#' function.
+#' \code{colData}, the results can be accessed with the
+#' \code{\link{colFeatureData}} function.
 #'
 #' Local results are stored in the field \code{localResults} field of the SFE
 #' object, which can be accessed with
 #' \code{\link[SpatialFeatureExperiment]{localResults}} or
 #' \code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
-#' p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-#' Note that in the multiple testing correction, \code{\link[spdep]{p.adjustSP}}
-#' is used.
+#' p-values, then -log10 p and adjusted -log10 p are added. Note that in the
+#' multiple testing correction, \code{\link[spdep]{p.adjustSP}} is used.
+#'
+#' When the results are stored in the SFE object, parameters used to compute the
+#' results as well as to construct the spatial neighborhood graph are also
+#' added. For \code{localResults}, the parameters are added to the metadata
+#' field \code{params} of the \code{localResults} sorted by \code{name}, which
+#' defaults to the name in the \code{SFEMethod} object as specified in the
+#' \code{type} argument. For global methods, parameters for results for genes
+#' are in the metadata of \code{rowData(x)}, organized by \code{name}
+#' (\code{metadata(rowData(x))$params[[name]]}). For \code{colData}, the global
+#' method parameters are stored in metadata of \code{colData} in the field
+#' \code{params} (\code{metadata(colData(x))$params[[name]]}). For geometries,
+#' the global method parameters are in an attribute named "params" of the
+#' corresponding \code{sf} data frame (\code{attr(df, "params")[[name]]}).
 #'
 #' @inheritParams spdep::moran
 #' @inheritParams plotDimLoadings
@@ -247,7 +260,7 @@ setMethod(
     function(x, ..., BPPARAM = SerialParam(), zero.policy = NULL,
              name = "moran") {
         calculateUnivariate(x,
-            type = "moran", BPPARAM = BPPARAM,
+             type = moran, BPPARAM = BPPARAM,
             zero.policy = zero.policy, name = name, ...
         )
     }
@@ -257,7 +270,7 @@ setMethod(
 #' @export
 setMethod(
     "calculateMoransI", "SpatialFeatureExperiment",
-    .calc_univar_sfe_fun(type = "moran")
+    .calc_univar_sfe_fun( type = moran)
 )
 
 #' @rdname calculateUnivariate
@@ -266,7 +279,7 @@ colDataUnivariate <- .coldata_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-colDataMoransI <- .coldata_univar_fun(type = "moran")
+colDataMoransI <- .coldata_univar_fun( type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -275,7 +288,7 @@ colGeometryUnivariate <- .colgeom_univar_fun()
 #' @rdname calculateUnivariate
 #' @export
 
-colGeometryMoransI <- .colgeom_univar_fun(type = "moran")
+colGeometryMoransI <- .colgeom_univar_fun( type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -283,7 +296,7 @@ annotGeometryUnivariate <- .annotgeom_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-annotGeometryMoransI <- .annotgeom_univar_fun(type = "moran")
+annotGeometryMoransI <- .annotgeom_univar_fun( type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -291,4 +304,4 @@ runUnivariate <- .sfe_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-runMoransI <- .sfe_univar_fun(type = "moran")
+runMoransI <- .sfe_univar_fun( type = moran)

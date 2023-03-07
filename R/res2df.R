@@ -100,8 +100,7 @@
     out_df
 }
 
-.localmoran2df <- function(out, nb, p.adjust.method, params) {
-    features <- names(out)
+.localmoran2df <- function(out, nb, p.adjust.method) {
     lapply(out, function(o) {
         o1 <- as.data.frame(o)
         quadr <- attr(o, "quadr")
@@ -109,7 +108,7 @@
     })
 }
 
-.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method, params) {
+.attrmat2df <- function(out, attr_name, type, nb, p.adjust.method) {
     if (attr_name %in% names(attributes(out[[1]]))) {
         lapply(out, function(o) {
             attr_mat <- attr(o, attr_name)
@@ -122,12 +121,12 @@
     }
 }
 
-.localG2df <- function(out, nb, p.adjust.method, params)
-    .attrmat2df(out, "internals", "localG", nb, p.adjust.method, params)
+.localG2df <- function(out, nb, p.adjust.method)
+    .attrmat2df(out, "internals", "localG", nb, p.adjust.method)
 
-.localCperm2df <- function(out, nb, p.adjust.method, params)
-    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method, params)
+.localCperm2df <- function(out, nb, p.adjust.method)
+    .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method)
 
-.LOSHmc2df <- function(out, nb, p.adjust.method, params)
+.LOSHmc2df <- function(out, nb, p.adjust.method)
     lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
 

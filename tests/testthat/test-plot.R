@@ -181,10 +181,7 @@ sfe_muscle <- colDataUnivariate(sfe_muscle,
 )
 set.seed(29)
 colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
-    replace = TRUE
-),
-levels = as.character(1:5)
-)
+    replace = TRUE), levels = as.character(1:5))
 
 test_that("moranPlot, not filled, no color_by", {
     skip_on_ci()
@@ -434,9 +431,9 @@ test_that("colData and rowData bin2d", {
     expect_doppelganger("colData bin2d", {
         plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
     })
-    #expect_doppelganger("colData bin2d with hexbin", {
-    #    plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
-    #})
+    expect_doppelganger("colData bin2d with hexbin", {
+        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
+    })
     expect_doppelganger("rowData bin2d", {
         plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
             scale_x_log10() + scale_y_log10()
@@ -495,9 +492,9 @@ test_that("plotCellBin2D", {
     expect_doppelganger("Cell density, rectangular", {
         plotCellBin2D(sfe_cosmx, bins = 50)
     })
-    #expect_doppelganger("Cell density, hex", {
-    #    plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
-    #})
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
+    })
     expect_doppelganger("Multiple samples", {
         plotCellBin2D(sfe_cosmx2, bins = 50)
     })
@@ -535,6 +532,7 @@ bbox_2s2 <- c(xmin = 0, xmax = 1000, ymin = 1000, ymax = 2000)
 bbox_2s <- cbind(bbox_2s1, bbox_2s2)
 colnames(bbox_2s) <- c("Vis5A", "sample02")
 test_that("Using bbox with plotSpatialFeature", {
+    cat("beginning bbox tests")
     # One sample
     expect_doppelganger("Only plotting colGeometry", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "cellSeg",
@@ -701,9 +699,9 @@ test_that("Moran plot bin2d", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
                   plot_influential = FALSE)
     })
-    #expect_doppelganger("Moran plot hex bin", {
-    #    moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
-    #})
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
 })
 
 test_that("Plot geometries", {
@@ -725,4 +723,14 @@ test_that("Plot geometries", {
     expect_doppelganger("Plot annotGeometry, with bbox", {
         plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
     })
+})
+
+test_that("Message about using linewidth instead of size for polygon outlines", {
+    expect_message(plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
+                                      aes_use = "color"),
+                   "Please use linewidth instead of size for thickness of polygon outlines.")
+    # Still get the right plot
+    expect_doppelganger("Plot polygon, with size rather than linewidth",
+                        plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
+                                           aes_use = "color"))
 })
