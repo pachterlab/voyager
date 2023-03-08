@@ -266,7 +266,7 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
                 p <- p + facet_wrap(facet_by, ncol = ncol, scales = scales)
             }
         }
-        p
+        p + scale_fill_manual(values = ditto_colors)
     }
 }
 
