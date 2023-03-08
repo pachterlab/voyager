@@ -469,10 +469,12 @@ test_that("colData and rowData histograms", {
         plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
     })
     expect_doppelganger("One variable, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg",
+                             position = "stack")
     })
     expect_doppelganger("Multiple variables, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg")
+        plotRowDataHistogram(sfe_cosmx, c("means", "vars"), fill_by = "is_neg",
+                             position = "stack")
     })
     expect_doppelganger("with subset", {
         plotRowDataHistogram(sfe_cosmx, "means", subset = "is_neg")
@@ -488,10 +490,29 @@ test_that("colData and rowData histograms", {
                    "deprecated")
 })
 
+test_that("colData and rowData freqpoly", {
+    expect_doppelganger("colData freqpoly, one variable", {
+        plotColDataFreqpoly(sfe_cosmx, "nCounts")
+    })
+    expect_doppelganger("colData freqpoly, multiple variables", {
+        plotColDataFreqpoly(sfe_cosmx, c("nCounts", "nGenes"))
+    })
+    expect_doppelganger("One variable, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", color_by = "is_neg")
+    })
+    expect_doppelganger("Multiple variables, color_by", {
+        plotRowDataFreqpoly(sfe_cosmx, c("means", "vars"), color_by = "is_neg")
+    })
+    expect_doppelganger("with subset, freqpoly", {
+        plotRowDataFreqpoly(sfe_cosmx, "means", subset = "is_neg")
+    })
+})
+
 test_that("plotCellBin2D", {
     expect_doppelganger("Cell density, rectangular", {
         plotCellBin2D(sfe_cosmx, bins = 50)
     })
+<<<<<<< HEAD
     expect_doppelganger("Cell density, hex", {
         plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
     })
@@ -684,6 +705,9 @@ test_that("Incorrect formats of bbox", {
     }, "Column names of bbox must match the sample IDs")
     expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox),
                  "The bounding box does not overlap with the geometry")
+    expect_doppelganger("Cell density, hex", {
+        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
+    })
 })
 
 sfe_muscle2 <- McKellarMuscleData()
@@ -699,6 +723,7 @@ test_that("Moran plot bin2d", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, bins = 30,
                   plot_influential = FALSE)
     })
+<<<<<<< HEAD
     expect_doppelganger("Moran plot hex bin", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
     })
@@ -733,4 +758,7 @@ test_that("Message about using linewidth instead of size for polygon outlines", 
     expect_doppelganger("Plot polygon, with size rather than linewidth",
                         plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
                                            aes_use = "color"))
+    expect_doppelganger("Moran plot hex bin", {
+        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
 })
