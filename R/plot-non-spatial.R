@@ -224,7 +224,7 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 .plot_dimdata_hist <- function(fun) {
     function(sce, feature, fill_by = NULL, facet_by = NULL, subset = NULL,
              bins = 100, binwidth = NULL, scales = "free", ncol = 1,
-             position = "identity", ...) {
+             position = "stack", ...) {
         args <- list(...)
         if (missing(sce) && "sfe" %in% names(args)) {
             warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
