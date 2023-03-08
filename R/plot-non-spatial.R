@@ -247,8 +247,7 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
                 geom_histogram(data = df,
                                mapping = aes(!!!syms(c(x = "values", fill = fill_by))),
                                bins = bins,
-                               binwidth = binwidth, position = position) +
-                scale_fill_manual(values = ditto_colors)
+                               binwidth = binwidth, position = position)
             if (is.null(facet_by)) {
                 p <- p + facet_wrap(~ variable, scales = scales, ncol = ncol)
             } else {
