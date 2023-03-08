@@ -19,6 +19,9 @@
 #' colGeometry colGeometry<-
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
+#' @importFrom SingleCellExperiment int_colData int_colData<-
+#' @importFrom methods new
+#' @importFrom utils packageVersion
 .add_name_sample_id <- function(out, sample_id) {
     names(out) <- vapply(names(out), .add_sample_id,
         sample_id = sample_id,

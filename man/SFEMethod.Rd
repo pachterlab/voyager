@@ -4,6 +4,11 @@
 \name{SFEMethod}
 \alias{SFEMethod}
 \alias{SFEMethod-class}
+\alias{args_not_check}
+\alias{fun}
+\alias{info}
+\alias{is_local}
+\alias{reorganize_fun}
 \alias{info,SFEMethod-method}
 \alias{is_local,SFEMethod-method}
 \alias{fun,SFEMethod-method}

@@ -62,8 +62,18 @@
 #' @slot arts_not_check A character vector specifying which arguments in
 #' \code{fun} should not be checked when comparing parameters used in results.
 #' Defaults to NA, meaning all arguments are checked.
+#'
+#' @param info See slot documentation
+#' @param fun See Details.
+#' @param reorganize_fun See Details.
+#' @param x A \code{SFEMethod} object
+#' @param type One of the names of the \code{info} slot, see slot documentation.
+#' @param args_not_check See slot documentation.
+#' @return The constructor returns a \code{SFEMethod} object. The getters return
+#' the content of the corresponding slots.
+#'
 #' @name SFEMethod
-#' @aliases SFEMethod-class
+#' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
 setClass("SFEMethod", slots = c(
     info = "character",
     fun = "function",
@@ -108,14 +118,6 @@ setValidity("SFEMethod", .valid_SFEMethod)
 
 # I don't think I need setters yet, so only getters for now.
 
-#' @param info See slot documentation
-#' @param fun See Details.
-#' @param reorganize_fun See Details.
-#' @param x A \code{SFEMethod} object
-#' @param type One of the names of the \code{info} slot, see slot documentation.
-#' @param args_not_check See slot documentation.
-#' @return The constructor returns a \code{SFEMethod} object. The getters return
-#' the content of the corresponding slots.
 #' @export
 #' @rdname SFEMethod
 SFEMethod <- function(info, fun, reorganize_fun,

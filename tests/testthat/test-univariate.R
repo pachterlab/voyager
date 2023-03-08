@@ -2,6 +2,7 @@ library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
 library(Matrix)
 library(bluster)
+library(scater)
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 set.seed(29)
 mat <- assay(sfe, "counts")
@@ -94,7 +95,8 @@ test_that("Properly add Moran's I results (no permutation) to SFE rowData", {
     expect_equal(names(rd), c("moran_sample01", "K_sample01"))
     names(rd) <- c("moran", "K")
     # just check the values, checking attributes a little later
-    expect_equal(rd, out_m, ignore_attr = TRUE)
+    metadata(rd) <- list()
+    expect_equal(rd, out_m)
     # Check the params field
     params <- getParams(sfe2, "moran")
     expect_equal(params$package, "spdep")
