@@ -21,10 +21,8 @@ jobs:
         uses: grimbough/bioc-actions/setup-bioc@v1
         with:
           bioc-version: 3.17
-      - name: Install libxt
-        run: brew install libxt
-      - name: Install udunits
-        run: brew install udunits
+      - name: Install system dependencies
+        run: brew install libxt && brew install udunits && brew install fribidi
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::covr
