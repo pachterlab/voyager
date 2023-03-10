@@ -306,10 +306,10 @@ plotColDataHistogram <- .plot_dimdata_hist(colData)
 plotRowDataHistogram <- .plot_dimdata_hist(rowData)
 
 .plot_dimdata_freqpoly <- function(fun) {
-    function(sfe, feature, color_by = NULL, subset = NULL, bins = 100,
+    function(sce, feature, color_by = NULL, subset = NULL, bins = 100,
              binwidth = NULL, linewidth = 1.2,
              scales = "free", ncol = 1, position = "identity") {
-        df <- as.data.frame(fun(sfe))[, c(feature, color_by, subset), drop = FALSE]
+        df <- as.data.frame(fun(sce))[, c(feature, color_by, subset), drop = FALSE]
         if (!is.null(subset)) df <- df[df[[subset]],]
         p <- ggplot()
         if (length(feature) > 1L) {

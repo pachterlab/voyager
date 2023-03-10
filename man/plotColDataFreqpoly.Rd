@@ -6,7 +6,7 @@
 \title{Plot frequency polygons for colData and rowData columns}
 \usage{
 plotColDataFreqpoly(
-  sfe,
+  sce,
   feature,
   color_by = NULL,
   subset = NULL,
@@ -19,7 +19,7 @@ plotColDataFreqpoly(
 )
 
 plotRowDataFreqpoly(
-  sfe,
+  sce,
   feature,
   color_by = NULL,
   subset = NULL,
@@ -32,7 +32,7 @@ plotRowDataFreqpoly(
 )
 }
 \arguments{
-\item{sfe}{A \code{SpatialFeatureExperiment} object.}
+\item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{feature}{Names of columns in \code{colData} or \code{rowData} to plot.
 When multiple features are specified, they will be plotted in separate

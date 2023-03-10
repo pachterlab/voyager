@@ -15,7 +15,7 @@ plotColDataHistogram(
   binwidth = NULL,
   scales = "free",
   ncol = 1,
-  position = "identity",
+  position = "stack",
   ...
 )
 
@@ -29,7 +29,7 @@ plotRowDataHistogram(
   binwidth = NULL,
   scales = "free",
   ncol = 1,
-  position = "identity",
+  position = "stack",
   ...
 )
 }

@@ -285,3 +285,12 @@
     } else show_symbol <- !is.null(swap_rownames)
     list(show_symbol, swap_rownames)
 }
+
+#' @importFrom SingleCellExperiment reducedDim reducedDim<-
+.add_reddim_colnames <- function(sfe, dimred) {
+    rd <- reducedDim(sfe, dimred)
+    if (is.null(colnames(rd)))
+        colnames(rd) <- paste0(dimred, seq_len(ncol(rd)))
+    reducedDim(sfe, dimred) <- rd
+    sfe
+}

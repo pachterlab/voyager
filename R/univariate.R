@@ -120,6 +120,10 @@
 #'   \code{SFEMethod} object passed to argument \code{type}. Can be set to
 #'   distinguish between results from the same method but with different
 #'   parameters.
+#' @param dimred Name of a dimension reduction, can be seen in
+#'   \code{\link{reducedDimNames}}.
+#' @param components Numeric vector of which components in the dimension
+#'   reduction to compute spatial statistics on.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like
@@ -270,7 +274,7 @@ setMethod(
 #' @export
 setMethod(
     "calculateMoransI", "SpatialFeatureExperiment",
-    .calc_univar_sfe_fun( type = moran)
+    .calc_univar_sfe_fun(type = moran)
 )
 
 #' @rdname calculateUnivariate
@@ -279,7 +283,7 @@ colDataUnivariate <- .coldata_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-colDataMoransI <- .coldata_univar_fun( type = moran)
+colDataMoransI <- .coldata_univar_fun(type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -288,7 +292,7 @@ colGeometryUnivariate <- .colgeom_univar_fun()
 #' @rdname calculateUnivariate
 #' @export
 
-colGeometryMoransI <- .colgeom_univar_fun( type = moran)
+colGeometryMoransI <- .colgeom_univar_fun(type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -296,7 +300,7 @@ annotGeometryUnivariate <- .annotgeom_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-annotGeometryMoransI <- .annotgeom_univar_fun( type = moran)
+annotGeometryMoransI <- .annotgeom_univar_fun(type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
@@ -304,4 +308,12 @@ runUnivariate <- .sfe_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export
-runMoransI <- .sfe_univar_fun( type = moran)
+runMoransI <- .sfe_univar_fun(type = moran)
+
+#' @rdname calculateUnivariate
+#' @export
+reducedDimUniariate <- .reddim_univar_fun()
+
+#' @rdname calculateUnivariate
+#' @export
+reducedDimMoransI <- .reddim_univar_fun(type = moran)

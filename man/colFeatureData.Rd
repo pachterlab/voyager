@@ -4,7 +4,7 @@
 \alias{colFeatureData}
 \alias{rowFeatureData}
 \alias{geometryFeatureData}
-\alias{getParams}
+\alias{reducedDimFeatureData}
 \title{Get metadata of colData, rowData, and geometries}
 \usage{
 colFeatureData(sfe)
@@ -13,50 +13,27 @@ rowFeatureData(sfe)
 
 geometryFeatureData(sfe, type, MARGIN = 2L)
 
-getParams(
-  sfe,
-  name,
-  local = FALSE,
-  colData = FALSE,
-  colGeometryName = NULL,
-  annotGeometryName = NULL
-)
+reducedDimFeatureData(sfe, dimred)
 }
 \arguments{
-\item{sfe}{A \code{SpatialFeatureExperiment} object.}
+\item{sfe}{An SFE object.}
 
 \item{type}{Which geometry, can be name (character) or index (integer)}
 
 \item{MARGIN}{Integer, 1 means rowGeometry, 2 means colGeometry, and 3 means
 annotGeometry. Defaults to 2, colGeometry.}
 
-\item{name}{Name used to store the results.}
-
-\item{local}{Logical, whether the results of interest come from a local
-spatial method.}
-
-\item{colData}{Logical, whether the results were computed for a column of
-\code{colData(sfe)}.}
-
-\item{colGeometryName}{To get results for a \code{colGeometry}.}
-
-\item{annotGeometryName}{To get results for an \code{annotGeometry};
-\code{colGeometry} has precedence so this argument is ignored if
-\code{colGeometryName} is specified.}
+\item{dimred}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}.}
 }
 \value{
 A \code{DataFrame}.
-
-A named list showing the parameters
 }
 \description{
 Results of spatial analyses on columns in \code{colData}, \code{rowData}, and
 geometries are stored in their metadata, which can be accessed by the
 \code{\link{metadata}} function. The \code{colFeaturedata} function allows
 the users to more directly access these results.
-
-The \code{getParams} function allows users to access the parameters used to
-compute the results that may be stored in \code{\link{colFeatureData}}.
 }
 \examples{
 library(SpatialFeatureExperiment)
@@ -67,12 +44,6 @@ colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 # Moran's I for colData
 sfe <- colDataMoransI(sfe, "nCounts")
 colFeatureData(sfe)
-library(SFEData)
-library(scater)
-sfe <- McKellarMuscleData("small")
-colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-sfe <- colDataMoransI(sfe, "nCounts")
-getParams(sfe, "moran", colData = TRUE)
 }
 \seealso{
 getParams

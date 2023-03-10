@@ -84,16 +84,27 @@
     df
 }
 
+.initDF <- function(m) {
+    rownames_use <- colnames(m)
+    fd <- make_zero_col_DFrame(nrow = ncol(m))
+    rownames(fd) <- rownames_use
+    fd
+}
+
 #' @importFrom S4Vectors metadata metadata<-
 .initialize_fd_dimData <- function(x, MARGIN) {
     fd_name <- "featureData"
     dimData <- switch(MARGIN, rowData, colData)
     `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
     if (is.null(metadata(dimData(x))[[fd_name]])) {
-        rownames_use <- names(dimData(x))
-        fd <- make_zero_col_DFrame(nrow = length(rownames_use))
-        rownames(fd) <- rownames_use
-        metadata(dimData(x))[[fd_name]] <- fd
+        metadata(dimData(x))[[fd_name]] <- .initDF(dimData(x))
+    }
+    x
+}
+
+.initialize_fd_reddim <- function(x, dimred) {
+    if (is.null(attr(reducedDim(x, dimred), "featureData"))) {
+        attr(reducedDim(x, dimred), "featureData") <- .initDF(reducedDim(x, dimred))
     }
     x
 }
@@ -111,16 +122,27 @@
     x
 }
 
+.add_fd_reddim <- function(x, dimred, sample_id, name, features, res, params) {
+    res <- .add_name_sample_id(res, sample_id)
+    x <- .initialize_fd_reddim(x, dimred)
+    fd <- attr(reducedDim(x, dimred), "featureData")
+    fd[features, names(res)] <- res
+    attr(reducedDim(x, dimred), "featureData") <- fd
+    attr(reducedDim(x, dimred), "params")[[name]] <- params
+    x
+}
+
 .add_localResults_info <- function(x, sample_id, name, features, res, params,
                                    colGeometryName = NULL,
-                                   annotGeometryName = NULL) {
+                                   annotGeometryName = NULL,
+                                   reducedDimName = NULL) {
     localResults(x, sample_id, name, features,
                  colGeometryName = colGeometryName,
                  annotGeometryName = annotGeometryName) <- res
     if (is.null(colGeometryName)) {
         if (is.null(annotGeometryName))
             metadata(int_colData(x)$localResults)$params[[name]] <- params
-        else {
+        else if (is.null(reducedDimName)) {
             attr(annotGeometry(x, annotGeometryName, "all")$localResults, "params")[[name]] <- params
         }
     } else {
@@ -140,6 +162,8 @@
 #' @param type Which geometry, can be name (character) or index (integer)
 #' @param MARGIN Integer, 1 means rowGeometry, 2 means colGeometry, and 3 means
 #'   annotGeometry. Defaults to 2, colGeometry.
+#' @param dimred Name of a dimension reduction, can be seen in
+#'   \code{\link{reducedDimNames}}.
 #' @return A \code{DataFrame}.
 #' @seealso getParams
 #' @export
@@ -171,6 +195,12 @@ geometryFeatureData <- function(sfe, type, MARGIN = 2L) {
     attr(df, "featureData")
 }
 
+#' @rdname colFeatureData
+#' @export
+reducedDimFeatureData <- function(sfe, dimred) {
+    attr(reducedDim(sfe, dimred), "featureData")
+}
+
 #' Get parameters used in spatial methods
 #'
 #' The \code{getParams} function allows users to access the parameters used to
@@ -186,8 +216,9 @@ geometryFeatureData <- function(sfe, type, MARGIN = 2L) {
 #' @param annotGeometryName To get results for an \code{annotGeometry};
 #'   \code{colGeometry} has precedence so this argument is ignored if
 #'   \code{colGeometryName} is specified.
+#' @param reducedDimName Name of a dimension reduction, can be seen in
+#'   \code{\link{reducedDimNames}}.
 #' @return A named list showing the parameters
-#' @rdname colFeatureData
 #' @export
 #' @examples
 #' library(SFEData)
@@ -197,7 +228,8 @@ geometryFeatureData <- function(sfe, type, MARGIN = 2L) {
 #' sfe <- colDataMoransI(sfe, "nCounts")
 #' getParams(sfe, "moran", colData = TRUE)
 getParams <- function(sfe, name, local = FALSE, colData = FALSE,
-                      colGeometryName = NULL, annotGeometryName = NULL) {
+                      colGeometryName = NULL, annotGeometryName = NULL,
+                      reducedDimName = NULL) {
     if (local) {
         if (is.null(colGeometryName)) {
             if (is.null(annotGeometryName)) {
@@ -218,10 +250,12 @@ getParams <- function(sfe, name, local = FALSE, colData = FALSE,
         if (colData) {
             metadata(colData(sfe))$params[[name]]
         } else if (is.null(colGeometryName)) {
-            if (is.null(annotGeometryName)) {
+            if (is.null(annotGeometryName) && is.null(reducedDimName)) {
                 metadata(rowData(sfe))$params[[name]]
-            } else {
+            } else if (is.null(reducedDimName)) {
                 attr(annotGeometry(sfe, annotGeometryName, sample_id = "all"), "params")[[name]]
+            } else {
+                attr(reducedDim(sfe, reducedDimName), "params")[[name]]
             }
         } else {
             attr(colGeometry(sfe, colGeometryName, sample_id = "all"), "params")[[name]]

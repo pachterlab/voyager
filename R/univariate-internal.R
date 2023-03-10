@@ -102,33 +102,25 @@
 # Also some stuff from GWmodel
 # gwss: list, class lss, SDF sp component for the results. For each type, should be vector.
 # It's not modular. I don't like it.
-# There's a lot in ESDA. I no longer feel like writing a separate function for
-# each method. Shall I refactor the code so everything univariate global will be
-# calculateUnivar or runUnivar and everything univariate local will be
-# calculateUnivarLocal or runUnivarLocal, and everything multivariate will be
-# runSpatialDimRed? And common methods like Moran's I and Gi* will be special
-# cases. So I can rename those now internal functions and export them.
-# Maybe bivariate should be its own category separate from multivariate.
-# For bivariate, shall I force users to do one pair at a time, or do all pairwise
-# combinations of a vector of features, or use a list of pairs (can be matrix)?
-# I suppose for the first version, I'll focus on univariate.
 
-# Also need plotting functions for localResults
-# And functions to compute the spatial metrics for reducedDims
-# And plot reducedDims values in space
+# .get_fun and .graph_fun have arguments x, type, and sample_id
+# .get_fun returns a data frame or matrix with column names that correspond to the features
+# .set_fd_fun has arguments x, which, sample_id, name, features, res, params, and
+# returns an sfe object. The geometry argument is optional.
 
-.coldata_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features, colGraphName = 1L, sample_id = "all",
-                        BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH",
-                        name = NULL, ...) {
+.make_univar_fun <- function(.get_fun, .graph_fun, .set_fd_fun, type = NULL) {
+    function(x, type, features, which = NULL, graphName = 1L,
+             sample_id = "all",
+             BPPARAM = SerialParam(), zero.policy = NULL,
+             include_self = FALSE, p.adjust.method = "BH",
+             name = NULL, colGeometryName = NULL, annotGeometryName = NULL, ...) {
         if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(name)) name <- info(type, "name")
         other_args <- list(...)
         # But what if different parameters were used to make the graph for
         # different samples? But why would that be a good idea?
-        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        g <- .graph_fun(x, type = graphName, sample_id = sample_id[1])
         params <- c(info(type, c("name", "package")),
                     list(version = packageVersion(info(type, "package")),
                          zero.policy = zero.policy, include_self = include_self,
@@ -136,170 +128,186 @@
                          graph_params = attr(g, "method")), other_args)
         local <- is_local(type)
         if (!local) params$p.adjust.method <- NULL
-        old_params <- getParams(x, name, colData = TRUE, local = local)
+        old_params <- getParams(x, name, colData = TRUE, local = local,
+                                colGeometryName = colGeometryName,
+                                annotGeometryName = annotGeometryName)
         .check_old_params(params, old_params, name, args_not_check(type))
         for (s in sample_id) {
-            listw_use <- colGraph(x, type = colGraphName, sample_id = s)
+            listw_use <- .graph_fun(x, type = graphName, sample_id = s)
             if (include_self) {
                 nb2 <- include.self(listw_use$neighbours)
                 listw_use <- nb2listw(nb2)
             }
-            res <- calculateUnivariate(colData(x)[colData(x)$sample_id == s,
-                                                  features, drop = FALSE],
-                listw = listw_use, type = type, BPPARAM = BPPARAM,
-                zero.policy = zero.policy, returnDF = TRUE,
-                p.adjust.method = p.adjust.method, name = name, ...
+            df <- .get_fun(x, which, sample_id = s)
+            res <- calculateUnivariate(df[, features, drop = FALSE],
+                                       listw = listw_use, type = type, BPPARAM = BPPARAM,
+                                       zero.policy = zero.policy, returnDF = TRUE,
+                                       p.adjust.method = p.adjust.method, name = name, ...
             )
             if (local) {
                 x <- .add_localResults_info(x, sample_id = s,
                                             name = name, features = features,
-                                            res = res, params = params)
+                                            res = res, params = params,
+                                            colGeometryName = colGeometryName,
+                                            annotGeometryName = annotGeometryName)
             } else {
-                x <- .add_fd_dimData(x, MARGIN = 2, sample_id = s, name = name,
-                                     features = features, res = res,
-                                     params = params)
+                x <- .set_fd_fun(x, which = which, sample_id = s, name = name,
+                                 features = features, res = res,
+                                 params = params)
             }
         }
         x
     }
+}
+
+.coldata_univar_fun <- function(type = NULL) {
+    .get_fun <- function(x, type, sample_id) {
+        colData(x)[colData(x)$sample_id == sample_id, , drop = FALSE]
+    }
+    .set_fd_fun <- function(x, which, sample_id, name, features, res, params)
+        .add_fd_dimData(x, MARGIN = 2, res = res, features = features,
+                        sample_id = sample_id, name = name, params = params)
+    fun <- .make_univar_fun(.get_fun, .graph_fun = colGraph,
+                            .set_fd_fun = .set_fd_fun,
+                            type = type)
     if (is.null(type)) {
-        fun_use
+        function(x, type, features, colGraphName = 1L, sample_id = "all",
+                 BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            fun(x, type, features, which = NULL, graphName = colGraphName,
+                sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, ...)
+        }
     } else {
         function(x, features, colGraphName = 1L, sample_id = "all",
                  BPPARAM = SerialParam(), zero.policy = NULL,
                  include_self = FALSE, p.adjust.method = "BH",
                  name = NULL, ...) {
-            fun_use(
-                x, type, features, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
-            )
+            fun(x, type = type, features = features, which = NULL,
+                graphName = colGraphName, sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, ...)
         }
     }
 }
 
 .colgeom_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features, colGeometryName = 1L,
-                        colGraphName = 1L, sample_id = "all",
-                        BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH",
-                        name = NULL, ...) {
-        if (is.character(type)) type <- get(type, mode = "S4")
-        sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-        if (is.null(name)) name <- info(type, "name")
-        other_args <- list(...)
-        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
-        params <- c(info(type, c("name", "package")),
-                    list(version = packageVersion(info(type, "package")),
-                         zero.policy = zero.policy, include_self = include_self,
-                         p.adjust.method = p.adjust.method,
-                         graph_params = attr(g, "method")), other_args)
-        local <- is_local(type)
-        if (!local) params$p.adjust.method <- NULL
-        old_params <- getParams(x, name, colGeometryName = colGeometryName,
-                                local = local)
-        .check_old_params(params, old_params, name, args_not_check(type))
-        for (s in sample_id) {
-            listw_use <- colGraph(x, type = colGraphName, sample_id = s)
-            if (include_self) {
-                nb2 <- include.self(listw_use$neighbours)
-                listw_use <- nb2listw(nb2)
-            }
-            cg <- colGeometry(x, type = colGeometryName, sample_id = s)
-            res <- calculateUnivariate(cg[, features, drop = FALSE],
-                                       listw = listw_use,
-                type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
-                returnDF = TRUE, p.adjust.method = p.adjust.method, name = name,
-                ...
-            )
-            if (local) {
-                x <- .add_localResults_info(x, sample_id = s,
-                                            name = name, features = features,
-                                            res = res, params = params,
-                                            colGeometryName = colGeometryName)
-            } else {
-
-                colGeometry(x, colGeometryName, sample_id = "all") <-
-                    .add_fd(x, df = colGeometry(x, colGeometryName, sample_id = "all"),
-                            sample_id = s, name = name, features = features,
-                            res = res, params = params)
-            }
-        }
+    .set_fd_fun <- function(x, which, sample_id, name, features, res, params) {
+        colGeometry(x, which, sample_id = "all") <-
+            .add_fd(x, df = colGeometry(x, which, sample_id = "all"),
+                    sample_id = sample_id, name = name, features = features,
+                    res = res, params = params)
         x
     }
+    fun <- .make_univar_fun(.get_fun = colGeometry, .graph_fun = colGraph,
+                            .set_fd_fun = .set_fd_fun,
+                            type = type)
     if (is.null(type)) {
-        fun_use
+        function(x, type, features, colGeometryName = 1L, colGraphName = 1L,
+                 sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            fun(x, type, features, which = colGeometryName, graphName = colGraphName,
+                sample_id = sample_id, BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, colGeometryName = colGeometryName, ...)
+        }
     } else {
         function(x, features, colGeometryName = 1L, colGraphName = 1L,
                  sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, p.adjust.method = "BH", name = NULL, ...) {
-            fun_use(
-                x, type, features, colGeometryName, colGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
-            )
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            fun(x, type = type, features = features, which = colGeometryName,
+                graphName = colGraphName, sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, colGeometryName = colGeometryName, ...)
         }
     }
 }
 
 .annotgeom_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features, annotGeometryName = 1L,
-                        annotGraphName = 1L, sample_id = "all",
-                        BPPARAM = SerialParam(), zero.policy = NULL,
-                        include_self = FALSE, p.adjust.method = "BH",
-                        name = NULL, ...) {
-        if (is.character(type)) type <- get(type, mode = "S4")
-        sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-        if (is.null(name)) name <- info(type, "name")
-        other_args <- list(...)
-        g <- annotGraph(x, type = annotGraphName, sample_id = sample_id[1])
-        params <- c(info(type, c("name", "package")),
-                    list(version = packageVersion(info(type, "package")),
-                         zero.policy = zero.policy, include_self = include_self,
-                         p.adjust.method = p.adjust.method,
-                         graph_params = attr(g, "method")), other_args)
-        local <- is_local(type)
-        if (!local) params$p.adjust.method <- NULL
-        old_params <- getParams(x, name, annotGeometryName = annotGeometryName,
-                                local = local)
-        .check_old_params(params, old_params, name, args_not_check(type))
-        for (s in sample_id) {
-            listw_use <- annotGraph(x, type = annotGraphName, sample_id = s)
-            if (include_self) {
-                nb2 <- include.self(listw_use$neighbours)
-                listw_use <- nb2listw(nb2)
-            }
-            ag <- annotGeometry(x, type = annotGeometryName, sample_id = s)
-            ag <- .rm_empty_geometries(ag, MARGIN = 3)
-            res <- calculateUnivariate(
-                ag[, features, drop = FALSE], listw = listw_use,
-                type = type, BPPARAM = BPPARAM, zero.policy = zero.policy,
-                returnDF = TRUE, p.adjust.method = p.adjust.method, ...
+    .get_fun <- function(x, type, sample_id) {
+        ag <- annotGeometry(x, type, sample_id)
+        ag <- .rm_empty_geometries(ag, MARGIN = 3)
+        ag
+    }
+    .set_fd_fun <- function(x, which, sample_id, name, features, res, params) {
+        annotGeometry(x, which, sample_id = "all") <-
+            .add_fd(
+                x, df = annotGeometry(x, which, sample_id = "all"),
+                sample_id = sample_id, name = name, features = features,
+                res = res, params = params
             )
-            if (local) {
-                x <- .add_localResults_info(x, sample_id = s,
-                                            name = name, features = features,
-                                            res = res, params = params,
-                                            annotGeometryName = annotGeometryName)
-            } else {
-                annotGeometry(x, annotGeometryName, sample_id = "all") <-
-                    .add_fd(
-                        x, df = annotGeometry(x, annotGeometryName, sample_id = "all"),
-                        sample_id = s, name = name, features = features,
-                        res = res, params = params
-                    )
-            }
-        }
         x
     }
+    fun <- .make_univar_fun(.get_fun = .get_fun, .graph_fun = annotGraph,
+                            .set_fd_fun = .set_fd_fun,
+                            type = type)
     if (is.null(type)) {
-        fun_use
+        function(x, type, features, annotGeometryName = 1L, annotGraphName = 1L,
+                 sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            fun(x, type, features, which = annotGeometryName, graphName = annotGraphName,
+                sample_id = sample_id, BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, annotGeometryName = annotGeometryName, ...)
+        }
     } else {
         function(x, features, annotGeometryName = 1L, annotGraphName = 1L,
                  sample_id = "all", BPPARAM = SerialParam(), zero.policy = NULL,
-                 include_self = FALSE, p.adjust.method = "BH", name = NULL, ...) {
-            fun_use(
-                x, type, features, annotGeometryName, annotGraphName, sample_id,
-                BPPARAM, zero.policy, include_self, p.adjust.method, name, ...
-            )
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            fun(x, type = type, features = features, which = annotGeometryName,
+                graphName = annotGraphName, sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, annotGeometryName = annotGeometryName, ...)
+        }
+    }
+}
+
+.reddim_univar_fun <- function(type = NULL) {
+    .get_fun <- function(x, type, sample_id) {
+        as.data.frame(reducedDim(x, type)[colData(x)$sample_id == sample_id, , drop = FALSE])
+    }
+    .set_fd_fun <- function(x, which, sample_id, name, features, res, params)
+        .add_fd_reddim(x, dimred = which, res = res, features = features,
+                       sample_id = sample_id, name = name, params = params)
+    fun <- .make_univar_fun(.get_fun, .graph_fun = colGraph,
+                            .set_fd_fun = .set_fd_fun,
+                            type = type)
+    if (is.null(type)) {
+        function(x, type, dimred = 1L, components = 1L, colGraphName = 1L,
+                 sample_id = "all",
+                 BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            x <- .add_reddim_colnames(x, dimred)
+            features <- colnames(reducedDim(x, dimred))[components]
+            fun(x, type, features = features, which = dimred, graphName = colGraphName,
+                sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, ...)
+        }
+    } else {
+        function(x, dimred = 1L, components = 1L, colGraphName = 1L, sample_id = "all",
+                 BPPARAM = SerialParam(), zero.policy = NULL,
+                 include_self = FALSE, p.adjust.method = "BH",
+                 name = NULL, ...) {
+            x <- .add_reddim_colnames(x, dimred)
+            features <- colnames(reducedDim(x, dimred))[components]
+            fun(x, type = type, features = features, which = dimred,
+                graphName = colGraphName, sample_id = sample_id,
+                BPPARAM = BPPARAM, zero.policy = zero.policy,
+                include_self = include_self, p.adjust.method = p.adjust.method,
+                name = name, ...)
         }
     }
 }
@@ -330,10 +338,10 @@
         features <- .symbol2id(x, features, swap_rownames)
         for (s in sample_id) {
             out <- calculateUnivariate(x, type, features, colGraphName, s,
-                exprs_values, BPPARAM, zero.policy,
-                returnDF = TRUE,
-                include_self = include_self, p.adjust.method = p.adjust.method,
-                ...
+                                       exprs_values, BPPARAM, zero.policy,
+                                       returnDF = TRUE,
+                                       include_self = include_self, p.adjust.method = p.adjust.method,
+                                       ...
             )
             if (local) {
                 x <- .add_localResults_info(x, sample_id = s,

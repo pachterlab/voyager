@@ -16,6 +16,8 @@
 \alias{annotGeometryMoransI}
 \alias{runUnivariate}
 \alias{runMoransI}
+\alias{reducedDimUniariate}
+\alias{reducedDimMoransI}
 \title{Univariate spatial stiatistics}
 \usage{
 \S4method{calculateUnivariate}{ANY,SFEMethod}(
@@ -198,6 +200,35 @@ runMoransI(
   name = NULL,
   ...
 )
+
+reducedDimUniariate(
+  x,
+  type,
+  dimred = 1L,
+  components = 1L,
+  colGraphName = 1L,
+  sample_id = "all",
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  include_self = FALSE,
+  p.adjust.method = "BH",
+  name = NULL,
+  ...
+)
+
+reducedDimMoransI(
+  x,
+  dimred = 1L,
+  components = 1L,
+  colGraphName = 1L,
+  sample_id = "all",
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  include_self = FALSE,
+  p.adjust.method = "BH",
+  name = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A numeric matrix whose rows are features/genes, or a
@@ -293,6 +324,12 @@ frames associated with annotations.}
 corresponds to the \code{annotGeometry} of interest. Use
 \code{\link{annotGraphNames}} to look up names of available annotation
 graphs.}
+
+\item{dimred}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}.}
+
+\item{components}{Numeric vector of which components in the dimension
+reduction to compute spatial statistics on.}
 }
 \value{
 In \code{calculateUnivariate}, if \code{returnDF = TRUE}, then a

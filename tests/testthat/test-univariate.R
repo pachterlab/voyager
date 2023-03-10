@@ -331,11 +331,15 @@ test_that("colGeometryUnivariate run on multiple samples", {
 
 annotGeometry(sfe, "myofiber_simplified", "all") <-
     sf::st_buffer(annotGeometry(sfe, "myofiber_simplified", "all"), dist = 0)
-annotGraphs(sfe, name = "knn", sample_id = "all") <-
-    findSpatialNeighbors(sfe, MARGIN = 3, type = "myofiber_simplified",
-                         method = "knearneigh", k = 5, sample_id = "all")
+
 
 test_that("annotGeometryUnivariate run on multiple samples", {
+    # No message about graph parameters.
+    # Message comes from not getting params from annotGeometries.
+    expect_message(annotGraphs(sfe, name = "knn", sample_id = "all") <-
+                       findSpatialNeighbors(sfe, MARGIN = 3, type = "myofiber_simplified",
+                                            method = "knearneigh", k = 5, sample_id = "all"),
+                   regexp = NA)
     sfe <- annotGeometryUnivariate(sfe, "localmoran", features = "area",
                                    sample_id = "all",
                                    annotGeometryName = "myofiber_simplified")
@@ -354,4 +358,31 @@ test_that("annotGeometryUnivariate run on multiple samples", {
     expect_equal(params$p.adjust.method, "BH")
     expect_equal(params$graph_params,
                  attr(annotGraph(sfe, "knn", "Vis5A"), "method"))
+})
+
+sfe <- logNormCounts(sfe)
+sfe <- runPCA(sfe, ncomponent = 2)
+
+test_that("Univariate global results corrected added to metadata of reducedDim", {
+    sfe <- reducedDimMoransI(sfe, "PCA", components = 1:2, sample_id = "Vis5A")
+    fd <- reducedDimFeatureData(sfe, "PCA")
+    expect_s4_class(fd, "DataFrame")
+    expect_equal(names(fd), c("moran_Vis5A", "K_Vis5A"))
+    expect_equal(rownames(fd), c("PC1", "PC2"))
+    # parameters
+    params <- getParams(sfe, "moran", reducedDimName = "PCA")
+    expect_equal(params$package, "spdep")
+    expect_equal(params$version, packageVersion("spdep"))
+    expect_null(params$zero.policy)
+    expect_false(params$include_self)
+    expect_equal(params$graph_params,
+                 attr(colGraph(sfe, "visium", "Vis5A"), "method"))
+})
+
+test_that("Univariate local results for reducedDim", {
+    sfe <- reducedDimUniariate(sfe, "localmoran", dimred = "PCA", components = 1)
+    expect_true("PC1" %in% localResultFeatures(sfe, "localmoran"))
+    lr <- localResult(sfe, "localmoran", feature = "PC1", sample_id = "Vis5A")
+    expect_equal(colnames(lr), names_expect_lm)
+    expect_true(all(vapply(lr, is.numeric, FUN.VALUE = logical(1))))
 })
