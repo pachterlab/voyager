@@ -48,6 +48,7 @@
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
   </div>
 </li>
@@ -78,7 +79,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-03-06</h4>
+            <h4 data-toc-skip class="date">2023-03-13</h4>
       
       
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -632,7 +633,7 @@ approximate for contiguity.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  93.904   0.261  94.395</span></span></code></pre></div>
+<span><span class="co">#&gt;  98.710   0.667 100.711</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -670,7 +671,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 625.851  12.728 325.976</span></span></code></pre></div>
+<span><span class="co">#&gt; 327.503   8.822 354.598</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -951,7 +952,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [5] sf_1.0-9                       spData_2.2.2                  </span></span>
 <span><span class="co">#&gt;  [7] stringr_1.5.0                  patchwork_1.1.2               </span></span>
 <span><span class="co">#&gt;  [9] bluster_1.8.0                  scran_1.26.2                  </span></span>
-<span><span class="co">#&gt; [11] scater_1.27.6                  ggplot2_3.4.1                 </span></span>
+<span><span class="co">#&gt; [11] scater_1.27.7                  ggplot2_3.4.1                 </span></span>
 <span><span class="co">#&gt; [13] scuttle_1.8.4                  SpatialExperiment_1.8.1       </span></span>
 <span><span class="co">#&gt; [15] SingleCellExperiment_1.20.0    SummarizedExperiment_1.28.0   </span></span>
 <span><span class="co">#&gt; [17] Biobase_2.58.0                 GenomicRanges_1.50.2          </span></span>
@@ -963,7 +964,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] utf8_1.2.3                    R.utils_2.12.2               </span></span>
 <span><span class="co">#&gt;   [3] tidyselect_1.2.0              RSQLite_2.3.0                </span></span>
-<span><span class="co">#&gt;   [5] AnnotationDbi_1.60.0          grid_4.2.2                   </span></span>
+<span><span class="co">#&gt;   [5] AnnotationDbi_1.60.2          grid_4.2.2                   </span></span>
 <span><span class="co">#&gt;   [7] DropletUtils_1.18.1           munsell_0.5.0                </span></span>
 <span><span class="co">#&gt;   [9] ScaledMatrix_1.6.0            codetools_0.2-19             </span></span>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                    units_0.8-1                  </span></span>
@@ -996,11 +997,11 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [65] viridis_0.6.2                 cowplot_1.1.1                </span></span>
 <span><span class="co">#&gt;  [67] ggrepel_0.9.3                 cluster_2.1.4                </span></span>
 <span><span class="co">#&gt;  [69] fs_1.6.1                      magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [71] magick_2.7.3                  scattermore_0.8              </span></span>
+<span><span class="co">#&gt;  [71] magick_2.7.4                  scattermore_0.8              </span></span>
 <span><span class="co">#&gt;  [73] ggnewscale_0.4.8              mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [75] evaluate_0.20                 xtable_1.8-4                 </span></span>
 <span><span class="co">#&gt;  [77] gridExtra_2.3                 compiler_4.2.2               </span></span>
-<span><span class="co">#&gt;  [79] tibble_3.1.8                  KernSmooth_2.23-20           </span></span>
+<span><span class="co">#&gt;  [79] tibble_3.2.0                  KernSmooth_2.23-20           </span></span>
 <span><span class="co">#&gt;  [81] crayon_1.5.2                  R.oo_1.25.0                  </span></span>
 <span><span class="co">#&gt;  [83] htmltools_0.5.4               mgcv_1.8-42                  </span></span>
 <span><span class="co">#&gt;  [85] later_1.3.0                   DBI_1.1.3                    </span></span>

@@ -48,6 +48,7 @@
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
   </div>
 </li>
@@ -78,7 +79,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-03-07</h4>
+            <h4 data-toc-skip class="date">2023-03-14</h4>
       
       
       <div class="d-none name"><code>visium_10x_spatial.Rmd</code></div>
@@ -184,7 +185,7 @@ in gene expression space.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     resize, tile</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/terra/" class="external-link">terra</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; terra 1.7.3</span></span>
+<span><span class="co">#&gt; terra 1.7.18</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'terra'</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:EBImage':</span></span>
@@ -767,10 +768,10 @@ regions.</p>
 <span><span class="co">#&gt;  [1] BiocNeighbors_1.16.0           BiocParallel_1.32.5           </span></span>
 <span><span class="co">#&gt;  [3] dplyr_1.1.0                    rmapshaper_0.4.6              </span></span>
 <span><span class="co">#&gt;  [5] sf_1.0-9                       rlang_1.0.6                   </span></span>
-<span><span class="co">#&gt;  [7] terra_1.7-3                    EBImage_4.40.0                </span></span>
+<span><span class="co">#&gt;  [7] terra_1.7-18                   EBImage_4.40.0                </span></span>
 <span><span class="co">#&gt;  [9] rjson_0.2.21                   bluster_1.8.0                 </span></span>
 <span><span class="co">#&gt; [11] patchwork_1.1.2                stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt; [13] scran_1.26.2                   scater_1.27.6                 </span></span>
+<span><span class="co">#&gt; [13] scran_1.26.2                   scater_1.27.7                 </span></span>
 <span><span class="co">#&gt; [15] scuttle_1.8.4                  ggplot2_3.4.1                 </span></span>
 <span><span class="co">#&gt; [17] SingleCellExperiment_1.20.0    SummarizedExperiment_1.28.0   </span></span>
 <span><span class="co">#&gt; [19] Biobase_2.58.0                 GenomicRanges_1.50.2          </span></span>
@@ -785,7 +786,7 @@ regions.</p>
 <span><span class="co">#&gt;   [5] sp_1.6-0                  jqr_1.2.3                </span></span>
 <span><span class="co">#&gt;   [7] geojsonlint_0.4.0         digest_0.6.31            </span></span>
 <span><span class="co">#&gt;   [9] htmltools_0.5.4           viridis_0.6.2            </span></span>
-<span><span class="co">#&gt;  [11] magick_2.7.3              tiff_0.1-11              </span></span>
+<span><span class="co">#&gt;  [11] magick_2.7.4              tiff_0.1-11              </span></span>
 <span><span class="co">#&gt;  [13] fansi_1.0.4               magrittr_2.0.3           </span></span>
 <span><span class="co">#&gt;  [15] memoise_2.0.1             geojsonsf_2.0.3          </span></span>
 <span><span class="co">#&gt;  [17] ScaledMatrix_1.6.0        SpatialExperiment_1.8.1  </span></span>
@@ -805,48 +806,47 @@ regions.</p>
 <span><span class="co">#&gt;  [45] edgeR_3.40.2              Rcpp_1.0.10              </span></span>
 <span><span class="co">#&gt;  [47] isoband_0.2.7             viridisLite_0.4.1        </span></span>
 <span><span class="co">#&gt;  [49] spData_2.2.2              units_0.8-1              </span></span>
-<span><span class="co">#&gt;  [51] dqrng_0.3.0               foreign_0.8-84           </span></span>
-<span><span class="co">#&gt;  [53] spdep_1.2-8               rsvd_1.0.5               </span></span>
-<span><span class="co">#&gt;  [55] proxy_0.4-27              metapod_1.6.0            </span></span>
-<span><span class="co">#&gt;  [57] htmlwidgets_1.6.1         RColorBrewer_1.1-3       </span></span>
-<span><span class="co">#&gt;  [59] wk_0.7.1                  farver_2.1.1             </span></span>
-<span><span class="co">#&gt;  [61] pkgconfig_2.0.3           R.methodsS3_1.8.2        </span></span>
-<span><span class="co">#&gt;  [63] sass_0.4.5                deldir_1.0-6             </span></span>
-<span><span class="co">#&gt;  [65] crul_1.3                  locfit_1.5-9.7           </span></span>
-<span><span class="co">#&gt;  [67] utf8_1.2.3                labeling_0.4.2           </span></span>
-<span><span class="co">#&gt;  [69] tidyselect_1.2.0          munsell_0.5.0            </span></span>
-<span><span class="co">#&gt;  [71] tools_4.2.2               cachem_1.0.7             </span></span>
-<span><span class="co">#&gt;  [73] cli_3.6.0                 dbscan_1.1-11            </span></span>
-<span><span class="co">#&gt;  [75] generics_0.1.3            evaluate_0.20            </span></span>
-<span><span class="co">#&gt;  [77] fastmap_1.1.1             fftwtools_0.9-11         </span></span>
-<span><span class="co">#&gt;  [79] yaml_2.3.7                ragg_1.2.5               </span></span>
-<span><span class="co">#&gt;  [81] knitr_1.42                fs_1.6.1                 </span></span>
-<span><span class="co">#&gt;  [83] purrr_1.0.1               s2_1.1.2                 </span></span>
-<span><span class="co">#&gt;  [85] nlme_3.1-162              sparseMatrixStats_1.10.0 </span></span>
-<span><span class="co">#&gt;  [87] R.oo_1.25.0               compiler_4.2.2           </span></span>
-<span><span class="co">#&gt;  [89] curl_5.0.0                beeswarm_0.4.0           </span></span>
-<span><span class="co">#&gt;  [91] png_0.1-8                 e1071_1.7-13             </span></span>
-<span><span class="co">#&gt;  [93] tibble_3.1.8              statmod_1.5.0            </span></span>
-<span><span class="co">#&gt;  [95] bslib_0.4.2               stringi_1.7.12           </span></span>
-<span><span class="co">#&gt;  [97] highr_0.10                desc_1.4.2               </span></span>
-<span><span class="co">#&gt;  [99] rgeos_0.6-2               lattice_0.20-45          </span></span>
-<span><span class="co">#&gt; [101] Matrix_1.5-3              classInt_0.4-9           </span></span>
-<span><span class="co">#&gt; [103] vctrs_0.5.2               pillar_1.8.1             </span></span>
-<span><span class="co">#&gt; [105] lifecycle_1.0.3           rhdf5filters_1.10.0      </span></span>
-<span><span class="co">#&gt; [107] jquerylib_0.1.4           cowplot_1.1.1            </span></span>
-<span><span class="co">#&gt; [109] maptools_1.1-6            geojsonio_0.10.0         </span></span>
-<span><span class="co">#&gt; [111] bitops_1.0-7              irlba_2.3.5.1            </span></span>
-<span><span class="co">#&gt; [113] R6_2.5.1                  KernSmooth_2.23-20       </span></span>
-<span><span class="co">#&gt; [115] gridExtra_2.3             vipor_0.4.5              </span></span>
-<span><span class="co">#&gt; [117] codetools_0.2-19          MASS_7.3-58.2            </span></span>
-<span><span class="co">#&gt; [119] boot_1.3-28.1             rhdf5_2.42.0             </span></span>
-<span><span class="co">#&gt; [121] rprojroot_2.0.3           httpcode_0.3.0           </span></span>
-<span><span class="co">#&gt; [123] withr_2.5.0               GenomeInfoDbData_1.2.9   </span></span>
-<span><span class="co">#&gt; [125] mgcv_1.8-42               geojson_0.3.4            </span></span>
-<span><span class="co">#&gt; [127] parallel_4.2.2            grid_4.2.2               </span></span>
-<span><span class="co">#&gt; [129] beachmat_2.14.0           class_7.3-21             </span></span>
-<span><span class="co">#&gt; [131] rmarkdown_2.20            DelayedMatrixStats_1.20.0</span></span>
-<span><span class="co">#&gt; [133] ggnewscale_0.4.8          ggbeeswarm_0.7.1</span></span></code></pre></div>
+<span><span class="co">#&gt;  [51] dqrng_0.3.0               spdep_1.2-8              </span></span>
+<span><span class="co">#&gt;  [53] rsvd_1.0.5                proxy_0.4-27             </span></span>
+<span><span class="co">#&gt;  [55] metapod_1.6.0             htmlwidgets_1.6.1        </span></span>
+<span><span class="co">#&gt;  [57] RColorBrewer_1.1-3        wk_0.7.1                 </span></span>
+<span><span class="co">#&gt;  [59] farver_2.1.1              pkgconfig_2.0.3          </span></span>
+<span><span class="co">#&gt;  [61] R.methodsS3_1.8.2         sass_0.4.5               </span></span>
+<span><span class="co">#&gt;  [63] deldir_1.0-6              crul_1.3                 </span></span>
+<span><span class="co">#&gt;  [65] locfit_1.5-9.7            utf8_1.2.3               </span></span>
+<span><span class="co">#&gt;  [67] labeling_0.4.2            tidyselect_1.2.0         </span></span>
+<span><span class="co">#&gt;  [69] munsell_0.5.0             tools_4.2.2              </span></span>
+<span><span class="co">#&gt;  [71] cachem_1.0.7              cli_3.6.0                </span></span>
+<span><span class="co">#&gt;  [73] dbscan_1.1-11             generics_0.1.3           </span></span>
+<span><span class="co">#&gt;  [75] evaluate_0.20             fastmap_1.1.1            </span></span>
+<span><span class="co">#&gt;  [77] fftwtools_0.9-11          yaml_2.3.7               </span></span>
+<span><span class="co">#&gt;  [79] ragg_1.2.5                knitr_1.42               </span></span>
+<span><span class="co">#&gt;  [81] fs_1.6.1                  purrr_1.0.1              </span></span>
+<span><span class="co">#&gt;  [83] s2_1.1.2                  nlme_3.1-162             </span></span>
+<span><span class="co">#&gt;  [85] sparseMatrixStats_1.10.0  R.oo_1.25.0              </span></span>
+<span><span class="co">#&gt;  [87] compiler_4.2.2            curl_5.0.0               </span></span>
+<span><span class="co">#&gt;  [89] beeswarm_0.4.0            png_0.1-8                </span></span>
+<span><span class="co">#&gt;  [91] e1071_1.7-13              tibble_3.2.0             </span></span>
+<span><span class="co">#&gt;  [93] statmod_1.5.0             bslib_0.4.2              </span></span>
+<span><span class="co">#&gt;  [95] stringi_1.7.12            highr_0.10               </span></span>
+<span><span class="co">#&gt;  [97] desc_1.4.2                lattice_0.20-45          </span></span>
+<span><span class="co">#&gt;  [99] Matrix_1.5-3              classInt_0.4-9           </span></span>
+<span><span class="co">#&gt; [101] vctrs_0.5.2               pillar_1.8.1             </span></span>
+<span><span class="co">#&gt; [103] lifecycle_1.0.3           rhdf5filters_1.10.0      </span></span>
+<span><span class="co">#&gt; [105] jquerylib_0.1.4           cowplot_1.1.1            </span></span>
+<span><span class="co">#&gt; [107] geojsonio_0.11.0          bitops_1.0-7             </span></span>
+<span><span class="co">#&gt; [109] irlba_2.3.5.1             R6_2.5.1                 </span></span>
+<span><span class="co">#&gt; [111] KernSmooth_2.23-20        gridExtra_2.3            </span></span>
+<span><span class="co">#&gt; [113] vipor_0.4.5               codetools_0.2-19         </span></span>
+<span><span class="co">#&gt; [115] MASS_7.3-58.3             boot_1.3-28.1            </span></span>
+<span><span class="co">#&gt; [117] rhdf5_2.42.0              rprojroot_2.0.3          </span></span>
+<span><span class="co">#&gt; [119] httpcode_0.3.0            withr_2.5.0              </span></span>
+<span><span class="co">#&gt; [121] GenomeInfoDbData_1.2.9    mgcv_1.8-42              </span></span>
+<span><span class="co">#&gt; [123] geojson_0.3.4             parallel_4.2.2           </span></span>
+<span><span class="co">#&gt; [125] grid_4.2.2                beachmat_2.14.0          </span></span>
+<span><span class="co">#&gt; [127] class_7.3-21              rmarkdown_2.20           </span></span>
+<span><span class="co">#&gt; [129] DelayedMatrixStats_1.20.0 ggnewscale_0.4.8         </span></span>
+<span><span class="co">#&gt; [131] ggbeeswarm_0.7.1</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
