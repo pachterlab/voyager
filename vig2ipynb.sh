@@ -1,5 +1,7 @@
 #!/bin/bash
 for f in ./vignettes/*.Rmd
-do 
+do if [[ "$f" != *"landing"* ]] && [[ "$f" != *"install"* ]]
+then
 jupytext --to notebook $f
+fi
 done
