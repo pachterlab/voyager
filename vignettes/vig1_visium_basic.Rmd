@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{visium_basic}
@@ -22,16 +27,31 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take up to 30 minutes (many of the dependencies have C++ code, which needs to be compiled)
+# Google Colab provides a mostly fresh machine and we need to install some dependencies. However, some packages, such as the Tidyverse, are pre-installed. 
+# First install system dependencies of `sf`:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+system.time(BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE))
+
+packageVersion("Voyager")
+```
+
 # Introduction
 
 In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) analysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
 
 This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz]. The code can be run on [Google Colab](https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing).
 
-```{r, echo = FALSE, fig.alt='Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.'}
-knitr::include_graphics("https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png")
-```
-
+![Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.](https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png)
 While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a vignette illustrating univariate spatial analysis with the same dataset, see the more advanced [exploratory spatial data analyis vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html) with the same dataset.
 
 Here we load the packages used in this vignette.
@@ -66,9 +86,7 @@ The SFE object of this dataset is provided in the `SFEData` package; we begin by
 ```
 
 The authors provided the full resolution hematoxylin and eosin (H&E) image on GEO, which we downsized to facilitate its display:
-```{r, echo=FALSE, out.width = "100%", fig.alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."}
-knitr::include_graphics("tissue_lowres_5a.jpeg")
-```
+![A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers.](https://raw.githubusercontent.com/pachterlab/voyager/documentation/vignettes/tissue_lowres_5a.jpeg)
 
 # Quality control
 ## Spots
