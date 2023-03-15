@@ -374,11 +374,15 @@ test_that("Univariate result plots for dimension reduction", {
         suppressWarnings(moranPlot(sfe_muscle, "PC1", graphName = "visium",
                                    reducedDimName = "PCA"))
     })
-    expect_doppelganger("Moran MC for PCA", {
-        plotMoranMC(sfe_muscle, "PC1", reducedDimName = "PCA")
-    })
     expect_doppelganger("Correlogram for PCA", {
         plotCorrelogram(sfe_muscle, "PC1", reducedDimName = "PCA")
+    })
+})
+
+test_that("Moran MC plot for PCA", {
+    testthat::skip_on_ci()
+    expect_doppelganger("Moran MC for PCA", {
+        plotMoranMC(sfe_muscle, "PC1", reducedDimName = "PCA")
     })
 })
 
