@@ -312,7 +312,7 @@ runMoransI <- .sfe_univar_fun(type = moran)
 
 #' @rdname calculateUnivariate
 #' @export
-reducedDimUniariate <- .reddim_univar_fun()
+reducedDimUnivariate <- .reddim_univar_fun()
 
 #' @rdname calculateUnivariate
 #' @export

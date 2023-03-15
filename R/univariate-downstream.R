@@ -33,7 +33,7 @@
 #' )
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
                                 method = "I", colGeometryName = NULL,
-                                annotGeometryName = NULL,
+                                annotGeometryName = NULL, reducedDimName = NULL,
                                 show_symbol = deprecated(),
                                 swap_rownames = NULL) {
     l <- .deprecate_show_symbol("clusterCorrelograms", show_symbol, swap_rownames)
@@ -43,7 +43,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
     name <- paste("sp.correlogram", method, sep = "_")
     out <- lapply(sample_id, function(s) {
         ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
-            annotGeometryName,
+            annotGeometryName, reducedDimName,
             show_symbol = show_symbol, swap_rownames = swap_rownames
         )
         if (method %in% c("I", "C")) {

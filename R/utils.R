@@ -207,9 +207,10 @@
 
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
+                                  reducedDimName,
                                   show_symbol, swap_rownames) {
     colname_use <- .add_sample_id(name, sample_id)
-    out_rd <- out_cd <- out_cg <- out_ag <- NULL
+    out_rd <- out_cd <- out_cg <- out_ag <- out_reddim <- NULL
     features_rd <- intersect(features, rownames(sfe))
     if (!length(features_rd) && show_symbol && swap_rownames %in% names(rowData(sfe))) {
         features_symbol <- intersect(features, rowData(sfe)[[swap_rownames]])
@@ -256,7 +257,19 @@
             }
         }
     }
-    out <- c(out_rd, out_cd, out_cg, out_ag)
+    if (!is.null(reducedDimName)) {
+        reddim <- reducedDim(sfe, reducedDimName)
+        if (is.null(colnames(reddim))) {
+            names_use <- paste0(reducedDimName, ncol(reddim))
+        } else names_use <- colnames(reddim)
+        features_reddim <- intersect(features, names_use)
+        fd <- reducedDimFeatureData(sfe, reducedDimName)
+        if (!is.null(fd)) {
+            out_reddim <- .get_not_na_items(fd, features_reddim, colname_use)
+            features <- setdiff(features, names(out_reddim))
+        }
+    }
+    out <- c(out_rd, out_cd, out_cg, out_ag, out_reddim)
     if (!length(out)) {
         stop("None of the features has the requested metadata.")
     }

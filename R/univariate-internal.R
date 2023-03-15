@@ -108,12 +108,14 @@
 # .set_fd_fun has arguments x, which, sample_id, name, features, res, params, and
 # returns an sfe object. The geometry argument is optional.
 
-.make_univar_fun <- function(.get_fun, .graph_fun, .set_fd_fun, type = NULL) {
+.make_univar_fun <- function(.get_fun, .graph_fun, .set_fd_fun, type = NULL,
+                             colData = FALSE) {
     function(x, type, features, which = NULL, graphName = 1L,
              sample_id = "all",
              BPPARAM = SerialParam(), zero.policy = NULL,
              include_self = FALSE, p.adjust.method = "BH",
-             name = NULL, colGeometryName = NULL, annotGeometryName = NULL, ...) {
+             name = NULL, colGeometryName = NULL,
+             annotGeometryName = NULL, reducedDimName = NULL, ...) {
         if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(name)) name <- info(type, "name")
@@ -128,9 +130,10 @@
                          graph_params = attr(g, "method")), other_args)
         local <- is_local(type)
         if (!local) params$p.adjust.method <- NULL
-        old_params <- getParams(x, name, colData = TRUE, local = local,
+        old_params <- getParams(x, name, colData = colData, local = local,
                                 colGeometryName = colGeometryName,
-                                annotGeometryName = annotGeometryName)
+                                annotGeometryName = annotGeometryName,
+                                reducedDimName = reducedDimName)
         .check_old_params(params, old_params, name, args_not_check(type))
         for (s in sample_id) {
             listw_use <- .graph_fun(x, type = graphName, sample_id = s)
@@ -169,7 +172,7 @@
                         sample_id = sample_id, name = name, params = params)
     fun <- .make_univar_fun(.get_fun, .graph_fun = colGraph,
                             .set_fd_fun = .set_fd_fun,
-                            type = type)
+                            type = type, colData = TRUE)
     if (is.null(type)) {
         function(x, type, features, colGraphName = 1L, sample_id = "all",
                  BPPARAM = SerialParam(), zero.policy = NULL,
@@ -294,7 +297,7 @@
                 sample_id = sample_id,
                 BPPARAM = BPPARAM, zero.policy = zero.policy,
                 include_self = include_self, p.adjust.method = p.adjust.method,
-                name = name, ...)
+                name = name, reducedDimName = dimred, ...)
         }
     } else {
         function(x, dimred = 1L, components = 1L, colGraphName = 1L, sample_id = "all",
@@ -307,7 +310,7 @@
                 graphName = colGraphName, sample_id = sample_id,
                 BPPARAM = BPPARAM, zero.policy = zero.policy,
                 include_self = include_self, p.adjust.method = p.adjust.method,
-                name = name, ...)
+                name = name, reducedDimName = dimred, ...)
         }
     }
 }

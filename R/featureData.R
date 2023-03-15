@@ -217,7 +217,8 @@ reducedDimFeatureData <- function(sfe, dimred) {
 #'   \code{colGeometry} has precedence so this argument is ignored if
 #'   \code{colGeometryName} is specified.
 #' @param reducedDimName Name of a dimension reduction, can be seen in
-#'   \code{\link{reducedDimNames}}.
+#'   \code{\link{reducedDimNames}}. \code{colGeometryName} and
+#'   \code{annotGeometryName} have precedence over \code{reducedDimName}.
 #' @return A named list showing the parameters
 #' @export
 #' @examples

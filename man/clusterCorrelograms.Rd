@@ -12,6 +12,7 @@ clusterCorrelograms(
   method = "I",
   colGeometryName = NULL,
   annotGeometryName = NULL,
+  reducedDimName = NULL,
   show_symbol = deprecated(),
   swap_rownames = NULL
 )
@@ -34,6 +35,10 @@ for each sample.}
 
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
+
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
 
 \item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
 be consistent with \code{scater} plotting functions.}

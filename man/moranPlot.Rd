@@ -24,6 +24,7 @@ moranPlot(
   binwidth = NULL,
   hex = FALSE,
   plot_influential = TRUE,
+  name = "moran.plot",
   ...
 )
 }
@@ -97,6 +98,9 @@ horizontal directions. Overrides \code{bins} if both set.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
+
+\item{name}{Name under which the Moran plot results are stored. By default
+"moran.plot".}
 
 \item{...}{Other arguments to pass to \code{\link{geom_density2d}}.}
 }

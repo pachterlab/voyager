@@ -179,6 +179,7 @@ sfe_muscle <- colDataUnivariate(sfe_muscle,
     type = "moran.plot",
     colGraphName = "visium", features = "nCounts"
 )
+
 set.seed(29)
 colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
     replace = TRUE), levels = as.character(1:5))
@@ -357,6 +358,28 @@ test_that("When a gene symbol rowname is not a valid R object name", {
     expect_doppelganger("plotLocalResult with illegal gene name",
                         plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
                                         colGeometryName = "spotPoly"))
+})
+
+sfe_muscle <- reducedDimUnivariate(sfe_muscle, "moran.plot", dimred = "PCA",
+                                   components = 1, colGraphName = "visium")
+set.seed(29)
+sfe_muscle <- reducedDimUnivariate(sfe_muscle, "moran.mc", dimred = "PCA",
+                                   components = 1, colGraphName = "visium",
+                                   nsim = 99)
+sfe_muscle <- reducedDimUnivariate(sfe_muscle, "sp.correlogram", dimred = "PCA",
+                                   components = 1, colGraphName = "visium",
+                                   order = 3)
+test_that("Univariate result plots for dimension reduction", {
+    expect_doppelganger("Moran plot for PCA", {
+        suppressWarnings(moranPlot(sfe_muscle, "PC1", graphName = "visium",
+                                   reducedDimName = "PCA"))
+    })
+    expect_doppelganger("Moran MC for PCA", {
+        plotMoranMC(sfe_muscle, "PC1", reducedDimName = "PCA")
+    })
+    expect_doppelganger("Correlogram for PCA", {
+        plotCorrelogram(sfe_muscle, "PC1", reducedDimName = "PCA")
+    })
 })
 
 # scattermore

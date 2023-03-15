@@ -380,9 +380,16 @@ test_that("Univariate global results corrected added to metadata of reducedDim",
 })
 
 test_that("Univariate local results for reducedDim", {
-    sfe <- reducedDimUniariate(sfe, "localmoran", dimred = "PCA", components = 1)
+    sfe <- reducedDimUnivariate(sfe, "localmoran", dimred = "PCA", components = 1)
     expect_true("PC1" %in% localResultFeatures(sfe, "localmoran"))
     lr <- localResult(sfe, "localmoran", feature = "PC1", sample_id = "Vis5A")
     expect_equal(colnames(lr), names_expect_lm)
     expect_true(all(vapply(lr, is.numeric, FUN.VALUE = logical(1))))
+})
+
+test_that("Univariate global results corrected added after already running for something else", {
+    sfe <- colDataUnivariate(sfe, "sp.correlogram", "nCounts", order = 5, zero.policy = TRUE)
+    sfe <- reducedDimUnivariate(sfe, "sp.correlogram", order = 3)
+    fd <- reducedDimFeatureData(sfe, "PCA")
+    expect_true("sp.correlogram_I_Vis5A" %in% names(fd))
 })

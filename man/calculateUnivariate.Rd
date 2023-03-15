@@ -16,7 +16,7 @@
 \alias{annotGeometryMoransI}
 \alias{runUnivariate}
 \alias{runMoransI}
-\alias{reducedDimUniariate}
+\alias{reducedDimUnivariate}
 \alias{reducedDimMoransI}
 \title{Univariate spatial stiatistics}
 \usage{
@@ -201,7 +201,7 @@ runMoransI(
   ...
 )
 
-reducedDimUniariate(
+reducedDimUnivariate(
   x,
   type,
   dimred = 1L,
