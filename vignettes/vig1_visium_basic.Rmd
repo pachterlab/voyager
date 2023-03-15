@@ -29,10 +29,10 @@ knitr::opts_chunk$set(
 
 ```{r, include = FALSE, eval = FALSE}
 # Install Google Colab dependencies
-# Note: this can take up to 30 minutes (many of the dependencies have C++ code, which needs to be compiled)
-# Google Colab provides a mostly fresh machine and we need to install some dependencies. However, some packages, such as the Tidyverse, are pre-installed. 
-# First install system dependencies of `sf`:
-system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev")
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# Install `sf`, `ragg` and `textshaping` system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
 
 # Install system dependencies of some other R packages that Voyager either imports or suggests:
 system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
@@ -40,7 +40,9 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
 BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
-system.time(BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE))
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
 
 packageVersion("Voyager")
 ```
