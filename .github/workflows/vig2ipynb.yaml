@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install -r vig2ipynb_requirements.txt
           
-      - name: Execute Bash code
+      - name: Execute Bash code to generate notebooks
         run: bash vig2ipynb.sh
       
       - name: Commit and push new notebooks
@@ -40,3 +40,6 @@ jobs:
           timestamp=$(date -u)
           git commit -m "Latest notebook update: ${timestamp}" || exit 0
           git push
+          
+      - name: Execute Bash code to test notebooks
+        run: bash vig2ipynb_test.sh
