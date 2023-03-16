@@ -5,8 +5,6 @@ do if [[ "$f" != *"landing"* ]] && [[ "$f" != *"install"* ]]
 then
 arrf=(${f//./ })
 # Try to execute notebook
-jupyter nbconvert --to 'html' --execute .${arrf[0]}.ipynb
-# Clean up
-rm ${arrf[0]}.html
+jupyter nbconvert --execute .${arrf[0]}.ipynb
 fi
 done
