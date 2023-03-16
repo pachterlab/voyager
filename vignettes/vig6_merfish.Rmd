@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{merfish}
@@ -22,13 +27,34 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+packageVersion("Voyager")
+```
+
 # Introduction
 
 The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally developed around a relatively small Visium dataset as a proof of concept, and were hence not originally optimized for very large datasets. However, larger smFISH datasets with hundreds of thousands, sometimes over a million cells have already been produced and will soon be produced routinely. Among studies using smFISH-based spatial transcriptomics technologies that reported the number of cells per dataset, the number of cells per dataset has increased in the past years [@Moses2022-xz].
-
-```{r, echo=FALSE}
-knitr::include_graphics("https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png")
-```
+![alt](https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png)
 
 In anticipation of large datasets, this vignette was produced using limited GitHub Actions resources (MacOS), which are 14 GB of RAM with 3 CPU cores and 14 GB of disk space, comparable to laptops. We therefore expect that the analyses in this vignette should scale to reasonably sized datasets.  
 
