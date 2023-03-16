@@ -49,6 +49,12 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
+# Install additional dependencies and download data for this vignette
+system("pip install ffq")
+system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_MappedDGEForR.csv.gz")
+system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_BeadLocationsForR.csv.gz")
+list.files(pattern = "*.gz")
+
 packageVersion("Voyager")
 ```
 
@@ -71,9 +77,9 @@ We will demonstrate use of [`ffq`](https://github.com/pachterlab/ffq) to access 
 # system("pip install ffq")
 system("ffq -l1 GSM5713341")
 ```
-The output of the command is metadata for GSM5713341. We can use [`cURL`](https://curl.se) or [`wget`](https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html#using-wget) to download files with FTP links one-by-one. 
+The output of the command is metadata for GSM5713341. We can use [`curl`](https://curl.se) or [`wget`](https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html#using-wget) to download files with FTP links one-by-one. 
 
-Files beginning with `ftp://` can be read directly with the R package `vroom`. Files do not have be uncompressed before reading. These files will be automatically downloaded and uncompressed. We will use this method here, but the commented lines show how to download the files using `cURL`. 
+Files beginning with `ftp://` can be read directly with the R package `vroom`. Files do not have be uncompressed before reading. These files will be automatically downloaded and uncompressed. We will use this method here, but the commented lines show how to download the files using `curl`. 
 ```{r}
 # system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_MappedDGEForR.csv.gz")
 
@@ -90,6 +96,9 @@ centroids <- vroom("ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341
 ## Construct a SFE object
 The count matrix and bead locations are provided by the authors. We will pass these to the constructor for the `SpatialFeatureExperiment` object. The files are read in as data frames. We will convert the gene count matrix to a matrix and then a sparse `dgCMatrix`.
 ```{r}
+# Note: if using Google Colab, this step might run out of RAM
+# If this happens, please upgrade to Colab Pro
+
 rn <- mtx$Row
 mtx <- as.matrix(mtx[,-1])
 

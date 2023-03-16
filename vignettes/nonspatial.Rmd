@@ -195,7 +195,7 @@ markers[[4]]
 ```
 
 
-See how specific the top markers to each cluster
+See how specific the top markers are to each cluster:
 
 ```{r}
 top_markers <- unlist(lapply(markers, function(x) head(rownames(x), 1)))
@@ -203,8 +203,9 @@ top_markers_symbol <- rowData(sce)[top_markers, "symbol"]
 ```
 
 ```{r}
-plotExpression(sce, top_markers_symbol, x = "cluster", point_fun = function(...) list(),
-               swap_rownames = "symbol")
+plotExpression(sce, top_markers_symbol, x = "cluster", swap_rownames = "symbol",
+               # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
+               )
 ```
 
 

@@ -338,8 +338,8 @@ plotSpatialFeature(sfe, "is_blank_outlier", colGeometryName = "cellSeg")
 We find that the outliers are difficult to see:
 ```{r}
 plotColData(sfe, y = "is_blank_outlier", x = "cell_area", 
-            # to not to plot points, only in devel version of scater
-            point_fun = function(...) list()) 
+            # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
+            ) 
 ```
 
 The analysis reveals that the outliers seem to be smaller. Outliers for negative probe controls and negative codeword controls are also hard to see on the plot, so their plots are skipped here. But the top left region in the tissue tends to have more counts from antisense controls. 
@@ -572,7 +572,9 @@ markers[[6]]
 The code below extracts the significant markers for each cluster:
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
+plotExpression(sfe, genes_use, x = "cluster", 
+              # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
+              )
 ```
 
 This allows for plotting more top marker genes in a heatmap:

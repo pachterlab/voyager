@@ -109,7 +109,9 @@ Since plotting 100,000 polygons is slow and the plot isn't large enough for us t
 ```{r}
 # Function to plot violin plot for distribution and spatial at once
 plot_violin_spatial <- function(sfe, feature) {
-    violin <- plotColData(sfe, feature, point_fun = function(...) list())
+    violin <- plotColData(sfe, feature, 
+                          # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
+                          )
     spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "centroids",
                                   scattermore = TRUE)
     violin + spatial +
@@ -458,7 +460,7 @@ markers <- findMarkers(sfe, groups = colData(sfe)$cluster,
                        test.type = "wilcox", pval.type = "all", direction = "up")
 ```
 
-It's already sorted by p-values
+It's already sorted by p-values.
 ```{r}
 markers[[6]]
 ```
@@ -466,7 +468,9 @@ markers[[6]]
 Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points, which are uninformative due to overplotting and make this plot really slow.
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
+plotExpression(sfe, genes_use, x = "cluster", 
+               # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
+               )
 ```
 
 Plot more top marker genes in a heatmap
