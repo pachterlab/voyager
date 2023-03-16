@@ -49,6 +49,11 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
+# Install additional dependencies for this vignette
+BiocManager::install("gghighlight")
+BiocManager::install("batchelor")
+BiocManager::install("spatialDE")
+
 packageVersion("Voyager")
 ```
 
@@ -88,7 +93,6 @@ These data will be submitted to the `SFEData` package on Bioconductor and will b
 
 We will begin by downloading the data and loading it in to R. 
 ```{r}
-
 download.file("https://caltech.box.com/public/static/zfr8l20450n2z28lnp0ugdj471ph9eyx",'./codex.Rds', mode='wb', method = 'wget', quiet = TRUE)
 
 sfe <- readRDS("./codex.Rds")

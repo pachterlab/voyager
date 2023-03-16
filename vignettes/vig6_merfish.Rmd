@@ -48,6 +48,10 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
+# Install additional dependencies for this vignette
+BiocManager::install("gstat")
+BiocManager::install("automap")
+
 packageVersion("Voyager")
 ```
 
@@ -58,9 +62,9 @@ The `SpatialFeatureExperiment` (SFE) and `Voyager` packages were originally deve
 
 In anticipation of large datasets, this vignette was produced using limited GitHub Actions resources (MacOS), which are 14 GB of RAM with 3 CPU cores and 14 GB of disk space, comparable to laptops. We therefore expect that the analyses in this vignette should scale to reasonably sized datasets.  
 
-The dataset we use in this vignette is a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1) to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. While 7 z-planes were imaged, cell segmentation is only available in one z-plane. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there're over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` data frame is not trivial. See the [vignette on creating a `SpatialFeatureExperiment` (SFE) object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. While the transcript spot locations are available, we cannot yet work with such a large point dataset.
+The dataset we use in this vignette is a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1). We will use it to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. While 7 z-planes were imaged, cell segmentation is only available in one z-plane. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there are over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` data frame is not trivial. See the [vignette on creating a `SpatialFeatureExperiment` (SFE) object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. While the transcript spot locations are available, we cannot yet work with such a large point dataset.
 
-Here we load the packages used 
+Here we load the packages used. 
 ```{r setup}
 library(Voyager)
 library(SFEData)
@@ -84,7 +88,7 @@ theme_set(theme_void())
 (sfe <- VizgenLiverData())
 ```
 
-There are 395215 cells in this dataset. Plotting them all as polygons takes a while, but it isn't too bad.
+There are 395,215 cells in this dataset. Plotting them all as polygons takes a while, but it isn't too bad.
 ```{r, fig.width=9, fig.height=6}
 ggplot(colGeometry(sfe, "cellSeg")) + geom_sf() +
     scale_x_continuous(expand = expansion()) +
@@ -106,7 +110,7 @@ Cell density is for the most part homogeneous but shows some structure with dens
 names(colData(sfe))
 ```
 
-Plotting almost 400,000 polygons is kind of slow but doable
+Plotting almost 400,000 polygons is kind of slow but doable.
 ```{r}
 system.time(
     print(plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg"))
@@ -124,7 +128,7 @@ system.time({
 
 When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` (`scattermore = TRUE`) took about 2 seconds. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
 
-In the next release we will add to all spatial plotting functions the use of a bounding box to only plot a portion of the tissue. This function here is simplified and not generalizable, compared to what will be provided with the next release. While interactive data visualization is useful for ESDA, there is a need for static figures in publications. 
+In the next release we will add the use of a bounding box to all spatial plotting functions which will allow only plotting a portion of the tissue. This function here is simplified and not generalizable, compared to what will be provided with the next release. While interactive data visualization is useful for ESDA, there is a need for static figures in publications. 
 ```{r}
 plot_colgeom_bbox <- function(sfe, feature, bbox,
                               divergent = FALSE, diverge_center = 0) {
@@ -160,7 +164,7 @@ bbox_use <- c(xmin = 3000, xmax = 3500, ymin = 2500, ymax = 3000)
 plot_colgeom_bbox(sfe, "nCounts", bbox_use)
 ```
 
-Much of the time making this plot is spent subsetting the `sf` data frame with the bounding box. Here spatial autocorrelation is evident in the upper right region with smaller cells, but less so in the rest of this patch. Here nCounts seems to be related to cell size; larger cells seem to have more total counts.
+Much of the time making this plot is spent subsetting the `sf` data frame with the bounding box. Here, spatial autocorrelation is evident in the upper right region with smaller cells, but less so in the rest of this patch. nCounts seems to be related to cell size; larger cells seem to have more total counts.
 
 Interactive data visualization is currently beyond the scope of `Voyager` or this vignette. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Pielawski2022-wk], and [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2022-zw].
 
@@ -169,13 +173,13 @@ Since there aren't too many genes, all genes and negative control probes can be 
 rownames(sfe)
 ```
 
-The number of real genes is 347
+The number of real genes is 347.
 
 ```{r}
 n_panel <- 347
 ```
 
-Next we plot the distribution of nCounts, divided by the number of genes in the panel, so this distribution is more comparable across datasets with different numbers of genes.
+Next, we plot the distribution of nCounts divided by the number of genes in the panel, so this distribution is more comparable across datasets with different numbers of genes.
 ```{r}
 colData(sfe)$nCounts_normed <- sfe$nCounts / n_panel
 colData(sfe)$nGenes_normed <- sfe$nGenes / n_panel
@@ -186,16 +190,16 @@ plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed")) +
     theme_bw()
 ```
 
-As with the [Xenium dataset](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells), there are  mysterious regular notches in the histogram of the number of genes detected.
+As with the [Xenium dataset](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#cells), there are mysterious regular notches in the histogram of the number of genes detected.
 
-We also plot the number of genes detected per cell, with `geom_scattermore()`
+We also plot the number of genes detected per cell, with `geom_scattermore()`.
 ```{r}
 plotSpatialFeature(sfe, "nGenes", colGeometryName = "centroids", scattermore = TRUE)
 ```
 
 Similarly to nCounts, the points look intermingled. 
 
-Distribution of cell volume in space
+Distribution of cell volume in space:
 ```{r}
 plotSpatialFeature(sfe, "volume", colGeometryName = "centroids", scattermore = TRUE)
 ```
@@ -206,7 +210,7 @@ plotColDataBin2D(sfe, "nCounts", "nGenes") +
     theme_bw()
 ```
 
-There're two branches in this plot. 
+There are two branches in this plot. 
 
 How does cell size relate to nCounts?
 ```{r}
@@ -223,7 +227,7 @@ plotColDataBin2D(sfe, "volume", "nGenes") + theme_bw()
 There seem to be clusters that are possibly related to cell type. 
 
 ### Negative controls
-Blank probes are used as negative controls
+Blank probes are used as negative controls.
 ```{r}
 is_blank <- str_detect(rownames(sfe), "^Blank-")
 ```
@@ -236,19 +240,19 @@ sfe <- addPerCellQCMetrics(sfe, subset = list(blank = is_blank))
 names(colData(sfe))
 ```
 
-Total transcript counts from the blank probes
+Total transcript counts from the blank probes:
 ```{r}
 plotSpatialFeature(sfe, "subsets_blank_sum", colGeometryName = "centroids",
                    scattermore = TRUE)
 ```
 
-Number of blank features detected per cell
+Number of blank features detected per cell:
 ```{r}
 plotSpatialFeature(sfe, "subsets_blank_detected", colGeometryName = "centroids",
                    scattermore = TRUE)
 ```
 
-Percentage of blank features per cell
+Percentage of blank features per cell:
 ```{r}
 plotSpatialFeature(sfe, "subsets_blank_percent", colGeometryName = "centroids",
                    scattermore = TRUE)
@@ -256,7 +260,7 @@ plotSpatialFeature(sfe, "subsets_blank_percent", colGeometryName = "centroids",
 
 The percentage is more interesting: within the tissue, cells with high percentage of blank counts are scattered like salt and pepper, but more of these cells are on the left edge of the tissue, the edges of FOVs, where the tissue itself doesn't end. 
 
-Also plot histograms 
+Also plot histograms: 
 ```{r}
 plotColDataHistogram(sfe, paste0("subsets_blank_", c("sum", "detected", "percent"))) +
     theme_bw()
@@ -283,7 +287,7 @@ plotColDataBin2D(sfe, "nCounts", "subsets_blank_percent") +
     theme_bw()
 ```
 
-The outliers in percentage of blank counts have low total counts. But some seemingly real cells with sizable nCounts also have not so low percentage of blank counts. Since the distribution of this percentage has a very long tail, we log transform it when finding outliers.
+The outliers in percentage of blank counts have low total counts. But there are some seemingly real cells with sizable nCounts which have a relatively high percentage of blank counts. Since the distribution of this percentage has a very long tail, we log transform it when finding outliers.
 ```{r}
 get_neg_ctrl_outliers <- function(col, sfe, nmads = 3, log = FALSE) {
     inds <- colData(sfe)$nCounts > 0 & colData(sfe)[[col]] > 0
@@ -312,15 +316,15 @@ What's the cutoff for outlier?
 min(sfe$subsets_blank_percent[sfe$is_blank_outlier])
 ```
 
-Remove the outliers and empty cells
+Remove the outliers and empty cells:
 ```{r}
 (sfe <- sfe[, !sfe$is_blank_outlier & sfe$nCounts > 0])
 ```
 
-There're still over 390,000 cells left.
+There still are over 390,000 cells left after removing the outliers.
 
 ## Genes
-Here we look at the mean and variance of each gene
+Here we look at the mean and variance of each gene:
 ```{r}
 rowData(sfe)$means <- rowMeans(counts(sfe))
 rowData(sfe)$vars <- rowVars(counts(sfe))
@@ -335,7 +339,7 @@ plotRowData(sfe, x = "means", y = "is_blank") +
 
 Most genes display higher mean expression than blanks, but there is considerable overlap in the distribution, probably because some genes expressed at lower levels or in fewer cells are included.
 
-Here the "real" genes and negative controls are plotted in different colors
+Here the "real" genes and negative controls are plotted in different colors:
 ```{r}
 plotRowData(sfe, x = "means", y = "vars", colour_by = "is_blank") +
     geom_abline(slope = 1, intercept = 0, color = "red") +
@@ -357,17 +361,17 @@ as.data.frame(rowData(sfe)[is_blank,]) |>
     theme_bw()
 ```
 
-When zoomed in, the blanks are also somewhat overdispersed.
+When zoomed in, the blanks are somewhat overdispersed.
 
 # Spatial autocorrelation of QC metrics
 
-Again, we plot that zoomed in patch to visually inspect cell-cell contiguity
+Again, we plot that zoomed in patch to visually inspect cell-cell contiguity:
 ```{r}
 ggplot(cellSeg(sfe)[st_as_sfc(st_bbox(bbox_use)),]) + geom_sf()
 ```
 
 
-There're quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is problematic. In the next release, we might implement a way to blend polygon contiguity graph with some other graph in case of singletons. For now we use k nearest neighbors, with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection.
+There are quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is problematic. In the next release, we might implement a way to blend a polygon contiguity graph with some other graph in case of singletons. For now, we use k nearest neighbors with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection.
 
 ```{r}
 system.time(
@@ -381,7 +385,7 @@ The `spdep` implementation of k nearest neighbors isn't too bad, not taking long
 
 [Annoy](https://github.com/spotify/annoy) is a faster way to find approximate k nearest neighbors, and is used in graph based clustering in scRNA-seq data. One way to use Annoy in R is to use `AnnoyParam()` in [`BiocNeighbors`](https://bioconductor.org/packages/release/bioc/html/BiocNeighbors.html).
 
-To examine the speed of Annoy, we convert the results into an `nb` object in `spdep`, and do inverse distance weighting. From profiling, most of the time constructed the spatial weights matrix was spent on `nb2listwdist()`, to perform distance weighting. The output from `findKNN()` contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly compute the inverse distance edge weights without using `nb2listwdist()` and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listwdist()` involve more slow R loops but are more flexible for many other kinds of graphs.
+To examine the speed of Annoy, we convert the results into an `nb` object in `spdep`, and perform inverse distance weighting. From profiling, most of the time constructing the spatial weights matrix was spent on `nb2listwdist()`, to perform distance weighting. The output from `findKNN()` contains a matrix for the indices of the neighbors, and another matrix for the distances to the neighbors. To further speed up the code, we directly compute the inverse distance edge weights without using `nb2listwdist()` and format the data into the `listw` structure. The functions `knn2nb()` and `nb2listwdist()` involve slower R loops but are more flexible for many other kinds of graphs.
 
 ```{r}
 system.time({
@@ -405,7 +409,7 @@ system.time({
 })
 ```
 
-This took about half the time as `spdep`, so we will formalize it and add it to the next release. But this is not necessarily that Annoy by itself is faster than the kd tree method in `dbscan`, which is used by `spdep`, as much of the time was spent in `nb2listwdist()` to compute the distance based edge weights from the geometry, as `spdep` does not take the distance matrix returned by `dbscan::kNN()` while we used the distance matrix from `BiocNeighbors::findKNN()` here rather than using the geometry to find the distance again. So for the next release, we will also use `BiocNeighbors` for distance based neighbors, as it also returns a distance list, which can be used to compute distance based edge weights more efficiently than `nb2listwdist()`.
+This took about half the time compared to `spdep`, so we will formalize it and add it to the next release. This is not necessarily due to Annoy by itself being faster than the kd tree method in `dbscan`, which is also used by `spdep`. While dbscan returns a distance matrix after computing k nearest neighbors, spdep does not keep the distance matrix. As a result, in spdep , when the distances are needed to compute edge weights, much of the time was spent in `nb2listwdist()` to compute the distance based edge weights from the geometry. Here we kept and used the distance matrix from `BiocNeighbors::findKNN()`, skipping the time consuming step of finding the distance again from the geometry. So for the next release, we will also use `BiocNeighbors` for distance based neighbors, as it returns a distance list which can be used to compute distance based edge weights more efficiently than `nb2listwdist()`.
 
 A comparison of results is shown below:
 ```{r}
@@ -465,7 +469,7 @@ plotRowData(sfe, x = "moran_sample01", y = "is_blank") +
 
 The blanks are clustered tightly around 0. The vast majority of real genes have positive spatial autocorrelation, some quite strong. But some genes have negative spatial autocorrelation, although it may or may not be statistically significant.
 
-Plot the top genes with positive spatial autocorrelation
+Plot the top genes with positive spatial autocorrelation:
 
 ```{r, fig.width=9, fig.height=12}
 top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:6]]
@@ -503,7 +507,7 @@ df_binned <- aggregate(df, bins, FUN = mean)
 df_binned <- df_binned[!is.na(df_binned$nCounts),]
 ```
 
-Plot the binned values
+Plot the binned values:
 ```{r, fig.width=9, fig.height=7}
 # Not using facet_wrap to give each panel its own color scale
 plts <- lapply(c("nCounts", "nGenes", "volume"), function(f) {
@@ -535,7 +539,7 @@ At a larger length scale, Moran's I becomes positive. Comparing Moran's I across
 While binning can greatly speed up computation of spatial autocorrelation metrics for larger datasets, and is in fact used for Moran's I in Seurat, it can be used for smaller datasets to find length scales of spatial autocorrelation. On the other hand, as seen here, Moran's I can flip signs at different length scales, so for larger datasets, exploring spatial autocorrelation at the cell level would still be interesting.
 
 ## Semivariogram
-In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations, as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. One of the classic R packages in the geostatistical tradition is [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html), which we use here to find semivariograms, defined as
+In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. One of the classic R packages in the geostatistical tradition is [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html), which we use here to find semivariograms, defined as
 
 $$
 \gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),

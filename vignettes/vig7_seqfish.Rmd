@@ -48,6 +48,10 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
+# Install additional dependencies for this vignette
+BiocManager::install("batchelor")
+BiocManager::install("fossil")
+
 packageVersion("Voyager")
 ```
 
@@ -81,8 +85,6 @@ theme_set(theme_bw())
 ```
 
 ```{r}
-# the commented line downloads the data from Box and stores it in the current directory
-
 download.file("https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds', mode='wb', method = 'wget', quiet = TRUE)
 
 sfe <- readRDS("./seqfish_em3.Rds")
