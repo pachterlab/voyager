@@ -41,5 +41,10 @@ jobs:
           git commit -m "Latest notebook update: ${timestamp}" || exit 0
           git push
           
+      - name: Setup R and Bioconductor
+        uses: grimbough/bioc-actions/setup-bioc@v1
+        with:
+          bioc-version: 3.16
+          
       - name: Execute Bash code to test notebooks
         run: bash vig2ipynb_test.sh
