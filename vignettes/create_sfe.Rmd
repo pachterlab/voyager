@@ -152,10 +152,23 @@ For Vizgen MERFISH, the first column is cell ID but doesn't have have a column n
 
 For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. The gene count matrix is a `DelayedArray`, so the data is not all loaded into memory and operations on this matrix are performed in chunks. The `DelayedArray` has been converted into a `dgCMatrix` in memory. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
 ```{r, eval=FALSE}
+# Download data from https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast
+
+system("curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep1/Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip")
+system("unzip Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip")
+system("mv outs outs_R1")
+
+system("curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep2/Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip")
+system("unzip Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip")
+system("mv outs outs_R2")
+```
+
+```{r, eval=FALSE}
+library(SpatialExperiment)
 library(DropletUtils)
 library(arrow)
-sce <- read10xCounts("Xenium_FFPE_Human_Breast_Cancer_Rep1_cell_feature_matrix.h5")
-cell_info <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep1_cells.parquet")
+sce <- read10xCounts("outs_R1/cell_feature_matrix.h5")
+cell_info <- read_parquet("outs_R1/cells.parquet")
 # Add the centroid coordinates to colData
 colData(sce) <- cbind(colData(sce), cell_info[,-1])
 spe <- toSpatialExperiment(sce, spatialCoordsNames = c("x_centroid", "y_centroid"))
@@ -171,7 +184,7 @@ In Xenium, the cell polygons come in CSV or parquet files that can be directly r
 
 ```{r, eval=FALSE}
 library(arrow)
-cell_poly <- read_parquet("Xenium_FFPE_Human_Breast_Cancer_Rep2_cell_boundaries.parquet")
+cell_poly <- read_parquet("outs_R2/cell_boundaries.parquet")
 # Here the first column is cell ID
 names(cell_poly)[1] <- "ID"
 # "vertex_x" and "vertex_y" are the column names for coordinates here
@@ -179,6 +192,13 @@ cell_sf <- df2sf(cell_poly, c("vertex_x", "vertex_y"), geometryType = "POLYGON")
 ```
 
 In CoxMX, cell polygons are in CSV files. Besides the two coordinates columns, there's a column for field of view (FOV) and another for cell ID. However, unlike in Xenium, the cell IDs are only unique in each FOV, so they should be concatenated to FOV to make them unique. Then `df2sf()` can also be used to convert the regular data frame into `sf`. Example code:
+```{r, eval=FALSE}
+# Download data from https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/
+# stored here: https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=0
+
+system("wget https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=1")
+system("mv Lung5_Rep1-polygons.csv?dl=1 Lung5_Rep1-polygons.csv")
+```
 
 ```{r, eval=FALSE}
 library(vroom)
@@ -191,8 +211,10 @@ cell_sf <- df2sf(cell_poly, spatialCoordsNames = c("x_global_px", "y_global_px")
 ```
 
 In Vizgen MERFISH, cell polygons are in HDF5 files, with one HDF5 file per FOV. The HDF5 file seems to contain 7 z-planes, but at least for the mouse liver MERFISH dataset in `SFEData`, all 7 z-planes have the same polygons so in effect the cell segmentation is only available in one z-plane. Example code to convert this into `sf`:
-
 ```{r, eval=FALSE}
+# Example code only (data download not shown)
+# Example data may be found here: https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1;tab=objects?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false&pli=1
+
 library(rhdf5)
 library(dplyr)
 library(BiocParallel)
