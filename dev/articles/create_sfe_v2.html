@@ -63,7 +63,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -79,16 +86,16 @@
                         <h4 data-toc-skip class="author">Kayla
 Jackson</h4>
             
-            <h4 data-toc-skip class="date">2023-03-14</h4>
+            <h4 data-toc-skip class="date">2023-03-18</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/create_sfe_v2.Rmd" class="external-link"><code>vignettes/create_sfe_v2.Rmd</code></a></small>
       <div class="d-none name"><code>create_sfe_v2.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/alexcb/rjson" class="external-link">rjson</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org/" class="external-link">Matrix</a></span><span class="op">)</span></span>
@@ -109,13 +116,13 @@ data for a single WT sample. The commented line shows how to install
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># system("pip install ffq")</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"ffq -l1 GSM5713341"</span><span class="op">)</span></span></code></pre></div>
-<p>The output of the command is metadata for GSM5713341. We can use <a href="https://curl.se" class="external-link"><code>cURL</code></a> or <a href="https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html#using-wget" class="external-link"><code>wget</code></a>
+<p>The output of the command is metadata for GSM5713341. We can use <a href="https://curl.se" class="external-link"><code>curl</code></a> or <a href="https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html#using-wget" class="external-link"><code>wget</code></a>
 to download files with FTP links one-by-one.</p>
 <p>Files beginning with <code>ftp://</code> can be read directly with
 the R package <code>vroom</code>. Files do not have be uncompressed
 before reading. These files will be automatically downloaded and
 uncompressed. We will use this method here, but the commented lines show
-how to download the files using <code>cURL</code>.</p>
+how to download the files using <code>curl</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># system("curl -O ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM5713nnn/GSM5713341/suppl/GSM5713341_Puck_191112_04_MappedDGEForR.csv.gz")</span></span>
 <span></span>
@@ -140,7 +147,10 @@ will pass these to the constructor for the
 data frames. We will convert the gene count matrix to a matrix and then
 a sparse <code>dgCMatrix</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rn</span> <span class="op">&lt;-</span> <span class="va">mtx</span><span class="op">$</span><span class="va">Row</span></span>
+<code class="sourceCode R"><span><span class="co"># Note: if using Google Colab, this step might run out of RAM</span></span>
+<span><span class="co"># If this happens, please upgrade to Colab Pro</span></span>
+<span></span>
+<span><span class="va">rn</span> <span class="op">&lt;-</span> <span class="va">mtx</span><span class="op">$</span><span class="va">Row</span></span>
 <span><span class="va">mtx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">mtx</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">mtx</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">rn</span></span>

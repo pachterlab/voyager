@@ -63,7 +63,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -79,9 +86,9 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-03-14</h4>
+            <h4 data-toc-skip class="date">2023-03-18</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
     </div>
 
@@ -90,7 +97,7 @@ Moses</h4>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>In this introductory vignette for <a href="https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html" class="external-link"><code>SpatialFeatureExperiment</code></a>
+<p>In this introductory vignette for the <a href="https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html" class="external-link"><code>SpatialFeatureExperiment</code></a>
 data representation and <a href="https://bioconductor.org/packages/devel/bioc/html/Voyager.html" class="external-link"><code>Voyager</code></a>
 analysis package, we demonstrate a basic exploratory data analysis (EDA)
 of spatial transcriptomics data. Basic knowledge of R and <a href="https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html" class="external-link"><code>SingleCellExperiment</code></a>
@@ -99,10 +106,9 @@ is assumed.</p>
 expression system dataset. The technology was chosen due to its
 popularity, and therefore the availability of numerous publicly
 available datasets for analysis <span class="citation">(Moses and
-Pachter 2022)</span>. The code can be run on <a href="https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing" class="external-link">Google
-Colab</a>.</p>
-<p><img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt='Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.' style="display: block; margin: auto;"></p>
-<p>While Voyager was developed with the goal of facilitating the use of
+Pachter 2022)</span>.</p>
+<p><img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt="Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are “regions of interest” (ROI) methods, along with 2016 ST and some other ROI selection methods.">
+While Voyager was developed with the goal of facilitating the use of
 geospatial methods in spatial genomics, this introductory vignette is
 restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a
 vignette illustrating univariate spatial analysis with the same dataset,
@@ -110,7 +116,7 @@ see the more advanced <a href="https://pachterlab.github.io/voyager/articles/vig
 spatial data analyis vignette</a> with the same dataset.</p>
 <p>Here we load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -250,7 +256,7 @@ loading it into R.</p>
 <span><span class="co">#&gt; Vis5A:</span></span></code></pre></div>
 <p>The authors provided the full resolution hematoxylin and eosin
 (H&amp;E) image on GEO, which we downsized to facilitate its display:
-<img src="tissue_lowres_5a.jpeg" alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers." width="100%" style="display: block; margin: auto;"></p>
+<img src="https://raw.githubusercontent.com/pachterlab/voyager/documentation/vignettes/tissue_lowres_5a.jpeg" alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."></p>
 </div>
 <div class="section level2">
 <h2 id="quality-control">Quality control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
@@ -277,7 +283,7 @@ counts.</p>
 <span>                              annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Some spots in the injury site with leukocyte infiltration have high
 total counts. Spatial autocorrelation of the total counts is apparent,
 which will be discussed in a later section of this vignette.</p>
@@ -293,12 +299,12 @@ line of code shows how to find the number of genes detected.</p>
 <span>                                                 size <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As commonly done for scRNA-seq data, here we plot nCounts
 vs. nGenes</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"nGenes"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-8-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>This plot has two branches for the spots in tissue, which turn out to
 be related to myofiber size. See <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.html">the
 exploratory spatial data analysis (ESDA) Visium vignette</a>.</p>
@@ -316,7 +322,7 @@ this proportion:</p>
 <span>                                                 size <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-9-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-8-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As expected, spots outside tissue have a higher proportion of
 mitochondrial counts, because when the tissue is lysed, mitochondrial
 transcripts are are less likely to degrade than cytosolic transcripts as
@@ -331,7 +337,7 @@ i.e. cells with few UMI counts and a high proportion of mitochondrial
 counts.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"prop_mito"</span>, colour_by <span class="op">=</span> <span class="st">"in_tissue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-10-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-9-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>There are two clusters for the spots in tissue, which also turn out
 to be related to myofiber size. See the <a href="https://pachterlab.github.io/voyager/articles/vig2_visium.html">ESDA
 Visium vignette</a>.</p>
@@ -366,7 +372,7 @@ in that bin.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-13-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-12-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The red line, <span class="math inline">\(y = x\)</span> is what is
 expected for Poisson distributed data, but we find that the variance is
 higher for more highly expressed genes than expected from Poisson
@@ -377,7 +383,7 @@ distributed counts. The coefficient of variation shows the same.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-14-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-13-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -458,10 +464,10 @@ be aware of such differences.</p>
 <span>                     scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># scale as in Seurat</span></span></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-18-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-17-1.png" width="700" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-19-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-18-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Do the clustering to show on the dimension reduction plots</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/clusterRows.html" class="external-link">clusterRows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"PCA"</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
@@ -472,7 +478,7 @@ be aware of such differences.</p>
 <span>                                                   objective_function <span class="op">=</span> <span class="st">"modularity"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ncomponents <span class="op">=</span> <span class="fl">3</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;"></p>
 <p>The principal components (PCs) can be plotted in space. Due to
 spatial autocorrelation of many genes and spatial regions of different
 histological characters, even though spatial information is not used in
@@ -482,7 +488,7 @@ the PCA procedure, the PCs may show spatial structure.</p>
 <span>                  colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                  diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-21-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>PC1, which explains far more variance than PC2, separates the injury
 site leukocytes and myofibers close to the site from the Visium
 myofibers. PC2 highlight some myofibers near the edge. PC3 highlights
@@ -499,12 +505,12 @@ a UMAP below:</p>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/runUMAP.html" class="external-link">runUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dimred <span class="op">=</span> <span class="st">"PCA"</span>, n_dimred <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plot_reddim.html" class="external-link">plotUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-24-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-23-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>More interesting in spatial transcriptomics, is to locate the
 clusters in space, and this can be done as follows:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-25-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-24-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>While spatial information is not explicitly used in clustering, due
 to spatial autocorrelation of gene expression and the histological
 regions, some of these clusters are spatially contiguous. There are many
@@ -561,44 +567,44 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 9 columns</span></span>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
 <span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.1     AUC.2</span></span>
 <span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000049775 1.32581e-25 1.63189e-21    0.904306  0.997348  1.000000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000038642 2.16963e-25 1.63189e-21    0.899043  0.996259  1.000000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000050708 1.25372e-23 6.28659e-20    0.887002  0.999432  1.000000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000021939 3.03633e-23 1.14189e-19    0.883812  0.999953  1.000000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000029816 4.24968e-23 1.27856e-19    0.877432  0.986222  0.990808</span></span>
+<span><span class="co">#&gt; ENSMUSG00000098178 1.72680e-10 2.59763e-06    0.733936  0.733936  0.929952</span></span>
+<span><span class="co">#&gt; ENSMUSG00000028031 3.82431e-02 1.00000e+00    0.525140  0.532192  0.541237</span></span>
+<span><span class="co">#&gt; ENSMUSG00000033707 5.04184e-02 1.00000e+00    0.510309  0.510309  0.510309</span></span>
+<span><span class="co">#&gt; ENSMUSG00000090386 1.07964e-01 1.00000e+00    0.526074  0.558127  0.568649</span></span>
+<span><span class="co">#&gt; ENSMUSG00000049353 1.24405e-01 1.00000e+00    0.505155  0.505155  0.505155</span></span>
 <span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000055523           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025075           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000035818           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025094           1           1         0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5       0.5  0.493333</span></span>
-<span><span class="co">#&gt;                        AUC.3     AUC.4     AUC.5     AUC.7</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000049775  0.878925  0.904306  0.999567  0.996386</span></span>
-<span><span class="co">#&gt; ENSMUSG00000038642  0.843034  0.899043  0.998268  0.989366</span></span>
-<span><span class="co">#&gt; ENSMUSG00000050708  0.874777  0.887002  0.999784  0.998749</span></span>
-<span><span class="co">#&gt; ENSMUSG00000021939  0.849273  0.883812  1.000000  0.999166</span></span>
-<span><span class="co">#&gt; ENSMUSG00000029816  0.812971  0.877432  0.987121  0.975535</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000055523  0.497738       0.5       0.5  0.495413</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025075  0.500000       0.5       0.5  0.495413</span></span>
-<span><span class="co">#&gt; ENSMUSG00000035818  0.500000       0.5       0.5  0.495413</span></span>
-<span><span class="co">#&gt; ENSMUSG00000025094  0.497738       0.5       0.5  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000       0.5       0.5  0.500000</span></span></code></pre></div>
+<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5       0.5  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5       0.5  0.496689</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5       0.5  0.496689</span></span>
+<span><span class="co">#&gt;                        AUC.3     AUC.4     AUC.5</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000098178  0.774236  0.889009  0.909735</span></span>
+<span><span class="co">#&gt; ENSMUSG00000028031  0.526698  0.525140  0.534233</span></span>
+<span><span class="co">#&gt; ENSMUSG00000033707  0.510309  0.510309  0.510309</span></span>
+<span><span class="co">#&gt; ENSMUSG00000090386  0.526074  0.542865  0.533958</span></span>
+<span><span class="co">#&gt; ENSMUSG00000049353  0.505155  0.505155  0.505155</span></span>
+<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.500000  0.500000  0.496183</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.500000  0.500000  0.496183</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.500000  0.500000  0.492366</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228  0.477578  0.491228  0.473282</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000  0.500000</span></span></code></pre></div>
 <p>Significant markers for each cluster can be obtained as follows:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotExpression.html" class="external-link">plotExpression</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="va">genes_use</span>, <span class="st">"symbol"</span><span class="op">]</span>, x <span class="op">=</span> <span class="st">"cluster"</span>,</span>
 <span>               colour_by <span class="op">=</span> <span class="st">"cluster"</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-28-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-27-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-29-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-28-1.png" width="864" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="morans-i">Moran’s I<a class="anchor" aria-label="anchor" href="#morans-i"></a>
@@ -728,7 +734,7 @@ spatial autocorrelation in space:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-35-1.png" width="864" style="display: block; margin: auto;"></p>
+<p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-34-1.png" width="864" style="display: block; margin: auto;"></p>
 <p>These genes do indeed look spatially variable. However, such spatial
 variability can simply be due to the histological regions in space, or
 in other words, spatial distribution of different cell types. There are
@@ -761,7 +767,7 @@ Visium vignette</a>.</p>
 </h2>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
+<span><span class="co">#&gt; R version 4.2.3 (2023-03-15)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
 <span><span class="co">#&gt; Running under: macOS Big Sur ... 10.16</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -806,7 +812,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [25] xfun_0.37                     dplyr_1.1.0                  </span></span>
 <span><span class="co">#&gt;  [27] crayon_1.5.2                  RCurl_1.98-1.10              </span></span>
 <span><span class="co">#&gt;  [29] jsonlite_1.8.4                glue_1.6.2                   </span></span>
-<span><span class="co">#&gt;  [31] gtable_0.3.1                  zlibbioc_1.44.0              </span></span>
+<span><span class="co">#&gt;  [31] gtable_0.3.2                  zlibbioc_1.44.0              </span></span>
 <span><span class="co">#&gt;  [33] XVector_0.38.0                DelayedArray_0.24.0          </span></span>
 <span><span class="co">#&gt;  [35] scico_1.3.1                   BiocSingular_1.14.0          </span></span>
 <span><span class="co">#&gt;  [37] DropletUtils_1.18.1           Rhdf5lib_1.20.0              </span></span>
@@ -822,13 +828,13 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [57] ellipsis_0.3.2                wk_0.7.1                     </span></span>
 <span><span class="co">#&gt;  [59] farver_2.1.1                  pkgconfig_2.0.3              </span></span>
 <span><span class="co">#&gt;  [61] R.methodsS3_1.8.2             uwot_0.1.14                  </span></span>
-<span><span class="co">#&gt;  [63] dbplyr_2.3.1                  sass_0.4.5                   </span></span>
+<span><span class="co">#&gt;  [63] sass_0.4.5                    dbplyr_2.3.1                 </span></span>
 <span><span class="co">#&gt;  [65] deldir_1.0-6                  locfit_1.5-9.7               </span></span>
 <span><span class="co">#&gt;  [67] utf8_1.2.3                    labeling_0.4.2               </span></span>
 <span><span class="co">#&gt;  [69] AnnotationDbi_1.60.2          later_1.3.0                  </span></span>
 <span><span class="co">#&gt;  [71] tidyselect_1.2.0              rlang_1.1.0                  </span></span>
 <span><span class="co">#&gt;  [73] munsell_0.5.0                 BiocVersion_3.16.0           </span></span>
-<span><span class="co">#&gt;  [75] tools_4.2.2                   cachem_1.0.7                 </span></span>
+<span><span class="co">#&gt;  [75] tools_4.2.3                   cachem_1.0.7                 </span></span>
 <span><span class="co">#&gt;  [77] cli_3.6.0                     dbscan_1.1-11                </span></span>
 <span><span class="co">#&gt;  [79] ExperimentHub_2.6.0           generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [81] RSQLite_2.3.0                 evaluate_0.20                </span></span>
@@ -837,7 +843,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [87] bit64_4.0.5                   fs_1.6.1                     </span></span>
 <span><span class="co">#&gt;  [89] purrr_1.0.1                   s2_1.1.2                     </span></span>
 <span><span class="co">#&gt;  [91] KEGGREST_1.38.0               mime_0.12                    </span></span>
-<span><span class="co">#&gt;  [93] R.oo_1.25.0                   compiler_4.2.2               </span></span>
+<span><span class="co">#&gt;  [93] R.oo_1.25.0                   compiler_4.2.3               </span></span>
 <span><span class="co">#&gt;  [95] png_0.1-8                     interactiveDisplayBase_1.36.0</span></span>
 <span><span class="co">#&gt;  [97] filelock_1.0.2                curl_5.0.0                   </span></span>
 <span><span class="co">#&gt;  [99] beeswarm_0.4.0                e1071_1.7-13                 </span></span>
@@ -845,7 +851,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [103] bslib_0.4.2                   stringi_1.7.12               </span></span>
 <span><span class="co">#&gt; [105] highr_0.10                    desc_1.4.2                   </span></span>
 <span><span class="co">#&gt; [107] lattice_0.20-45               Matrix_1.5-3                 </span></span>
-<span><span class="co">#&gt; [109] classInt_0.4-9                vctrs_0.5.2                  </span></span>
+<span><span class="co">#&gt; [109] classInt_0.4-9                vctrs_0.6.0                  </span></span>
 <span><span class="co">#&gt; [111] pillar_1.8.1                  lifecycle_1.0.3              </span></span>
 <span><span class="co">#&gt; [113] rhdf5filters_1.10.0           BiocManager_1.30.20          </span></span>
 <span><span class="co">#&gt; [115] jquerylib_0.1.4               BiocNeighbors_1.16.0         </span></span>
@@ -857,10 +863,10 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [127] boot_1.3-28.1                 rhdf5_2.42.0                 </span></span>
 <span><span class="co">#&gt; [129] rprojroot_2.0.3               rjson_0.2.21                 </span></span>
 <span><span class="co">#&gt; [131] withr_2.5.0                   GenomeInfoDbData_1.2.9       </span></span>
-<span><span class="co">#&gt; [133] parallel_4.2.2                grid_4.2.2                   </span></span>
+<span><span class="co">#&gt; [133] parallel_4.2.3                grid_4.2.3                   </span></span>
 <span><span class="co">#&gt; [135] beachmat_2.14.0               class_7.3-21                 </span></span>
 <span><span class="co">#&gt; [137] rmarkdown_2.20                DelayedMatrixStats_1.20.0    </span></span>
-<span><span class="co">#&gt; [139] ggnewscale_0.4.8              sf_1.0-10                    </span></span>
+<span><span class="co">#&gt; [139] ggnewscale_0.4.8              sf_1.0-11                    </span></span>
 <span><span class="co">#&gt; [141] shiny_1.7.4                   ggbeeswarm_0.7.1</span></span></code></pre></div>
 </div>
 <div class="section level2">

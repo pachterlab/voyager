@@ -63,7 +63,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -79,9 +86,9 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-03-15</h4>
+            <h4 data-toc-skip class="date">2023-03-19</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/visium_10x_spatial.Rmd" class="external-link"><code>vignettes/visium_10x_spatial.Rmd</code></a></small>
       <div class="d-none name"><code>visium_10x_spatial.Rmd</code></div>
     </div>
 
@@ -97,7 +104,7 @@ vignette, we perform spatial analyses in histological space as well as
 in gene expression space.</p>
 <p>Here we load the packages used in this vignette:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -338,7 +345,7 @@ fine here for the downsized image.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">img</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/io.html" class="external-link">readImage</a></span><span class="op">(</span><span class="st">"outs/spatial/tissue_hires_image.png"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">img</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>When rendered as a static webpage, the image is static, but when run
 interactively, this image will be shown in an interactive widget where
 you can zoom and pan.</p>
@@ -347,10 +354,10 @@ you can zoom and pan.</p>
 <code class="sourceCode R"><span><span class="va">img2</span> <span class="op">&lt;-</span> <span class="va">img</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/Image.html" class="external-link">colorMode</a></span><span class="op">(</span><span class="va">img2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">Grayscale</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">img2</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">img</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>The tissue can be discerned with thresholding. The tall peak on the
 right is the background. The much lower peaks from around 0.6 to 0.85
 must be the tissue. To capture the faint bluish region, the blue channel
@@ -359,20 +366,20 @@ histogram and experimenting with nearby values.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="va">img2</span><span class="op">[</span>,,<span class="fl">3</span><span class="op">]</span> <span class="op">&lt;</span> <span class="fl">0.87</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">mask</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Then we use an opening operation (erosion followed by dilation) to
 denoise</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kern</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/morphology.html" class="external-link">makeBrush</a></span><span class="op">(</span><span class="fl">3</span>, shape<span class="op">=</span><span class="st">'disc'</span><span class="op">)</span></span>
 <span><span class="va">mask_open</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/morphology.html" class="external-link">opening</a></span><span class="op">(</span><span class="va">mask</span>, <span class="va">kern</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">mask_open</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>There are some small holes in the tissue, which can be removed by a
 closing operation (dilation followed by erosion):</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mask_close</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/morphology.html" class="external-link">closing</a></span><span class="op">(</span><span class="va">mask_open</span>, <span class="va">kern</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">mask_close</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 <p>There are some larger holes in the tissue mask, which may be real
 holes or faint regions with few nuclei missed by thresholding. They
 might not be large enough to affect which Visium spots intersect the
@@ -418,7 +425,7 @@ features (e.g. perimeter) of each object.</p>
 <span><span class="va">mask_label</span><span class="op">[</span><span class="va">row_inds</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="va">mask_label</span><span class="op">[</span>,<span class="va">col_inds</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">mask_label</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>Then remove the small pieces that are debris.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">mask_label</span><span class="op">)</span><span class="op">)</span></span>
@@ -430,7 +437,7 @@ features (e.g. perimeter) of each object.</p>
 <span><span class="va">fts2</span> <span class="op">&lt;-</span> <span class="va">fts2</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">fts2</span><span class="op">[</span>,<span class="st">"s.area"</span><span class="op">]</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fts2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, ylab <span class="op">=</span> <span class="st">"Area"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fts2</span>, <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     s.area s.perimeter s.radius.mean s.radius.sd s.radius.min s.radius.max</span></span>
@@ -460,7 +467,7 @@ by thresholding, the holes will be filled</p>
 <code class="sourceCode R"><span><span class="va">mask_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/fillHull.html" class="external-link">fillHull</a></span><span class="op">(</span><span class="va">mask_label</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/paintObjects.html" class="external-link">paintObjects</a></span><span class="op">(</span><span class="va">mask_label</span>, <span class="va">img</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"yellow"</span><span class="op">)</span>, opac<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 <p>This segmentation process took a lot of manual oversight, in choosing
 the threshold, choosing kernel size and shape in the opening and closing
 operations, deciding whether to fill the holes, and deciding what is
@@ -469,7 +476,7 @@ debris and what is tissue.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mask_label</span> <span class="op">&lt;-</span> <span class="fu">EBImage</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/spatial.html" class="external-link">rotate</a></span><span class="op">(</span><span class="va">mask_label</span>, <span class="fl">270</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/EBImage/man/display.html" class="external-link">display</a></span><span class="op">(</span><span class="va">mask_label</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="convert-tissue-mask-to-polygon">Convert tissue mask to polygon<a class="anchor" aria-label="anchor" href="#convert-tissue-mask-to-polygon"></a>
@@ -509,7 +516,7 @@ to match the coordinates of the spots</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"sum"</span>, annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>, </span>
 <span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-35-1.png" width="700"></p>
 <p>Then we can use geometric operations to find which spots intersect
 tissue, which spots are covered by tissue, and how much of each spot
 intersects tissue.</p>
@@ -535,7 +542,7 @@ based on tissue segmentation here:</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
 <span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
 <p>Spots at the margin can intersect the tissue without being covered by
 it.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
@@ -544,7 +551,7 @@ it.</p>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>, </span>
 <span>                   annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="cn">NA</span>, size <span class="op">=</span> <span class="fl">0.5</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
 <p>We can also get the geometries of the intersections between the
 tissue and the Visium spots, and then calculate what percentage of each
 spot is in tissue. However, this percentage may not be very useful if
@@ -562,7 +569,7 @@ percentage of the spot in tissue?</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, x <span class="op">=</span> <span class="st">"pct_tissue"</span>, y <span class="op">=</span> <span class="st">"sum"</span>, subset <span class="op">=</span> <span class="st">"diff_int_cov"</span>,</span>
 <span>                name_true <span class="op">=</span> <span class="st">"Not covered"</span>, name_false <span class="op">=</span> <span class="st">"Covered"</span>, bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-41-1.png" width="700"></p>
 <p>Spots that are not fully covered by tissue have lower total UMI
 counts, which can be due to both that they are not fully in tissue and
 the cell types with lower total counts in the histological region near
@@ -580,13 +587,13 @@ counts.</p>
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran.mc"</span>, <span class="va">qc_features</span>, nsim <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMoranMC.html">plotMoranMC</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-44-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-45-1.png" width="700"></p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"sp.correlogram"</span>, <span class="va">qc_features</span>,</span>
 <span>                                order <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotCorrelogram.html">plotCorrelogram</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-46-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-47-1.png" width="700"></p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localmoran"</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
@@ -594,19 +601,19 @@ counts.</p>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-48-1.png" width="768"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-49-1.png" width="768"></p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH"</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH"</span>, <span class="va">qc_features</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-50-1.png" width="768"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-51-1.png" width="768"></p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran.plot"</span>, <span class="va">qc_features</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"subsets_mito_percent"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-52-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-53-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="spatial-autocorrelation-of-gene-expression">Spatial autocorrelation of gene expression<a class="anchor" aria-label="anchor" href="#spatial-autocorrelation-of-gene-expression"></a>
@@ -627,7 +634,7 @@ variable genes</p>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotRowDataHistogram</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran_sample01"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 30285 rows containing non-finite values (`stat_bin()`).</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-56-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-57-1.png" width="700"></p>
 <p>The vast majority of genes have positive Moran’s I. Here we plot the
 genes with the highest Moran’s I.</p>
 <div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
@@ -635,7 +642,7 @@ genes with the highest Moran’s I.</p>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-58-1.png" width="864"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-59-1.png" width="864"></p>
 <p>Here global Moran’s I seems to be more about tissue structure.</p>
 <p>Some genes have negative Moran’s I that might not be statistically
 significant</p>
@@ -644,13 +651,13 @@ significant</p>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">neg_moran</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-60-1.png" width="864"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-61-1.png" width="864"></p>
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"moran.mc"</span>, <span class="va">neg_moran</span>, </span>
 <span>                            colGraphName <span class="op">=</span> <span class="st">"visium"</span>, nsim <span class="op">=</span> <span class="fl">200</span>, alternative <span class="op">=</span> <span class="st">"less"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMoranMC.html">plotMoranMC</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">neg_moran</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-62-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-63-1.png" width="700"></p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">[</span><span class="va">neg_moran</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"moran_sample01"</span>, <span class="st">"moran.mc_p.value_sample01"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; DataFrame with 9 rows and 2 columns</span></span>
@@ -687,7 +694,7 @@ longer be significant after correcting for multiple testing.</p>
 <span><span class="co">#&gt; Warning: Removed 30285 rows containing non-finite values</span></span>
 <span><span class="co">#&gt; (`stat_density2d()`).</span></span>
 <span><span class="co">#&gt; Warning: Removed 30285 rows containing missing values (`geom_point()`).</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-65-1.png" width="700"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-66-1.png" width="700"></p>
 <p>Genes that are more highly expressed overall tend to have higher
 Moran’s I.</p>
 </div>
@@ -738,7 +745,7 @@ than in histological space:</p>
 <span>                                        decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">top_moran2</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-71-1.png" width="864"></p>
+<p><img src="visium_10x_spatial_files/figure-html/unnamed-chunk-72-1.png" width="864"></p>
 <p>Although this Moran’s I was not computed in histological space, these
 genes with the highest Moran’s I in PCA space also show spatial
 structure, as different cell types reside in different spatial
@@ -749,7 +756,7 @@ regions.</p>
 </h2>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
+<span><span class="co">#&gt; R version 4.2.3 (2023-03-15)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
 <span><span class="co">#&gt; Running under: macOS Big Sur ... 10.16</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -767,7 +774,7 @@ regions.</p>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] BiocNeighbors_1.16.0           BiocParallel_1.32.5           </span></span>
 <span><span class="co">#&gt;  [3] dplyr_1.1.0                    rmapshaper_0.4.6              </span></span>
-<span><span class="co">#&gt;  [5] sf_1.0-10                      rlang_1.1.0                   </span></span>
+<span><span class="co">#&gt;  [5] sf_1.0-11                      rlang_1.1.0                   </span></span>
 <span><span class="co">#&gt;  [7] terra_1.7-18                   EBImage_4.40.0                </span></span>
 <span><span class="co">#&gt;  [9] rjson_0.2.21                   bluster_1.8.0                 </span></span>
 <span><span class="co">#&gt; [11] patchwork_1.1.2                stringr_1.5.0                 </span></span>
@@ -782,7 +789,7 @@ regions.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] systemfonts_1.0.4         igraph_1.4.1             </span></span>
-<span><span class="co">#&gt;   [3] lazyeval_0.2.2            splines_4.2.2            </span></span>
+<span><span class="co">#&gt;   [3] lazyeval_0.2.2            splines_4.2.3            </span></span>
 <span><span class="co">#&gt;   [5] sp_1.6-0                  jqr_1.2.3                </span></span>
 <span><span class="co">#&gt;   [7] geojsonlint_0.4.0         digest_0.6.31            </span></span>
 <span><span class="co">#&gt;   [9] htmltools_0.5.4           viridis_0.6.2            </span></span>
@@ -796,7 +803,7 @@ regions.</p>
 <span><span class="co">#&gt;  [25] ggrepel_0.9.3             jsonvalidate_1.3.2       </span></span>
 <span><span class="co">#&gt;  [27] textshaping_0.3.6         xfun_0.37                </span></span>
 <span><span class="co">#&gt;  [29] RCurl_1.98-1.10           jsonlite_1.8.4           </span></span>
-<span><span class="co">#&gt;  [31] glue_1.6.2                gtable_0.3.1             </span></span>
+<span><span class="co">#&gt;  [31] glue_1.6.2                gtable_0.3.2             </span></span>
 <span><span class="co">#&gt;  [33] zlibbioc_1.44.0           XVector_0.38.0           </span></span>
 <span><span class="co">#&gt;  [35] DelayedArray_0.24.0       V8_4.2.2                 </span></span>
 <span><span class="co">#&gt;  [37] scico_1.3.1               BiocSingular_1.14.0      </span></span>
@@ -815,7 +822,7 @@ regions.</p>
 <span><span class="co">#&gt;  [63] deldir_1.0-6              crul_1.3                 </span></span>
 <span><span class="co">#&gt;  [65] locfit_1.5-9.7            utf8_1.2.3               </span></span>
 <span><span class="co">#&gt;  [67] labeling_0.4.2            tidyselect_1.2.0         </span></span>
-<span><span class="co">#&gt;  [69] munsell_0.5.0             tools_4.2.2              </span></span>
+<span><span class="co">#&gt;  [69] munsell_0.5.0             tools_4.2.3              </span></span>
 <span><span class="co">#&gt;  [71] cachem_1.0.7              cli_3.6.0                </span></span>
 <span><span class="co">#&gt;  [73] dbscan_1.1-11             generics_0.1.3           </span></span>
 <span><span class="co">#&gt;  [75] evaluate_0.20             fastmap_1.1.1            </span></span>
@@ -824,14 +831,14 @@ regions.</p>
 <span><span class="co">#&gt;  [81] fs_1.6.1                  purrr_1.0.1              </span></span>
 <span><span class="co">#&gt;  [83] s2_1.1.2                  nlme_3.1-162             </span></span>
 <span><span class="co">#&gt;  [85] sparseMatrixStats_1.10.0  R.oo_1.25.0              </span></span>
-<span><span class="co">#&gt;  [87] compiler_4.2.2            curl_5.0.0               </span></span>
+<span><span class="co">#&gt;  [87] compiler_4.2.3            curl_5.0.0               </span></span>
 <span><span class="co">#&gt;  [89] beeswarm_0.4.0            png_0.1-8                </span></span>
 <span><span class="co">#&gt;  [91] e1071_1.7-13              tibble_3.2.0             </span></span>
 <span><span class="co">#&gt;  [93] statmod_1.5.0             bslib_0.4.2              </span></span>
 <span><span class="co">#&gt;  [95] stringi_1.7.12            highr_0.10               </span></span>
 <span><span class="co">#&gt;  [97] desc_1.4.2                lattice_0.20-45          </span></span>
 <span><span class="co">#&gt;  [99] Matrix_1.5-3              classInt_0.4-9           </span></span>
-<span><span class="co">#&gt; [101] vctrs_0.5.2               pillar_1.8.1             </span></span>
+<span><span class="co">#&gt; [101] vctrs_0.6.0               pillar_1.8.1             </span></span>
 <span><span class="co">#&gt; [103] lifecycle_1.0.3           rhdf5filters_1.10.0      </span></span>
 <span><span class="co">#&gt; [105] jquerylib_0.1.4           cowplot_1.1.1            </span></span>
 <span><span class="co">#&gt; [107] geojsonio_0.11.0          bitops_1.0-7             </span></span>
@@ -842,8 +849,8 @@ regions.</p>
 <span><span class="co">#&gt; [117] rhdf5_2.42.0              rprojroot_2.0.3          </span></span>
 <span><span class="co">#&gt; [119] httpcode_0.3.0            withr_2.5.0              </span></span>
 <span><span class="co">#&gt; [121] GenomeInfoDbData_1.2.9    mgcv_1.8-42              </span></span>
-<span><span class="co">#&gt; [123] geojson_0.3.4             parallel_4.2.2           </span></span>
-<span><span class="co">#&gt; [125] grid_4.2.2                beachmat_2.14.0          </span></span>
+<span><span class="co">#&gt; [123] geojson_0.3.4             parallel_4.2.3           </span></span>
+<span><span class="co">#&gt; [125] grid_4.2.3                beachmat_2.14.0          </span></span>
 <span><span class="co">#&gt; [127] class_7.3-21              rmarkdown_2.20           </span></span>
 <span><span class="co">#&gt; [129] DelayedMatrixStats_1.20.0 ggnewscale_0.4.8         </span></span>
 <span><span class="co">#&gt; [131] ggbeeswarm_0.7.1</span></span></code></pre></div>
