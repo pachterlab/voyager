@@ -450,7 +450,7 @@ test_that("colData and rowData histograms", {
         plotColDataHistogram(sfe_cosmx, c("nCounts", "nGenes"))
     })
     expect_doppelganger("One variable, fill_by", {
-        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg", 
+        plotRowDataHistogram(sfe_cosmx, "means", fill_by = "is_neg",
                              position = "stack")
     })
     expect_doppelganger("Multiple variables, fill_by", {
