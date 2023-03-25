@@ -53,6 +53,8 @@ system("apt-get install -y libfftw3-dev libprotobuf-dev")
 BiocManager::install("EBImage")
 BiocManager::install("terra")
 BiocManager::install("rmapshaper")
+system("pip install gget")
+install.packages("reticulate")
 
 packageVersion("Voyager")
 ```
@@ -81,6 +83,8 @@ library(rmapshaper)
 library(dplyr)
 library(BiocParallel)
 library(BiocNeighbors)
+library(reticulate)
+gget <- import("gget")
 theme_set(theme_bw())
 ```
 
@@ -427,6 +431,12 @@ top_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 plotSpatialFeature(sfe_tissue, top_moran, ncol = 3) & theme_void()
 ```
 
+We can use the package [gget](https://pachterlab.github.io/gget/) to get additional information on these genes:
+```{r}
+gget_info <- gget$info(top_moran)
+select(gget_info, primary_gene_name, ncbi_description)
+```
+
 Here global Moran's I seems to be more about tissue structure. 
 
 Some genes have negative Moran's I that might not be statistically significant
@@ -438,6 +448,11 @@ neg_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 
 ```{r, fig.width=9, fig.height=6}
 plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3) & theme_void()
+```
+
+```{r}
+gget_info_neg <- gget$info(neg_moran)
+select(gget_info_neg, primary_gene_name, ncbi_description)
 ```
 
 ```{r}
@@ -521,6 +536,11 @@ plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3) & theme_void()
 ```
 
 Although this Moran's I was not computed in histological space, these genes with the highest Moran's I in PCA space also show spatial structure, as different cell types reside in different spatial regions.
+
+```{r}
+gget_info2 <- gget$info(top_moran2)
+select(gget_info2, primary_gene_name, ncbi_description)
+```
 
 # Session info
 
