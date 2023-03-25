@@ -86,7 +86,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-03-23</h4>
+            <h4 data-toc-skip class="date">2023-03-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -281,7 +281,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  35.448   1.435  36.948</span></span></code></pre>
+<span><span class="co">#&gt;  29.057   1.168  30.283</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -293,7 +293,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.703   0.248   1.952</span></span></code></pre>
+<span><span class="co">#&gt;   1.567   0.222   1.797</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -684,7 +684,7 @@ inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 446.952   1.002 447.197</span></span></code></pre></div>
+<span><span class="co">#&gt; 366.185   0.845 367.914</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -726,7 +726,7 @@ for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 187.634   2.119 190.140</span></span></code></pre></div>
+<span><span class="co">#&gt; 154.591   2.064 157.049</span></span></code></pre></div>
 <p>This took about half the time compared to <code>spdep</code>, so we
 will formalize it and add it to the next release. This is not
 necessarily due to Annoy by itself being faster than the kd tree method
@@ -794,7 +794,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 240.913  23.733 145.520</span></span></code></pre></div>
+<span><span class="co">#&gt; 211.311  19.865 128.127</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1052,11 +1052,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  30.289   2.203  32.564</span></span>
+<span><span class="co">#&gt;  25.553   1.789  27.426</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19448441 1038.7   30409814 1624.1         NA  30409814 1624.1</span></span>
-<span><span class="co">#&gt; Vcells 261662899 1996.4  585212236 4464.9      16384 585048170 4463.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19448398 1038.7   30409784 1624.1         NA  30409784 1624.1</span></span>
+<span><span class="co">#&gt; Vcells 261662828 1996.4  585212151 4464.9      16384 585048099 4463.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1193,7 +1193,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.0.3 automap_1.1-1                 </span></span>
+<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.0.3 automap_1.1-9                 </span></span>
 <span><span class="co">#&gt;  [3] BiocNeighbors_1.16.0           gstat_2.1-0                   </span></span>
 <span><span class="co">#&gt;  [5] BiocSingular_1.14.0            BiocParallel_1.32.6           </span></span>
 <span><span class="co">#&gt;  [7] spdep_1.2-8                    sf_1.0-12                     </span></span>
@@ -1251,7 +1251,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [79] xtable_1.8-4                  gridExtra_2.3                </span></span>
 <span><span class="co">#&gt;  [81] compiler_4.2.3                tibble_3.2.1                 </span></span>
 <span><span class="co">#&gt;  [83] KernSmooth_2.23-20            crayon_1.5.2                 </span></span>
-<span><span class="co">#&gt;  [85] R.oo_1.25.0                   htmltools_0.5.4              </span></span>
+<span><span class="co">#&gt;  [85] R.oo_1.25.0                   htmltools_0.5.5              </span></span>
 <span><span class="co">#&gt;  [87] later_1.3.0                   DBI_1.1.3                    </span></span>
 <span><span class="co">#&gt;  [89] ExperimentHub_2.6.0           dbplyr_2.3.2                 </span></span>
 <span><span class="co">#&gt;  [91] rappdirs_0.3.3                boot_1.3-28.1                </span></span>
