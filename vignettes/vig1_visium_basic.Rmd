@@ -48,6 +48,9 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
+# Additional dependencies for this notebook
+install.packages("reticulate")
+
 packageVersion("Voyager")
 ```
 
@@ -75,6 +78,11 @@ library(BiocParallel)
 library(stringr)
 library(ggplot2)
 library(sparseMatrixStats)
+library(dplyr)
+library(reticulate)
+use_virtualenv("r-reticulate")
+reticulate::py_install("gget", envname="r-reticulate", pip=TRUE)
+gget <- import("gget")
 theme_set(theme_bw(10))
 ```
 
@@ -294,11 +302,66 @@ The result is sorted by p-values:
 markers[[6]]
 ```
 
+We can use the [gget enrichr](https://pachterlab.github.io/gget/enrichr.html) module from the [gget](https://pachterlab.github.io/gget/) package to perform a gene enrichment analysis. You can choose from >200 enrichment databases which are listed on the [Enrichr website](https://maayanlab.cloud/Enrichr/#libraries). Here, we are analyzing the top 20 genes for cluster 1 using the default ontology database [GO_Biological_Process_2021](http://geneontology.org/):
+```{r}
+enrichr_genes <- rownames(markers[[1]])[1:20]
+gget_e <- gget$enrichr(enrichr_genes, ensembl=TRUE, database = "ontology")
+
+# Plot results of gene enrichment analysis
+# Count number of overlapping genes
+gget_e$overlapping_genes_count <- lapply(gget_e$overlapping_genes, length) |> as.numeric()
+# Only keep the top 10 results
+gget_e <- gget_e[1:10,]
+gget_e |>
+    ggplot() +
+    geom_bar(aes(
+        x = -log10(adj_p_val),
+        y = reorder(path_name, -adj_p_val)
+    ),
+    stat = "identity",
+  	fill = "lightgrey",
+  	width = 0.5,
+    color = "black") +
+    geom_text(
+        aes(
+            y = path_name,
+            x = (-log10(adj_p_val)),
+            label = overlapping_genes_count
+        ),
+        nudge_x = 0.25,
+        show.legend = NA,
+        color = "red"
+    ) +
+  	geom_text(
+        aes(
+            y = Inf,
+            x = Inf,
+      			hjust = 1,
+      			vjust = 1,
+            label = "# of overlapping genes"
+        ),
+        show.legend = NA,
+        size=4,
+        color = "red"
+    ) +
+    geom_vline(linetype = "dashed", linewidth = 0.5, xintercept = -log10(0.05)) +
+    ylab("Pathway name") +
+    xlab("-log10(adjusted P value)")
+```
+
 Significant markers for each cluster can be obtained as follows:
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
 plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluster",
                colour_by = "cluster", swap_rownames = "symbol")
+```
+
+We'll use the module [gget info](https://pachterlab.github.io/gget/info.html) to get additional information on these genes, such as their descriptions, synonyms, transcripts and more from a collection of reference databases including [Ensembl](https://ensembl.org/), [UniProt](https://www.uniprot.org/), and [NCBI](https://www.ncbi.nlm.nih.gov/). Here, we are showing their gene descriptions from [NCBI](https://www.ncbi.nlm.nih.gov/):
+```{r}
+gget_info <- gget$info(genes_use)
+
+rownames(gget_info) <- gget_info$primary_gene_name
+select(gget_info, ncbi_description)
 ```
 
 These genes are interesting to view in spatial context:
@@ -320,14 +383,13 @@ $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
 $$
 
-where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood. 
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood.
 
 Moran's I is similar to the Pearson correlation between the value at each location and the average value at its neighbors (but not identical, see [@Lee2001-tm]). Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
 Spatial dependence analysis in `spdep` requires a spatial neighborhood graph. The graph for adjacent Visium spot can be found with
 ```{r}
 colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
 ```
-
 
 We mentioned that spatial autocorrelation is apparent in total UMI counts. Here's what Moran's I shows:
 ```{r}
@@ -338,7 +400,7 @@ calculateMoransI(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]),
 K means kurtosis. The positive values of Moran's I indicate positive spatial autocorrelation.
 
 ## Spatially variable genes
-A spatially variable gene is a gene whose expression depends on spatial locations, rather than being spatially random, like salt grains spread on a soup. Spatially variable genes can be identified by spatial autocorrelation signatures, and sometimes Moran's I is used to compare and assess spatially variable genes identified with different methods. Below `BPPARAM` is used to parallelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
+A spatially variable gene is a gene whose expression depends on spatial locations, rather than being spatially random, like salt grains spread on a soup. Spatially variable genes can be identified by spatial autocorrelation signatures, and sometimes Moran's I is used to compare and assess spatially variable genes identified with different methods. Below `BPPARAM` is used to paralelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
 
 ```{r}
 sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, colGraphName = "visium",
@@ -358,7 +420,17 @@ ord <- order(df$moran_Vis5A, decreasing = TRUE)
 df[ord, c("symbol", "moran_Vis5A")]
 ```
 
-We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation. We can plot the genes with the strongest positive spatial autocorrelation in space:
+We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation.
+
+Let's get some additional information on the genes with the strongest positive spatial autocorrelation in space using [gget info](https://pachterlab.github.io/gget/info.html) as above:
+```{r}
+gget_info2 <- gget$info(rownames(df)[1:6])
+
+rownames(gget_info2) <- gget_info2$primary_gene_name
+select(gget_info2, ncbi_description)
+```
+
+Let's plot these genes:
 ```{r, fig.width=9, fig.height=6}
 plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") &
     theme_void()
