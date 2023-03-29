@@ -220,7 +220,7 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
                                bins = bins,
                                binwidth = binwidth, position = position)
         }
-        p
+        p + scale_fill_manual(values = ditto_colors)
     }
 }
 
