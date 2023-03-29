@@ -23,7 +23,7 @@
 \S4method{calculateUnivariate}{ANY,SFEMethod}(
   x,
   type,
-  listw,
+  listw = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
@@ -35,7 +35,7 @@
 \S4method{calculateUnivariate}{ANY,character}(
   x,
   type,
-  listw,
+  listw = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,

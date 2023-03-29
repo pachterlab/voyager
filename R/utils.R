@@ -307,3 +307,11 @@
     reducedDim(sfe, dimred) <- rd
     sfe
 }
+
+# As in MatrixExtra, only for Csparse for now
+.empty_dgc <- function(nrow, ncol) {
+    out <- new("dgCMatrix")
+    out@Dim <- as.integer(c(nrow, ncol))
+    out@p <- integer(ncol+1L)
+    out
+}

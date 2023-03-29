@@ -158,10 +158,10 @@ moran.plot <- SFEMethod(
 )
 
 # Multivariate
-localC_multi <- SFEMethod(
-    c(name = "localC_multi", title = "Multivariate local Geary's C",
-      package = "spdep", variate = "multi", scope = "local",
-      default_attr = "localC"),
-    fun = spdep::localC, # need to write my own wrapper
-    reorganize_fun = .to_df_identity
-)
+#localC_multi <- SFEMethod(
+#    c(name = "localC_multi", title = "Multivariate local Geary's C",
+#      package = "spdep", variate = "multi", scope = "local",
+#      default_attr = "localC"),
+#    fun = spdep::localC, # need to write my own wrapper
+#    reorganize_fun = .to_df_identity
+#)

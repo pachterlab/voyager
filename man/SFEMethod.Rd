@@ -9,14 +9,25 @@
 \alias{info}
 \alias{is_local}
 \alias{reorganize_fun}
+\alias{is_joint}
+\alias{use_graph}
 \alias{info,SFEMethod-method}
 \alias{is_local,SFEMethod-method}
 \alias{fun,SFEMethod-method}
 \alias{reorganize_fun,SFEMethod-method}
 \alias{args_not_check,SFEMethod-method}
+\alias{is_joint,SFEMethod-method}
+\alias{use_graph,SFEMethod-method}
 \title{SFEMethod class}
 \usage{
-SFEMethod(info, fun, reorganize_fun, args_not_check = NA_character_)
+SFEMethod(
+  info,
+  fun,
+  reorganize_fun,
+  args_not_check = NA,
+  joint = FALSE,
+  use_graph = TRUE
+)
 
 \S4method{info}{SFEMethod}(x, type)
 
@@ -27,6 +38,10 @@ SFEMethod(info, fun, reorganize_fun, args_not_check = NA_character_)
 \S4method{reorganize_fun}{SFEMethod}(x)
 
 \S4method{args_not_check}{SFEMethod}(x)
+
+\S4method{is_joint}{SFEMethod}(x)
+
+\S4method{use_graph}{SFEMethod}(x)
 }
 \arguments{
 \item{info}{See slot documentation}
@@ -35,7 +50,19 @@ SFEMethod(info, fun, reorganize_fun, args_not_check = NA_character_)
 
 \item{reorganize_fun}{See Details.}
 
-\item{args_not_check}{See slot documentation.}
+\item{args_not_check}{A character vector indicating which argument are not to
+be checked when comparing parameters in with those of a previous run.}
+
+\item{joint}{Logical, whether it makes sense to run this method to multiple
+samples jointly. If \code{TRUE}, then \code{fun} must be able to handle an
+adjacency matrix for the \code{listw} argument because there's no
+straightforward way to concatenate \code{listw} objects from multiple
+samples.}
+
+\item{use_graph}{Logical, to indicate whether the method uses a spatial
+neighborhood graph because unifying the user facing functions have an
+argument asking for the graph as most though not all methods require the
+graph.}
 
 \item{x}{A \code{SFEMethod} object}
 
@@ -43,7 +70,7 @@ SFEMethod(info, fun, reorganize_fun, args_not_check = NA_character_)
 }
 \value{
 The constructor returns a \code{SFEMethod} object. The getters return
-the content of the corresponding slots.
+  the content of the corresponding slots.
 }
 \description{
 This S4 class is used to wrap spatial analysis methods, taking inspiration
@@ -109,11 +136,10 @@ plotting.}
 
 \item{\code{fun}}{The function implementing the method. See Details.}
 
-\item{\code{reorganize_fun}}{Function to convert output from \code{fun} into a format to
-store in the SFE object. See Details.}
+\item{\code{reorganize_fun}}{Function to convert output from \code{fun} into a format
+to store in the SFE object. See Details.}
 
-\item{\code{arts_not_check}}{A character vector specifying which arguments in
-\code{fun} should not be checked when comparing parameters used in results.
-Defaults to NA, meaning all arguments are checked.}
+\item{\code{misc}}{Miscellaneous information on how the method interacts with the
+rest of the package. This should be a named list.}
 }}
 

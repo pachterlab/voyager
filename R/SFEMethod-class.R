@@ -57,28 +57,38 @@
 #' plotting.}
 #' }
 #' @slot fun The function implementing the method. See Details.
-#' @slot reorganize_fun Function to convert output from \code{fun} into a format to
-#'   store in the SFE object. See Details.
-#' @slot arts_not_check A character vector specifying which arguments in
-#' \code{fun} should not be checked when comparing parameters used in results.
-#' Defaults to NA, meaning all arguments are checked.
+#' @slot reorganize_fun Function to convert output from \code{fun} into a format
+#'   to store in the SFE object. See Details.
+#' @slot misc Miscellaneous information on how the method interacts with the
+#'   rest of the package. This should be a named list.
 #'
 #' @param info See slot documentation
 #' @param fun See Details.
 #' @param reorganize_fun See Details.
 #' @param x A \code{SFEMethod} object
 #' @param type One of the names of the \code{info} slot, see slot documentation.
-#' @param args_not_check See slot documentation.
+#' @param args_not_check A character vector indicating which argument are not to
+#'   be checked when comparing parameters in with those of a previous run.
+#' @param joint Logical, whether it makes sense to run this method to multiple
+#'   samples jointly. If \code{TRUE}, then \code{fun} must be able to handle an
+#'   adjacency matrix for the \code{listw} argument because there's no
+#'   straightforward way to concatenate \code{listw} objects from multiple
+#'   samples.
+#' @param use_graph Logical, to indicate whether the method uses a spatial
+#'   neighborhood graph because unifying the user facing functions have an
+#'   argument asking for the graph as most though not all methods require the
+#'   graph.
 #' @return The constructor returns a \code{SFEMethod} object. The getters return
-#' the content of the corresponding slots.
+#'   the content of the corresponding slots.
 #'
 #' @name SFEMethod
 #' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
+#'   is_joint use_graph
 setClass("SFEMethod", slots = c(
     info = "character",
     fun = "function",
     reorganize_fun = "function",
-    args_not_check = "character"
+    misc = "list"
 ))
 
 .valid_SFEMethod <- function(object) {
@@ -96,10 +106,15 @@ setClass("SFEMethod", slots = c(
         return(paste("Field 'scope' in slot `info` must be one of",
                      paste(scopes, collapse = " and ")))
     }
-    if (object@info["variate"] == "uni") {
-        fm <- names(formals(object@fun))
+    fm <- names(formals(object@fun))
+    if (object@misc[["use_graph"]]) {
         if (!identical(fm[seq_len(2)], c("x", "listw")))
             outs <- c(outs, "The first two arguments of slot `fun` must be 'x' and 'listw'")
+    } else {
+        if (fm[1] != "x")
+            outs <- c(outs, "The first argument of slot `fun` must be 'x'")
+    }
+    if (object@info["variate"] == "uni") {
         if (!"zero.policy" %in% fm)
             outs <- c(outs, "zero.policy must be an argument of slot `fun`")
         if (object@info["scope"] == "global") {
@@ -121,9 +136,10 @@ setValidity("SFEMethod", .valid_SFEMethod)
 #' @export
 #' @rdname SFEMethod
 SFEMethod <- function(info, fun, reorganize_fun,
-                      args_not_check = NA_character_) {
+                      args_not_check = NA, joint = FALSE, use_graph = TRUE) {
     new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun,
-        args_not_check = args_not_check)
+        misc = list(args_not_check = args_not_check, joint = joint,
+                    use_graph = use_graph))
 }
 
 #' @export
@@ -146,4 +162,12 @@ setMethod("reorganize_fun", "SFEMethod", function(x) x@reorganize_fun)
 
 #' @export
 #' @rdname SFEMethod
-setMethod("args_not_check", "SFEMethod", function(x) x@args_not_check)
+setMethod("args_not_check", "SFEMethod", function(x) x@misc[["args_not_check"]])
+
+#' @export
+#' @rdname SFEMethod
+setMethod("is_joint", "SFEMethod", function(x) x@misc[["is_joint"]])
+
+#' @export
+#' @rdname SFEMethod
+setMethod("use_graph", "SFEMethod", function(x) x@misc[["use_graph"]])

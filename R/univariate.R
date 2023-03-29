@@ -204,7 +204,7 @@ NULL
 #' @export
 setMethod(
     "calculateUnivariate", c("ANY", "SFEMethod"),
-    function(x, type, listw,
+    function(x, type, listw = NULL,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
              name = NULL, ...) {
@@ -218,10 +218,6 @@ setMethod(
         )
         all_args <- c(all_args, other_args)
         out <- do.call(.calc_univar, all_args)
-        params <- list(graph_params = attr(listw, "method"),
-                       method_params = c(info(type, c("name", "package")),
-                                         zero.policy = zero.policy,
-                                         other_args))
         if (returnDF) {
             if (is_local(type)) {
                 out <- reorganize_fun(type)(out, nb = listw$neighbours,
@@ -240,7 +236,7 @@ setMethod(
 #' @export
 setMethod(
     "calculateUnivariate", c("ANY", "character"),
-    function(x, type, listw,
+    function(x, type, listw = NULL,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
              name = NULL, ...) {

@@ -7,8 +7,8 @@ setGeneric("calculateMoransI", function(x, ...) standardGeneric("calculateMorans
 # @export
 # setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
 
-# @export
-# setGeneric("calculateMultivariate", function(x, ...) standardGeneric("calculateMultivariate"))
+#' @export
+setGeneric("calculateMultivariate", function(x, type, ...) standardGeneric("calculateMultivariate"))
 
 #' @export
 setGeneric("info", function(x, type) standardGeneric("info"))
@@ -24,3 +24,9 @@ setGeneric("is_local", function(x) standardGeneric("is_local"))
 
 #' @export
 setGeneric("args_not_check", function(x) standardGeneric("args_not_check"))
+
+#' @export
+setGeneric("is_joint", function(x) standardGeneric("is_joint"))
+
+#' @export
+setGeneric("use_graph", function(x) standardGeneric("use_graph"))

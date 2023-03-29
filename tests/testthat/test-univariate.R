@@ -393,3 +393,5 @@ test_that("Univariate global results corrected added after already running for s
     fd <- reducedDimFeatureData(sfe, "PCA")
     expect_true("sp.correlogram_I_Vis5A" %in% names(fd))
 })
+
+# to do: gstat, univariate method not using listw

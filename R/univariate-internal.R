@@ -1,11 +1,5 @@
 # Internal function for univariate metrics
 .calc_univar <- function(x, listw, fun, BPPARAM, ...) {
-    #if (is.null(listw)) {
-    #    stop("The graph specified is absent from the SFE object.")
-    #}
-    #if (is.vector(x)) {
-    #    x <- matrix(x, nrow = 1)
-    #}
     if (is(x, "DFrame") || is.data.frame(x)) {
         if (is(x, "sf")) x <- st_drop_geometry(x)
         x <- t(as.matrix(x))
@@ -13,9 +7,15 @@
             stop("Only numeric columns without NA (within the sample_id) can be used.")
         }
     }
-    out <- bplapply(seq_len(nrow(x)), function(i) {
-        fun(x[i, ], listw, ...)
-    }, BPPARAM = BPPARAM)
+    if ("listw" %in% names(formals(fun))) {
+        out <- bplapply(seq_len(nrow(x)), function(i) {
+            fun(x[i, ], listw, ...)
+        }, BPPARAM = BPPARAM)
+    } else {
+        out <- bplapply(seq_len(nrow(x)), function(i) {
+            fun(x[i, ], ...)
+        }, BPPARAM = BPPARAM)
+    }
     names(out) <- rownames(x)
     return(out)
 }
@@ -32,12 +32,15 @@
                         swap_rownames = NULL, name = NULL, ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+        listw_use <- NULL
         out <- lapply(sample_id, function(s) {
             features <- .check_features(x, features, swap_rownames = swap_rownames)[["assay"]]
-            listw_use <- colGraph(x, type = colGraphName, sample_id = s)
-            if (include_self) {
-                nb2 <- include.self(listw_use$neighbours)
-                listw_use <- nb2listw(nb2)
+            if (use_graph(type)) {
+                listw_use <- colGraph(x, type = colGraphName, sample_id = s)
+                if (include_self) {
+                    nb2 <- include.self(listw_use$neighbours)
+                    listw_use <- nb2listw(nb2)
+                }
             }
             mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s, drop = FALSE]
             o <- calculateUnivariate(mat, listw = listw_use,
@@ -122,7 +125,9 @@
         other_args <- list(...)
         # But what if different parameters were used to make the graph for
         # different samples? But why would that be a good idea?
-        g <- .graph_fun(x, type = graphName, sample_id = sample_id[1])
+        if (use_graph(type))
+            g <- .graph_fun(x, type = graphName, sample_id = sample_id[1])
+        else g <- NULL
         params <- c(info(type, c("name", "package")),
                     list(version = packageVersion(info(type, "package")),
                          zero.policy = zero.policy, include_self = include_self,
@@ -135,11 +140,14 @@
                                 annotGeometryName = annotGeometryName,
                                 reducedDimName = reducedDimName)
         .check_old_params(params, old_params, name, args_not_check(type))
+        listw_use <- NULL
         for (s in sample_id) {
-            listw_use <- .graph_fun(x, type = graphName, sample_id = s)
-            if (include_self) {
-                nb2 <- include.self(listw_use$neighbours)
-                listw_use <- nb2listw(nb2)
+            if (use_graph(type)) {
+                listw_use <- .graph_fun(x, type = graphName, sample_id = s)
+                if (include_self) {
+                    nb2 <- include.self(listw_use$neighbours)
+                    listw_use <- nb2listw(nb2)
+                }
             }
             df <- .get_fun(x, which, sample_id = s)
             res <- calculateUnivariate(df[, features, drop = FALSE],
@@ -325,7 +333,9 @@
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(name)) name <- info(type, "name")
         other_args <- list(...)
-        g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        if (use_graph(type))
+            g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
+        else g <- NULL
         params <- c(info(type, c("name", "package")),
                     list(version = packageVersion(info(type, "package")),
                          zero.policy = zero.policy, include_self = include_self,

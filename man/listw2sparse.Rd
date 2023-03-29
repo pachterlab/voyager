@@ -12,7 +12,8 @@ listw2sparse(listw)
 \value{
 A sparse \code{dgCMatrix}, whose row represents each cell or spot and
   whose columns represent the neighbors. The matrix does not have to be
-  symmetric.
+  symmetric. If \code{region.id} is present in the \code{listw} object, then
+  it will be the row and column names of the output matrix.
 }
 \description{
 Edge weights are used in the adjacency matrix. Because most elements of the
