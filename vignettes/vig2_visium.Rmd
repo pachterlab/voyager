@@ -72,10 +72,19 @@ library(BiocParallel)
 library(bluster)
 library(dplyr)
 library(reticulate)
-use_virtualenv("r-reticulate")
-reticulate::py_install("gget", envname="r-reticulate", pip=TRUE)
-gget <- import("gget")
 theme_set(theme_bw(10))
+```
+
+```{r}
+# Set up python environment for gget
+PY_PATH <- system("which python", intern = TRUE)
+use_python(PY_PATH)
+py_config()
+```
+
+```{r}
+system("pip3 install gget")
+gget <- import("gget")
 ```
 
 # Dataset

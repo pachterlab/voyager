@@ -83,10 +83,19 @@ library(dplyr)
 library(BiocParallel)
 library(BiocNeighbors)
 library(reticulate)
-use_virtualenv("r-reticulate")
-reticulate::py_install("gget", envname="r-reticulate", pip=TRUE)
-gget <- import("gget")
 theme_set(theme_bw())
+```
+
+```{r}
+# Set up python environment for gget
+PY_PATH <- system("which python", intern = TRUE)
+use_python(PY_PATH)
+py_config()
+```
+
+```{r}
+system("pip3 install gget")
+gget <- import("gget")
 ```
 
 Here we download the data from the 10X website. This is the unfiltered gene count matrix:
