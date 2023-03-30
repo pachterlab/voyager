@@ -6,7 +6,7 @@ library(vdiffr)
 library(scater)
 library(Matrix)
 library(ggplot2)
-
+library(scran)
 test_that("Divergent palette beginning and end", {
     expect_equal(getDivergeRange(1:8, diverge_center = 5), c(0, 0.875))
     expect_equal(getDivergeRange(1:8, diverge_center = 4), c(0.125, 1))
@@ -397,32 +397,6 @@ test_that("When a gene symbol rowname is not a valid R object name", {
     expect_doppelganger("plotLocalResult with illegal gene name",
                         plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
                                         colGeometryName = "spotPoly"))
-})
-
-sfe_muscle <- reducedDimUnivariate(sfe_muscle, "moran.plot", dimred = "PCA",
-                                   components = 1, colGraphName = "visium")
-set.seed(29)
-sfe_muscle <- reducedDimUnivariate(sfe_muscle, "moran.mc", dimred = "PCA",
-                                   components = 1, colGraphName = "visium",
-                                   nsim = 99)
-sfe_muscle <- reducedDimUnivariate(sfe_muscle, "sp.correlogram", dimred = "PCA",
-                                   components = 1, colGraphName = "visium",
-                                   order = 3)
-test_that("Univariate result plots for dimension reduction", {
-    expect_doppelganger("Moran plot for PCA", {
-        suppressWarnings(moranPlot(sfe_muscle, "PC1", graphName = "visium",
-                                   reducedDimName = "PCA"))
-    })
-    expect_doppelganger("Correlogram for PCA", {
-        plotCorrelogram(sfe_muscle, "PC1", reducedDimName = "PCA")
-    })
-})
-
-test_that("Moran MC plot for PCA", {
-    testthat::skip_on_ci()
-    expect_doppelganger("Moran MC for PCA", {
-        plotMoranMC(sfe_muscle, "PC1", reducedDimName = "PCA")
-    })
 })
 
 # scattermore
@@ -824,5 +798,39 @@ test_that("Message about using linewidth instead of size for polygon outlines", 
                                            aes_use = "color"))
     expect_doppelganger("Moran plot hex bin", {
         moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    })
+})
+
+sfe_muscle2 <- logNormCounts(sfe_muscle2)
+gs <- modelGeneVar(sfe_muscle2)
+hvgs <- getTopHVGs(gs, fdr.threshold = 0.05)
+sfe_muscle2 <- runMultivariate(sfe_muscle2, "multispati", subset_row = hvgs)
+sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "sp.correlogram", dimred = "multispati",
+                                    components = 1:10, order = 3)
+set.seed(29)
+sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "moran.mc", dimred = "multispati",
+                                    components = 1:5, nsim = 99)
+sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "moran.plot", dimred = "multispati",
+                                   components = 1, colGraphName = "visium")
+test_that("Univariate downstream plots for dimred", {
+    expect_doppelganger("Moran plot for PCA", {
+        suppressWarnings(moranPlot(sfe_muscle2, "PC1", graphName = "visium",
+                                   reducedDimName = "PCA"))
+    })
+    expect_doppelganger("Correlograms for multispati PCs", {
+        plotCorrelogram(sfe_muscle2, 1:10, reducedDimName = "multispati")
+    })
+    expect_doppelganger("Correlograms for multispati PCs, one component", {
+        plotCorrelogram(sfe_muscle2, "PC1", reducedDimName = "multispati")
+    })
+})
+
+test_that("Moran MC plot for dimred", {
+    testthat::skip_on_ci()
+    expect_doppelganger("Moran MC for dimred, one dimension", {
+        plotMoranMC(sfe_muscle2, "PC1", reducedDimName = "multispati")
+    })
+    expect_doppelganger("Moran MC plot for multispati PCs", {
+        plotMoranMC(sfe_muscle2, 1:5, reducedDimName = "multispati")
     })
 })

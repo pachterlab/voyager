@@ -343,7 +343,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
             out$sd2 <- 2 * sqrt(out$variance)
             out$ymin <- out$res - out$sd2
             out$ymax <- out$res + out$sd2
-            if (length(features) > 1L) out$feature <- names(ress)[[i]]
+            out$feature <- names(ress)[[i]]
             if (!is.null(color_by)) out$color_by <- color_value[i]
             out
         })
@@ -368,6 +368,13 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
     do.call(rbind, dfs)
 }
 
+.dimred_feature_order <- function(df) {
+    # Make sure that PC2 follows PC1, not PC10
+    feature_num <- sort(as.numeric(unique(gsub("^[A-Z]*", "", df$feature))))
+    pre <- unique(gsub("\\d+$", "", df$feature))
+    df$feature <- factor(df$feature, levels = paste0(pre, feature_num))
+    df
+}
 #' Plot correlogram
 #'
 #' Use \code{ggplot2} to plot correlograms computed by
@@ -384,6 +391,9 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' @inheritParams spdep::sp.correlogram
 #' @inheritParams plotDimLoadings
 #' @inheritParams getParams
+#' @param features Features to plot, must be in rownames of the gene count
+#'   matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+#'   in \code{reducedDim}, or numeric indices of dimension reduction components.
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
 #'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 #'   \code{colGeometry}, or \code{annotGeometry} by which to color the
@@ -455,6 +465,8 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
     name <- paste(name, method, sep = "_")
+    is_dimred <- is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName) && length(features) > 1L
     df <- lapply(sample_id, function(s) {
         o <- .get_plot_correlogram_df(
             sfe, features, s, method, color_by,
@@ -468,6 +480,9 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
         df <- do.call(rbind, df)
     } else {
         df <- df[[1]]
+    }
+    if (is_dimred){
+        df <- .dimred_feature_order(df)
     }
     if (method %in% c("I", "C") && plot_signif) {
         df$z <- (df$res - df$expectation) / sqrt(df$variance)
@@ -491,10 +506,14 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
                 )
             } else {
                 p <- ggplot(df, aes(lags, res, color = feature))
-                pal <- .get_pal(df,
-                    feature_aes = list(color = "feature"), option = 1,
-                    divergent, diverge_center
-                )
+                if (is_dimred) {
+                    pal <- scale_color_viridis_d(end = 0.9, option = "E")
+                } else {
+                    pal <- .get_pal(df,
+                                    feature_aes = list(color = "feature"), option = 1,
+                                    divergent, diverge_center
+                    )
+                }
             }
             p <- p + pal
             if (method %in% c("I", "C")) {
@@ -566,8 +585,8 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
     }
     if (!is.null(color_by) && length(features) > 1L) {
         pal <- .get_pal(df,
-            feature_aes = list(color = "color_by"), option = 1,
-            divergent, diverge_center
+                        feature_aes = list(color = "color_by"), option = 1,
+                        divergent, diverge_center
         )
         p <- p + pal
     }
@@ -620,7 +639,12 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
     if (!length(dfs)) {
         stop("None of the features have the specified MC computed.")
     }
-    do.call(rbind, dfs)
+    df <- do.call(rbind, dfs)
+    if (is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName) && length(features) > 1L){
+        df <- .dimred_feature_order(df)
+    }
+    df
 }
 
 #' Plot Moran/Geary Monte Carlo results
@@ -709,8 +733,13 @@ plotMoranMC <- function(sfe, features, sample_id = "all",
             geom_vline(aes(xintercept = statistic, color = sample_id))
     }
     method_show <- if (grepl("[mM]oran", name)) "Moran's I" else "Geary's C"
-    p <- p + dens_geom(aes(res), ...) +
-        scale_color_manual(values = ditto_colors) +
+    if (is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName)) {
+        pal <- scale_color_viridis_d(end = 0.9, option = "E")
+    } else {
+        pal <- scale_color_manual(values = ditto_colors)
+    }
+    p <- p + dens_geom(aes(res), ...) + pal +
         labs(x = paste0("Monte-Carlo simulation of ", method_show))
     if (facet_feature) p <- p + facet_wrap(~feature)
     if (facet_sample) p <- p + facet_wrap(~sample_id)

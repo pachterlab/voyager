@@ -262,11 +262,16 @@
         if (is.null(colnames(reddim))) {
             names_use <- paste0(reducedDimName, ncol(reddim))
         } else names_use <- colnames(reddim)
-        features_reddim <- intersect(features, names_use)
+        if (is.numeric(features))
+            features_reddim <- names_use[features]
+        else
+            features_reddim <- intersect(features, names_use)
         fd <- reducedDimFeatureData(sfe, reducedDimName)
         if (!is.null(fd)) {
             out_reddim <- .get_not_na_items(fd, features_reddim, colname_use)
-            features <- setdiff(features, names(out_reddim))
+            if (is.numeric(features)) features <- NULL
+            else
+                features <- setdiff(features, names(out_reddim))
         }
     }
     out <- c(out_rd, out_cd, out_cg, out_ag, out_reddim)

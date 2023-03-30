@@ -28,7 +28,8 @@ plotCorrelogram(
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{features}{Features to plot, must be in rownames of the gene count
-matrix, colnames of colData or a colGeometry.}
+matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+in \code{reducedDim}, or numeric indices of dimension reduction components.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
