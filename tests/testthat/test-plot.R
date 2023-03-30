@@ -326,6 +326,38 @@ test_that("ElbowPlot for PCA", {
     )
 })
 
+sfe1 <- McKellarMuscleData("small")
+sfe1 <- sfe1[,sfe1$in_tissue]
+sfe1 <- logNormCounts(sfe1)
+inds <- order(Matrix::rowSums(logcounts(sfe1)), decreasing = TRUE)[1:50]
+sfe2 <- McKellarMuscleData("small2")
+sfe2 <- sfe2[,sfe2$in_tissue]
+sfe2 <- logNormCounts(sfe2)
+sfe3 <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
+colGraphs(sfe3, sample_id = "all", name = "visium") <-
+    findVisiumGraph(sfe3, "all")
+
+sfe3 <- runMultivariate(sfe3, "multispati", colGraphName = "visium",
+                        subset_row = inds, sample_action = "separate",
+                        nfposi = 10, nfnega = 10)
+test_that("Plot elbow plots for multiple samples", {
+    expect_doppelganger("Not facetting multispati elbow, positive only", {
+        ElbowPlot(sfe3, facet = FALSE, reduction = "multispati")
+    })
+    expect_doppelganger("Not facetting multispati elbow, negative only", {
+        ElbowPlot(sfe3, facet = FALSE, reduction = "multispati",
+                  ndims = 0, nfnega = 10)
+    })
+    expect_doppelganger("Both positive and negative", {
+        ElbowPlot(sfe3, facet = FALSE, reduction = "multispati",
+                  ndims = 10, nfnega = 10)
+    })
+    expect_doppelganger("Facetting by sample", {
+        ElbowPlot(sfe3, facet = TRUE, reduction = "multispati",
+                  ndims = 10, nfnega = 10)
+    })
+})
+
 test_that("plotDimLoadings for PCA", {
     expect_doppelganger(
         "plotDimLoadings, balanced",
@@ -338,6 +370,13 @@ test_that("plotDimLoadings for PCA", {
     expect_doppelganger("Change the number of columns",
                         plotDimLoadings(sfe_muscle, 1:2, balanced = TRUE,
                                         ncol = 1))
+})
+
+test_that("plotDimLoadings for multiple samples", {
+    expect_doppelganger("Multispati loadings, 2 samples", {
+        plotDimLoadings(sfe3, c(1:2, 19:20), swap_rownames = "symbol",
+                        reduction = "multispati")
+    })
 })
 
 test_that("Everything spatialReducedDim", {

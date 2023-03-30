@@ -104,13 +104,13 @@ test_that("Correctly add results to the SFE object", {
 })
 
 test_that("When output is a vector", {
-    out <- calculateMultivariate(sfe, "localC_multi", colGraphName = "visium",
+    out <- calculateMultivariate(sfe3, "localC_multi", colGraphName = "visium",
                                  subset_row = inds)
     expect_vector(out)
-    sfe <- runMultivariate(sfe, "localC_multi", colGraphName = "visium",
+    sfe3 <- runMultivariate(sfe3, "localC_multi", colGraphName = "visium",
                            subset_row = inds, dest = "colData")
-    expect_true("localC_multi" %in% names(colData(sfe)))
-    expect_equal(sfe$localC_multi, out)
+    expect_true("localC_multi" %in% names(colData(sfe3)))
+    expect_equal(sfe3$localC_multi, out)
     expect_message({
         sfe <- runMultivariate(sfe, "localC_multi", colGraphName = "visium",
                                subset_row = inds, dest = "reducedDim")

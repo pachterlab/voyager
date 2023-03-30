@@ -6,12 +6,21 @@
 #' compared to Seurat. So I'm writing this function to make the elbow plot with
 #' SCE less cumbersome.
 #'
+#' @inheritParams calculateUnivariate
+#' @inheritParams multispati_rsp
 #' @param sce A \code{SingleCellExperiment} object, or anything that inherits
-#' from \code{SingleCellExperiment}.
-#' @param ndims Number of PCs to plot.
+#'   from \code{SingleCellExperiment}.
+#' @param ndims Number of components with positive eigenvalues, such as PCs in
+#'   non-spatial PCA.
 #' @param reduction Name of the dimension reduction to use. It must have an
-#' attribute called "percentVar". Defaults to "PCA".
-#' @return A ggplot object. The y axis is percentage of variance explained.
+#'   attribute called either "percentVar" or "eig" for eigenvalues. Defaults to
+#'   "PCA".
+#' @param facet Logical, whether to facet by samples when multiple samples are
+#'   present. This is relevant when spatial PCA is run separately for each
+#'   sample, which gives different results from running jointly for all samples.
+#' @param ncol Number of columns of facets if facetting.
+#' @return A ggplot object. The y axis is eigenvalues or percentage of variance
+#'   explained if relevant.
 #' @importFrom scales breaks_extended
 #' @export
 #' @examples
@@ -20,24 +29,60 @@
 #' sfe <- McKellarMuscleData("small")
 #' sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 #' ElbowPlot(sfe, ndims = 10)
-ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
+ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
+                      sample_id = "all", facet = FALSE, ncol = NULL) {
     # For scater::runPCA results
     # to do: 1. deal with other dimension reductions with eigenvalues
     # and negative eigenvalues
     # 2. deal with multiple samples with separate spatial dimred results
-    percent_var <- attr(reducedDim(sce, reduction), "percentVar")
-    if (length(percent_var) < ndims) ndims <- length(percent_var)
-    inds <- seq_len(ndims)
-    df <- data.frame(
-        PC = inds,
-        pct_var = percent_var[inds]
-    )
+    dimred <- reducedDim(sce, reduction)
+    use_pct_var <- "percentVar" %in% names(attributes(dimred))
+    if (use_pct_var)
+        y <- attr(dimred, "percentVar") / 100
+    else y <- attr(dimred, "eig")
+    if (is.vector(y)) y <- matrix(y, ncol = 1, dimnames = list(NULL, "value"))
+    if (sample_id == "all") sample_id <- colnames(y)
+    y <- y[,sample_id, drop = FALSE]
+    nf <- nrow(y)
+    eigs_sign <- rowSums(y)
+    ndims <- min(ndims, sum(eigs_sign > 0))
+    nfnega <- min(nfnega, sum(eigs_sign < 0))
+    inds_posi <- seq_len(ndims)
+    inds_nega <- tail(seq_len(nrow(y)), nfnega)
+    labels <- as.character(c(inds_posi, inds_nega))
+    y <- rbind(y[inds_posi,,drop = FALSE],
+               y[inds_nega,,drop = FALSE])
+    inds <- seq_len(ndims + nfnega)
+    df <- data.frame(PC = inds)
+    df <- cbind(df, y)
+    if (ncol(y) > 1L) {
+        df <- reshape(df, varying = colnames(y), direction = "long",
+                      v.names = "value", timevar = "sample",
+                      times = colnames(y))
+    }
     PC <- pct_var <- NULL
-    ggplot(df, aes(PC, pct_var)) +
-        geom_point() +
-        labs(x = "PC", y = "Variance explained (%)") +
-        scale_x_continuous(breaks = breaks_extended(n = min(ndims, 10), Q = 1:5)) +
+    if (facet || ncol(y) == 1L) {
+        p <- ggplot(df, aes(PC, value))
+    } else p <- ggplot(df, aes(PC, value, color = sample)) +
+        scale_color_manual(values = ditto_colors)
+    breaks_inds <- breaks_extended(n = min(ndims+nfnega, 10), Q = 1:5)(inds)
+    labels_use <- labels[breaks_inds]
+    if (breaks_inds[1] == 0) labels_use <- c(NA, labels_use)
+    p <- p +
+        geom_point() + geom_line() +
+        scale_x_continuous(breaks = breaks_inds, labels = labels_use) +
         theme(panel.grid.minor.x = element_blank())
+    if (nfnega > 0 && ndims > 0) {
+        p <- p + geom_hline(yintercept = 0, linetype = 2)
+    }
+    if (use_pct_var) {
+        p <- p + labs(x = "PC", y = "Variance explained") +
+            scale_y_continuous(labels = scales::percent)
+    } else {
+        p <- p + labs(x = "PC", y = "Eigenvalue")
+    }
+    if (facet) p <- p + facet_wrap(~ sample, ncol = ncol)
+    p
 }
 
 .get_top_loading_genes <- function(df, nfeatures, balanced) {
@@ -53,6 +98,26 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
     }
     return(out)
 }
+# For each sample
+.get_loadings_df <- function(sce, loadings, loading_cols, nfeatures, balanced,
+                             swap_rownames) {
+    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
+                loadings[, loading_cols])
+    if (is.null(swap_rownames) || !swap_rownames %in% names(df)) {
+        df$gene_show <- rownames(loadings)
+    } else {
+        df$gene_show <- df[[swap_rownames]]
+    }
+    df_plt <- lapply(loading_cols, function(p) {
+        df_use <- df[, c("gene_show", p)]
+        names(df_use)[2] <- "value"
+        out <- .get_top_loading_genes(df_use, nfeatures, balanced)
+        out$PC <- p
+        out
+    })
+    df_plt <- Reduce(rbind, df_plt)
+    df_plt
+}
 
 #' Plot top PC loadings of genes
 #'
@@ -63,7 +128,9 @@ ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
 #' for now I'm using Tidyverse.
 #'
 #' @inheritParams ElbowPlot
-#' @param dims Numeric vector specifying which PCs to plot.
+#' @param dims Numeric vector specifying which PCs to plot. For MULTISPATI, PCs
+#' with negative eigenvalues are in the right most columns of the embedding and
+#' loading matrices. See the \code{\link{ElbowPlot}}.
 #' @param nfeatures Number of genes to plot.
 #' @param show_symbol Deprecated. Use argument \code{swap_rownames} instead, to
 #'   be consistent with \code{scater} plotting functions.
@@ -94,7 +161,8 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                             show_symbol = deprecated(),
                             symbol_col = deprecated(),
                             reduction = "PCA",
-                            balanced = TRUE, ncol = 2) {
+                            balanced = TRUE, ncol = 2,
+                            sample_id = "all") {
     # deal with multiple samples with separate spatial dimred results
     if (is_present(show_symbol)) {
         deprecate_warn("1.2.0", "plotDimLoadings(show_symbol = )",
@@ -102,37 +170,42 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
         if (is_present(symbol_col) && is.null(swap_rownames))
             swap_rownames <- symbol_col
     }
-    # For scater::runPCA results
+
     loadings <- attr(reducedDim(sce, reduction), "rotation")
     loading_cols <- paste0("PC", dims)
-    df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
-                loadings[, loading_cols])
-    if (is.null(swap_rownames) || !swap_rownames %in% names(df)) {
-        df$gene_show <- rownames(loadings)
+    is_multi <- length(dim(loadings)) > 2L
+    if (is_multi) {
+        df_plts <- lapply(dimnames(loadings)[[3]], function(s) {
+            o <- .get_loadings_df(sce, loadings[,,s], loading_cols, nfeatures, balanced,
+                                  swap_rownames)
+            o$sample <- s
+            o
+        })
+        df_plt <- do.call(rbind, df_plts)
     } else {
-        df$gene_show <- df[[swap_rownames]]
+        df_plt <- .get_loadings_df(sce, loadings, loading_cols, nfeatures, balanced,
+                                   swap_rownames)
     }
-    df_plt <- lapply(loading_cols, function(p) {
-        df_use <- df[, c("gene_show", p)]
-        names(df_use)[2] <- "value"
-        out <- .get_top_loading_genes(df_use, nfeatures, balanced)
-        out$PC <- p
-        out
-    })
-    df_plt <- Reduce(rbind, df_plt)
     df_plt$PC <- factor(df_plt$PC, levels = loading_cols)
     # Basically reimplementing tidytext::reorder_within and scale_y_reordered
     df_plt$gene <- paste(df_plt$gene_show, df_plt$PC, sep = "___")
+    if (is_multi)
+        df_plt$gene <- paste(df_plt$gene, df_plt$sample, sep = "___")
     df_plt$gene <- reorder(df_plt$gene, df_plt$value)
     reg <- "___.+$"
     value <- gene <- NULL
-    ggplot(df_plt, aes(value, gene)) +
+    p <- ggplot(df_plt, aes(value, gene)) +
         geom_segment(aes(yend = gene), xend = 0, show.legend = FALSE) +
-        geom_point(color = "blue") +
         geom_vline(xintercept = 0, linetype = 2) +
-        facet_wrap(~PC, scales = "free_y", ncol = ncol) +
+        geom_point(color = "blue") +
         scale_y_discrete(labels = function(x) gsub(reg, "", x)) +
         labs(x = "Loading", y = "Gene")
+    if (is_multi) {
+        p <- p + facet_wrap(~PC + sample, scales = "free_y", ncol = ncol)
+    } else {
+        p <- p + facet_wrap(~PC, scales = "free_y", ncol = ncol)
+    }
+    p
 }
 
 .plot_dimdata_bin2d_fun <- function(fun) {

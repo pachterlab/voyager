@@ -13,14 +13,17 @@ plotDimLoadings(
   symbol_col = deprecated(),
   reduction = "PCA",
   balanced = TRUE,
-  ncol = 2
+  ncol = 2,
+  sample_id = "all"
 )
 }
 \arguments{
 \item{sce}{A \code{SingleCellExperiment} object, or anything that inherits
 from \code{SingleCellExperiment}.}
 
-\item{dims}{Numeric vector specifying which PCs to plot.}
+\item{dims}{Numeric vector specifying which PCs to plot. For MULTISPATI, PCs
+with negative eigenvalues are in the right most columns of the embedding and
+loading matrices. See the \code{\link{ElbowPlot}}.}
 
 \item{nfeatures}{Number of genes to plot.}
 
@@ -36,12 +39,17 @@ be consistent with \code{scater} plotting functions.}
 be consistent with \code{scater} plotting functions.}
 
 \item{reduction}{Name of the dimension reduction to use. It must have an
-attribute called "percentVar". Defaults to "PCA".}
+attribute called either "percentVar" or "eig" for eigenvalues. Defaults to
+"PCA".}
 
 \item{balanced}{Return an equal number of genes with + and - scores. If
 FALSE, returns the top genes ranked by the scores absolute values.}
 
 \item{ncol}{Number of columns in the facetted plot.}
+
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 }
 \value{
 A ggplot object. Loadings for different PCs are plotted in different
