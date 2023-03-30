@@ -10,6 +10,11 @@
 #' These functions perform multivariate spatial data analysis, usually spatially
 #' informed dimension reduction.
 #'
+#' For the argument \code{type}, this package supports "multispati" for
+#' MULTISPATI PCA, "localC_multi" for a multivariate generalization of Geary's C,
+#' "localC_perm_multi" for the multivariate Geary's C with permutation testing,
+#' and "gwpca" for geographically weighted PCA.
+#'
 #' @inheritParams calculateUnivariate
 #' @inheritParams scater::runPCA
 #' @param sample_action Character, either "joint" or "separate". Spatial methods
@@ -26,22 +31,37 @@
 #'   dimension reduction, then the only option is "reducedDim", so the results
 #'   will be stored in \code{\link{reducedDim}} of the SFE object. If the output
 #'   is a vector, as in the multivariate version of \code{\link{localC}}, then
-#'   choosing "colData" will store the output in a new column in
-#'   \code{colData(x)}.
+#'   it will be sotred in \code{colData}. Data frame output, such as from
+#'   \code{localC_perm}, can be stored in either \code{reducedDim} or
+#'   \code{colData}.
 #' @param BPPARAM A \code{\link{BiocParallelParam}} object specifying whether
 #'   and how computing the metric for numerous genes shall be parallelized. This
 #'   is to parallelize computation across multiple samples when there are a
 #'   large number of samples. Be cautious if using an optimized BLAS for matrix
 #'   operations that supports multithreading.
 #' @param transposed Logical, whether the matrix has genes in columns and cells
-#' in rows.
+#'   in rows.
 #' @param ... Extra arguments passed to the specific multivariate method. For
 #'   example, see \code{\link{multispati_rsp}} for arguments for MULTISPATI PCA.
+#'   See \code{\link{localC}} for arguments for "localC_multi" and "localC_perm_multi".
+#'   See \code{\link{GWmodel::gwpca}} for "gwpca".
 #' @return In \code{calculateMultivariate}, a matrix for cell embeddings whose
 #'   attributes include loadings and eigenvalues if relevant, ready to be added
 #'   to the SFE object with \code{reducedDim} setter. For \code{run*}, a
 #'   \code{SpatialFeatureExperiment} object with the results added. See Details
 #'   for where the results are stored.
+#' @references
+#' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45–56.
+#'
+#' Anselin, L. (2019), A Local Indicator of Multivariate Spatial Association: Extending Geary's c. Geogr Anal, 51: 133-150. doi:10.1111/gean.12164
+#'
+#' Harris P, Brunsdon C, Charlton M (2011) Geographically weighted principal components analysis. International Journal of Geographical Information Science 25:1717-1736
+#'
+#' Harris P, Brunsdon C, Charlton M, Juggins S, Clarke A (2014) Multivariate spatial outlier detection using robust geographically weighted methods. Mathematical Geosciences 46(1) 1-31
+#'
+#' Harris P, Clarke A, Juggins S, Brunsdon C, Charlton M (2014) Geographically weighted methods and their use in network re-designs for environmental monitoring. Stochastic Environmental Research and Risk Assessment 28: 1869-1887
+#'
+#' Harris P, Clarke A, Juggins S, Brunsdon C, Charlton M (2015) Enhancements to a geographically weighted principal components analysis in the context of an application to an environmental data set. Geographical Analysis 47: 146-172
 #' @export
 #' @importFrom SpatialFeatureExperiment colGraphs
 #' @name calculateMultivariate
@@ -61,13 +81,22 @@ NULL
 #' @rdname calculateMultivariate
 #' @export
 setMethod("calculateMultivariate", c("ANY", "SFEMethod"),
-          function(x, type, listw = NULL, transposed = FALSE, ...) {
+          function(x, type, listw = NULL, transposed = FALSE, zero.policy = TRUE,
+                   p.adjust.method = "BH", ...) {
+              if (info(type, "variate") != "multi")
+                  stop("`type` must be a multivariate method.")
+              if (!info(type, "package") %in% c("spdep", "Voyager", NA)) {
+                  rlang::check_installed(info(type, "package"))
+              }
               # x is expect to have genes in rows and cells in columns
               if (!transposed) x <- t(x)
               if (use_graph(type))
                   res <- fun(type)(x, listw, ...)
               else res <- fun(type)(x, ...)
-              res <- reorganize_fun(type)(res)
+              if (is_local(type)) {
+                  res <- reorganize_fun(type)(res, nb = listw$neighbours,
+                                              p.adjust.method = p.adjust.method)
+              } else res <- reorganize_fun(type)(res)
               res
           })
 
@@ -149,12 +178,14 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
 
                       is_vector <- all(vapply(out, is.vector, FUN.VALUE = logical(1)))
                       is_matrix <- all(vapply(out, is.matrix, FUN.VALUE = logical(1)))
+                      is_df <- all(vapply(out, function(o) is.data.frame(o) | is(o, "DataFrame"),
+                                          FUN.VALUE = logical(1)))
                       is_array <- all(vapply(out, function(o) is.array(o) & length(dim(o)) > 2L,
                                              FUN.VALUE = logical(1)))
                       if (is_vector) {
                           out <- unlist(out)
                           out <- out[bcs]
-                      } else if (is_matrix) {
+                      } else if (is_matrix || is_df) {
                           out <- do.call(rbind, out)
                           out <- out[bcs,]
                       } else if (is_array) {
@@ -190,10 +221,20 @@ runMultivariate <- function(x, type, colGraphName = 1L,
         message("Matrix or array outputs can only be stored in reducedDims.")
         dest <- "reducedDim"
     }
+    if (is.vector(out) && dest == "reducedDim") {
+        message("Vector output can only be stored in colData.")
+        dest <- "colData"
+    }
     if (dest == "reducedDim") {
+        rownames(out) <- colnames(x)
         reducedDim(x, name) <- out
     } else {
-        colData(x)[[name]] <- out
+        if (is.vector(out)) colData(x)[[name]] <- out
+        if (is.data.frame(out) || is(out, "DataFrame")) {
+            inds <- !grepl(name, names(out))
+            names(out)[inds] <- paste(name, names(out)[inds], sep = "_")
+            colData(x) <- cbind(colData(x), out)
+        }
     }
     x
 }

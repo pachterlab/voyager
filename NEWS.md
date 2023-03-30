@@ -1,3 +1,8 @@
+# Version 1.1.11 (03/30/2023)
+* Added MULTISPATI PCA
+* Added multivariate local Geary's C from Anselin 2019
+* Added calculateMultivariate as a unified user interface to multivariate spatial analyses
+
 # Version 1.1.10 (03/07/2023)
 * Record parameters used to get spatial results
 * Force users to use a new name when running the same method with different parameters

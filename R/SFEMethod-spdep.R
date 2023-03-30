@@ -4,8 +4,6 @@ spdep_uni <- c(package = "spdep", variate = "uni")
 uni_global <- c(spdep_uni, scope = "global", default_attr = NA)
 uni_local <- c(spdep_uni, scope = "local")
 
-.to_df_identity <- function(out, nb, p.adjust.method) out
-
 # Construct SFEMethod object for Moran's I
 moran <- SFEMethod(
     c(name = "moran", title = "Moran's I", uni_global),
@@ -156,12 +154,3 @@ moran.plot <- SFEMethod(
                           plot = FALSE, return_df = TRUE),
     reorganize_fun = .to_df_identity
 )
-
-# Multivariate
-#localC_multi <- SFEMethod(
-#    c(name = "localC_multi", title = "Multivariate local Geary's C",
-#      package = "spdep", variate = "multi", scope = "local",
-#      default_attr = "localC"),
-#    fun = spdep::localC, # need to write my own wrapper
-#    reorganize_fun = .to_df_identity
-#)

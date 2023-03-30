@@ -114,7 +114,12 @@
             attr_mat <- attr(o, attr_name)
             attr_mat <- cbind(o, attr_mat)
             colnames(attr_mat)[1] <- type
-            .add_log_p(attr_mat, nb, p.adjust.method)
+            res <- .add_log_p(attr_mat, nb, p.adjust.method)
+            if ("cluster" %in% names(attributes(o))) {
+                res <- as.data.frame(res)
+                res$cluster <- attr(o, "cluster")
+            }
+            res
         })
     } else {
         lapply(out, as.vector)
@@ -127,6 +132,11 @@
 .localCperm2df <- function(out, nb, p.adjust.method)
     .attrmat2df(out, "pseudo-p", "localC", nb, p.adjust.method)
 
+.localCpermmulti2df <- function(out, nb, p.adjust.method) {
+    .attrmat2df(list(out), "pseudo-p", "localC_perm_multi", nb, p.adjust.method)[[1]]
+}
+
 .LOSHmc2df <- function(out, nb, p.adjust.method)
     lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
 
+.to_df_identity <- function(out, nb, p.adjust.method) out

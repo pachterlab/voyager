@@ -26,6 +26,8 @@
 #' @note
 #' Eigen decomposition will fail if any feature has variance zero leading to NaN
 #' in the scaled matrix.
+#' @references
+#' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45–56.
 #' @export
 #' @importFrom Matrix colMeans
 #' @importFrom sparseMatrixStats colVars
@@ -40,7 +42,6 @@
 #' mat <- logcounts(sfe)[inds,]
 #' g <- findVisiumGraph(sfe)
 #' out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
-#'
 multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     nfposi <- as.integer(nfposi)
     nfnega <- as.integer(nfnega)
@@ -101,4 +102,33 @@ multispati <- SFEMethod(
     fun = multispati_rsp,
     reorganize_fun = function(out) out,
     joint = TRUE
+)
+
+# Multivariate version of Local Geary's C=============
+#' @include res2df.R
+
+.localC_multi_fun <- function(perm = FALSE) {
+    function(x, listw, ..., zero.policy) {
+        x <- as.matrix(x)
+        fun <- if (perm) spdep::localC_perm else spdep::localC
+        fun(x, listw = listw, zero.policy = zero.policy, ...)
+    }
+}
+
+localC_multi <- SFEMethod(
+    c(name = "localC_multi", title = "Multivariate local Geary's C",
+      package = "spdep", variate = "multi",
+      default_attr = "localC"),
+    fun = .localC_multi_fun(FALSE),
+    reorganize_fun = .to_df_identity,
+    dest = "colData"
+)
+
+localC_perm_multi <- SFEMethod(
+    c(name = "localC_perm_multi", title = "Multivariate local Geary's C permutation testing",
+      package = "spdep", variate = "multi",
+      default_attr = "localC"),
+    fun = .localC_multi_fun(TRUE),
+    reorganize_fun = .localCpermmulti2df,
+    dest = "colData"
 )

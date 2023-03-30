@@ -48,5 +48,7 @@ inds <- order(rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
 mat <- logcounts(sfe)[inds,]
 g <- findVisiumGraph(sfe)
 out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
-
+}
+\references{
+Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45–56.
 }

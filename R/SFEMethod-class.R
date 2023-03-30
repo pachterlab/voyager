@@ -28,18 +28,40 @@
 #'
 #' The \code{reorganize_fun} slot should be specified as such:
 #'
+#' Univariate methods are meant to be run separately for each gene, so the input
+#' to \code{reorganize_fun} in the argument \code{out} should be a list of
+#' outputs; each element of the list corresponds to the output of a gene.
+#'
 #' For univariate global methods, different fields of the result should be
 #' columns of a data frame with one row so results for multiple features will be
-#' a data frame. The arguments should be \code{out} for a list of raw output,
-#' each element of which is output for one feature and \code{name} to rename the
-#' primary field if a more informative name is needed, and \code{...} for other
-#' arguments specific to methods.
+#' a data frame. The arguments should be \code{out}, and \code{name} to rename
+#' the primary field if a more informative name is needed, and \code{...} for
+#' other arguments specific to methods. The output of \code{reorganize_fun}
+#' should be a \code{DataFrame} whose rows correspond to the genes and columns
+#' correspond to fields in the output.
 #'
-#' For univariate local methods, the output should be a data frame or matrix
-#' whose rows match the columns of the gene count matrix. The arguments should
-#' be \code{out}, \code{nb} for a neighborhood list used for multiple testing
-#' correction, and \code{p.adjust.method} for a method to correct for multiple
-#' testing as in \code{\link{p.adjust}}, and \code{...}.
+#' For univariate local methods, the arguments should be \code{out}, \code{nb}
+#' for a neighborhood list used for multiple testing correction, and
+#' \code{p.adjust.method} for a method to correct for multiple testing as in
+#' \code{\link{p.adjust}}, and \code{...}. The output of \code{reorganize_fun}
+#' should be a list of reorganized output. Each element of the list corresponds
+#' to a gene, and the reorganized content of the element can be a vector,
+#' matrix, or data frame, but they must all have the same dimensions for all
+#' genes. Each element of the vector, or each row of the matrix or data frame
+#' corresponds to a cell.
+#'
+#' For multivariate methods whose results go into \code{reducedDim},
+#' \code{reorganize_fun} should have one argument \code{out} for the raw output.
+#' The output of \code{reorganize_fun} should be the cell embedding matrix ready
+#' to be added to \code{reducedDim}. Other relevant information such as gene
+#' loadings and eigenvalues should be added to the attributes of the cell
+#' embedding matrix.
+#'
+#' For multivariate methods whose results can go into \code{colData}, the
+#' arguments should be \code{out}, \code{nb}, and \code{p.adjust.method}. Unlike
+#' the univariate local counterpart, \code{out} takes the raw output instead of
+#' a list of outputs. The output of \code{reorganize_fun} is a vector or a data
+#' frame ready to be added to \code{colData}.
 #'
 #' @slot info A named character vector specifying information about the method:
 #' \describe{
@@ -47,8 +69,9 @@
 #' method to use, such as "moran" for Moran's I.}
 #' \item{variate}{How many variables this method works with, must be one of
 #' "uni" for univariate, "bi" for bivariate, or "multi" for multivariate.}
-#' \item{scope}{Either "global", returning one result for tne entire dataset,
-#' or "local", returning one result for each spatial location.}
+#' \item{scope}{Either "global", returning one result for the entire dataset,
+#' or "local", returning one result for each spatial location. For multivariate
+#' methods, this is irrelevant.}
 #' \item{package}{Name of the package whose implementation of the method is used
 #' here, used to check if the package is installed.}
 #' \item{title}{Descriptive title to show when plotting the results.}
@@ -78,6 +101,9 @@
 #'   neighborhood graph because unifying the user facing functions have an
 #'   argument asking for the graph as most though not all methods require the
 #'   graph.
+#' @param dest Whether the results are more appropriate for \code{reducedDim} or
+#'   \code{colData}. Only used for multivariate methods. This overrides the
+#'   "local" field in \code{info}.
 #' @return The constructor returns a \code{SFEMethod} object. The getters return
 #'   the content of the corresponding slots.
 #'
@@ -114,15 +140,16 @@ setClass("SFEMethod", slots = c(
         if (fm[1] != "x")
             outs <- c(outs, "The first argument of slot `fun` must be 'x'")
     }
+    if (object@info["scope"] == "local") {
+        if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
+            outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', and 'p.adjust.method'")
+    }
     if (object@info["variate"] == "uni") {
         if (!"zero.policy" %in% fm)
             outs <- c(outs, "zero.policy must be an argument of slot `fun`")
         if (object@info["scope"] == "global") {
             if (!identical(names(formals(object@reorganize_fun)), c("out", "name", "...")))
                 outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'name', and '...'")
-        } else {
-            if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
-                outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', and 'p.adjust.method'")
         }
     }
     if (!length(outs)) return(TRUE)
@@ -136,7 +163,14 @@ setValidity("SFEMethod", .valid_SFEMethod)
 #' @export
 #' @rdname SFEMethod
 SFEMethod <- function(info, fun, reorganize_fun,
-                      args_not_check = NA, joint = FALSE, use_graph = TRUE) {
+                      args_not_check = NA, joint = FALSE, use_graph = TRUE,
+                      dest = c("reducedDim", "colData")) {
+    dest <- match.arg(dest)
+    if (isTRUE(info["variate"] == "multi")) {
+        v <- if (dest == "reducedDim") "global" else "local"
+        if ("scope" %in% names(info)) info["scope"] <- v
+        else info <- c(info, scope = v)
+    }
     new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun,
         misc = list(args_not_check = args_not_check, joint = joint,
                     use_graph = use_graph))
