@@ -22,6 +22,9 @@
 #' ElbowPlot(sfe, ndims = 10)
 ElbowPlot <- function(sce, ndims = 20, reduction = "PCA") {
     # For scater::runPCA results
+    # to do: 1. deal with other dimension reductions with eigenvalues
+    # and negative eigenvalues
+    # 2. deal with multiple samples with separate spatial dimred results
     percent_var <- attr(reducedDim(sce, reduction), "percentVar")
     if (length(percent_var) < ndims) ndims <- length(percent_var)
     inds <- seq_len(ndims)
@@ -92,6 +95,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                             symbol_col = deprecated(),
                             reduction = "PCA",
                             balanced = TRUE, ncol = 2) {
+    # deal with multiple samples with separate spatial dimred results
     if (is_present(show_symbol)) {
         deprecate_warn("1.2.0", "plotDimLoadings(show_symbol = )",
                        "plotDimLoadings(swap_rownames = )")

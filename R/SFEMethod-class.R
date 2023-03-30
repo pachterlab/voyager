@@ -166,7 +166,7 @@ setMethod("args_not_check", "SFEMethod", function(x) x@misc[["args_not_check"]])
 
 #' @export
 #' @rdname SFEMethod
-setMethod("is_joint", "SFEMethod", function(x) x@misc[["is_joint"]])
+setMethod("is_joint", "SFEMethod", function(x) x@misc[["joint"]])
 
 #' @export
 #' @rdname SFEMethod

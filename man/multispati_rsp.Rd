@@ -34,7 +34,19 @@ implementation in \code{adespatial}. However, this implementation here does
 not support row and column weighting other than the standard ones for PCA.,
 so the \code{adespatial} implementation is more general.
 }
+\note{
+Eigen decomposition will fail if any feature has variance zero leading to NaN
+in the scaled matrix.
+}
 \examples{
-# example code
+library(SFEData)
+library(scater)
+sfe <- McKellarMuscleData("small")
+sfe <- sfe[,sfe$in_tissue]
+sfe <- logNormCounts(sfe)
+inds <- order(rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
+mat <- logcounts(sfe)[inds,]
+g <- findVisiumGraph(sfe)
+out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
 
 }

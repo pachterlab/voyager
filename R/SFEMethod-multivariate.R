@@ -23,9 +23,23 @@
 #' @return A matrix for the cell embeddings in each spatial PC, with attribute
 #'   \code{loading} for the eigenvectors or gene loadings, and attribute
 #'   \code{eig} for the eigenvalues.
+#' @note
+#' Eigen decomposition will fail if any feature has variance zero leading to NaN
+#' in the scaled matrix.
 #' @export
+#' @importFrom Matrix colMeans
+#' @importFrom sparseMatrixStats colVars
+#' @importFrom utils head tail
 #' @examples
-#' # example code
+#' library(SFEData)
+#' library(scater)
+#' sfe <- McKellarMuscleData("small")
+#' sfe <- sfe[,sfe$in_tissue]
+#' sfe <- logNormCounts(sfe)
+#' inds <- order(rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
+#' mat <- logcounts(sfe)[inds,]
+#' g <- findVisiumGraph(sfe)
+#' out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
 #'
 multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     nfposi <- as.integer(nfposi)
@@ -36,6 +50,7 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
         stop("At least one of nfposi and nfnega must be positive.")
     }
     x <- sweep(x, 2, colMeans(x))
+    if (is(x, "dgeMatrix")) x <- as.matrix(x)
     if (scale) {
         # Note that dudi.pca divides by n instead of n-1 when scaling data
         n <- nrow(x)
@@ -64,7 +79,8 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     }
     loadings <- res$vectors
     out <- x %*% loadings
-    colnames(out) <- paste0("PC", seq_len(ncol(out)))
+    colnames(out) <- colnames(loadings) <- paste0("PC", seq_len(ncol(out)))
+    rownames(loadings) <- colnames(x)
     attr(out, "rotation") <- loadings
     attr(out, "eig") <- res$values
     out

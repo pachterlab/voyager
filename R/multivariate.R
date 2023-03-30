@@ -33,6 +33,8 @@
 #'   is to parallelize computation across multiple samples when there are a
 #'   large number of samples. Be cautious if using an optimized BLAS for matrix
 #'   operations that supports multithreading.
+#' @param transposed Logical, whether the matrix has genes in columns and cells
+#' in rows.
 #' @param ... Extra arguments passed to the specific multivariate method. For
 #'   example, see \code{\link{multispati_rsp}} for arguments for MULTISPATI PCA.
 #' @return In \code{calculateMultivariate}, a matrix for cell embeddings whose
@@ -41,6 +43,7 @@
 #'   \code{SpatialFeatureExperiment} object with the results added. See Details
 #'   for where the results are stored.
 #' @export
+#' @importFrom SpatialFeatureExperiment colGraphs
 #' @name calculateMultivariate
 #' @examples
 #' # example code
@@ -58,7 +61,9 @@ NULL
 #' @rdname calculateMultivariate
 #' @export
 setMethod("calculateMultivariate", c("ANY", "SFEMethod"),
-          function(x, type, listw = NULL, ...) {
+          function(x, type, listw = NULL, transposed = FALSE, ...) {
+              # x is expect to have genes in rows and cells in columns
+              if (!transposed) x <- t(x)
               if (use_graph(type))
                   res <- fun(type)(x, listw, ...)
               else res <- fun(type)(x, ...)
@@ -69,9 +74,9 @@ setMethod("calculateMultivariate", c("ANY", "SFEMethod"),
 #' @rdname calculateMultivariate
 #' @export
 setMethod("calculateMultivariate", c("ANY", "character"),
-          function(x, type, listw = NULL, ...) {
+          function(x, type, listw = NULL, transposed = FALSE, ...) {
               type <- get(type, mode = "S4")
-              calculateMultivariate(x, type, listw, ...)
+              calculateMultivariate(x, type, listw, transposed, ...)
           })
 
 # joint: MULTISPATI: Moran's I across all the samples, if spatial clustering
@@ -84,7 +89,7 @@ setMethod("calculateMultivariate", c("ANY", "character"),
 #' @export
 setMethod("calculateMultivariate", "SpatialFeatureExperiment",
           function(x, type, colGraphName = 1L,
-                   ntop = 500, subset_row = NULL, exprs_values = "logcounts",
+                   subset_row = NULL, exprs_values = "logcounts",
                    sample_action = c("joint", "separate"),
                    BPPARAM = SerialParam(), ...) {
               sample_id <- sampleIDs(x)
@@ -93,12 +98,8 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
               if (!is_joint(type) && sample_action == "joint")
                   sample_action <- "separate"
 
-              mat <- assay(sfe, exprs_values)
-              o <- scater:::.get_mat_for_reddim(mat, subset_row=subset_row,
-                                                ntop=ntop,
-                                                scale=FALSE, get.var=TRUE)
-              mat <- o$x
-              cv <- o$v
+              mat <- assay(x, exprs_values)
+              if (!is.null(subset_row)) mat <- mat[subset_row,]
               if (length(sample_id) > 1L) {
                   bcs <- colnames(x)
                   if (use_graph(type))
@@ -137,11 +138,11 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
                               } else if (is.matrix(es[[1]]) &&
                                          length(unique(lapply(es, dim))) == 1L) {
                                   comb <- simplify2array(es)
-                                  dimnames(comb) <- c(dimnames(es[[1]]), list(sample_id))
+                                  dimnames(comb)[[3]] <- sample_id
                               } else {
                                   comb <- setNames(es, sample_id)
                               }
-                              attrs_combined <- c(attrs_combined, comb)
+                              attrs_combined <- c(attrs_combined, list(comb))
                           }
                           names(attrs_combined) <- extra_attrs
                       }
@@ -174,7 +175,7 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
 #' @rdname calculateMultivariate
 #' @export
 runMultivariate <- function(x, type, colGraphName = 1L,
-                            ntop = 500, subset_row = NULL, exprs_values = "logcounts",
+                            subset_row = NULL, exprs_values = "logcounts",
                             sample_action = c("joint", "separate"),
                             BPPARAM = SerialParam(), name = NULL,
                             dest = c("reducedDim", "colData"), ...) {
@@ -182,9 +183,9 @@ runMultivariate <- function(x, type, colGraphName = 1L,
     if (is.character(type)) type <- get(type, mode = "S4")
     if (is.null(name)) name <- info(type, "name")
     out <- calculateMultivariate(x, type, colGraphName = colGraphName,
-                                 ntop = ntop, subset_row = subset_row, exprs_values = exprs_values,
+                                 subset_row = subset_row, exprs_values = exprs_values,
                                  sample_action = sample_action,
-                                 BPPARAM = BPPARAM, name = name, ...)
+                                 BPPARAM = BPPARAM, ...)
     if (is.array(out) && dest == "colData") {
         message("Matrix or array outputs can only be stored in reducedDims.")
         dest <- "reducedDim"

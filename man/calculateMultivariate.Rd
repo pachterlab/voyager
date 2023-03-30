@@ -8,15 +8,14 @@
 \alias{runMultivariate}
 \title{Multivariate spatial data analysis}
 \usage{
-\S4method{calculateMultivariate}{ANY,SFEMethod}(x, type, listw = NULL, ...)
+\S4method{calculateMultivariate}{ANY,SFEMethod}(x, type, listw = NULL, transposed = FALSE, ...)
 
-\S4method{calculateMultivariate}{ANY,character}(x, type, listw = NULL, ...)
+\S4method{calculateMultivariate}{ANY,character}(x, type, listw = NULL, transposed = FALSE, ...)
 
 \S4method{calculateMultivariate}{SpatialFeatureExperiment,ANY}(
   x,
   type,
   colGraphName = 1L,
-  ntop = 500,
   subset_row = NULL,
   exprs_values = "logcounts",
   sample_action = c("joint", "separate"),
@@ -28,7 +27,6 @@ runMultivariate(
   x,
   type,
   colGraphName = 1L,
-  ntop = 500,
   subset_row = NULL,
   exprs_values = "logcounts",
   sample_action = c("joint", "separate"),
@@ -58,6 +56,9 @@ other spatial analysis methods. This is in part inspired by the
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
 object.}
 
+\item{transposed}{Logical, whether the matrix has genes in columns and cells
+in rows.}
+
 \item{...}{Extra arguments passed to the specific multivariate method. For
 example, see \code{\link{multispati_rsp}} for arguments for MULTISPATI PCA.}
 
@@ -66,8 +67,6 @@ corresponds to entities represented by columns of the gene count matrix.
 Use \code{\link{colGraphNames}} to look up names of the available graphs
 for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
 that all of them have a graph of this same name.}
-
-\item{ntop}{Numeric scalar specifying the number of features with the highest variances to use for dimensionality reduction.}
 
 \item{subset_row}{Vector specifying the subset of features to use for dimensionality reduction.
 This can be a character vector of row names, an integer vector of row indices or a logical vector.}
