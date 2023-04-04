@@ -86,7 +86,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-04-02</h4>
+            <h4 data-toc-skip class="date">2023-04-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -281,7 +281,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  29.669   1.205  30.946</span></span></code></pre>
+<span><span class="co">#&gt;  24.412   1.267  25.757</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -293,7 +293,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.489   0.196   1.686</span></span></code></pre>
+<span><span class="co">#&gt;   1.742   0.211   1.955</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -335,7 +335,8 @@ static figures in publications.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">plot_colgeom_bbox</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="va">bbox_use</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: `aes_string()` was deprecated in ggplot2 3.0.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use tidy evaluation ideoms with `aes()`</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use tidy evaluation idioms with `aes()`.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> See also `vignette("ggplot2-in-packages")` for more information.</span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
@@ -684,7 +685,7 @@ inspection.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 358.127   0.772 359.918</span></span></code></pre></div>
+<span><span class="co">#&gt; 371.881   1.105 374.123</span></span></code></pre></div>
 <p>The <code>spdep</code> implementation of k nearest neighbors isn’t
 too bad, not taking longer than a song (radio edit Italodance on our
 server, but more like a full Trance or Ethereal Techno song on GitHub
@@ -726,7 +727,7 @@ for many other kinds of graphs.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">listw</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"listw"</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 158.313   1.947 160.759</span></span></code></pre></div>
+<span><span class="co">#&gt; 159.776   2.428 163.024</span></span></code></pre></div>
 <p>This took about half the time compared to <code>spdep</code>, so we
 will formalize it and add it to the next release. This is not
 necessarily due to Annoy by itself being faster than the kd tree method
@@ -794,7 +795,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 217.883  19.963 133.221</span></span></code></pre></div>
+<span><span class="co">#&gt; 225.213  24.086 141.220</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
@@ -1052,11 +1053,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  25.279   1.823  27.244</span></span>
+<span><span class="co">#&gt;  26.018   1.913  28.034</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  19448613 1038.7   28912800 1544.2         NA  28912800 1544.2</span></span>
-<span><span class="co">#&gt; Vcells 261663153 1996.4  585212358 4464.9      16384 585048272 4463.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  19480717 1040.4   29593536 1580.5         NA  29593536 1580.5</span></span>
+<span><span class="co">#&gt; Vcells 262764842 2004.8  586534385 4475.0      16384 586347136 4473.5</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1199,7 +1200,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [7] spdep_1.2-8                    sf_1.0-12                     </span></span>
 <span><span class="co">#&gt;  [9] spData_2.2.2                   stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt; [11] patchwork_1.1.2                scater_1.27.8                 </span></span>
-<span><span class="co">#&gt; [13] ggplot2_3.4.1                  scuttle_1.8.4                 </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.4.2                  scuttle_1.8.4                 </span></span>
 <span><span class="co">#&gt; [15] SpatialExperiment_1.8.1        SingleCellExperiment_1.20.1   </span></span>
 <span><span class="co">#&gt; [17] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
 <span><span class="co">#&gt; [19] GenomicRanges_1.50.2           GenomeInfoDb_1.34.9           </span></span>
