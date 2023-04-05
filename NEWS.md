@@ -1,7 +1,8 @@
-# Version 1.1.11 (03/30/2023)
+# Version 1.1.11 (04/05/2023)
 * Added MULTISPATI PCA
 * Added multivariate local Geary's C from Anselin 2019
 * Added calculateMultivariate as a unified user interface to multivariate spatial analyses
+* Variogram and variogram map with gstat and related plotting functions
 
 # Version 1.1.10 (03/07/2023)
 * Record parameters used to get spatial results

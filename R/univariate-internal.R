@@ -14,6 +14,7 @@
     return(out)
 }
 
+#' @importFrom stats as.formula terms
 .get_coords_df <- function(x, df, sample_id, exprs_values,
                            swap_rownames, ...) {
     if (!is(df, "sf") || st_geometry_type(df, by_geometry = FALSE) != "POINT") {
@@ -29,8 +30,9 @@
             df <- cbind(df[,oth_names], geo)
         } else df <- geo
     }
-    if ("formula" %in% names(list(...))) {
-        rgs <- labels(terms(f))
+    dots <- list(...)
+    if ("formula" %in% names(dost)) {
+        rgs <- labels(terms(dots[["formula"]]))
         if (length(rgs) && any(!rgs %in% names(df))) {
             rgs <- setdiff(rgs, names(df))
             values <- .get_feature_values(x, rgs, sample_id = sample_id,
@@ -87,13 +89,14 @@
     if (is.null(type)) {
         fun_use
     } else {
-        function(x, features = NULL, colGraphName = 1L, sample_id = "all",
+        function(x, features = NULL, colGraphName = 1L, colGeometryName = 1L,
+                 sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  zero.policy = NULL, returnDF = TRUE,
                  include_self = FALSE, p.adjust.method = "BH",
                  swap_rownames = NULL, name = NULL, ...) {
             fun_use(
-                x, type, features, colGraphName, sample_id,
+                x, type, features, colGraphName, colGeometryName, sample_id,
                 exprs_values, BPPARAM, zero.policy, returnDF,
                 include_self, p.adjust.method, swap_rownames, name, ...
             )
@@ -360,7 +363,8 @@
 }
 
 .sfe_univar_fun <- function(type = NULL) {
-    fun_use <- function(x, type, features = NULL, colGraphName = 1L, sample_id = "all",
+    fun_use <- function(x, type, features = NULL, colGraphName = 1L,
+                        colGeometryName = 1L, sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         swap_rownames = NULL,
                         zero.policy = NULL, include_self = FALSE,
@@ -386,7 +390,7 @@
         # Requires devel version of SFE
         features <- .symbol2id(x, features, swap_rownames)
         for (s in sample_id) {
-            out <- calculateUnivariate(x, type, features, colGraphName, s,
+            out <- calculateUnivariate(x, type, features, colGraphName, colGeometryName, s,
                                        exprs_values, BPPARAM, zero.policy,
                                        returnDF = TRUE,
                                        include_self = include_self, p.adjust.method = p.adjust.method,
@@ -407,13 +411,14 @@
     if (is.null(type)) {
         fun_use
     } else {
-        function(x, features = NULL, colGraphName = 1L, sample_id = "all",
+        function(x, features = NULL, colGraphName = 1L, colGeometryName = 1L,
+                 sample_id = "all",
                  exprs_values = "logcounts", BPPARAM = SerialParam(),
                  swap_rownames = NULL,
                  zero.policy = NULL, include_self = FALSE,
                  p.adjust.method = "BH", name = NULL, ...) {
             fun_use(
-                x, type, features, colGraphName, sample_id,
+                x, type, features, colGraphName, colGeometryName, sample_id,
                 exprs_values, BPPARAM, swap_rownames, zero.policy, include_self,
                 p.adjust.method, name, ...
             )

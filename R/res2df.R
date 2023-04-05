@@ -39,6 +39,7 @@
 .mcsim2df <- function(out, name, ...) {
     out <- lapply(out, function(o) {
         o$res <- I(list(o$res))
+        o$data.name <- NULL
         DataFrame(unclass(o))
     })
     rns <- names(out)
@@ -50,7 +51,7 @@
 
 .htest2df <- function(out, name, ...) {
     # When it's not also mc.sim
-    names_use <- c("statistic", "p.value", "alternative", "data.name", "method")
+    names_use <- c("statistic", "p.value", "alternative", "method")
     out <- lapply(out, function(o) {
         o[names_use] <- lapply(
             o[names_use],

@@ -396,6 +396,19 @@ test_that("When a gene symbol rowname is not a valid R object name", {
                                         colGeometryName = "spotPoly"))
 })
 
+inds <- c(1,3,4,5)
+sfe3 <- runUnivariate(sfe3, "sp.correlogram", features = rownames(sfe3)[inds],
+                      order = 5)
+test_that("Plot correlogram for multiple samples", {
+    expect_doppelganger("plotCorrelogram, multiple samples", {
+        plotCorrelogram(sfe3, rownames(sfe3)[inds], sample_id = "all")
+    })
+    expect_doppelganger("Cluster by gene instead", {
+        plotCorrelogram(sfe3, rownames(sfe3)[inds], sample_id = "all",
+                        facet_by = "features")
+    })
+})
+
 # scattermore
 library(sf)
 sfe_cosmx <- HeNSCLCData()

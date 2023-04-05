@@ -1,12 +1,13 @@
 #' Compute variograms
 #'
-#' Wrapper of \code{\link{autofitVariogram}} to facilitate computing variograms
-#' for multiple genes in SFE objects as an EDA tool. These functions are written
-#' to conform to a uniform format for univariate methods to be called
-#' internally. These functions are not exported, but the documentation is
+#' Wrapper of \code{\link{automap::autofitVariogram}} to facilitate computing
+#' variograms for multiple genes in SFE objects as an EDA tool. These functions
+#' are written to conform to a uniform format for univariate methods to be
+#' called internally. These functions are not exported, but the documentation is
 #' written to show users the extra arguments to use when alling
 #' \code{calculateUnivariate} or \code{runUnivariate}.
 #'
+#' @inheritParams gstat::variogram
 #' @param x A numeric vector whose variogram is computed.
 #' @param coords_df A \code{sf} data frame with the geometry and regressors for
 #'   variogram modeling.
@@ -16,8 +17,8 @@
 #'   the variogram is easier to interpret and is more comparable between
 #'   features with different magnitudes when the length scale of spatial
 #'   autocorrelation is of interest.
-#' @param ... Other arguments passed to \code{\link{autofitVariogram}} such as
-#'   \code{model} and \code{\link{variogram}} such as \code{alpha} for
+#' @param ... Other arguments passed to \code{\link{automap::autofitVariogram}}
+#'   such as \code{model} and \code{\link{variogram}} such as \code{alpha} for
 #'   anisotropy. Note that \code{gstat} does not fit ansotropic models and you
 #'   will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 #'   empirical anisotropic variograms and comparing them to the variogram fitted
@@ -80,7 +81,7 @@ variogram_map <- SFEMethod(c(package = "gstat", variate = "uni", scope = "global
     exp_vars <- lapply(seq_along(ress), function(i) {
         df <- ress[[i]]$exp_var
         df$feature <- names(ress)[i]
-        if (!is.null(color_by)) df$color_by <- color_value[i]
+        if (!is.null(color_value)) df$color_by <- color_value[i]
         df
     })
     exp_vars <- do.call(rbind, exp_vars)
@@ -90,7 +91,7 @@ variogram_map <- SFEMethod(c(package = "gstat", variate = "uni", scope = "global
         df <- gstat::variogramLine(ress[[i]]$var_model,
                                    maxdist = max(ress[[i]]$exp_var$dist))
         df$feature <- names(ress)[i]
-        if (!is.null(color_by)) df$color_by <- color_value[i]
+        if (!is.null(color_value)) df$color_by <- color_value[i]
         df
     })
     var_models <- do.call(rbind, var_models)
@@ -127,8 +128,16 @@ variogram_map <- SFEMethod(c(package = "gstat", variate = "uni", scope = "global
 #'   facet will contain one variogram. When grouping multiple variograms in the
 #'   same facet, the text with model, nugget, sill, and range of the variograms
 #'   will not be shown.
-#' @return A \code{ggplot} object. Each sample and each feature will occupy one
-#'   facet.
+#' @param use_lty Logical, whether to use linetype or point shape to distinguish
+#'   between the different features or samples in the same facet. If
+#'   \code{FALSE}, then the different features or samples are not distinguished
+#'   and the patterns are shown only.
+#' @param show_np Logical, whether to show number of pairs of cells at each
+#'   distance bin.
+#' @return A \code{ggplot} object. The empirical variogram at each distance bin
+#'   is plotted as points, and the fitted variogram model is plotted as a line
+#'   for each feature. The number next to each point is the number of pairs of
+#'   cells in that distance bin.
 #' @export
 #' @importFrom rlang !! sym
 #' @importFrom utils modifyList
@@ -147,7 +156,7 @@ variogram_map <- SFEMethod(c(package = "gstat", variate = "uni", scope = "global
 #' plotVariogram(sfe, "nCounts", group = "angles", name = "variogram_anis")
 plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
                           group = c("none", "sample_id", "features", "angles"),
-                          ncol = NULL,
+                          use_lty = TRUE, show_np = TRUE, ncol = NULL,
                           colGeometryName = NULL, annotGeometryName = NULL,
                           reducedDimName = NULL, divergent = FALSE,
                           diverge_center = NULL, swap_rownames = NULL,
@@ -184,7 +193,18 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
         var_models <- .dimred_feature_order(var_models)
         model_labels <- .dimred_feature_order(model_labels)
     }
+    if (is.data.frame(color_by)) {
+        if (length(unique(color_by$cluster)) < 2L) color_by <- NULL
+        else {
+            names(color_by)[names(color_by) == "cluster"] <- "color_by"
+            exp_vars <- merge(exp_vars, color_by, by = c("feature", "sample_id"),
+                              all.x = TRUE)
+            var_models <- merge(var_models, color_by, by = c("feature", "sample_id"),
+                                all.x = TRUE)
+        }
+    }
 
+    dist <- np <- feature <- dir.hor <- label <- NULL
     base_aes_line <- base_aes_point <- aes(dist, gamma)
     base_aes_np <- aes(dist, gamma, label = np)
     do_color <- !is.null(color_by) | group != "none"
@@ -209,31 +229,46 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
     } else {
         base_aes_line <- base_aes_point <- modifyList(base_aes_line,
                                                       aes(color = color_by))
-        name_use <- if (length(color_by) == 1L) color_by else "color_by"
+        base_aes_np <- modifyList(base_aes_np, aes(color = color_by))
+        name_use <- if (length(color_by) == 1L && is.atomic(color_by)) color_by
+        else if (is.data.frame(color_by)) "cluster"
+        else "color_by"
         pal <- .get_pal(exp_vars, list(color = "color_by"), 1,
                         divergent = divergent, diverge_center = diverge_center,
                         name = name_use)
-        add_aes_line <- switch (
-            group,
-            sample_id = aes(linetype = sample_id),
-            features = aes(linetype = feature),
-            angles = list(NULL),
-            none = list(NULL)
-        )
-        add_aes_point <- switch (
-            group,
-            sample_id = aes(shape = sample_id),
-            features = aes(shape = feature),
-            angles = aes(shape = dir.hor),
-            none = list(NULL)
-        )
-        base_aes_line <- modifyList(base_aes_line, add_aes_line)
-        base_aes_point <- modifyList(base_aes_point, add_aes_point)
+        if (use_lty) {
+            add_aes_line <- switch (
+                group,
+                sample_id = aes(linetype = sample_id),
+                features = aes(linetype = feature),
+                angles = list(NULL),
+                none = list(NULL)
+            )
+            add_aes_point <- switch (
+                group,
+                sample_id = aes(shape = sample_id),
+                features = aes(shape = feature),
+                angles = aes(shape = dir.hor),
+                none = list(NULL)
+            )
+            base_aes_line <- modifyList(base_aes_line, add_aes_line)
+            base_aes_point <- modifyList(base_aes_point, add_aes_point)
+        } else {
+            add_aes_line <- switch (
+                group,
+                sample_id = aes(group = sample_id),
+                features = aes(group = feature),
+                angles = list(NULL),
+                none = list(NULL)
+            )
+            base_aes_line <- modifyList(base_aes_line, add_aes_line)
+        }
     }
     p <- ggplot() +
         geom_line(data = var_models, mapping = base_aes_line) +
-        geom_point(data = exp_vars, mapping = base_aes_point) +
-        geom_text(data = exp_vars, mapping = base_aes_np, hjust = 0, vjust = 0)
+        geom_point(data = exp_vars, mapping = base_aes_point)
+    if (show_np)
+        p <- p + geom_text(data = exp_vars, mapping = base_aes_np, hjust = 0, vjust = 0)
     if (do_color) p <- p + pal
     # i.e. plotting only one line for one fitted model
     if (group %in% c("none", "angles")) {
@@ -304,6 +339,8 @@ plotVariogramMap <- function(sfe, features, sample_id = "all", plot_np = FALSE,
     })
     df <- do.call(rbind, dfs)
     features <- unique(df$feature)
+
+    dx <- dy <- np.var1 <- var1 <- feature <- NULL
     aes_use <- aes(dx, dy)
     if (plot_np) {
         aes_use <- modifyList(aes_use, aes(fill = np.var1))

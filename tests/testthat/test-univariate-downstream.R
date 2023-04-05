@@ -91,7 +91,7 @@ test_that("Correct clusterCorrelograms output structure", {
         sample_id = "sample01",
         BLUSPARAM = KmeansParam(2)
     )
-    expect_s4_class(out, "DataFrame")
+    expect_s3_class(out, "data.frame")
     expect_named(out, c("feature", "cluster", "sample_id"))
     expect_s3_class(out$cluster, "factor")
 })

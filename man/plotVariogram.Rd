@@ -10,6 +10,8 @@ plotVariogram(
   sample_id = "all",
   color_by = NULL,
   group = c("none", "sample_id", "features", "angles"),
+  use_lty = TRUE,
+  show_np = TRUE,
   ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
@@ -35,13 +37,21 @@ for each sample.}
 \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 \code{colGeometry}, or \code{annotGeometry} by which to color the
 correlogram of each feature. Alternatively, a vector of the same length as
-\code{features}.}
+\code{features}, or a data frame from \code{\link{clusterCorrelograms}}.}
 
 \item{group}{Which of samples, features, and angles to show in the same facet
 for comparison when there are multiple. Default to "none", meaning each
 facet will contain one variogram. When grouping multiple variograms in the
 same facet, the text with model, nugget, sill, and range of the variograms
 will not be shown.}
+
+\item{use_lty}{Logical, whether to use linetype or point shape to distinguish
+between the different features or samples in the same facet. If
+\code{FALSE}, then the different features or samples are not distinguished
+and the patterns are shown only.}
+
+\item{show_np}{Logical, whether to show number of pairs of cells at each
+distance bin.}
 
 \item{ncol}{Number of columns if facetting.}
 
@@ -71,8 +81,10 @@ matrix will be used.}
 default "sp.correlogram".}
 }
 \value{
-A \code{ggplot} object. Each sample and each feature will occupy one
-  facet.
+A \code{ggplot} object. The empirical variogram at each distance bin
+  is plotted as points, and the fitted variogram model is plotted as a line
+  for each feature. The number next to each point is the number of pairs of
+  cells in that distance bin.
 }
 \description{
 This function plots the variogram of a feature and its fitted variogram

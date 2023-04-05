@@ -24,21 +24,28 @@ the variogram is easier to interpret and is more comparable between
 features with different magnitudes when the length scale of spatial
 autocorrelation is of interest.}
 
-\item{...}{Other arguments passed to \code{\link{autofitVariogram}} such as
-\code{model} and \code{\link{variogram}} such as \code{alpha} for
+\item{...}{Other arguments passed to \code{\link{automap::autofitVariogram}}
+such as \code{model} and \code{\link{variogram}} such as \code{alpha} for
 anisotropy. Note that \code{gstat} does not fit ansotropic models and you
 will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 empirical anisotropic variograms and comparing them to the variogram fitted
 to the entire dataset can be a useful EDA tool.}
+
+\item{width}{ the width of subsequent distance intervals into which
+data point pairs are grouped for semivariance estimates }
+
+\item{cutoff}{ spatial separation distance up to which point pairs
+are included in semivariance estimates; as a default, the
+length of the diagonal of the box spanning the data is divided by three. }
 }
 \value{
 An \code{autofitVariogram} object.
 }
 \description{
-Wrapper of \code{\link{autofitVariogram}} to facilitate computing variograms
-for multiple genes in SFE objects as an EDA tool. These functions are written
-to conform to a uniform format for univariate methods to be called
-internally. These functions are not exported, but the documentation is
+Wrapper of \code{\link{automap::autofitVariogram}} to facilitate computing
+variograms for multiple genes in SFE objects as an EDA tool. These functions
+are written to conform to a uniform format for univariate methods to be
+called internally. These functions are not exported, but the documentation is
 written to show users the extra arguments to use when alling
 \code{calculateUnivariate} or \code{runUnivariate}.
 }

@@ -238,7 +238,7 @@ setMethod(
         all_args <- list(x = x, fun = fun(type), BPPARAM = BPPARAM)
         if (use_graph(type)) {
             all_args <- c(all_args, list(listw = listw,
-                                         zero,policy = zero.policy))
+                                         zero.policy = zero.policy))
         } else {
             if (info(type, "name") == "variogram" &&
                 "alpha" %in% names(other_args)) {
@@ -271,8 +271,8 @@ setMethod(
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
              name = NULL, ...) {
         type <- get(type, mode = "S4")
-        calculateUnivariate(x, type, listw, BPPARAM, zero.policy, returnDF,
-                            p.adjust.method, name, ...)
+        calculateUnivariate(x, type, listw, coords_df, BPPARAM, zero.policy,
+                            returnDF, p.adjust.method, name, ...)
     }
 )
 

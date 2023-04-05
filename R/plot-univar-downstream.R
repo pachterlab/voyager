@@ -293,6 +293,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 .get_color_by <- function(sfe, features, color_by, sample_id,
                           colGeometryName, annotGeometryName, reducedDimName,
                           show_symbol, swap_rownames) {
+    if (is.data.frame(color_by)) return(NULL)
     if (!is.null(color_by)) {
         # Different from moranPlot
         if (is.character(color_by) && length(color_by) == 1L) {
@@ -311,7 +312,8 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                 "the same length as the features argument."
             )
         }
-    }
+        color_value
+    } else NULL
 }
 
 .get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
@@ -336,7 +338,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                 res = res
             )
             if (length(ress) > 1L) out$feature <- names(ress)[i]
-            if (!is.null(color_by)) out$color_by <- color_value[i]
+            if (!is.null(color_value)) out$color_by <- color_value[i]
             out
         })
     } else {
@@ -352,7 +354,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
             out$ymin <- out$res - out$sd2
             out$ymax <- out$res + out$sd2
             out$feature <- names(ress)[[i]]
-            if (!is.null(color_by)) out$color_by <- color_value[i]
+            if (!is.null(color_value)) out$color_by <- color_value[i]
             out
         })
     }
@@ -406,7 +408,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 #'   \code{colGeometry}, or \code{annotGeometry} by which to color the
 #'   correlogram of each feature. Alternatively, a vector of the same length as
-#'   \code{features}.
+#'   \code{features}, or a data frame from \code{\link{clusterCorrelograms}}.
 #' @param colGeometryName Name of a \code{colGeometry} \code{sf} data frame
 #'   whose numeric columns of interest are to be used to compute the metric. Use
 #'   \code{\link{colGeometryNames}} to look up names of the \code{sf} data
@@ -495,6 +497,13 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
     }
     if (is_dimred){
         df <- .dimred_feature_order(df)
+    }
+    if (is.data.frame(color_by)) {
+        if (length(unique(color_by$cluster)) < 2L) color_by <- NULL
+        else {
+            df <- merge(df, color_by, by = c("feature", "sample_id"), all.x = TRUE)
+            names(df)[names(df) == "cluster"] <- "color_by"
+        }
     }
     if (method %in% c("I", "C") && plot_signif) {
         df$z <- (df$res - df$expectation) / sqrt(df$variance)
@@ -596,9 +605,10 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
         p <- p + geom_hline(yintercept = 0, linetype = 2, alpha = 0.7)
     }
     if (!is.null(color_by) && length(features) > 1L) {
+        name_use <- if (is.data.frame(color_by)) "cluster" else "color_by"
         pal <- .get_pal(df,
                         feature_aes = list(color = "color_by"), option = 1,
-                        divergent, diverge_center
+                        divergent, diverge_center, name = name_use
         )
         p <- p + pal
     }

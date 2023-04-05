@@ -41,7 +41,7 @@ for each sample.}
 \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 \code{colGeometry}, or \code{annotGeometry} by which to color the
 correlogram of each feature. Alternatively, a vector of the same length as
-\code{features}.}
+\code{features}, or a data frame from \code{\link{clusterCorrelograms}}.}
 
 \item{facet_by}{Whether to facet by sample_id (default) or features. If
 facetting by sample_id, then different features will be plotted in the same

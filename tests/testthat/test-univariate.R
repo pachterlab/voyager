@@ -116,7 +116,7 @@ test_that("Properly add Moran's I results (no permutation) to SFE rowData", {
 
 names_expect_mc <- c(
     "statistic", "parameter", "p.value", "alternative",
-    "method", "data.name", "res"
+    "method", "res"
 )
 names_expect_mc <- paste("moran.mc", names_expect_mc, sep = "_")
 names_expect_mc_sample <- paste(names_expect_mc, "sample01", sep = "_")
@@ -219,7 +219,7 @@ test_that("DataFrame output for moran.plot, and some local results in general", 
 })
 
 names_expect_gg <- c(
-    "statistic", "p.value", "alternative", "data.name", "method",
+    "statistic", "p.value", "alternative", "method",
     "Global.G.statistic", "Expectation", "Variance"
 )
 names_expect_gg <- paste("globalG.test", names_expect_gg, sep = "_")

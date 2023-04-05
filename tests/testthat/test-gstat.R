@@ -2,11 +2,14 @@ library(SFEData)
 library(scater)
 library(SpatialExperiment)
 library(vdiffr)
+library(bluster)
+library(Matrix)
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
 sfe <- logNormCounts(sfe)
-gs <- order(rowSums(counts(sfe)), decreasing = TRUE)[1:10]
+gs <- order(Matrix::rowSums(counts(sfe)), decreasing = TRUE)[1:10]
+genes <- rownames(sfe)[gs]
 mat <- logcounts(sfe)[gs,]
 df <- df2sf(spatialCoords(sfe), spatialCoordsNames(sfe))
 
@@ -85,14 +88,14 @@ test_that("plotVariogram", {
     expect_doppelganger("One sample, one feature, one angle", {
         plotVariogram(sfe, "nCounts")
     })
-    expect_doppelganger("Correct plot when group is not none but there's only one type", {
+    expect_doppelganger("Correct plot when there's only one type", {
         plotVariogram(sfe, "nCounts", group = "features")
     })
     sfe <- reducedDimUnivariate(sfe, variogram, components = 1:3, model = "Ste")
     expect_doppelganger("Sequential color for dimension reduction", {
         plotVariogram(sfe, 1:3, group = "features", reducedDimName = "PCA")
     })
-    expect_doppelganger("Still show the text and don't facet when only one feature is found", {
+    expect_doppelganger("Still show the text", {
         plotVariogram(sfe, 3:5, group = "features", reducedDimName = "PCA")
     })
     sfe3 <- colDataUnivariate(sfe3, variogram, features = c("nCounts", "nGenes"),
@@ -125,6 +128,34 @@ test_that("plotVariogram", {
     })
     expect_doppelganger("Color by angles", {
         plotVariogram(sfe, "nGenes", group = "angles", name = "variogram_anis")
+    })
+})
+
+sfe <- runUnivariate(sfe, variogram, features = genes)
+sfe3 <- runUnivariate(sfe3, variogram, features = genes)
+test_that("clusterVariogram", {
+    var_clusts <- clusterVariograms(sfe, features = genes,
+                                    BLUSPARAM = HclustParam(),
+                                    swap_rownames = "symbol")
+    expect_s3_class(var_clusts, "data.frame")
+    expect_named(var_clusts, c("feature", "cluster", "sample_id"))
+    expect_s3_class(var_clusts$cluster, "factor")
+    # Plotting clusters
+    expect_doppelganger("Use clustering df to color, one sample", {
+        plotVariogram(sfe, genes[1:5], color_by = var_clusts, group = "features",
+                      swap_rownames = "symbol")
+    })
+    expect_doppelganger("Use cluster df to color, no linetype", {
+        plotVariogram(sfe, genes, color_by = var_clusts, group = "features",
+                      use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
+    })
+    # Across 2 samples
+    var_clusts2 <- clusterVariograms(sfe3, features = genes,
+                                     BLUSPARAM = HclustParam(),
+                                     swap_rownames = "symbol")
+    expect_doppelganger("Plot gene clusters, two samples", {
+        plotVariogram(sfe3, genes, color_by = var_clusts2, group = "features",
+                      use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
     })
 })
 

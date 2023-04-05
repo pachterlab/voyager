@@ -60,7 +60,7 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
                       v.names = "value", timevar = "sample",
                       times = colnames(y))
     }
-    PC <- pct_var <- NULL
+    PC <- pct_var <- value <-  NULL
     if (facet || ncol(y) == 1L) {
         p <- ggplot(df, aes(PC, value))
     } else p <- ggplot(df, aes(PC, value, color = sample)) +
