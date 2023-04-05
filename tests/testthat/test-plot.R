@@ -7,6 +7,12 @@ library(scater)
 library(Matrix)
 library(ggplot2)
 library(scran)
+
+expect_ggplot <- function(g) {
+    expect_s3_class(g, "ggplot")
+    expect_error(ggplot_build(g), NA)
+}
+
 test_that("Divergent palette beginning and end", {
     expect_equal(getDivergeRange(1:8, diverge_center = 5), c(0, 0.875))
     expect_equal(getDivergeRange(1:8, diverge_center = 4), c(0.125, 1))
@@ -185,25 +191,20 @@ colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
     replace = TRUE), levels = as.character(1:5))
 
 test_that("moranPlot, not filled, no color_by", {
-    skip_on_ci()
     expect_warning(
         moranPlot(sfe, "B", "visium", "sample01"),
         "Too few points"
     )
-    expect_doppelganger(
-        "moranPlot, not filled",
+    expect_ggplot(
         moranPlot(sfe_muscle, feature_use, "visium", swap_rownames = "symbol")
     )
-    expect_doppelganger(
-        "moranPlot, not filled, colData",
+    expect_ggplot(
         moranPlot(sfe_muscle, "nCounts", "visium")
     )
 })
 
 test_that("moranPlot, not filled, with color_by", {
-    skip_on_ci()
-    expect_doppelganger(
-        "moranPlot, not filled, with color_by",
+    expect_ggplot(
         moranPlot(sfe_muscle, feature_use, "visium",
             color_by = "GraphBased", contour_color = "blue",
             swap_rownames = "symbol"
@@ -212,9 +213,7 @@ test_that("moranPlot, not filled, with color_by", {
 })
 
 test_that("moranPlot, filled, no color_by", {
-    skip_on_ci()
-    expect_doppelganger(
-        "moranPlot, filled",
+    expect_ggplot(
         moranPlot(sfe_muscle, feature_use, "visium",
             filled = TRUE, swap_rownames = "symbol"
         )
@@ -222,9 +221,7 @@ test_that("moranPlot, filled, no color_by", {
 })
 
 test_that("moranPlot, filled, with color_by", {
-    skip_on_ci()
-    expect_doppelganger(
-        "moranPlot, filled, with color_by",
+    expect_ggplot(
         moranPlot(sfe_muscle, feature_use, "visium",
             filled = TRUE, color_by = "GraphBased", swap_rownames = "symbol"
         )
@@ -826,11 +823,10 @@ test_that("Univariate downstream plots for dimred", {
 })
 
 test_that("Moran MC plot for dimred", {
-    testthat::skip_on_ci()
-    expect_doppelganger("Moran MC for dimred, one dimension", {
+    expect_ggplot({
         plotMoranMC(sfe_muscle2, "PC1", reducedDimName = "multispati")
     })
-    expect_doppelganger("Moran MC plot for multispati PCs", {
+    expect_ggplot({
         plotMoranMC(sfe_muscle2, 1:5, reducedDimName = "multispati")
     })
 })

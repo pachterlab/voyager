@@ -32,6 +32,12 @@ test_that("Wrong arguments in fun", {
                            fun = spdep::sp.correlogram,
                            reorganize_fun = Voyager:::.moran2df),
                  "The first two arguments of slot `fun` must be 'x' and 'listw'")
+    expect_error(SFEMethod(info = c(name = "sp.correlogram", variate = "uni",
+                                    scope = "global", package = "spdep",
+                                    title = "Correlogram", default_attr = NA),
+                           fun = spdep::sp.correlogram, use_graph = FALSE,
+                           reorganize_fun = Voyager:::.moran2df),
+                 "The first two arguments of slot `fun` must be 'x' and 'coords_df'")
 })
 
 test_that("Must have zero.policy", {

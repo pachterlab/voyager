@@ -5,7 +5,7 @@
 #' same method and have the same number of lags.
 #'
 #' @inheritParams clusterMoranPlot
-#' @inheritParams calculateUnivariate
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotCorrelogram
 #' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object with correlograms
@@ -77,8 +77,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' can be seen on the Moran plot, indicating different types of neighborhoods.
 #'
 #' @inheritParams bluster::clusterRows
-#' @inheritParams calculateUnivariate
-#' @inheritParams moranPlot
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object with Moran plot computed
 #'   for the feature of interest. If the Moran plot for that feature has not
@@ -170,3 +169,5 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
     }
     out
 }
+
+#' Cluster variograms of multiple features

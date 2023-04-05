@@ -24,6 +24,7 @@
   x,
   type,
   listw = NULL,
+  coords_df = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
@@ -36,6 +37,7 @@
   x,
   type,
   listw = NULL,
+  coords_df = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
@@ -49,6 +51,7 @@
   type,
   features = NULL,
   colGraphName = 1L,
+  colGeometryName = 1L,
   sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
@@ -248,7 +251,12 @@ other spatial analysis methods. This is in part inspired by the
 \code{caret}, \code{parsnip}, and \code{BiocSingular} packages.}
 
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
-object.}
+object. Not used when the method specified in \code{type} does not use a
+spatial neighborhood graph, such as the variogram.}
+
+\item{coords_df}{A \code{sf} data frame specifying location of each cell. Not
+used when the method specified in \code{type} uses a spatial neighborhood
+graph. Must be specified otherwise.}
 
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized.}
@@ -272,7 +280,7 @@ parameters.}
 the argument \code{type} (as in more general functions like
 \code{calculateUnivariate}). See documentation of functions with the same
 name as specified in \code{type} in the \code{spdep} package for the method
-specific arguments.}
+specific arguments. For variograms, see \code{\link{.variogram}}.}
 
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
@@ -294,6 +302,15 @@ Use \code{\link{colGraphNames}} to look up names of the available graphs
 for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
 that all of them have a graph of this same name.}
 
+\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots. In the SFE method of
+\code{calculateUnivariate}, this is to specify location of cells for
+methods that don't take a spatial neighborhood graph such as the variogram.
+If the geometry is not of type \code{POINT}, then \code{spatialCoords(x)}
+is used instead.}
+
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
 for each sample.}
@@ -309,11 +326,6 @@ include edges from each location to itself. This is for Getis-Ord Gi* as in
 identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count
 matrix will be used.}
-
-\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute the metric. Use
-\code{\link{colGeometryNames}} to look up names of the \code{sf} data
-frames associated with cells/spots.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -351,7 +363,8 @@ methods are global, meaning returning one result for all spatial locations in
 the dataset: \code{\link[spdep]{moran}}, \code{\link[spdep]{geary}},
 \code{\link[spdep]{moran.mc}}, \code{\link[spdep]{geary.mc}},
 \code{\link[spdep]{moran.test}}, \code{\link[spdep]{geary.test}},
-\code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}.
+\code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}. The
+variogram and variogram map from the \code{gstat} package are also supported.
 
 The following methods are local, meaning each location has its own results:
 \code{\link[spdep]{moran.plot}}, \code{\link[spdep]{localmoran}},
@@ -449,9 +462,13 @@ head(localResult(sfe, "localG", "area",
 \references{
 Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
 
-Anselin, L. (1995), Local Indicators of Spatial Association—LISA. Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
+  Anselin, L. (1995), Local Indicators of Spatial Association—LISA.
+  Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
 
-Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The Annals of Regional Science, 48 (2), 529–539.
+  Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The
+  Annals of Regional Science, 48 (2), 529–539.
 
-Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics: distributional issues and an application. Geographical Analysis, 27, 286–306
+  Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics:
+  distributional issues and an application. Geographical Analysis, 27,
+  286–306
 }

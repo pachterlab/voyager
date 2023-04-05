@@ -92,6 +92,14 @@
     out_df
 }
 
+.variogram_map2df <- function(out, name, ...) {
+    out <- lapply(out, function(o) as.data.frame(o$map))
+    out_df <- DataFrame(res = I(out))
+    names(out_df) <- name
+    rownames(out_df) <- names(out)
+    out_df
+}
+
 .other2df <- function(out, name, ...) {
     if (!is.atomic(out)) out <- I(out)
     out_df <- DataFrame(res = out)

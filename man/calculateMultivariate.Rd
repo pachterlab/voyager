@@ -62,7 +62,8 @@ other spatial analysis methods. This is in part inspired by the
 \code{caret}, \code{parsnip}, and \code{BiocSingular} packages.}
 
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
-object.}
+object. Not used when the method specified in \code{type} does not use a
+spatial neighborhood graph, such as the variogram.}
 
 \item{transposed}{Logical, whether the matrix has genes in columns and cells
 in rows.}

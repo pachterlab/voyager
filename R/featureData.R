@@ -28,7 +28,8 @@
                     "version ", old_params[["version"]], " in localResult ",
                     name, "; please verify consistency between versions.")
         }
-        if (!is_matched[names(params) == "graph_params"]) {
+        if ("graph_params" %in% names(params) &&
+            !is_matched[names(params) == "graph_params"]) {
             # Not throwing errors here since implementations in different packages
             # can give consistent results. Just to notify users to double check.
             if (length(old_params$graph_params)) {

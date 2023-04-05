@@ -14,7 +14,8 @@
 #' the dataset: \code{\link[spdep]{moran}}, \code{\link[spdep]{geary}},
 #' \code{\link[spdep]{moran.mc}}, \code{\link[spdep]{geary.mc}},
 #' \code{\link[spdep]{moran.test}}, \code{\link[spdep]{geary.test}},
-#' \code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}.
+#' \code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}. The
+#' variogram and variogram map from the \code{gstat} package are also supported.
 #'
 #' The following methods are local, meaning each location has its own results:
 #' \code{\link[spdep]{moran.plot}}, \code{\link[spdep]{localmoran}},
@@ -70,7 +71,11 @@
 #'   other spatial analysis methods. This is in part inspired by the
 #'   \code{caret}, \code{parsnip}, and \code{BiocSingular} packages.
 #' @param listw Weighted neighborhood graph as a \code{spdep} \code{listw}
-#'   object.
+#'   object. Not used when the method specified in \code{type} does not use a
+#'   spatial neighborhood graph, such as the variogram.
+#' @param coords_df A \code{sf} data frame specifying location of each cell. Not
+#'   used when the method specified in \code{type} uses a spatial neighborhood
+#'   graph. Must be specified otherwise.
 #' @param features Genes (\code{calculate*} SFE method and \code{run*}) or
 #'   numeric columns of \code{colData(x)} (\code{colData*}) or any
 #'   \code{\link{colGeometry}} (\code{colGeometry*}) or
@@ -100,7 +105,11 @@
 #' @param colGeometryName Name of a \code{colGeometry} \code{sf} data frame
 #'   whose numeric columns of interest are to be used to compute the metric. Use
 #'   \code{\link{colGeometryNames}} to look up names of the \code{sf} data
-#'   frames associated with cells/spots.
+#'   frames associated with cells/spots. In the SFE method of
+#'   \code{calculateUnivariate}, this is to specify location of cells for
+#'   methods that don't take a spatial neighborhood graph such as the variogram.
+#'   If the geometry is not of type \code{POINT}, then \code{spatialCoords(x)}
+#'   is used instead.
 #' @param annotGeometryName Name of a \code{annotGeometry} \code{sf} data frame
 #'   whose numeric columns of interest are to be used to compute the metric. Use
 #'   \code{\link{annotGeometryNames}} to look up names of the \code{sf} data
@@ -129,19 +138,22 @@
 #'   the argument \code{type} (as in more general functions like
 #'   \code{calculateUnivariate}). See documentation of functions with the same
 #'   name as specified in \code{type} in the \code{spdep} package for the method
-#'   specific arguments.
+#'   specific arguments. For variograms, see \code{\link{.variogram}}.
 #' @return In \code{calculateUnivariate}, if \code{returnDF = TRUE}, then a
 #'   \code{DataFrame}, otherwise a list each element of which is the results for
 #'   each feature. For \code{run*}, a \code{SpatialFeatureExperiment} object
 #'   with the results added. See Details for where the results are stored.
-#' @references
-#' Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
+#' @references Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
 #'
-#' Anselin, L. (1995), Local Indicators of Spatial Association—LISA. Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
+#'   Anselin, L. (1995), Local Indicators of Spatial Association—LISA.
+#'   Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
 #'
-#' Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The Annals of Regional Science, 48 (2), 529–539.
+#'   Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The
+#'   Annals of Regional Science, 48 (2), 529–539.
 #'
-#' Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics: distributional issues and an application. Geographical Analysis, 27, 286–306
+#'   Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics:
+#'   distributional issues and an application. Geographical Analysis, 27,
+#'   286–306
 #'
 #' @name calculateUnivariate
 #' @aliases calculateMoransI
@@ -213,7 +225,7 @@ NULL
 #' @export
 setMethod(
     "calculateUnivariate", c("ANY", "SFEMethod"),
-    function(x, type, listw = NULL,
+    function(x, type, listw = NULL, coords_df = NULL,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
              name = NULL, ...) {
@@ -223,10 +235,17 @@ setMethod(
             rlang::check_installed(info(type, "package"))
         }
         other_args <- list(...)
-        all_args <- list(
-            x = x, listw = listw, fun = fun(type),
-            BPPARAM = BPPARAM, zero.policy = zero.policy
-        )
+        all_args <- list(x = x, fun = fun(type), BPPARAM = BPPARAM)
+        if (use_graph(type)) {
+            all_args <- c(all_args, list(listw = listw,
+                                         zero,policy = zero.policy))
+        } else {
+            if (info(type, "name") == "variogram" &&
+                "alpha" %in% names(other_args)) {
+                message("gstat does not fit anisotropic variograms. Variogram model is fitted to the whole dataset.")
+            }
+            all_args <- c(all_args, list(coords_df = coords_df))
+        }
         all_args <- c(all_args, other_args)
         out <- do.call(.calc_univar, all_args)
         if (returnDF) {
@@ -247,7 +266,7 @@ setMethod(
 #' @export
 setMethod(
     "calculateUnivariate", c("ANY", "character"),
-    function(x, type, listw = NULL,
+    function(x, type, listw = NULL, coords_df = NULL,
              BPPARAM = SerialParam(),
              zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
              name = NULL, ...) {

@@ -439,7 +439,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' to show the axes by using a different theme as normally done in
 #' \code{ggplot2}.
 #'
-#' @inheritParams calculateUnivariate
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
@@ -470,6 +470,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   \code{annot_color_by} is not specified or not applicable.
 #' @param fill Similar to \code{color}, but for fill.
 #' @param alpha Transparency.
+#' @param exprs_values Integer scalar or string indicating which assay of x
+#'   contains the expression values.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
 #' @param annot_aes A named list of plotting parameters for the annotation sf

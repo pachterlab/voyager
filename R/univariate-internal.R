@@ -1,5 +1,5 @@
 # Internal function for univariate metrics
-.calc_univar <- function(x, listw, fun, BPPARAM, ...) {
+.calc_univar <- function(x, fun, BPPARAM, ...) {
     if (is(x, "DFrame") || is.data.frame(x)) {
         if (is(x, "sf")) x <- st_drop_geometry(x)
         x <- t(as.matrix(x))
@@ -7,49 +7,77 @@
             stop("Only numeric columns without NA (within the sample_id) can be used.")
         }
     }
-    if ("listw" %in% names(formals(fun))) {
-        out <- bplapply(seq_len(nrow(x)), function(i) {
-            fun(x[i, ], listw, ...)
-        }, BPPARAM = BPPARAM)
-    } else {
-        out <- bplapply(seq_len(nrow(x)), function(i) {
-            fun(x[i, ], ...)
-        }, BPPARAM = BPPARAM)
-    }
+    out <- bplapply(seq_len(nrow(x)), function(i) {
+        fun(x[i, ], ...)
+    }, BPPARAM = BPPARAM)
     names(out) <- rownames(x)
     return(out)
 }
 
-# Turn these function factories into methods for SFEMethod
+.get_coords_df <- function(x, df, sample_id, exprs_values,
+                           swap_rownames, ...) {
+    if (!is(df, "sf") || st_geometry_type(df, by_geometry = FALSE) != "POINT") {
+        if (is(df, "sf")) df <- st_drop_geometry(df)
+        # Can't use list columns as regressors
+        inds_keep <- vapply(df, is.atomic, FUN.VALUE = logical(1))
+        df <- df[,inds_keep]
+        if (is(df, "DataFrame")) df <- as.data.frame(df)
+        colnames_use <- spatialCoordsNames(x)
+        geo <- df2sf(spatialCoords(x)[x$sample_id == sample_id,], colnames_use)
+        oth_names <- setdiff(names(df), colnames_use)
+        if (length(oth_names)) {
+            df <- cbind(df[,oth_names], geo)
+        } else df <- geo
+    }
+    if ("formula" %in% names(list(...))) {
+        rgs <- labels(terms(f))
+        if (length(rgs) && any(!rgs %in% names(df))) {
+            rgs <- setdiff(rgs, names(df))
+            values <- .get_feature_values(x, rgs, sample_id = sample_id,
+                                          exprs_values = exprs_values,
+                                          show_symbol = !is.null(swap_rownames),
+                                          swap_rownames = swap_rownames)
+            df <- cbind(df, values)
+        }
+    }
+    st_as_sf(df)
+}
 
 #' @importFrom spdep include.self nb2listw
+#' @importFrom sf st_as_sf
+#' @importFrom SpatialExperiment spatialCoordsNames
 .calc_univar_sfe_fun <- function(type = NULL) {
     fun_use <- function(x, type, features = NULL, colGraphName = 1L,
-                        sample_id = "all",
+                        colGeometryName = 1L, sample_id = "all",
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         zero.policy = NULL, returnDF = TRUE,
                         include_self = FALSE, p.adjust.method = "BH",
                         swap_rownames = NULL, name = NULL, ...) {
         # Am I sure that I want to use logcounts as the default?
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
-        listw_use <- NULL
         out <- lapply(sample_id, function(s) {
             features <- .check_features(x, features, swap_rownames = swap_rownames)[["assay"]]
+            mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s, drop = FALSE]
             if (use_graph(type)) {
                 listw_use <- colGraph(x, type = colGraphName, sample_id = s)
                 if (include_self) {
                     nb2 <- include.self(listw_use$neighbours)
                     listw_use <- nb2listw(nb2)
                 }
+                o <- calculateUnivariate(mat, listw = listw_use,
+                                         type = type,
+                                         BPPARAM = BPPARAM,
+                                         zero.policy = zero.policy,
+                                         returnDF = returnDF, p.adjust.method = p.adjust.method,
+                                         name = name, ...
+                )
+            } else {
+                cg <- colGeometry(x, colGeometryName, sample_id = s)
+                cg <- .get_coords_df(x, cg, s, exprs_values, swap_rownames, ...)
+                o <- calculateUnivariate(mat, coords_df = cg, type = type, BPPARAM = BPPARAM,
+                                         returnDF = returnDF, p.adjust.method = p.adjust.method,
+                                         name = name, ...)
             }
-            mat <- assay(x, exprs_values)[features, colData(x)$sample_id == s, drop = FALSE]
-            o <- calculateUnivariate(mat, listw = listw_use,
-                type = type,
-                BPPARAM = BPPARAM,
-                zero.policy = zero.policy,
-                returnDF = returnDF, p.adjust.method = p.adjust.method,
-                name = name, ...
-            )
             o
         })
         names(out) <- sample_id
@@ -140,21 +168,29 @@
                                 annotGeometryName = annotGeometryName,
                                 reducedDimName = reducedDimName)
         .check_old_params(params, old_params, name, args_not_check(type))
-        listw_use <- NULL
+
         for (s in sample_id) {
+            df <- .get_fun(x, which, sample_id = s)
             if (use_graph(type)) {
                 listw_use <- .graph_fun(x, type = graphName, sample_id = s)
                 if (include_self) {
                     nb2 <- include.self(listw_use$neighbours)
                     listw_use <- nb2listw(nb2)
                 }
+                res <- calculateUnivariate(df[, features, drop = FALSE],
+                                           listw = listw_use, type = type, BPPARAM = BPPARAM,
+                                           zero.policy = zero.policy, returnDF = TRUE,
+                                           p.adjust.method = p.adjust.method, name = name, ...
+                )
+            } else {
+                geo <- .get_coords_df(x, df, s, exprs_values = "logcounts",
+                                      swap_rownames = NULL, ...)
+                res <- calculateUnivariate(df[, features, drop = FALSE],
+                                           coords_df = geo, type = type,
+                                           BPPARAM = BPPARAM, returnDF = TRUE,
+                                           p.adjust.method = p.adjust.method,
+                                           name = name, ...)
             }
-            df <- .get_fun(x, which, sample_id = s)
-            res <- calculateUnivariate(df[, features, drop = FALSE],
-                                       listw = listw_use, type = type, BPPARAM = BPPARAM,
-                                       zero.policy = zero.policy, returnDF = TRUE,
-                                       p.adjust.method = p.adjust.method, name = name, ...
-            )
             if (local) {
                 x <- .add_localResults_info(x, sample_id = s,
                                             name = name, features = features,

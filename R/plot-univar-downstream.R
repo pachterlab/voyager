@@ -157,7 +157,7 @@
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
-#' @inheritParams calculateUnivariate
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotColDataBin2D
 #' @inheritParams plotDimLoadings
 #' @param sample_id One sample_id for the sample whose graph to plot.
@@ -290,14 +290,9 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
     }
 }
 
-.get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
-                                     colGeometryName, annotGeometryName,
-                                     reducedDimName, name,
-                                     show_symbol, swap_rownames) {
-    ress <- .get_feature_metadata(
-        sfe, features, name, sample_id, colGeometryName,
-        annotGeometryName, reducedDimName, show_symbol, swap_rownames
-    )
+.get_color_by <- function(sfe, features, color_by, sample_id,
+                          colGeometryName, annotGeometryName, reducedDimName,
+                          show_symbol, swap_rownames) {
     if (!is.null(color_by)) {
         # Different from moranPlot
         if (is.character(color_by) && length(color_by) == 1L) {
@@ -306,17 +301,30 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                 colGeometryName, annotGeometryName, reducedDimName,
                 show_symbol, swap_rownames
             )
-            color_value <- color_value[names(ress)]
+            color_value <- color_value[features]
         } else if (length(color_by) == length(features)) {
             if (is.null(names(color_by))) names(color_by) <- features
-            color_value <- color_by[names(ress)]
+            color_value <- color_by[features]
         } else {
             stop(
                 "color_by must be either the name of a feature in sfe or a vector ",
-                "the same length as the number of the features argument."
+                "the same length as the features argument."
             )
         }
     }
+}
+
+.get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
+                                     colGeometryName, annotGeometryName,
+                                     reducedDimName, name,
+                                     show_symbol, swap_rownames) {
+    ress <- .get_feature_metadata(
+        sfe, features, name, sample_id, colGeometryName,
+        annotGeometryName, reducedDimName, show_symbol, swap_rownames
+    )
+    color_value <- .get_color_by(sfe, features, color_by, sample_id,
+                              colGeometryName, annotGeometryName, reducedDimName,
+                              show_symbol, swap_rownames)
     if (method == "corr") {
         dfs <- lapply(seq_along(ress), function(i) {
             res <- ress[[i]]
@@ -399,6 +407,10 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #'   \code{colGeometry}, or \code{annotGeometry} by which to color the
 #'   correlogram of each feature. Alternatively, a vector of the same length as
 #'   \code{features}.
+#' @param colGeometryName Name of a \code{colGeometry} \code{sf} data frame
+#'   whose numeric columns of interest are to be used to compute the metric. Use
+#'   \code{\link{colGeometryNames}} to look up names of the \code{sf} data
+#'   frames associated with cells/spots.
 #' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
 #'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
 #'   p-values are two sided, based on the assumption that the estimated Moran's

@@ -15,8 +15,13 @@
 #' different argument names or orders, write a thin wrapper to rearrange and/or
 #' rename the arguments.
 #'
-#' For univariate methods, the first two arguments must be \code{x} and
-#' \code{listw}.
+#' For univariate methods that use a spatial neighborhood graph, the first two
+#' arguments must be \code{x} and \code{listw}. For univariate methods that
+#' don't use a spatial neighborhood graph, such as the variogram, the first two
+#' arguments must be \code{x} for a numeric vector and \code{coords_df} for a
+#' \code{sf} data frame with cell locations and optionally other regressors. The
+#' \code{formula} argument is optional and can have defaults specifying
+#' regressors to use.
 #'
 #' For bivariate methods, the first three arguments must be \code{x}, \code{y},
 #' and \code{listw}.
@@ -136,17 +141,17 @@ setClass("SFEMethod", slots = c(
     if (object@misc[["use_graph"]]) {
         if (!identical(fm[seq_len(2)], c("x", "listw")))
             outs <- c(outs, "The first two arguments of slot `fun` must be 'x' and 'listw'")
-    } else {
-        if (fm[1] != "x")
-            outs <- c(outs, "The first argument of slot `fun` must be 'x'")
+        if (!"zero.policy" %in% fm && object@info["variate"] == "uni")
+            outs <- c(outs, "zero.policy must be an argument of slot `fun`")
+    } else if (object@info["variate"] == "uni") {
+        if (!identical(fm[seq_len(2)], c("x", "coords_df")))
+            outs <- c(outs, "The first two arguments of slot `fun` must be 'x' and 'coords_df'")
     }
     if (object@info["scope"] == "local") {
         if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
             outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'nb', and 'p.adjust.method'")
     }
     if (object@info["variate"] == "uni") {
-        if (!"zero.policy" %in% fm)
-            outs <- c(outs, "zero.policy must be an argument of slot `fun`")
         if (object@info["scope"] == "global") {
             if (!identical(names(formals(object@reorganize_fun)), c("out", "name", "...")))
                 outs <- c(outs, "Slot `reorganize_fun` must have arguments 'out', 'name', and '...'")

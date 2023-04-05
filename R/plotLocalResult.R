@@ -31,7 +31,7 @@
 #' statistic.
 #'
 #' @inheritParams plotSpatialFeature
-#' @inheritParams calculateUnivariate
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotDimLoadings
 #' @param type Which local spatial results. Use
 #'   \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types

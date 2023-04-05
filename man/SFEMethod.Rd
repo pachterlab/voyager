@@ -94,8 +94,13 @@ function. If the original function implementing the method in the package has
 different argument names or orders, write a thin wrapper to rearrange and/or
 rename the arguments.
 
-For univariate methods, the first two arguments must be \code{x} and
-\code{listw}.
+For univariate methods that use a spatial neighborhood graph, the first two
+arguments must be \code{x} and \code{listw}. For univariate methods that
+don't use a spatial neighborhood graph, such as the variogram, the first two
+arguments must be \code{x} for a numeric vector and \code{coords_df} for a
+\code{sf} data frame with cell locations and optionally other regressors. The
+\code{formula} argument is optional and can have defaults specifying
+regressors to use.
 
 For bivariate methods, the first three arguments must be \code{x}, \code{y},
 and \code{listw}.
