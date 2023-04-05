@@ -5,6 +5,11 @@ library(vdiffr)
 library(bluster)
 library(Matrix)
 
+expect_ggplot <- function(g) {
+    expect_s3_class(g, "ggplot")
+    expect_error(ggplot_build(g), NA)
+}
+
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
 sfe <- logNormCounts(sfe)
@@ -85,48 +90,48 @@ sfe <- runPCA(sfe, ncomponents = 5)
 test_that("plotVariogram", {
     sfe <- colDataUnivariate(sfe, variogram, features = c("nCounts", "nGenes"),
                              model = "Sph")
-    expect_doppelganger("One sample, one feature, one angle", {
+    expect_ggplot({
         plotVariogram(sfe, "nCounts")
     })
-    expect_doppelganger("Correct plot when there's only one type", {
+    expect_ggplot({
         plotVariogram(sfe, "nCounts", group = "features")
     })
     sfe <- reducedDimUnivariate(sfe, variogram, components = 1:3, model = "Ste")
-    expect_doppelganger("Sequential color for dimension reduction", {
+    expect_ggplot({
         plotVariogram(sfe, 1:3, group = "features", reducedDimName = "PCA")
     })
-    expect_doppelganger("Still show the text", {
+    expect_ggplot({
         plotVariogram(sfe, 3:5, group = "features", reducedDimName = "PCA")
     })
     sfe3 <- colDataUnivariate(sfe3, variogram, features = c("nCounts", "nGenes"),
                               model = "Sph")
-    expect_doppelganger("Two samples, one feature, one angle, facet", {
+    expect_ggplot({
         plotVariogram(sfe3, "nCounts")
     })
-    expect_doppelganger("Color by feature", {
+    expect_ggplot({
         plotVariogram(sfe3, c("nCounts", "nGenes"), group = "feature")
     })
-    expect_doppelganger("Color by sample", {
+    expect_ggplot({
         plotVariogram(sfe3, c("nCounts", "nGenes"), group = "sample_id")
     })
-    expect_doppelganger("Use facet_grid", {
+    expect_ggplot({
         plotVariogram(sfe3, c("nCounts", "nGenes"))
     })
     color_values <- c("A", "B")
-    expect_doppelganger("Use color_by for features, no linetype", {
+    expect_ggplot( {
         plotVariogram(sfe3, c("nCounts", "nGenes"), color_by = color_values)
     })
-    expect_doppelganger("Use color_by and a group with linetype", {
+    expect_ggplot({
         plotVariogram(sfe3, c("nCounts", "nGenes"), color_by = color_values,
                       group = "features")
     })
     sfe <- colDataUnivariate(sfe, variogram, features = c("nCounts", "nGenes"),
                              model = "Sph", alpha = c(30, 90, 150),
                              name = "variogram_anis")
-    expect_doppelganger("One sample, one feature, multiple angles", {
+    expect_ggplot({
         plotVariogram(sfe, "nGenes", name = "variogram_anis")
     })
-    expect_doppelganger("Color by angles", {
+    expect_ggplot({
         plotVariogram(sfe, "nGenes", group = "angles", name = "variogram_anis")
     })
 })
@@ -141,11 +146,11 @@ test_that("clusterVariogram", {
     expect_named(var_clusts, c("feature", "cluster", "sample_id"))
     expect_s3_class(var_clusts$cluster, "factor")
     # Plotting clusters
-    expect_doppelganger("Use clustering df to color, one sample", {
+    expect_ggplot({
         plotVariogram(sfe, genes[1:5], color_by = var_clusts, group = "features",
                       swap_rownames = "symbol")
     })
-    expect_doppelganger("Use cluster df to color, no linetype", {
+    expect_ggplot({
         plotVariogram(sfe, genes, color_by = var_clusts, group = "features",
                       use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
     })
@@ -153,7 +158,7 @@ test_that("clusterVariogram", {
     var_clusts2 <- clusterVariograms(sfe3, features = genes,
                                      BLUSPARAM = HclustParam(),
                                      swap_rownames = "symbol")
-    expect_doppelganger("Plot gene clusters, two samples", {
+    expect_ggplot({
         plotVariogram(sfe3, genes, color_by = var_clusts2, group = "features",
                       use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
     })

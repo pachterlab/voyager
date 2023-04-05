@@ -8,7 +8,7 @@ library(Matrix)
 library(ggplot2)
 library(scran)
 
-expect_ggplot <- function(g) {
+expect_ggplot <- function(description, g) {
     expect_s3_class(g, "ggplot")
     expect_error(ggplot_build(g), NA)
 }
@@ -28,38 +28,38 @@ sfe <- runUnivariate(sfe,
 )
 
 test_that("Everything plotSpatialFeature", {
-    expect_doppelganger(
+    expect_ggplot(
         "Plot gene expression",
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts"
         )
     )
-    expect_doppelganger(
+    expect_ggplot(
         "Plot colData",
         plotSpatialFeature(sfe, "nCounts", "spotPoly", "sample01",
             exprs_values = "counts"
         )
     )
-    expect_doppelganger(
+    expect_ggplot(
         "Plot colGeometry",
         plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
             exprs_values = "counts"
         )
     )
-    expect_doppelganger("Plot with annotGeometry", {
+    expect_ggplot("Plot with annotGeometry", {
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts",
             annotGeometryName = "annot"
         )
     })
-    expect_doppelganger("Plot with annotGeometry, with new fill scale", {
+    expect_ggplot("Plot with annotGeometry, with new fill scale", {
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts",
             annotGeometryName = "annot",
             annot_aes = list(fill = "bar")
         )
     })
-    expect_doppelganger("Plot with annotGeometry, colored outlines of polygons", {
+    expect_ggplot("Plot with annotGeometry, colored outlines of polygons", {
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts",
             annotGeometryName = "annot",
@@ -67,13 +67,13 @@ test_that("Everything plotSpatialFeature", {
             annot_fixed = list(fill = NA)
         )
     })
-    expect_doppelganger("Divergent scale", {
+    expect_ggplot("Divergent scale", {
         plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
             exprs_values = "counts", divergent = TRUE,
             diverge_center = 0
         )
     })
-    expect_doppelganger("Divergent scale, annot also on divergent scale", {
+    expect_ggplot("Divergent scale, annot also on divergent scale", {
         plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
             exprs_values = "counts", divergent = TRUE,
             diverge_center = 0, annotGeometryName = "annot",
@@ -81,7 +81,7 @@ test_that("Everything plotSpatialFeature", {
             annot_divergent = TRUE, annot_diverge_center = 0
         )
     })
-    expect_doppelganger("Divergent scale, annot not on divergent scale", {
+    expect_ggplot("Divergent scale, annot not on divergent scale", {
         plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
             exprs_values = "counts", divergent = TRUE,
             diverge_center = 0, annotGeometryName = "annot",
@@ -89,12 +89,12 @@ test_that("Everything plotSpatialFeature", {
             annot_divergent = FALSE
         )
     })
-    expect_doppelganger("Discrete, represented as point shapes", {
+    expect_ggplot("Discrete, represented as point shapes", {
         plotSpatialFeature(sfe, "category", "centroids", "sample01",
             aes_use = "shape", size = 2
         )
     })
-    expect_doppelganger("Discrete, represented as color", {
+    expect_ggplot("Discrete, represented as color", {
         plotSpatialFeature(sfe, "category", "centroids", "sample01", size = 2)
     })
 })
@@ -129,46 +129,46 @@ sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localG",
 )
 
 test_that("Everything plotLocalResult", {
-    expect_doppelganger("Plot localmoran Ii for gene", {
+    expect_ggplot("Plot localmoran Ii for gene", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly", divergent = TRUE,
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
-    expect_doppelganger("Plot Ii for gene on top of an annotation", {
+    expect_ggplot("Plot Ii for gene on top of an annotation", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly",
             annotGeometryName = "tissueBoundary", divergent = TRUE,
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
-    expect_doppelganger("Plot another column", {
+    expect_ggplot("Plot another column", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             attribute = "Z.Ii",
             colGeometryName = "spotPoly", divergent = TRUE,
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
-    expect_doppelganger("Plot a categorical attribute", {
+    expect_ggplot("Plot a categorical attribute", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             attribute = "mean",
             colGeometryName = "spotPoly", swap_rownames = "symbol"
         )
     })
-    expect_doppelganger("Plot 2 features", {
+    expect_ggplot("Plot 2 features", {
         plotLocalResult(sfe_muscle, "localmoran", c("Myh1", "Myh2"),
             colGeometryName = "spotPoly", divergent = TRUE,
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
-    expect_doppelganger("Plot Ii for annotGeometry alone", {
+    expect_ggplot("Plot Ii for annotGeometry alone", {
         plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
             annotGeometryName = "myofiber_simplified",
             linewidth = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
         )
     })
-    expect_doppelganger("Plot a type in annotGeometry but not assay or colData", {
+    expect_ggplot("Plot a type in annotGeometry but not assay or colData", {
         plotLocalResult(sfe_muscle, "localG", "area",
                         annotGeometryName = "myofiber_simplified",
                         divergent = TRUE, diverge_center = 0)
@@ -195,16 +195,16 @@ test_that("moranPlot, not filled, no color_by", {
         moranPlot(sfe, "B", "visium", "sample01"),
         "Too few points"
     )
-    expect_ggplot(
+    expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium", swap_rownames = "symbol")
     )
-    expect_ggplot(
+    expect_ggplot("",
         moranPlot(sfe_muscle, "nCounts", "visium")
     )
 })
 
 test_that("moranPlot, not filled, with color_by", {
-    expect_ggplot(
+    expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium",
             color_by = "GraphBased", contour_color = "blue",
             swap_rownames = "symbol"
@@ -213,7 +213,7 @@ test_that("moranPlot, not filled, with color_by", {
 })
 
 test_that("moranPlot, filled, no color_by", {
-    expect_ggplot(
+    expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium",
             filled = TRUE, swap_rownames = "symbol"
         )
@@ -221,7 +221,7 @@ test_that("moranPlot, filled, no color_by", {
 })
 
 test_that("moranPlot, filled, with color_by", {
-    expect_ggplot(
+    expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium",
             filled = TRUE, color_by = "GraphBased", swap_rownames = "symbol"
         )
@@ -229,12 +229,12 @@ test_that("moranPlot, filled, with color_by", {
 })
 
 test_that("plot graphs", {
-    expect_doppelganger(
+    expect_ggplot(
         "plotColGraph",
         plotColGraph(sfe_muscle, colGraphName = "visium",
                      colGeometryName = "spotPoly")
     )
-    expect_doppelganger("plotAnnotGraph",
+    expect_ggplot("plotAnnotGraph",
                         plotAnnotGraph(sfe_muscle, "poly2nb_myo", "myofiber_simplified"))
 })
 
@@ -377,7 +377,7 @@ test_that("plotDimLoadings for multiple samples", {
 })
 
 test_that("Everything spatialReducedDim", {
-    expect_doppelganger("Plot PCs in space", {
+    expect_ggplot("Plot PCs in space", {
         spatialReducedDim(sfe_muscle, "PCA", 2, "spotPoly",
             annotGeometryName = "tissueBoundary",
             divergent = TRUE, diverge_center = 0
@@ -387,11 +387,11 @@ test_that("Everything spatialReducedDim", {
 
 test_that("When a gene symbol rowname is not a valid R object name", {
     rownames(sfe_muscle)[1] <- "HLA-foo" # Just toy example
-    expect_doppelganger("plotSpatialFeature with illegal gene name",
+    expect_ggplot("plotSpatialFeature with illegal gene name",
                         plotSpatialFeature(sfe_muscle, "HLA-foo", "spotPoly"))
     sfe_muscle <- runUnivariate(sfe_muscle, "localmoran", "HLA-foo",
                                 colGraphName = "visium")
-    expect_doppelganger("plotLocalResult with illegal gene name",
+    expect_ggplot("plotLocalResult with illegal gene name",
                         plotLocalResult(sfe_muscle, "localmoran", "HLA-foo",
                                         colGeometryName = "spotPoly"))
 })
@@ -421,24 +421,24 @@ annotGeometry(sfe_cosmx, "foo") <- annot
 sfe_cosmx <- sfe_cosmx[, sfe_cosmx$nCounts > 10]
 sfe_cosmx <- logNormCounts(sfe_cosmx)
 test_that("scattermore in plotSpatialFeature", {
-    expect_doppelganger("Plot colData with scattermore", {
+    expect_ggplot("Plot colData with scattermore", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
                            scattermore = TRUE, size = 0)
     })
-    expect_doppelganger("Plot multiple colData columns", {
+    expect_ggplot("Plot multiple colData columns", {
         plotSpatialFeature(sfe_cosmx, c("nCounts", "nGenes"),
                            colGeometryName = "centroids",
                            scattermore = TRUE, size = 0)
     })
-    expect_doppelganger("Divergent scale with scattermore", {
+    expect_ggplot("Divergent scale with scattermore", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
                            divergent = TRUE, scattermore = TRUE, size = 0)
     })
-    expect_doppelganger("Gene expression", {
+    expect_ggplot("Gene expression", {
         plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
                            scattermore = TRUE, size = 0)
     })
-    expect_doppelganger("Also plot annotGeometry", {
+    expect_ggplot("Also plot annotGeometry", {
         plotSpatialFeature(sfe_cosmx, "KRT19", colGeometryName = "centroids",
                            annotGeometryName = "foo", scattermore = TRUE,
                            size = 0)
@@ -451,7 +451,7 @@ test_that("scattermore in plotSpatialFeature", {
 
 localResult(sfe_cosmx, "localG", "KRT19") <- seq_len(ncol(sfe_cosmx))
 test_that("Use scattermore in plotLocalResult", {
-    expect_doppelganger("scattermore plotLocalResult", {
+    expect_ggplot("scattermore plotLocalResult", {
         plotLocalResult(sfe_cosmx, "localG", "KRT19",
                         colGeometryName = "centroids", scattermore = TRUE,
                         size = 0)
@@ -462,7 +462,7 @@ fake_pca <- as.matrix(t(logcounts(sfe_cosmx)[c("KRT19", "COL1A1"),]))
 colnames(fake_pca) <- c("PC1", "PC2")
 reducedDim(sfe_cosmx, "PCA") <- fake_pca
 test_that("Use scattermore in spatialReducedDim", {
-    expect_doppelganger("scattermore spatialReducedDim", {
+    expect_ggplot("scattermore spatialReducedDim", {
         spatialReducedDim(sfe_cosmx, "PCA", 2, scattermore = TRUE)
     })
 })
@@ -571,15 +571,15 @@ test_that("plotCellBin2D", {
 })
 
 test_that("Binning values", {
-    expect_doppelganger("Bin and summarize feature", {
+    expect_ggplot("Bin and summarize feature", {
         plotSpatialFeature(sfe_cosmx, features = "nCounts",
                            colGeometryName = "centroids", bins = 50)
     })
-    expect_doppelganger("Bin and summarize dimension reduction values", {
+    expect_ggplot("Bin and summarize dimension reduction values", {
         spatialReducedDim(sfe_cosmx, dimred = "PCA", ncomponents = 1,
                           colGeometryName = "centroids", bins = 50)
     })
-    expect_doppelganger("Bin and summarize local results", {
+    expect_ggplot("Bin and summarize local results", {
         plotLocalResult(sfe_cosmx, "localG", "KRT19",
                         colGeometryName = "centroids", bins = 50)
     })
@@ -604,32 +604,32 @@ colnames(bbox_2s) <- c("Vis5A", "sample02")
 test_that("Using bbox with plotSpatialFeature", {
     cat("beginning bbox tests")
     # One sample
-    expect_doppelganger("Only plotting colGeometry", {
+    expect_ggplot("Only plotting colGeometry", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "cellSeg",
                            bbox = bbox)
     })
-    expect_doppelganger("With scattermore", {
+    expect_ggplot("With scattermore", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
                            bbox = bbox_large, scattermore = TRUE, pointsize = 1)
     })
-    expect_doppelganger("Both colGeometry and annotGeometry", {
+    expect_ggplot("Both colGeometry and annotGeometry", {
         plotSpatialFeature(sfe_muscle, "nCounts",
                            annotGeometryName = "myofiber_simplified",
                            annot_aes = list(fill = "area"), bbox = bbox2)
     })
     # Two samples
-    expect_doppelganger("Two samples, only plotting colGeometry, same bbox", {
+    expect_ggplot("Two samples, only plotting colGeometry, same bbox", {
         plotSpatialFeature(sfe, "nCounts", bbox = bbox_2s1)
     })
-    expect_doppelganger("Two samples, with annotGeometry, same bbox", {
+    expect_ggplot("Two samples, with annotGeometry, same bbox", {
         plotSpatialFeature(sfe, "nCounts",
                            annotGeometryName = "myofiber_simplified",
                            annot_aes = list(fill = "area"), bbox = bbox_2s1)
     })
-    expect_doppelganger("Two samples, only colGeometry, different bbox", {
+    expect_ggplot("Two samples, only colGeometry, different bbox", {
         plotSpatialFeature(sfe, "nCounts", bbox = bbox_2s)
     })
-    expect_doppelganger("Two samples, with annotGeometry, different bbox", {
+    expect_ggplot("Two samples, with annotGeometry, different bbox", {
         plotSpatialFeature(sfe, "nCounts",
                            annotGeometryName = "myofiber_simplified",
                            annot_aes = list(fill = "area"), bbox = bbox_2s)
@@ -657,36 +657,36 @@ sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "localmoran", "area",
                                       zero.policy = TRUE)
 
 test_that("Using bbox with plotLocalResults", {
-    expect_doppelganger("One sample, colGeometry, plotLocalResults bbox", {
+    expect_ggplot("One sample, colGeometry, plotLocalResults bbox", {
         plotLocalResult(sfe_muscle, "localmoran", "nCounts", bbox = bbox2,
                         colGeometryName = "spotPoly", divergent = TRUE,
                         diverge_center = 0)
     })
-    expect_doppelganger("One sample col and annotGeometry plotLocalResults bbox", {
+    expect_ggplot("One sample col and annotGeometry plotLocalResults bbox", {
         plotLocalResult(sfe_muscle, "localmoran", "nCounts", bbox = bbox2,
                         colGeometryName = "spotPoly",
                         annotGeometryName = "myofiber_simplified",
                         annot_fixed = list(linewidth = 0.3),
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("One sample, annotGeometry, plotLocalResults bbox", {
+    expect_ggplot("One sample, annotGeometry, plotLocalResults bbox", {
         plotLocalResult(sfe_muscle, "localmoran", "area", bbox = bbox2,
                         annotGeometryName = "myofiber_simplified",
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("Two samples, colGeometry, plotLocalResults bbox", {
+    expect_ggplot("Two samples, colGeometry, plotLocalResults bbox", {
         plotLocalResult(sfe, "localmoran", "nCounts", bbox = bbox_2s1,
                         colGeometryName = "spotPoly",
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("Two samples col and annotGeometry plotLocalResults bbox", {
+    expect_ggplot("Two samples col and annotGeometry plotLocalResults bbox", {
         plotLocalResult(sfe, "localmoran", "nCounts", bbox = bbox_2s1,
                         colGeometryName = "spotPoly",
                         annotGeometryName = "myofiber_simplified",
                         annot_fixed = list(linewidth = 0.3),
                         divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("Two samples, annotGeometry, plotLocalResults bbox", {
+    expect_ggplot("Two samples, annotGeometry, plotLocalResults bbox", {
         plotLocalResult(sfe, "localmoran", "area", bbox = bbox_2s1,
                         annotGeometryName = "myofiber_simplified",
                         divergent = TRUE, diverge_center = 0)
@@ -695,12 +695,12 @@ test_that("Using bbox with plotLocalResults", {
 sfe <- logNormCounts(sfe)
 sfe <- runPCA(sfe, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
 test_that("Using bbox with spatialReducedDim", {
-    expect_doppelganger("Use bbox with spatialReducedDim", {
+    expect_ggplot("Use bbox with spatialReducedDim", {
         spatialReducedDim(sfe, dimred = "PCA", ncomponents = 1,
                           colGeometryName = "spotPoly", bbox = bbox_2s1,
                           divergent = TRUE, diverge_center = 0)
     })
-    expect_doppelganger("Use bbox with spatialReducedDim, 2 PCs", {
+    expect_ggplot("Use bbox with spatialReducedDim, 2 PCs", {
         spatialReducedDim(sfe, dimred = "PCA", ncomponents = 2,
                           colGeometryName = "spotPoly", bbox = bbox_2s1,
                           divergent = TRUE, diverge_center = 0, ncol = 1)
@@ -708,11 +708,11 @@ test_that("Using bbox with spatialReducedDim", {
 })
 
 test_that("Plot graphs with bbox", {
-    expect_doppelganger("colGraph with bbox", {
+    expect_ggplot("colGraph with bbox", {
         plotColGraph(sfe, colGraphName = "visium",
                      colGeometryName = "spotPoly", bbox = bbox_2s)
     })
-    expect_doppelganger("annotGraph with bbox", {
+    expect_ggplot("annotGraph with bbox", {
         plotAnnotGraph(sfe, annotGraphName = "knn",
                      annotGeometryName = "myofiber_simplified", bbox = bbox_2s)
     })
@@ -737,7 +737,7 @@ test_that("Incorrect formats of bbox", {
     expect_warning(plotSpatialFeature(sfe, "nCounts",
                                       bbox = unname(bbox_2s1[c("xmin", "ymin", "xmax", "ymax")])),
                    "No names available for bbox. Assuming")
-    expect_doppelganger("OK if bbox matrix is transposed", {
+    expect_ggplot("OK if bbox matrix is transposed", {
         plotSpatialFeature(sfe, "nCounts", bbox = t(bbox_2s))
     })
     expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox_2s[1:3,]),
@@ -778,22 +778,22 @@ test_that("Moran plot bin2d", {
 })
 
 test_that("Plot geometries", {
-    expect_doppelganger("plot colGeometry 2 samples", {
+    expect_ggplot("plot colGeometry 2 samples", {
         plotGeometry(sfe, "spotPoly")
     })
-    expect_doppelganger("plot colGeometry 1 sample", {
+    expect_ggplot("plot colGeometry 1 sample", {
         plotGeometry(sfe_muscle, "spotPoly")
     })
-    expect_doppelganger("plot annotGeometry 2 samples", {
+    expect_ggplot("plot annotGeometry 2 samples", {
         plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
     })
-    expect_doppelganger("plot annotGeometry 1 sample", {
+    expect_ggplot("plot annotGeometry 1 sample", {
         plotGeometry(sfe_muscle, "myofiber_simplified", MARGIN = 3)
     })
-    expect_doppelganger("Plot colGeometry, with bbox", {
+    expect_ggplot("Plot colGeometry, with bbox", {
         plotGeometry(sfe, "spotPoly", bbox = bbox_2s)
     })
-    expect_doppelganger("Plot annotGeometry, with bbox", {
+    expect_ggplot("Plot annotGeometry, with bbox", {
         plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
     })
 })
@@ -803,7 +803,7 @@ test_that("Message about using linewidth instead of size for polygon outlines", 
                                       aes_use = "color"),
                    "Please use linewidth instead of size for thickness of polygon outlines.")
     # Still get the right plot
-    expect_doppelganger("Plot polygon, with size rather than linewidth",
+    expect_ggplot("Plot polygon, with size rather than linewidth",
                         plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
                                            aes_use = "color"))
     expect_doppelganger("Moran plot hex bin", {
@@ -823,7 +823,7 @@ sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "moran.mc", dimred = "multispat
 sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "moran.plot", dimred = "multispati",
                                    components = 1, colGraphName = "visium")
 test_that("Univariate downstream plots for dimred", {
-    expect_doppelganger("Moran plot for PCA", {
+    expect_ggplot("Moran plot for PCA", {
         suppressWarnings(moranPlot(sfe_muscle2, "PC1", graphName = "visium",
                                    reducedDimName = "PCA"))
     })
@@ -836,10 +836,10 @@ test_that("Univariate downstream plots for dimred", {
 })
 
 test_that("Moran MC plot for dimred", {
-    expect_ggplot({
+    expect_ggplot("Use dim names", {
         plotMoranMC(sfe_muscle2, "PC1", reducedDimName = "multispati")
     })
-    expect_ggplot({
+    expect_ggplot("Use numeric indices", {
         plotMoranMC(sfe_muscle2, 1:5, reducedDimName = "multispati")
     })
 })

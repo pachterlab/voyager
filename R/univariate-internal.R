@@ -31,7 +31,7 @@
         } else df <- geo
     }
     dots <- list(...)
-    if ("formula" %in% names(dost)) {
+    if ("formula" %in% names(dots)) {
         rgs <- labels(terms(dots[["formula"]]))
         if (length(rgs) && any(!rgs %in% names(df))) {
             rgs <- setdiff(rgs, names(df))
