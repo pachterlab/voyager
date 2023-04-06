@@ -68,31 +68,29 @@
 #' a list of outputs. The output of \code{reorganize_fun} is a vector or a data
 #' frame ready to be added to \code{colData}.
 #'
-#' @slot info A named character vector specifying information about the method:
-#' \describe{
-#' \item{name}{Name of the method, used by user-facing functions to specify the
-#' method to use, such as "moran" for Moran's I.}
-#' \item{variate}{How many variables this method works with, must be one of
-#' "uni" for univariate, "bi" for bivariate, or "multi" for multivariate.}
-#' \item{scope}{Either "global", returning one result for the entire dataset,
-#' or "local", returning one result for each spatial location. For multivariate
-#' methods, this is irrelevant.}
-#' \item{package}{Name of the package whose implementation of the method is used
-#' here, used to check if the package is installed.}
-#' \item{title}{Descriptive title to show when plotting the results.}
-#' \item{default_attr}{For local methods that return multiple fields, such as
-#' local Moran values and their p-values, the default field to use when
-#' plotting.}
-#' }
+#' @slot info A named character vector specifying information about the method.
 #' @slot fun The function implementing the method. See Details.
 #' @slot reorganize_fun Function to convert output from \code{fun} into a format
 #'   to store in the SFE object. See Details.
 #' @slot misc Miscellaneous information on how the method interacts with the
 #'   rest of the package. This should be a named list.
 #'
-#' @param info See slot documentation
-#' @param fun See Details.
-#' @param reorganize_fun See Details.
+#' @param name Name of the method, used by user-facing functions to specify the
+#'   method to use, such as "moran" for Moran's I.
+#' @param fun Function to run the method. See Details.
+#' @param reorganize_fun Function to reorganize results to add to the SFE
+#'   object. See Details.
+#' @param title Descriptive title to show when plotting the results.
+#' @param package Name of the package whose implementation of the method is used
+#' here, used to check if the package is installed.
+#' @param variate How many variables this method works with, must be one of
+#' "uni" for univariate, "bi" for bivariate, or "multi" for multivariate.
+#' @param scope Either "global", returning one result for the entire dataset,
+#' or "local", returning one result for each spatial location. For multivariate
+#' methods, this is irrelevant.
+#' @param default_attr For local methods that return multiple fields, such as
+#' local Moran values and their p-values, the default field to use when
+#' plotting.
 #' @param x A \code{SFEMethod} object
 #' @param type One of the names of the \code{info} slot, see slot documentation.
 #' @param args_not_check A character vector indicating which argument are not to
@@ -111,7 +109,15 @@
 #'   "local" field in \code{info}.
 #' @return The constructor returns a \code{SFEMethod} object. The getters return
 #'   the content of the corresponding slots.
-#'
+#' @examples
+#' moran <- SFEMethod(
+#' name = "moran", title = "Moran's I", package = "spdep", variate = "uni",
+#' scope = "global",
+#' fun = function(x, listw, zero.policy = NULL)
+#'     spdep::moran(x, listw, n = length(listw$neighbours), S0 = spdep::Szero(listw),
+#'                  zero.policy = zero.policy),
+#' reorganize_fun = Voyager:::.moran2df
+#' )
 #' @name SFEMethod
 #' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
 #'   is_joint use_graph
@@ -124,19 +130,6 @@ setClass("SFEMethod", slots = c(
 
 .valid_SFEMethod <- function(object) {
     outs <- list()
-    nms <- c("name", "variate", "scope", "package", "title", "default_attr")
-    if (!setequal(names(object@info), nms))
-        return(paste("Slot `info` must have names",paste(nms, collapse = ", ")))
-    variates <- c("uni", "bi", "multi")
-    if (!object@info["variate"] %in% variates) {
-        return(paste("Field 'variate' in slot `info` must be one of",
-                     paste(variates, collapse = ", ")))
-    }
-    scopes <- c("global", "local")
-    if (!object@info["scope"] %in% scopes) {
-        return(paste("Field 'scope' in slot `info` must be one of",
-                     paste(scopes, collapse = " and ")))
-    }
     fm <- names(formals(object@fun))
     if (object@misc[["use_graph"]]) {
         if (!identical(fm[seq_len(2)], c("x", "listw")))
@@ -167,14 +160,19 @@ setValidity("SFEMethod", .valid_SFEMethod)
 
 #' @export
 #' @rdname SFEMethod
-SFEMethod <- function(info, fun, reorganize_fun,
-                      args_not_check = NA, joint = FALSE, use_graph = TRUE,
-                      dest = c("reducedDim", "colData")) {
+SFEMethod <- function(name, fun, reorganize_fun, package,
+                      variate = c("uni", "bi", "multi"),
+                      scope = c("global", "local"), title = NULL,
+                      default_attr = NA, args_not_check = NA, joint = FALSE,
+                      use_graph = TRUE, dest = c("reducedDim", "colData")) {
     dest <- match.arg(dest)
+    variate <- match.arg(variate)
+    scope <- match.arg(scope)
+    info <- c(name = name, title = title, package = package, variate = variate,
+              scope = scope, default_attr = default_attr)
     if (isTRUE(info["variate"] == "multi")) {
         v <- if (dest == "reducedDim") "global" else "local"
         if ("scope" %in% names(info)) info["scope"] <- v
-        else info <- c(info, scope = v)
     }
     new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun,
         misc = list(args_not_check = args_not_check, joint = joint,

@@ -21,9 +21,14 @@
 \title{SFEMethod class}
 \usage{
 SFEMethod(
-  info,
+  name,
   fun,
   reorganize_fun,
+  package,
+  variate = c("uni", "bi", "multi"),
+  scope = c("global", "local"),
+  title = NULL,
+  default_attr = NA,
   args_not_check = NA,
   joint = FALSE,
   use_graph = TRUE,
@@ -45,11 +50,29 @@ SFEMethod(
 \S4method{use_graph}{SFEMethod}(x)
 }
 \arguments{
-\item{info}{See slot documentation}
+\item{name}{Name of the method, used by user-facing functions to specify the
+method to use, such as "moran" for Moran's I.}
 
-\item{fun}{See Details.}
+\item{fun}{Function to run the method. See Details.}
 
-\item{reorganize_fun}{See Details.}
+\item{reorganize_fun}{Function to reorganize results to add to the SFE
+object. See Details.}
+
+\item{package}{Name of the package whose implementation of the method is used
+here, used to check if the package is installed.}
+
+\item{variate}{How many variables this method works with, must be one of
+"uni" for univariate, "bi" for bivariate, or "multi" for multivariate.}
+
+\item{scope}{Either "global", returning one result for the entire dataset,
+or "local", returning one result for each spatial location. For multivariate
+methods, this is irrelevant.}
+
+\item{title}{Descriptive title to show when plotting the results.}
+
+\item{default_attr}{For local methods that return multiple fields, such as
+local Moran values and their p-values, the default field to use when
+plotting.}
 
 \item{args_not_check}{A character vector indicating which argument are not to
 be checked when comparing parameters in with those of a previous run.}
@@ -150,22 +173,7 @@ frame ready to be added to \code{colData}.
 \section{Slots}{
 
 \describe{
-\item{\code{info}}{A named character vector specifying information about the method:
-\describe{
-\item{name}{Name of the method, used by user-facing functions to specify the
-method to use, such as "moran" for Moran's I.}
-\item{variate}{How many variables this method works with, must be one of
-"uni" for univariate, "bi" for bivariate, or "multi" for multivariate.}
-\item{scope}{Either "global", returning one result for the entire dataset,
-or "local", returning one result for each spatial location. For multivariate
-methods, this is irrelevant.}
-\item{package}{Name of the package whose implementation of the method is used
-here, used to check if the package is installed.}
-\item{title}{Descriptive title to show when plotting the results.}
-\item{default_attr}{For local methods that return multiple fields, such as
-local Moran values and their p-values, the default field to use when
-plotting.}
-}}
+\item{\code{info}}{A named character vector specifying information about the method.}
 
 \item{\code{fun}}{The function implementing the method. See Details.}
 
@@ -176,3 +184,13 @@ to store in the SFE object. See Details.}
 rest of the package. This should be a named list.}
 }}
 
+\examples{
+moran <- SFEMethod(
+name = "moran", title = "Moran's I", package = "spdep", variate = "uni",
+scope = "global",
+fun = function(x, listw, zero.policy = NULL)
+    spdep::moran(x, listw, n = length(listw$neighbours), S0 = spdep::Szero(listw),
+                 zero.policy = zero.policy),
+reorganize_fun = Voyager:::.moran2df
+)
+}

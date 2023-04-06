@@ -52,16 +52,15 @@
                      map = TRUE, ...)
 }
 
-variogram <- SFEMethod(c(package = "automap", variate = "uni", scope = "global",
-                         default_attr = NA, name = "variogram",
-                         title = "Variogram"),
+variogram <- SFEMethod(package = "automap", variate = "uni", scope = "global",
+                       default_attr = NA, name = "variogram", title = "Variogram",
                        fun = .variogram,
                        reorganize_fun = .other2df,
                        use_graph = FALSE)
 
-variogram_map <- SFEMethod(c(package = "gstat", variate = "uni", scope = "global",
-                             default_attr = NA, name = "variogram_map",
-                             title = "Variogram map"),
+variogram_map <- SFEMethod(package = "gstat", variate = "uni", scope = "global",
+                           default_attr = NA, name = "variogram_map",
+                           title = "Variogram map",
                            fun = .variogram_map,
                            reorganize_fun = .variogram_map2df,
                            use_graph = FALSE)

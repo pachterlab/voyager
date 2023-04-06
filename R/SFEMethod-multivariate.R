@@ -97,8 +97,8 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
 }
 
 multispati <- SFEMethod(
-    c(name = "multispati", title = "MULTISPATI PCA", package = "Voyager",
-      variate = "multi", scope = "global", default_attr = NA),
+    name = "multispati", title = "MULTISPATI PCA", package = "Voyager",
+    variate = "multi", scope = "global", default_attr = NA,
     fun = multispati_rsp,
     reorganize_fun = function(out) out,
     joint = TRUE
@@ -116,18 +116,16 @@ multispati <- SFEMethod(
 }
 
 localC_multi <- SFEMethod(
-    c(name = "localC_multi", title = "Multivariate local Geary's C",
-      package = "spdep", variate = "multi",
-      default_attr = "localC"),
+    name = "localC_multi", title = "Multivariate local Geary's C",
+    package = "spdep", variate = "multi", default_attr = "localC",
     fun = .localC_multi_fun(FALSE),
     reorganize_fun = .to_df_identity,
     dest = "colData"
 )
 
 localC_perm_multi <- SFEMethod(
-    c(name = "localC_perm_multi", title = "Multivariate local Geary's C permutation testing",
-      package = "spdep", variate = "multi",
-      default_attr = "localC"),
+    name = "localC_perm_multi", title = "Multivariate local Geary's C permutation testing",
+    package = "spdep", variate = "multi", default_attr = "localC",
     fun = .localC_multi_fun(TRUE),
     reorganize_fun = .localCpermmulti2df,
     dest = "colData"
