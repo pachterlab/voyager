@@ -12,9 +12,9 @@ colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 test_that("Different packages", {
     sfe <- colDataMoransI(sfe, "nCounts")
     moran2 <- SFEMethod(
-        c(name = "moran", title = "Moran's I", scope = "global",
-          default_attr = NA,
-          package = "scater", variate = "uni"),
+        name = "moran", title = "Moran's I", scope = "global",
+        default_attr = NA,
+        package = "scater", variate = "uni",
         fun = function(x, listw, zero.policy = NULL)
             spdep::moran(x, listw, n = length(listw$neighbours), S0 = Szero(listw),
                          zero.policy = zero.policy),

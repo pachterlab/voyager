@@ -87,7 +87,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #'   features.
 #' @param features Features whose Moran plot are to be cluster. Features whose
 #'   Moran plots have not been computed will be skipped, with a warning.
-#' @return A \code{DataFrame} each column of which is a factor for cluster
+#' @return A data frame each column of which is a factor for cluster
 #'   membership of each feature. The column names are the features.
 #' @importFrom bluster clusterRows
 #' @importFrom methods as
@@ -132,7 +132,7 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
             o <- lapply(mps, function(mp)
                 clusterRows(mp[, c("x", "wx")], BLUSPARAM))
         }
-        o <- as(o, "DataFrame")
+        o <- as.data.frame(o)
         if (is.data.frame(mps)) names(o)[1] <- features
         o$sample_id <- s
         if (use_col) {

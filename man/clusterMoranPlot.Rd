@@ -44,7 +44,7 @@ elements. If not found in \code{rowData}, then rownames of the gene count
 matrix will be used.}
 }
 \value{
-A \code{DataFrame} each column of which is a factor for cluster
+A data frame each column of which is a factor for cluster
   membership of each feature. The column names are the features.
 }
 \description{
