@@ -228,6 +228,23 @@ test_that("moranPlot, filled, with color_by", {
     )
 })
 
+sfe_muscle <- annotGeometryUnivariate(sfe_muscle, "moran.plot",
+                                      features = "area",
+                                      annotGraphName = "poly2nb_myo",
+                                      annotGeometryName = "myofiber_simplified",
+                                      zero.policy = TRUE
+)
+
+test_that("moranPlot, with singletons", {
+    expect_ggplot("not filled", {
+        moranPlot(sfe_muscle, "area", "poly2nb_myo", annotGeometryName = "myofiber_simplified")
+    })
+    expect_ggplot("filled", {
+        moranPlot(sfe_muscle, "area", "poly2nb_myo",
+                  annotGeometryName = "myofiber_simplified", filled = TRUE)
+    })
+})
+
 test_that("plot graphs", {
     expect_ggplot(
         "plotColGraph",
