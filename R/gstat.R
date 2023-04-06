@@ -193,7 +193,10 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
         model_labels <- .dimred_feature_order(model_labels)
     }
     if (is.data.frame(color_by)) {
-        if (length(unique(color_by$cluster)) < 2L) color_by <- NULL
+        if (length(unique(color_by$cluster)) < 2L) {
+            color_by <- NULL
+            message("Only one cluster is present. Not using color_by.")
+        }
         else {
             names(color_by)[names(color_by) == "cluster"] <- "color_by"
             exp_vars <- merge(exp_vars, color_by, by = c("feature", "sample_id"),

@@ -162,6 +162,16 @@ test_that("clusterVariogram", {
         plotVariogram(sfe3, genes, color_by = var_clusts2, group = "features",
                       use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
     })
+    # When there's only one cluster, don't use color_by
+    var_clusts3 <- var_clusts
+    var_clusts3$cluster <- 1
+    expect_ggplot({
+        plotVariogram(sfe, genes[1:5], color_by = var_clusts3, group = "features",
+                      swap_rownames = "symbol")
+    })
+    expect_message(plotVariogram(sfe, genes[1:5], color_by = var_clusts3, group = "features",
+                                 swap_rownames = "symbol"),
+                   "Only one cluster is present. Not using color_by.")
 })
 
 test_that("plotVariogramMap", {
