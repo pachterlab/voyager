@@ -67,7 +67,7 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
         scale_color_manual(values = ditto_colors)
     breaks_inds <- breaks_extended(n = min(ndims+nfnega, 10), Q = 1:5)(inds)
     labels_use <- labels[breaks_inds]
-    if (breaks_inds[1] == 0) labels_use <- c(NA, labels_use)
+    if (breaks_inds[1] == 0) labels_use <- c("", labels_use)
     p <- p +
         geom_point() + geom_line() +
         scale_x_continuous(breaks = breaks_inds, labels = labels_use) +

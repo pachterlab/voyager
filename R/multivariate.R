@@ -1,5 +1,4 @@
 # Multivariate
-# 1. GWPCA, from GWmodels
 # 3. I really wish that MSPA can run faster. If I really want to use it, I'll reimplement it
 # 4. Moran eigenmaps and spatial filtering
 # 5. Spatially informed clustering
@@ -11,9 +10,9 @@
 #' informed dimension reduction.
 #'
 #' For the argument \code{type}, this package supports "multispati" for
-#' MULTISPATI PCA, "localC_multi" for a multivariate generalization of Geary's C,
-#' "localC_perm_multi" for the multivariate Geary's C with permutation testing,
-#' and "gwpca" for geographically weighted PCA.
+#' MULTISPATI PCA, "localC_multi" for a multivariate generalization of Geary's
+#' C, "localC_perm_multi" for the multivariate Geary's C with permutation
+#' testing, and "gwpca" for geographically weighted PCA.
 #'
 #' @inheritParams calculateUnivariate
 #' @inheritParams scater::runPCA
@@ -43,25 +42,20 @@
 #'   in rows.
 #' @param ... Extra arguments passed to the specific multivariate method. For
 #'   example, see \code{\link{multispati_rsp}} for arguments for MULTISPATI PCA.
-#'   See \code{\link{localC}} for arguments for "localC_multi" and "localC_perm_multi".
-#'   See \code{\link{GWmodel::gwpca}} for "gwpca".
+#'   See \code{\link{localC}} for arguments for "localC_multi" and
+#'   "localC_perm_multi".
 #' @return In \code{calculateMultivariate}, a matrix for cell embeddings whose
 #'   attributes include loadings and eigenvalues if relevant, ready to be added
 #'   to the SFE object with \code{reducedDim} setter. For \code{run*}, a
 #'   \code{SpatialFeatureExperiment} object with the results added. See Details
 #'   for where the results are stored.
-#' @references
-#' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45–56.
+#' @references Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of
+#' vegetation data using a generalization of Wartenberg's multivariate spatial
+#' correlation. Journal of vegetation science, 19, 45–56.
 #'
-#' Anselin, L. (2019), A Local Indicator of Multivariate Spatial Association: Extending Geary's c. Geogr Anal, 51: 133-150. doi:10.1111/gean.12164
+#' Anselin, L. (2019), A Local Indicator of Multivariate Spatial Association:
+#' Extending Geary's c. Geogr Anal, 51: 133-150. doi:10.1111/gean.12164
 #'
-#' Harris P, Brunsdon C, Charlton M (2011) Geographically weighted principal components analysis. International Journal of Geographical Information Science 25:1717-1736
-#'
-#' Harris P, Brunsdon C, Charlton M, Juggins S, Clarke A (2014) Multivariate spatial outlier detection using robust geographically weighted methods. Mathematical Geosciences 46(1) 1-31
-#'
-#' Harris P, Clarke A, Juggins S, Brunsdon C, Charlton M (2014) Geographically weighted methods and their use in network re-designs for environmental monitoring. Stochastic Environmental Research and Risk Assessment 28: 1869-1887
-#'
-#' Harris P, Clarke A, Juggins S, Brunsdon C, Charlton M (2015) Enhancements to a geographically weighted principal components analysis in the context of an application to an environmental data set. Geographical Analysis 47: 146-172
 #' @export
 #' @importFrom SpatialFeatureExperiment colGraphs
 #' @name calculateMultivariate
@@ -153,7 +147,6 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
                       # multiple samples
                       extra_attrs <- setdiff(names(attributes(out[[1]])),
                                              c("dim", "dimnames"))
-                      # Need to double check gwpca output
                       attrs_combined <- list()
                       if (length(extra_attrs)) {
                           # Stack matrices into 3D arrays, vectors into matrices
@@ -180,19 +173,12 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
                       is_matrix <- all(vapply(out, is.matrix, FUN.VALUE = logical(1)))
                       is_df <- all(vapply(out, function(o) is.data.frame(o) | is(o, "DataFrame"),
                                           FUN.VALUE = logical(1)))
-                      is_array <- all(vapply(out, function(o) is.array(o) & length(dim(o)) > 2L,
-                                             FUN.VALUE = logical(1)))
                       if (is_vector) {
                           out <- unlist(out)
                           out <- out[bcs]
                       } else if (is_matrix || is_df) {
                           out <- do.call(rbind, out)
                           out <- out[bcs,]
-                      } else if (is_array) {
-                          # For gwpca, need to check rownames
-                          rlang::check_installed("abind")
-                          out <- do.call(abind::abind, out)
-                          out <- out[bcs,,]
                       }
                       attributes(out) <- c(attributes(out), attrs_combined)
                   }
