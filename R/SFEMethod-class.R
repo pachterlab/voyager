@@ -104,6 +104,8 @@
 #'   neighborhood graph because unifying the user facing functions have an
 #'   argument asking for the graph as most though not all methods require the
 #'   graph.
+#' @param use_matrix Logical, whether the function in slot \code{fun} takes a
+#' matrix as input. The argument is only used for bivariate methods.
 #' @param dest Whether the results are more appropriate for \code{reducedDim} or
 #'   \code{colData}. Only used for multivariate methods. This overrides the
 #'   "local" field in \code{info}.
@@ -120,7 +122,7 @@
 #' )
 #' @name SFEMethod
 #' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
-#'   is_joint use_graph
+#'   is_joint use_graph use_matrix
 setClass("SFEMethod", slots = c(
     info = "character",
     fun = "function",
@@ -132,13 +134,23 @@ setClass("SFEMethod", slots = c(
     outs <- list()
     fm <- names(formals(object@fun))
     if (object@misc[["use_graph"]]) {
-        if (!identical(fm[seq_len(2)], c("x", "listw")))
+        if (object@info["variate"] == "uni" &&
+            (!identical(fm[seq_len(2)], c("x", "listw")))) {
             outs <- c(outs, "The first two arguments of slot `fun` must be 'x' and 'listw'")
-        if (!"zero.policy" %in% fm && object@info["variate"] == "uni")
-            outs <- c(outs, "zero.policy must be an argument of slot `fun`")
-    } else if (object@info["variate"] == "uni") {
-        if (!identical(fm[seq_len(2)], c("x", "coords_df")))
+        }
+        if (object@info["variate"] == "bi" &&
+            (!identical(fm[seq_len(3)], c("x", "y", "listw")))) {
+            outs <- c(outs, "The first three arguments of slot `fun` must be 'x', 'y', and 'listw'")
+        }
+        #if (!"zero.policy" %in% fm && object@info["variate"] != "multi")
+        #    outs <- c(outs, "zero.policy must be an argument of slot `fun`")
+    } else {
+        if (object@info["variate"] == "uni" &&
+            !identical(fm[seq_len(2)], c("x", "coords_df")))
             outs <- c(outs, "The first two arguments of slot `fun` must be 'x' and 'coords_df'")
+        if (object@info["variate"] == "bi" &&
+            !identical(fm[seq_len(3)], c("x", "y", "coords_df")))
+            outs <- c(outs, "The first three arguments of slot `fun` must be 'x', 'y', and 'coords_df'")
     }
     if (object@info["scope"] == "local") {
         if (!identical(names(formals(object@reorganize_fun)), c("out", "nb", "p.adjust.method")))
@@ -164,7 +176,8 @@ SFEMethod <- function(name, fun, reorganize_fun, package,
                       variate = c("uni", "bi", "multi"),
                       scope = c("global", "local"), title = NULL,
                       default_attr = NA, args_not_check = NA, joint = FALSE,
-                      use_graph = TRUE, dest = c("reducedDim", "colData")) {
+                      use_graph = TRUE, use_matrix = FALSE,
+                      dest = c("reducedDim", "colData")) {
     dest <- match.arg(dest)
     variate <- match.arg(variate)
     scope <- match.arg(scope)
@@ -176,7 +189,7 @@ SFEMethod <- function(name, fun, reorganize_fun, package,
     }
     new("SFEMethod", info = info, fun = fun, reorganize_fun = reorganize_fun,
         misc = list(args_not_check = args_not_check, joint = joint,
-                    use_graph = use_graph))
+                    use_graph = use_graph, use_matrix = use_matrix))
 }
 
 #' @export
@@ -208,3 +221,7 @@ setMethod("is_joint", "SFEMethod", function(x) x@misc[["joint"]])
 #' @export
 #' @rdname SFEMethod
 setMethod("use_graph", "SFEMethod", function(x) x@misc[["use_graph"]])
+
+#' @export
+#' @rdname SFEMethod
+setMethod("use_matrix", "SFEMethod", function(x) x@misc[["use_matrix"]])

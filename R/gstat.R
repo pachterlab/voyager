@@ -45,6 +45,46 @@
 }
 
 #' @rdname variogram-internal
+.variogram_bv <- function(x, y, coords_df, scale = TRUE, ...) {
+    # should take x as a matrix. All pairwise cross variograms for columns of x are computed.
+    # To be consistent with other functions, x has genes as rows
+    # should already be reformatted in calculateBivariate
+    dots <- list(...)
+    use_formula <- "formula" %in% names(dots)
+    if (use_formula) {
+        form_str <- deparse(formula)
+        form_str <- gsub("\\s+",, "", form_str)
+        form_split <- strsplit(form_str, "~")[[1]]
+        lhs <- form_split[1]
+        if (lhs != "") {
+            message("Left hand side of formula is ignored.")
+        }
+        dots$formula <- NULL
+    }
+    if (!is.null(y)) {
+        x <- rbind(x, y)
+        rownames(x) <- make.names(rownames(x)) # in case of duplicates
+        message("Cross correlograms within columns of x and within columns of y are also computed.")
+    }
+    ns <- rownames(x)
+    x <- t(x)
+    if (scale) x <- scale(x)
+    coords_df <- st_as_sf(cbind(coords_df, x))
+
+    g <- NULL
+    for (n in ns) {
+        if (use_formula) {
+            formula_use <- paste(c(n, "~", form_split[-1]), collapse = " ") |>
+                as.formula()
+        } else {
+            formula_use <- as.formula(paste0(n, " ~ 1"))
+        }
+        g <- gstat::gstat(g, id = n, formula = forumla_use, data = coords_df)
+    }
+    do.call(gstat::variogram, c(list(object = g), dots))
+}
+
+#' @rdname variogram-internal
 .variogram_map <- function(x, coords_df, formula = x ~ 1, width, cutoff, scale = TRUE, ...) {
     coords_df$x <- x
     if (scale) coords_df$x <- scale(coords_df$x)
@@ -57,6 +97,12 @@ variogram <- SFEMethod(package = "automap", variate = "uni", scope = "global",
                        fun = .variogram,
                        reorganize_fun = .other2df,
                        use_graph = FALSE)
+
+cross_variogram <- SFEMethod(package = "gstat", variate = "bi", scope = "global",
+                             default_attr = NA, name = "cross_variogram", title = "Variogram",
+                             fun = .variogram_bv,
+                             reorganize_fun = function(out, name, ...) out,
+                             use_graph = FALSE, use_matrix = TRUE)
 
 variogram_map <- SFEMethod(package = "gstat", variate = "uni", scope = "global",
                            default_attr = NA, name = "variogram_map",
@@ -137,6 +183,7 @@ variogram_map <- SFEMethod(package = "gstat", variate = "uni", scope = "global",
 #'   is plotted as points, and the fitted variogram model is plotted as a line
 #'   for each feature. The number next to each point is the number of pairs of
 #'   cells in that distance bin.
+#' @seealso plotVariogramMap
 #' @export
 #' @importFrom rlang !! sym
 #' @importFrom utils modifyList
@@ -311,6 +358,8 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
 #' @inheritParams plotVariogram
 #' @param plot_np Logical, whether to plot the number of pairs in each distance
 #'   bin instead of the semivariance.
+#' @return A ggplot object.
+#' @seealso plotVariogram
 #' @export
 #' @importFrom ggplot2 geom_tile scale_fill_viridis_c
 #' @examples
@@ -364,4 +413,89 @@ plotVariogramMap <- function(sfe, features, sample_id = "all", plot_np = FALSE,
         p <- p + facet_wrap(f, ncol = ncol)
     }
     p
+}
+
+.separate <- function(df, col, delim, names) {
+    # Base R implementation of tidyverse separate, to avoid more dependencies
+    # Only for the purpose of plotting cross variograms
+    ids_split <- strsplit(df[[col]], delim)
+    ids_split <- lapply(ids_split, function(x) {
+        if (length(x) == 1L) rep(x, 2) else x
+    })
+    ids_split <- do.call(rbind, ids_split)
+    colnames(ids_split) <- names
+    cbind(df, ids_split)
+}
+
+#' Plot cross variogram
+#'
+#' Equivalent to \code{gstat::plot.gstatVariogram}, but using ggplot2 to be more
+#' customizable.
+#'
+#' @inheritParams plotVariogram
+#' @param res Cross variogram results for one sample, from
+#'   \code{\link{calculateBivariate}}. Global bivariate results are not stored
+#'   in the SFE object.
+#' @return A ggplot object. The grid lines in empty facets can be manually
+#'   removed by grob operations, but the results will no longer be a ggplot2
+#'   object and are hence not customizable.
+#' @seealso plotCrossVariogramMap
+#' @export
+#' @examples
+#' # example code
+#'
+plotCrossVariogram <- function(res, show_np = TRUE) {
+    angles <- sort(unique(res$dir.hor))
+    if (length(angles) > 1L) {
+        res$dir.hor <- factor(as.character(res$dir.hor),
+                              levels = as.character(angles))
+    }
+    res <- .separate(df, "id", delim = "\\.", names = c("id_x", "id_y"))
+    aes_use <- aes(dist, gamma)
+    if (length(angles) > 1L) aes_use <- modifyList(aes_use, aes(color = dir.hor))
+    p <- ggplot(res, aes_use) +
+        geom_point() + geom_line()
+    if (show_np) p <- p + geom_text(aes(label = np), hjust = 0, vjust = 0)
+    if (length(angles) > 1L) p <- p + scale_color_viridis_d(option = "E", end = 0.9,
+                                                            name = "Angle")
+    p <- p + facet_grid(rows = vars(id_y), cols = vars(id_x), switch = "both")
+    p
+}
+
+#' Plot cross variogram map
+#'
+#' Equivalent to \code{gstat::plot.gstatVariogram}, but using ggplot2 to be more
+#' customizable.
+#'
+#' @inheritParams plotCrossVariogram
+#' @inheritParams plotVariogramMap
+#' @return A ggplot object. The grid lines in empty facets can be manually
+#'   removed by grob operations, but the results will no longer be a ggplot2
+#'   object and are hence not customizable.
+#' @seealso plotCrossVariogram
+#' @export
+#' @examples
+#' # example code
+#'
+plotCrossVariogramMap <- function(res, plot_np = FALSE) {
+    cols_use <- setdiff(names(res), c("dx", "dy"))
+    is_np <- grepl("^np", x = cols_use)
+    if (plot_np) {
+        cols_use <- cols_use[is_np]
+        res <- res[,cols_use]
+        names(res) <- gsub("^np\\.", "", names(res))
+        name_use <- "Number\nof pairs"
+    } else {
+        cols_use <- cols_use[!is_np]
+        res <- res[,cols_use]
+        name_use <- "Semivariance"
+    }
+    res <- reshape(res, varying = cols_use, direction = "long",
+                   v.names = "value", timevar = "variable",
+                   times = cols_use)
+    res <- .separate(res, "variable", delim = "\\.", names = c("id_x", "id_y"))
+
+    ggplot(res, aes(dx, dy, fill = value)) +
+        geom_tile() + scale_fill_viridis_c(option = "A", name = name_use) +
+        facet_grid(rows = vars(id_y), cols = vars(id_x), switch = "both")
 }

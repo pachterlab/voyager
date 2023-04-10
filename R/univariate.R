@@ -145,15 +145,15 @@
 #'   with the results added. See Details for where the results are stored.
 #' @references Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
 #'
-#'   Anselin, L. (1995), Local Indicators of Spatial Association—LISA.
+#'   Anselin, L. (1995), Local Indicators of Spatial Association-LISA.
 #'   Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
 #'
 #'   Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The
-#'   Annals of Regional Science, 48 (2), 529–539.
+#'   Annals of Regional Science, 48 (2), 529-539.
 #'
 #'   Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics:
 #'   distributional issues and an application. Geographical Analysis, 27,
-#'   286–306
+#'   286-306
 #'
 #' @name calculateUnivariate
 #' @aliases calculateMoransI

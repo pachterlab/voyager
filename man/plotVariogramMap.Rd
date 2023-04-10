@@ -53,6 +53,9 @@ matrix will be used.}
 \item{name}{Name under which the correlogram results are stored, which is by
 default "sp.correlogram".}
 }
+\value{
+A ggplot object.
+}
 \description{
 Plot variogram maps that show the variogram in all directions in a grid of
 distances in x and y coordinates.
@@ -64,4 +67,7 @@ sfe <- colDataUnivariate(sfe, "variogram_map", features = "nCounts",
 width = 500, cutoff = 5000)
 plotVariogramMap(sfe, "nCounts")
 
+}
+\seealso{
+plotVariogram
 }

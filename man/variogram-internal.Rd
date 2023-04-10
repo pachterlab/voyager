@@ -3,10 +3,13 @@
 \name{variogram-internal}
 \alias{variogram-internal}
 \alias{.variogram}
+\alias{.variogram_bv}
 \alias{.variogram_map}
 \title{Compute variograms}
 \usage{
 .variogram(x, coords_df, formula = x ~ 1, scale = TRUE, ...)
+
+.variogram_bv(x, y, coords_df, scale = TRUE, ...)
 
 .variogram_map(x, coords_df, formula = x ~ 1, width, cutoff, scale = TRUE, ...)
 }

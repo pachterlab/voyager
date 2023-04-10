@@ -27,7 +27,7 @@
 #' Eigen decomposition will fail if any feature has variance zero leading to NaN
 #' in the scaled matrix.
 #' @references
-#' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45–56.
+#' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45-56.
 #' @export
 #' @importFrom Matrix colMeans
 #' @importFrom sparseMatrixStats colVars

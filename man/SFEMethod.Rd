@@ -11,6 +11,7 @@
 \alias{reorganize_fun}
 \alias{is_joint}
 \alias{use_graph}
+\alias{use_matrix}
 \alias{info,SFEMethod-method}
 \alias{is_local,SFEMethod-method}
 \alias{fun,SFEMethod-method}
@@ -18,6 +19,7 @@
 \alias{args_not_check,SFEMethod-method}
 \alias{is_joint,SFEMethod-method}
 \alias{use_graph,SFEMethod-method}
+\alias{use_matrix,SFEMethod-method}
 \title{SFEMethod class}
 \usage{
 SFEMethod(
@@ -32,6 +34,7 @@ SFEMethod(
   args_not_check = NA,
   joint = FALSE,
   use_graph = TRUE,
+  use_matrix = FALSE,
   dest = c("reducedDim", "colData")
 )
 
@@ -48,6 +51,8 @@ SFEMethod(
 \S4method{is_joint}{SFEMethod}(x)
 
 \S4method{use_graph}{SFEMethod}(x)
+
+\S4method{use_matrix}{SFEMethod}(x)
 }
 \arguments{
 \item{name}{Name of the method, used by user-facing functions to specify the
@@ -87,6 +92,9 @@ samples.}
 neighborhood graph because unifying the user facing functions have an
 argument asking for the graph as most though not all methods require the
 graph.}
+
+\item{use_matrix}{Logical, whether the function in slot \code{fun} takes a
+matrix as input. The argument is only used for bivariate methods.}
 
 \item{dest}{Whether the results are more appropriate for \code{reducedDim} or
 \code{colData}. Only used for multivariate methods. This overrides the

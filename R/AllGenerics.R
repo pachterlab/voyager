@@ -4,8 +4,8 @@ setGeneric("calculateUnivariate", function(x, type, ...) standardGeneric("calcul
 #' @export
 setGeneric("calculateMoransI", function(x, ...) standardGeneric("calculateMoransI"))
 
-# @export
-# setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
+#' @export
+setGeneric("calculateBivariate", function(x, ...) standardGeneric("calculateBivariate"))
 
 #' @export
 setGeneric("calculateMultivariate", function(x, type, ...) standardGeneric("calculateMultivariate"))
@@ -30,3 +30,6 @@ setGeneric("is_joint", function(x) standardGeneric("is_joint"))
 
 #' @export
 setGeneric("use_graph", function(x) standardGeneric("use_graph"))
+
+#' @export
+setGeneric("use_matrix", function(x) standardGeneric("use_matrix"))

@@ -17,8 +17,8 @@ A numeric vector of minimum and maximum Moran's I given the spatial
 Values Moran's I can take depends on the spatial neighborhood graph. The
 bounds of Moran's I given the graph, C, are given by the minimum and maximum
 eigenvalues of the double centered -- i.e. subtracting column means and row
-means -- adjacency matrix \eqn{(I − \mathbb{11}^T/n)C(I − \mathbb{11}^T/n)}{(I
-− 11^T/n)C(I − 11^T/n)}, where \eqn{\mathbb 1}{1} is a vector of all 1's.
+means -- adjacency matrix \eqn{(I - \mathbb{11}^T/n)C(I - \mathbb{11}^T/n)}{(I
+- 11^T/n)C(I - 11^T/n)}, where \eqn{\mathbb 1}{1} is a vector of all 1's.
 This implementation follows the implementation in \code{adespatial} and uses
 the \code{RSpectra} package to more quickly find only the minimum and maximum
 eigenvalues without performing unnecessary work to find the full spectrum as

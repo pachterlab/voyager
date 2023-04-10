@@ -105,3 +105,6 @@ plotVariogram(sfe, "nCounts", name = "variogram_anis")
 # Plot angles with different colors
 plotVariogram(sfe, "nCounts", group = "angles", name = "variogram_anis")
 }
+\seealso{
+plotVariogramMap
+}

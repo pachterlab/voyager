@@ -2,7 +2,15 @@
 # 3. I really wish that MSPA can run faster. If I really want to use it, I'll reimplement it
 # 4. Moran eigenmaps and spatial filtering
 # 5. Spatially informed clustering
-
+# GWPCA: I haven't completely given up. It's not that interesting in the Visium
+# muscle data. It might be interesting in some smFISH dataset. Then I might need
+# to reimplement it myself using Irlba or RSpectra and parallel programming to
+# make it scalable enough to be more useful. I don't have enough time for that
+# for Bioc 3.17. I would also need to write my own geom for the loading glyph
+# plot to only show genes with top loadings rather than all genes.
+# For both MSPA and GWPCA: the interesting part is not the cell embeddings, but
+# the results about genes. I may write a different function or in whichever way
+# note that the results will go into rowData.
 
 #' Multivariate spatial data analysis
 #'
@@ -51,7 +59,7 @@
 #'   for where the results are stored.
 #' @references Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of
 #' vegetation data using a generalization of Wartenberg's multivariate spatial
-#' correlation. Journal of vegetation science, 19, 45–56.
+#' correlation. Journal of vegetation science, 19, 45-56.
 #'
 #' Anselin, L. (2019), A Local Indicator of Multivariate Spatial Association:
 #' Extending Geary's c. Geogr Anal, 51: 133-150. doi:10.1111/gean.12164
