@@ -13,22 +13,24 @@ hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
 
 g <- colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 
-# Matrix method
-# SFE method
-# Error when feature1 has length 1 and feature2 is absent
-# Correct output from calculateBivariate
-# runBivariate throws error for global methods
-# Multiple samples
-
-test_that("Error when x is vector and y is absent", {
-    expect_error(calculateBivariate(sfe$nCounts, type = "lee", listw = g),
-                 "y must be specified for vector x.")
-})
-
 mat_x <- logcounts(sfe)[hvgs[1:3],]
 rownames(mat_x) <- rowData(sfe)[hvgs[1:3], "symbol"]
 mat_y <- logcounts(sfe)[hvgs[4:7],]
 rownames(mat_y) <- rowData(sfe)[hvgs[4:7], "symbol"]
+
+test_that("Errors", {
+    expect_error(calculateBivariate(sfe$nCounts, type = "lee", listw = g),
+                 "y must be specified for vector x.")
+    expect_error(calculateBivariate(sfe$nCounts, sfe$nGenes[-1], type = "lee",
+                                    listw = g),
+                 "same number")
+    expect_error(calculateBivariate(mat_x, mat_y[,-1], type = "lee", listw = g),
+                 "same number")
+    mat_x2 <- mat_x
+    rownames(mat_x2) <- NULL
+    expect_error(calculateBivariate(mat_x2, mat_y, type = "lee.test", listw = g),
+                 "Matrices x and y must have row names.")
+})
 
 test_that("Lee, taking matrix input", {
     out <- calculateBivariate(mat_x, type = "lee", listw = g)
