@@ -33,9 +33,17 @@
 #' @inheritParams plotSpatialFeature
 #' @inheritParams plotCorrelogram
 #' @inheritParams plotDimLoadings
-#' @param type Which local spatial results. Use
+#' @param name Which local spatial results. Use
 #'   \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types
 #'   of results have already been calculated.
+#' @param type An \code{\link{SFEMethod}} object or a string corresponding to
+#'   the name of one of such objects in the environment. If the
+#'   \code{localResult} of interest was manually added outside
+#'   \code{\link{runUnivariate}} and \code{\link{runBivariate}}, so the method
+#'   is not recorded, then the \code{type} argument can be used to specify the
+#'   method to properly get the title and labels. By default, this argument is
+#'   set to be the same as argument \code{name}. If the method parameters are
+#'   recorded, then the \code{type} argument is ignored.
 #' @param features Character vector of vectors. To see which features have the
 #'   results of a given type, see
 #'   \code{\link[SpatialFeatureExperiment]{localResultFeatures}}.
@@ -67,6 +75,7 @@
 #' library(SFEData)
 #' library(scater)
 #' sfe <- McKellarMuscleData("small")
+#' sfe <- sfe[,sfe$in_tissue]
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' feature_use <- rownames(sfe)[1]
 #' sfe <- logNormCounts(sfe)
@@ -104,7 +113,7 @@
 #'     annotGeometryName = "myofiber_simplified"
 #' )
 #' # don't use annot_* arguments when annotGeometry is plotted without colGeometry
-plotLocalResult <- function(sfe, type, features, attribute = NULL,
+plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             sample_id = "all",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
@@ -117,17 +126,41 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
                             color = "black", fill = "gray80",
                             show_symbol = deprecated(), swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
-                            summary_fun = sum, hex = FALSE, ...) {
+                            summary_fun = sum, hex = FALSE, type = name, ...) {
     l <- .deprecate_show_symbol("plotLocalResult", show_symbol, swap_rownames)
     show_symbol <- l[[1]]; swap_rownames <- l[[2]]
 
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    values <- .get_localResult_values(sfe, type, features, attribute,
+    if (!is.null(colGeometryName)) {
+        pred <- any(features %in% names(colGeometry(sfe, colGeometryName,
+                                                    sample_id = "all")))
+        cg_name <- if (pred) colGeometryName else NULL
+    } else cg_name <- NULL
+    if (!is.null(annotGeometryName)) {
+        pred <- any(features %in% names(annotGeometry(sfe, annotGeometryName,
+                                                      sample_id = "all")))
+        ag_name <- if (pred) annotGeometryName else NULL
+    } else ag_name <- NULL
+    params <- getParams(sfe, name, local = TRUE,
+                        colGeometryName = cg_name,
+                        annotGeometryName = ag_name)
+    # params NULL if localResults manually added outside runUnivariate
+    if (is.null(params)) {
+        if (is.character(type))
+            type <- get(type, mode = "S4")
+    } else type <- get(params$name, mode = "S4")
+
+    if (is.null(attribute)) attribute <- info(type, "default_attr")
+    base <- info(type, "title")
+    title_use <- paste0(base, " (", attribute, ")")
+
+    values <- .get_localResult_values(sfe, name, type, features, attribute,
         sample_id, colGeometryName,
         annotGeometryName,
         show_symbol = show_symbol, swap_rownames = swap_rownames
     )
+
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
     # without specifying colGeometries.
@@ -167,9 +200,9 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
     }
     # Add title to not to confuse with gene expression
     if (is(out, "patchwork")) {
-        out <- out + plot_annotation(title = .local_type2title(type, attribute))
+        out <- out + plot_annotation(title = title_use)
     } else {
-        out <- out + ggtitle(.local_type2title(type, attribute))
+        out <- out + ggtitle(title_use)
     }
     out
 }

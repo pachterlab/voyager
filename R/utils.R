@@ -151,23 +151,22 @@
     data.frame(out, check.names = FALSE)
 }
 
-.get_localResult_values <- function(sfe, type, features, attribute, sample_id,
+.get_localResult_values <- function(sfe, name, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
                                     cbind_all = TRUE, show_symbol = TRUE,
                                     swap_rownames = "symbol") {
     features_list <- .check_features_lr(
-        sfe, type, features, sample_id,
+        sfe, name, features, sample_id,
         colGeometryName, annotGeometryName, swap_rownames
     )
     if (is.null(attribute)) {
-        if (is.character(type)) type2 <- get(type, mode = "S4")
-        attribute <- info(type2, "default_attr")
+        attribute <- info(type, "default_attr")
     }
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["assay"]])
+        lrs <- localResults(sfe, sample_id, name, features_list[["assay"]])
         if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
             ind <- names(lrs) %in% rownames(sfe)
             names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], swap_rownames]
@@ -175,13 +174,13 @@
         values[["assay"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["colgeom"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["colgeom"]],
+        lrs <- localResults(sfe, sample_id, name, features_list[["colgeom"]],
             colGeometryName = colGeometryName
         )
         values[["colgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["annotgeom"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["annotgeom"]],
+        lrs <- localResults(sfe, sample_id, name, features_list[["annotgeom"]],
             annotGeometryName = annotGeometryName
         )
         values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)
@@ -285,13 +284,6 @@
         )
     }
     out
-}
-
-.local_type2title <- function(type, attribute) {
-    if (is.character(type)) type <- get(type, mode = "S4")
-    if (is.null(attribute)) attribute <- info(type, "default_attr")
-    base <- info(type, "title")
-    paste0(base, " (", attribute, ")")
 }
 
 .deprecate_show_symbol <- function(fun_name, show_symbol, swap_rownames) {

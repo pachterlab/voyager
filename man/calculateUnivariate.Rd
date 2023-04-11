@@ -241,17 +241,13 @@ reducedDimMoransI(
 \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 assay.}
 
-\item{type}{A string, must be one of the following: moran, geary, moran.test,
-geary.test, moran.mc, geary.mc, sp.mantel.mc, globalG.test, sp.correlogram,
-localmoran, localmoran_perm, localC, localC_perm, localG, localG_perm,
-LOSH, LOSH.mc, LOSH.cs, and moran.plot. See \code{spdep} documentation for
-the corresponding functions for method specific arguments. Can also be an
-\code{\link{SFEMethod}} object, or a string matching the name of an
-\code{SFEMethod} object. The methods mentioned above correspond to
-\code{SFEMethod} objects already implemented in the Voyager package. You
-can implement new \code{SFEMethod} objects to apply Voyager functions to
-other spatial analysis methods. This is in part inspired by the
-\code{caret}, \code{parsnip}, and \code{BiocSingular} packages.}
+\item{type}{An \code{\link{SFEMethod}} object, or a string matching the name
+of an \code{SFEMethod} object. The methods mentioned above correspond to
+\code{SFEMethod} objects already implemented in the Voyager package. Use
+\code{\link{listSFEMethods}} to see which methods are available. You can
+implement new \code{SFEMethod} objects to apply Voyager functions to other
+spatial analysis methods. This is in part inspired by the \code{caret},
+\code{parsnip}, and \code{BiocSingular} packages.}
 
 \item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
 object. Not used when the method specified in \code{type} does not use a

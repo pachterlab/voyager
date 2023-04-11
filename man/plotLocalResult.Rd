@@ -6,7 +6,7 @@
 \usage{
 plotLocalResult(
   sfe,
-  type,
+  name,
   features,
   attribute = NULL,
   sample_id = "all",
@@ -36,13 +36,14 @@ plotLocalResult(
   bins = NULL,
   summary_fun = sum,
   hex = FALSE,
+  type = name,
   ...
 )
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
-\item{type}{Which local spatial results. Use
+\item{name}{Which local spatial results. Use
 \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types
 of results have already been calculated.}
 
@@ -171,6 +172,15 @@ used.}
 \code{ggplot2} if you are getting horizontal stripes when
 \code{hex = TRUE}.}
 
+\item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
+the name of one of such objects in the environment. If the
+\code{localResult} of interest was manually added outside
+\code{\link{runUnivariate}} and \code{\link{runBivariate}}, so the method
+is not recorded, then the \code{type} argument can be used to specify the
+method to properly get the title and labels. By default, this argument is
+set to be the same as argument \code{name}. If the method parameters are
+recorded, then the \code{type} argument is ignored.}
+
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
 \value{
@@ -228,6 +238,7 @@ library(SpatialFeatureExperiment)
 library(SFEData)
 library(scater)
 sfe <- McKellarMuscleData("small")
+sfe <- sfe[,sfe$in_tissue]
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 feature_use <- rownames(sfe)[1]
 sfe <- logNormCounts(sfe)
