@@ -1,6 +1,6 @@
 #' Compute variograms
 #'
-#' Wrapper of \code{\link{automap::autofitVariogram}} to facilitate computing
+#' Wrapper of \code{automap::autofitVariogram} to facilitate computing
 #' variograms for multiple genes in SFE objects as an EDA tool. These functions
 #' are written to conform to a uniform format for univariate methods to be
 #' called internally. These functions are not exported, but the documentation is
@@ -9,6 +9,7 @@
 #'
 #' @inheritParams gstat::variogram
 #' @param x A numeric vector whose variogram is computed.
+#' @param y For bivariate, another numeric vector whose variogram is computed.
 #' @param coords_df A \code{sf} data frame with the geometry and regressors for
 #'   variogram modeling.
 #' @param formula A formula defining the response vector and (possible)
@@ -17,8 +18,8 @@
 #'   the variogram is easier to interpret and is more comparable between
 #'   features with different magnitudes when the length scale of spatial
 #'   autocorrelation is of interest.
-#' @param ... Other arguments passed to \code{\link{automap::autofitVariogram}}
-#'   such as \code{model} and \code{\link{variogram}} such as \code{alpha} for
+#' @param ... Other arguments passed to \code{automap::autofitVariogram} such as
+#'   \code{model} and \code{\link{variogram}} such as \code{alpha} for
 #'   anisotropy. Note that \code{gstat} does not fit ansotropic models and you
 #'   will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 #'   empirical anisotropic variograms and comparing them to the variogram fitted
@@ -45,14 +46,14 @@
 }
 
 #' @rdname variogram-internal
-.variogram_bv <- function(x, y, coords_df, scale = TRUE, ...) {
+.variogram_bv <- function(x, y, coords_df, scale = TRUE, map = FALSE, ...) {
     # should take x as a matrix. All pairwise cross variograms for columns of x are computed.
     # To be consistent with other functions, x has genes as rows
     # should already be reformatted in calculateBivariate
     dots <- list(...)
     use_formula <- "formula" %in% names(dots)
     if (use_formula) {
-        form_str <- deparse(formula)
+        form_str <- deparse(dots[["formula"]])
         form_str <- gsub("\\s+",, "", form_str)
         form_split <- strsplit(form_str, "~")[[1]]
         lhs <- form_split[1]
@@ -79,10 +80,27 @@
         } else {
             formula_use <- as.formula(paste0(n, " ~ 1"))
         }
-        g <- gstat::gstat(g, id = n, formula = forumla_use, data = coords_df)
+        g <- gstat::gstat(g, id = n, formula = formula_use, data = coords_df)
     }
-    do.call(gstat::variogram, c(list(object = g), dots))
+    do.call(gstat::variogram, c(list(object = g, map = map), dots))
 }
+
+.vbv_fun <- function(map) {
+    if (!map) {
+        function(x, y, coords_df, scale = TRUE, ...)
+            .variogram_bv(x, y, coords_df, scale, map = FALSE, ...)
+    }
+    else {
+        function(x, y, coords_df, width, cutoff, scale = TRUE, ...)
+            .variogram_bv(x, y, coords_df, scale, map = TRUE, width = width, cutoff = cutoff, ...)
+    }
+}
+
+#' @rdname variogram-internal
+.cross_variogram <- .vbv_fun(map = FALSE)
+
+#' @rdname variogram-internal
+.cross_variogram_map <- .vbv_fun(map = TRUE)
 
 #' @rdname variogram-internal
 .variogram_map <- function(x, coords_df, formula = x ~ 1, width, cutoff, scale = TRUE, ...) {
@@ -99,10 +117,19 @@ variogram <- SFEMethod(package = "automap", variate = "uni", scope = "global",
                        use_graph = FALSE)
 
 cross_variogram <- SFEMethod(package = "gstat", variate = "bi", scope = "global",
-                             default_attr = NA, name = "cross_variogram", title = "Variogram",
-                             fun = .variogram_bv,
+                             default_attr = NA, name = "cross_variogram",
+                             title = "Cross variogram",
+                             fun = .cross_variogram,
                              reorganize_fun = function(out, name, ...) out,
                              use_graph = FALSE, use_matrix = TRUE)
+
+cross_variogram_map <- SFEMethod(
+    package = "gstat", variate = "bi", scope = "global",
+    default_attr = NA, name = "cross_variogram_map", title = "Cross variogram map",
+    fun = .cross_variogram_map,
+    reorganize_fun = function(out, name, ...) as.data.frame(out$map),
+    use_graph = FALSE, use_matrix = TRUE
+)
 
 variogram_map <- SFEMethod(package = "gstat", variate = "uni", scope = "global",
                            default_attr = NA, name = "variogram_map",
@@ -418,13 +445,27 @@ plotVariogramMap <- function(sfe, features, sample_id = "all", plot_np = FALSE,
 .separate <- function(df, col, delim, names) {
     # Base R implementation of tidyverse separate, to avoid more dependencies
     # Only for the purpose of plotting cross variograms
-    ids_split <- strsplit(df[[col]], delim)
+    ids_split <- strsplit(as.character(df[[col]]), delim)
     ids_split <- lapply(ids_split, function(x) {
         if (length(x) == 1L) rep(x, 2) else x
     })
     ids_split <- do.call(rbind, ids_split)
     colnames(ids_split) <- names
     cbind(df, ids_split)
+}
+
+design_ragged_rows <- function(data, rows, cols) {
+    # from https://stackoverflow.com/a/75938994/8916916
+    facets <- unique(data[c(rows, cols)])
+    facet_id <- seq_len(nrow(facets))
+
+    groups <- split(facet_id, facets[rows], drop = TRUE)
+    n <- lengths(groups)
+    i <- rep(seq_along(n), n)
+    j <- sequence(n)
+
+    design <- matrix(NA_integer_, max(i), max(j))
+    replace(design, cbind(i, j), facet_id)
 }
 
 #' Plot cross variogram
@@ -436,21 +477,32 @@ plotVariogramMap <- function(sfe, features, sample_id = "all", plot_np = FALSE,
 #' @param res Cross variogram results for one sample, from
 #'   \code{\link{calculateBivariate}}. Global bivariate results are not stored
 #'   in the SFE object.
-#' @return A ggplot object. The grid lines in empty facets can be manually
-#'   removed by grob operations, but the results will no longer be a ggplot2
-#'   object and are hence not customizable.
+#' @return A ggplot object. Unfortunately I haven't figured out a way to collect
+#' all the facet labels to the top of the entire plot.
 #' @seealso plotCrossVariogramMap
 #' @export
 #' @examples
-#' # example code
+#' library(SFEData)
+#' library(scater)
+#' sfe <- McKellarMuscleData()
+#' sfe <- sfe[,sfe$in_tissue]
+#' sfe <- logNormCounts(sfe)
 #'
+#' res <- calculateBivariate(sfe, type = "cross_variogram",
+#' feature1 = c("Myh1", "Myh2", "Csrp3"), swap_rownames = "symbol")
+#' plotCrossVariogram(res)
 plotCrossVariogram <- function(res, show_np = TRUE) {
+    rlang::check_installed("ggh4x")
     angles <- sort(unique(res$dir.hor))
     if (length(angles) > 1L) {
         res$dir.hor <- factor(as.character(res$dir.hor),
                               levels = as.character(angles))
     }
-    res <- .separate(df, "id", delim = "\\.", names = c("id_x", "id_y"))
+    res <- .separate(res, "id", delim = "\\.", names = c("id_x", "id_y"))
+    l <- names(sort(table(res$id_x), decreasing = TRUE))
+    res$id_y <- factor(res$id_y, levels = l)
+    res$id_x <- factor(res$id_x, levels = l)
+    dist <- gamma <- np <- id_y <- id_x <- dir.hor <- NULL
     aes_use <- aes(dist, gamma)
     if (length(angles) > 1L) aes_use <- modifyList(aes_use, aes(color = dir.hor))
     p <- ggplot(res, aes_use) +
@@ -458,7 +510,9 @@ plotCrossVariogram <- function(res, show_np = TRUE) {
     if (show_np) p <- p + geom_text(aes(label = np), hjust = 0, vjust = 0)
     if (length(angles) > 1L) p <- p + scale_color_viridis_d(option = "E", end = 0.9,
                                                             name = "Angle")
-    p <- p + facet_grid(rows = vars(id_y), cols = vars(id_x), switch = "both")
+    design <- design_ragged_rows(res, "id_y", "id_x")
+    p <- p + ggh4x::facet_manual(vars(id_y, id_x), design = design,
+                                 strip = ggh4x::strip_split(position = c("left", "top")))
     p
 }
 
@@ -469,33 +523,46 @@ plotCrossVariogram <- function(res, show_np = TRUE) {
 #'
 #' @inheritParams plotCrossVariogram
 #' @inheritParams plotVariogramMap
-#' @return A ggplot object. The grid lines in empty facets can be manually
-#'   removed by grob operations, but the results will no longer be a ggplot2
-#'   object and are hence not customizable.
+#' @return A ggplot object.
 #' @seealso plotCrossVariogram
 #' @export
 #' @examples
-#' # example code
+#' library(SFEData)
+#' library(scater)
+#' sfe <- McKellarMuscleData()
+#' sfe <- sfe[,sfe$in_tissue]
+#' sfe <- logNormCounts(sfe)
+#'
+#' res <- calculateBivariate(sfe, type = "cross_variogram_map",
+#' feature1 = c("Myh1", "Myh2", "Csrp3"), swap_rownames = "symbol",
+#' width = 500, cutoff = 2000)
+#' plotCrossVariogramMap(res)
 #'
 plotCrossVariogramMap <- function(res, plot_np = FALSE) {
+    rlang::check_installed("ggh4x")
     cols_use <- setdiff(names(res), c("dx", "dy"))
     is_np <- grepl("^np", x = cols_use)
     if (plot_np) {
         cols_use <- cols_use[is_np]
-        res <- res[,cols_use]
+        res <- res[,c(cols_use, "dx", "dy")]
         names(res) <- gsub("^np\\.", "", names(res))
         name_use <- "Number\nof pairs"
     } else {
         cols_use <- cols_use[!is_np]
-        res <- res[,cols_use]
+        res <- res[,c(cols_use, "dx", "dy")]
         name_use <- "Semivariance"
     }
     res <- reshape(res, varying = cols_use, direction = "long",
                    v.names = "value", timevar = "variable",
                    times = cols_use)
     res <- .separate(res, "variable", delim = "\\.", names = c("id_x", "id_y"))
-
+    l <- names(sort(table(res$id_x), decreasing = TRUE))
+    res$id_y <- factor(res$id_y, levels = l)
+    res$id_x <- factor(res$id_x, levels = l)
+    design <- design_ragged_rows(res, "id_y", "id_x")
+    dx <- dy <- value <- id_y <- id_x <- NULL
     ggplot(res, aes(dx, dy, fill = value)) +
         geom_tile() + scale_fill_viridis_c(option = "A", name = name_use) +
-        facet_grid(rows = vars(id_y), cols = vars(id_x), switch = "both")
+        ggh4x::facet_manual(vars(id_y, id_x), design = design,
+                            strip = ggh4x::strip_split(position = c("left", "top")))
 }

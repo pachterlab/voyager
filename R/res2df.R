@@ -149,7 +149,7 @@
     lapply(out, .add_log_p, nb = nb, p.adjust.method = p.adjust.method)
 
 .lee2df <- function(out, nb, p.adjust.method) {
-    lapply(out, function(o) p$local)
+    lapply(out, function(o) o$localL)
 }
 
 .to_df_identity <- function(out, nb, p.adjust.method) out

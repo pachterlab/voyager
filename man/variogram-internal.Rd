@@ -4,12 +4,18 @@
 \alias{variogram-internal}
 \alias{.variogram}
 \alias{.variogram_bv}
+\alias{.cross_variogram}
+\alias{.cross_variogram_map}
 \alias{.variogram_map}
 \title{Compute variograms}
 \usage{
 .variogram(x, coords_df, formula = x ~ 1, scale = TRUE, ...)
 
-.variogram_bv(x, y, coords_df, scale = TRUE, ...)
+.variogram_bv(x, y, coords_df, scale = TRUE, map = FALSE, ...)
+
+.cross_variogram(x, y, coords_df, scale = TRUE, ...)
+
+.cross_variogram_map(x, y, coords_df, width, cutoff, scale = TRUE, ...)
 
 .variogram_map(x, coords_df, formula = x ~ 1, width, cutoff, scale = TRUE, ...)
 }
@@ -27,12 +33,19 @@ the variogram is easier to interpret and is more comparable between
 features with different magnitudes when the length scale of spatial
 autocorrelation is of interest.}
 
-\item{...}{Other arguments passed to \code{\link{automap::autofitVariogram}}
-such as \code{model} and \code{\link{variogram}} such as \code{alpha} for
+\item{...}{Other arguments passed to \code{automap::autofitVariogram} such as
+\code{model} and \code{\link{variogram}} such as \code{alpha} for
 anisotropy. Note that \code{gstat} does not fit ansotropic models and you
 will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 empirical anisotropic variograms and comparing them to the variogram fitted
 to the entire dataset can be a useful EDA tool.}
+
+\item{y}{For bivariate, another numeric vector whose variogram is computed.}
+
+\item{map}{ logical; if TRUE, and \code{cutoff} and \code{width}
+are given, a variogram map is returned. This requires package
+sp. Alternatively, a map can be passed, of class SpatialDataFrameGrid
+(see sp docs) }
 
 \item{width}{ the width of subsequent distance intervals into which
 data point pairs are grouped for semivariance estimates }
@@ -45,7 +58,7 @@ length of the diagonal of the box spanning the data is divided by three. }
 An \code{autofitVariogram} object.
 }
 \description{
-Wrapper of \code{\link{automap::autofitVariogram}} to facilitate computing
+Wrapper of \code{automap::autofitVariogram} to facilitate computing
 variograms for multiple genes in SFE objects as an EDA tool. These functions
 are written to conform to a uniform format for univariate methods to be
 called internally. These functions are not exported, but the documentation is

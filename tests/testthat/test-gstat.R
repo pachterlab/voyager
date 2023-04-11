@@ -81,6 +81,13 @@ test_that("colDataUnivariate for variogram (or when not using graph)", {
                    "gstat does not fit anisotropic variograms")
 })
 
+test_that("Use formula", {
+    sfe <- colDataUnivariate(sfe, "variogram", features = "prop_mito", model = "Sph",
+                             formula = prop_mito ~ nCounts)
+    out <- colFeatureData(sfe)["prop_mito", "variogram_Vis5A"]
+    expect_s3_class(out[[1]], "autofitVariogram")
+})
+
 sfe2 <- McKellarMuscleData("small2")
 sfe2 <- sfe2[,sfe2$in_tissue]
 sfe2 <- logNormCounts(sfe2)

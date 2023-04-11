@@ -14,6 +14,16 @@ test_that("Wrong arguments in fun", {
                            fun = spdep::sp.correlogram, use_graph = FALSE,
                            reorganize_fun = Voyager:::.moran2df),
                  "The first two arguments of slot `fun` must be 'x' and 'coords_df'")
+    # bivariate
+    expect_error(SFEMethod(name = "lee", variate = "bi", scope = "global",
+                           package = "spdep", fun = function(x, listw, ...) x,
+                           reorganize_fun = Voyager:::.moran2df),
+                 "The first three arguments of slot `fun` must be 'x', 'y', and 'listw'")
+    expect_error(SFEMethod(name = "cross_variogram", variate = "bi", scope = "global",
+                           package = "gstat", fun = function(x, coords_df, ...) x,
+                           reorganize_fun = Voyager:::.moran2df, use_graph = FALSE),
+                 "The first three arguments of slot `fun` must be 'x', 'y', and 'coords_df'")
+
 })
 
 test_that("Must have zero.policy", {

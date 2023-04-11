@@ -3,16 +3,26 @@
 #' These functions perform bivariate spatial analysis. In this version, the
 #' bivariate global method supported are \code{\link{lee}},
 #' \code{\link{lee.mc}}, and \code{\link{lee.test}} from \code{spdep}, and cross
-#' variograms from \code{gstat}. Global Lee statistic is computed by my own
+#' variograms from \code{gstat} (use \code{cross_variogram} and
+#' \code{cross_variogram_map} for \code{type} argument, see
+#' \code{\link{variogram-internal}}). Global Lee statistic is computed by my own
 #' implementation that is much faster than that in \code{spdep}. Bivariate local
-#' methods supported are \code{\link{lee}} (local version) and
-#' \code{\link{localmoran_bv}} a bivariate version of Local Moran in
-#' \code{spdep}.
+#' methods supported are \code{\link{lee}} (use \code{locallee} for \code{type}
+#' argument) and \code{\link{localmoran_bv}} a bivariate version of Local Moran
+#' in \code{spdep}.
 #'
 #' @inheritParams calculateUnivariate
-#' @param x A numeric matrix whose rows are features/genes, or a
-#'   \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
-#'   assay.
+#' @param x A numeric matrix whose rows are features/genes, or a numeric vector
+#'   (then \code{y} must be specified), or a \code{SpatialFeatureExperiment}
+#'   (SFE) object with such a matrix in an assay.
+#' @param y A numeric matrix whose rows are features/genes, or a numeric vector.
+#'   Bivariate statics will be computed for all pairwise combinations of row
+#'   names of x and row names of y, except in cross variogram where combinations
+#'   within x and y are also computed.
+#' @param feature1 ID or symbol of the first genes in SFE object, for the
+#'   argument \code{x}.
+#' @param feature2 ID or symbol of the second genes in SFE object, for the
+#'   argument \code{x}. Mandatory if length of \code{feature1} is 1.
 #' @return The \code{calculateBivariate} function returns a correlation matrix
 #'   for global Lee, and the results for the each pair of genes for other
 #'   methods. Global results are not stored in the SFE object. Some methods
@@ -22,7 +32,31 @@
 #'   concatenation the two gene names separated by two underscores (\code{__}).
 #' @export
 #' @examples
-#' # Example code
+#' library(SFEData)
+#' library(scater)
+#' library(scran)
+#' library(SpatialFeatureExperiment)
+#' library(SpatialExperiment)
+#' sfe <- McKellarMuscleData()
+#' sfe <- sfe[,sfe$in_tissue]
+#' sfe <- logNormCounts(sfe)
+#' gs <- modelGeneVar(sfe)
+#' hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+#' g <- colGraph(sfe, "visium") <- findVisiumGraph(sfe)
+#'
+#' # Matrix method
+#' mat <- logcounts(sfe)[hvgs[1:5],]
+#' df <- df2sf(spatialCoords(sfe), spatialCoordsNames(sfe))
+#' out <- calculateBivariate(mat, type = "lee", listw = g)
+#' out <- calculateBivariate(mat, type = "cross_variogram", coords_df = df)
+#'
+#' # SFE method
+#' out <- calculateBivariate(sfe, type = "lee",
+#' feature1 = c("Myh1", "Myh2", "Csrp3"), swap_rownames = "symbol")
+#' out2 <- calculateBivariate(sfe, type = "lee.test", feature1 = "Myh1",
+#' feature2 = "Myh2", swap_rownames = "symbol")
+#' sfe <- runBivariate(sfe, type = "locallee", feature1 = "Myh1",
+#' feature2 = "Myh2", swap_rownames = "symbol")
 #' @name calculateBivariate
 NULL
 
@@ -33,13 +67,17 @@ NULL
     x
 }
 
-.call_fun <- function(x, y, type, listw, zero.policy, coords_df, ...) {
-    if (use_graph(type)) fun(type)(x, y, listw, zero.policy = zero.policy, ...)
+.call_fun <- function(x, y, type, listw, zero.policy, coords_df,
+                      simplify = TRUE, ...) {
+    out <- if (use_graph(type)) fun(type)(x, y, listw, zero.policy = zero.policy, ...)
     else fun(type)(x, y, coords_df, ...)
+    if (!simplify) out <- list(x__y = out)
+    out
 }
 
-.call_fun_grid <- function(x, y, type, listw, zero.policy, coords_df, ...) {
-    combs <- as.matrix(expand.grid(rownames(x), rownames(x)))
+.call_fun_grid <- function(x, y, type, listw, zero.policy, coords_df,
+                           BPPARAM, ...) {
+    combs <- as.matrix(expand.grid(rownames(x), rownames(y)))
     out <- bplapply(seq_len(nrow(combs)), function(i) {
         .call_fun(x[combs[i,1],], y[combs[i,2],], type, listw, zero.policy,
                   coords_df, ...)
@@ -68,7 +106,8 @@ setMethod("calculateBivariate", "ANY",
                                            coords_df = coords_df, ...)
                       } else {
                           out <- .call_fun_grid(x, y = x, type, listw,
-                                                zero.policy, coords_df, ...)
+                                                zero.policy, coords_df, BPPARAM,
+                                                ...)
                       }
                   }
               } else if (use_matrix(type) || (is.vector(x) && is.vector(y))) {
@@ -83,7 +122,8 @@ setMethod("calculateBivariate", "ANY",
                       stop("x and y must have the same number of observations (cells).")
                   out <- .call_fun(x, y, type, listw = listw,
                                    zero.policy = zero.policy,
-                                   coords_df = coords_df, ...)
+                                   coords_df = coords_df,
+                                   simplify = !is.vector(x) && is.vector(y), ...)
               } else {
                   # fun only takes vectors for x and y and at least one of x and y is a matrix
                   x <- .to_mat1(x, "x")
@@ -95,7 +135,7 @@ setMethod("calculateBivariate", "ANY",
                       stop("Matrices x and y must have row names.")
                   }
                   out <- .call_fun_grid(x, y, type, listw, zero.policy,
-                                        coords_df, ...)
+                                        coords_df, BPPARAM, ...)
               }
               if (returnDF) {
                   if (is_local(type)) {
@@ -107,6 +147,7 @@ setMethod("calculateBivariate", "ANY",
                       out <- reorganize_fun(type)(out, name = name, ...)
                   }
               }
+              if (length(out) == 1L && !is(out, "DataFrame")) out <- out[[1]]
               out
           })
 
@@ -120,6 +161,7 @@ setMethod("calculateBivariate", "SpatialFeatureExperiment",
                    zero.policy = NULL, returnDF = TRUE, p.adjust.method = "BH",
                    swap_rownames = NULL, name = NULL, ...) {
               sample_id <- .check_sample_id(x, sample_id, one = FALSE)
+              if (is.character(type)) type <- get(type, mode = "S4")
               if (is.null(feature2) && length(feature1) == 1L) {
                   stop("feature2 must be specified when feature1 has length 1.")
               }
@@ -133,10 +175,6 @@ setMethod("calculateBivariate", "SpatialFeatureExperiment",
 
                   if (use_graph(type)) {
                       listw_use <- colGraph(x, type = colGraphName, sample_id = s)
-                      if (include_self) {
-                          nb2 <- include.self(listw_use$neighbours)
-                          listw_use <- nb2listw(nb2)
-                      }
                       o <- calculateBivariate(mat1, mat2, listw = listw_use,
                                               type = type,
                                               BPPARAM = BPPARAM,
@@ -166,7 +204,7 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
                          colGeometryName = 1L, sample_id = "all",
                          exprs_values = "logcounts", BPPARAM = SerialParam(),
                          swap_rownames = NULL,
-                         zero.policy = NULL, include_self = FALSE,
+                         zero.policy = NULL,
                          p.adjust.method = "BH", name = NULL, ...) {
     if (is.character(type)) type <- get(type, mode = "S4")
     if (!is_local(type)) {
@@ -181,11 +219,11 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
     else g <- NULL
     params <- c(info(type, c("name", "package")),
                 list(version = packageVersion(info(type, "package")),
-                     zero.policy = zero.policy, include_self = include_self,
+                     zero.policy = zero.policy,
                      p.adjust.method = p.adjust.method,
                      graph_params = attr(g, "method")), other_args)
 
-    old_params <- getParams(x, name, local = local)
+    old_params <- getParams(x, name, local = TRUE)
     .check_old_params(params, old_params, name, args_not_check(type))
 
     feature1_id <- .symbol2id(x, feature1, swap_rownames)
@@ -195,10 +233,14 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
         out <- calculateBivariate(x, type, feature1_id, feature2_id,
                                   colGraphName, colGeometryName, s,
                                   exprs_values, BPPARAM, zero.policy,
-                                  returnDF = TRUE, include_self = include_self,
+                                  returnDF = TRUE,
                                   p.adjust.method = p.adjust.method, ...
         )
-        feature_use <- paste(feature1, feature2, sep = "__")
+        if (!is.null(swap_rownames)) {
+            comb <- expand.grid(feature1, feature2)
+            feature_use <- paste(comb[,1], comb[,2], sep = "__")
+            names(out) <- feature_use
+        }
         x <- .add_localResults_info(x, sample_id = s,
                                     name = name, features = feature_use,
                                     res = out, params = params)

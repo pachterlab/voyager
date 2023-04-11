@@ -142,8 +142,8 @@ setClass("SFEMethod", slots = c(
             (!identical(fm[seq_len(3)], c("x", "y", "listw")))) {
             outs <- c(outs, "The first three arguments of slot `fun` must be 'x', 'y', and 'listw'")
         }
-        #if (!"zero.policy" %in% fm && object@info["variate"] != "multi")
-        #    outs <- c(outs, "zero.policy must be an argument of slot `fun`")
+        if (!"zero.policy" %in% fm && object@info["variate"] != "multi")
+            outs <- c(outs, "zero.policy must be an argument of slot `fun`")
     } else {
         if (object@info["variate"] == "uni" &&
             !identical(fm[seq_len(2)], c("x", "coords_df")))
