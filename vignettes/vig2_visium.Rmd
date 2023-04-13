@@ -80,15 +80,12 @@ theme_set(theme_bw(10))
 PY_PATH <- system("which python", intern = TRUE)
 use_python(PY_PATH)
 py_config()
-```
 
-```{r, eval=FALSE, include=FALSE}
+# Install and load gget
 system("pip3 install gget")
-```
-
-```{r}
 gget <- import("gget")
 ```
+
 
 # Dataset
 The dataset used in this vignette is from the paper [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x) [@McKellar2021-ek]. Notexin was injected into the tibialis anterior muscle of mice to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium analysis. The dataset in this vignette is from the timepoint at day 2. The vignette starts with a `SpatialFeatureExperiment` (SFE) object.
