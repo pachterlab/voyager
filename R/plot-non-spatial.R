@@ -50,26 +50,41 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
     inds_posi <- seq_len(ndims)
     inds_nega <- tail(seq_len(nrow(y)), nfnega)
     labels <- as.character(c(inds_posi, inds_nega))
-    y <- rbind(y[inds_posi,,drop = FALSE],
-               y[inds_nega,,drop = FALSE])
+    y_posi <- y[inds_posi,,drop = FALSE]
+    y_nega <- y[inds_nega,,drop = FALSE]
+    y <- rbind(y_posi, y_nega)
     inds <- seq_len(ndims + nfnega)
     df <- data.frame(PC = inds)
     df <- cbind(df, y)
     if (ncol(y) > 1L) {
-        df <- reshape(df, varying = colnames(y), direction = "long",
+        df <- reshape(df, varying = setdiff(colnames(y), "sign"), direction = "long",
                       v.names = "value", timevar = "sample",
                       times = colnames(y))
     }
-    PC <- pct_var <- value <-  NULL
-    if (facet || ncol(y) == 1L) {
-        p <- ggplot(df, aes(PC, value))
-    } else p <- ggplot(df, aes(PC, value, color = sample)) +
-        scale_color_manual(values = ditto_colors)
+    df$sign <- ifelse(df$PC > ndims, "n", "p")
+    PC <- pct_var <- value <- sign <- NULL
+    aes_use <- aes(PC, value)
+    use_break <- length(unique(df$sign)) > 1L
+    do_color <- !(facet || ncol(y) == 1L)
+    if (do_color) {
+        aes_use <- modifyList(aes_use, aes(color = sample))
+    } else if (use_break)
+        aes_use <- modifyList(aes_use, aes(group = sign))
+    p <- ggplot(df, aes_use)
+    if (do_color)
+        p <- p + scale_color_manual(values = ditto_colors)
+
     breaks_inds <- breaks_extended(n = min(ndims+nfnega, 10), Q = 1:5)(inds)
     labels_use <- labels[breaks_inds]
     if (breaks_inds[1] == 0) labels_use <- c("", labels_use)
+    if (do_color && use_break) {
+        # Plot the positive and negative parts with separate data frames
+        df1 <- df[df$sign == "p",]
+        df2 <- df[df$sign == "n",]
+        p <- p + geom_line(data = df1) + geom_line(data = df2)
+    } else p <- p + geom_line()
     p <- p +
-        geom_point() + geom_line() +
+        geom_point() +
         scale_x_continuous(breaks = breaks_inds, labels = labels_use) +
         theme(panel.grid.minor.x = element_blank())
     if (nfnega > 0 && ndims > 0) {
