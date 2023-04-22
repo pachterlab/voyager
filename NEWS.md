@@ -1,3 +1,7 @@
+# Version 1.1.12 (04/22/2023)
+* Plot image behind geometries in all functions that plot geometries
+* Added dark theme support for functions that plot geometries
+
 # Version 1.1.11 (04/05/2023)
 * Added MULTISPATI PCA
 * Added multivariate local Geary's C from Anselin 2019

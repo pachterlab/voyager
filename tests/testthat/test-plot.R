@@ -34,6 +34,10 @@ test_that("Everything plotSpatialFeature", {
             exprs_values = "counts"
         )
     )
+    expect_ggplot("Plot gene expression, dark theme",
+                  plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                     exprs_values = "counts", dark = TRUE
+                  ))
     expect_ggplot(
         "Plot colData",
         plotSpatialFeature(sfe, "nCounts", "spotPoly", "sample01",
@@ -59,6 +63,13 @@ test_that("Everything plotSpatialFeature", {
             annot_aes = list(fill = "bar")
         )
     })
+    expect_ggplot("Plot with annotGeometry, with new fill scale, dark theme", {
+        plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                           exprs_values = "counts",
+                           annotGeometryName = "annot",
+                           annot_aes = list(fill = "bar")
+        )
+    })
     expect_ggplot("Plot with annotGeometry, colored outlines of polygons", {
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts",
@@ -67,10 +78,24 @@ test_that("Everything plotSpatialFeature", {
             annot_fixed = list(fill = NA)
         )
     })
+    expect_ggplot("Plot with annotGeometry, colored outlines of polygons, dark theme", {
+        plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                           exprs_values = "counts",
+                           annotGeometryName = "annot",
+                           annot_aes = list(color = "bar"),
+                           annot_fixed = list(fill = NA), dark = TRUE
+        )
+    })
     expect_ggplot("Divergent scale", {
         plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
             exprs_values = "counts", divergent = TRUE,
             diverge_center = 0
+        )
+    })
+    expect_ggplot("Divergent scale, dark theme", {
+        plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
+                           exprs_values = "counts", divergent = TRUE,
+                           diverge_center = 0, dark = TRUE
         )
     })
     expect_ggplot("Divergent scale, annot also on divergent scale", {
@@ -79,6 +104,15 @@ test_that("Everything plotSpatialFeature", {
             diverge_center = 0, annotGeometryName = "annot",
             annot_aes = list(fill = "bar"),
             annot_divergent = TRUE, annot_diverge_center = 0
+        )
+    })
+    expect_ggplot("Divergent scale, annot also on divergent scale, dark theme", {
+        plotSpatialFeature(sfe, "foo", "spotPoly", "sample01",
+                           exprs_values = "counts", divergent = TRUE,
+                           diverge_center = 0, annotGeometryName = "annot",
+                           annot_aes = list(fill = "bar"),
+                           annot_divergent = TRUE, annot_diverge_center = 0,
+                           dark = TRUE
         )
     })
     expect_ggplot("Divergent scale, annot not on divergent scale", {
@@ -135,6 +169,13 @@ test_that("Everything plotLocalResult", {
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
+    expect_ggplot("Plot localmoran Ii for gene, dark theme", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0, swap_rownames = "symbol",
+                        dark = TRUE
+        )
+    })
     expect_ggplot("Plot Ii for gene on top of an annotation", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
             colGeometryName = "spotPoly",
@@ -166,6 +207,13 @@ test_that("Everything plotLocalResult", {
             annotGeometryName = "myofiber_simplified",
             linewidth = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
+        )
+    })
+    expect_ggplot("Plot Ii for annotGeometry alone, dark theme", {
+        plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
+                        annotGeometryName = "myofiber_simplified",
+                        linewidth = 0.3, color = "navy", divergent = TRUE,
+                        diverge_center = 0, dark = TRUE
         )
     })
     expect_ggplot("Plot a type in annotGeometry but not assay or colData", {
@@ -858,5 +906,101 @@ test_that("Moran MC plot for dimred", {
     })
     expect_ggplot("Use numeric indices", {
         plotMoranMC(sfe_muscle2, 1:5, reducedDimName = "multispati")
+    })
+})
+
+# Plot image behind geometries
+# Need uncropped image
+if (!dir.exists("outs")) dir.create("outs")
+mat_fn <- file.path("outs", "filtered_feature_bc_matrix.h5")
+if (!file.exists(mat_fn))
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_filtered_feature_bc_matrix.h5",
+                  destfile = file.path("outs", "filtered_feature_bc_matrix.h5"))
+if (!dir.exists(file.path("outs", "spatial"))) {
+    download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_spatial.tar.gz",
+                  destfile = file.path("outs", "spatial.tar.gz"))
+    untar(file.path("outs", "spatial.tar.gz"), exdir = "outs")
+}
+
+sfe_ob <- read10xVisiumSFE(".", images = "lowres")
+
+# get 2 samples
+inds <- spatialCoords(sfe_ob)[,1] < 5000
+sfe_ob1 <- sfe_ob[,inds]
+sfe_ob2 <- sfe_ob[,!inds]
+sfe_ob2 <- changeSampleIDs(sfe_ob2, c(sample01 = "sample02"))
+sfe_ob3 <- SpatialFeatureExperiment::cbind(sfe_ob1, sfe_ob2)
+sfe_ob3 <- removeEmptySpace(sfe_ob3)
+
+bbox_use <- c(xmin = 4000, ymin = 6000, xmax = 4750, ymax = 6750)
+
+dir_use <- system.file(file.path("extdata", "vizgen"), package = "SpatialFeatureExperiment")
+sfe_mer <- readVizgen(dir_use, z = 0L, image = "PolyT")
+
+test_that("plotSpatialFeature with RGB image in the background", {
+    expect_ggplot("One sample, one feature", {
+        plotSpatialFeature(sfe_ob, "array_row", image_id = "lowres")
+    })
+    expect_ggplot("One sample, two features", {
+        plotSpatialFeature(sfe_ob, c("in_tissue", "array_col"),
+                           image_id = "lowres", maxcell = 5e+4)
+    })
+    expect_ggplot("With bbox", {
+        plotSpatialFeature(sfe_ob, "array_row", image_id = "lowres",
+                           bbox = bbox_use)
+    })
+    expect_ggplot("Two samples, one feature", {
+        plotSpatialFeature(sfe_ob3, "array_row", image_id = "lowres")
+    })
+    expect_ggplot("Two samples, two features", {
+        plotSpatialFeature(sfe_ob3, c("in_tissue", "array_col"),
+                           image_id = "lowres", maxcell = 5e+4)
+    })
+    expect_ggplot("One sample, one feature, grayscale", {
+        plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT",
+                           colGeometryName = "cellSeg", alpha = 0.5,
+                           dark = TRUE)
+    })
+})
+
+colGraph(sfe_ob, "visium") <- findVisiumGraph(sfe_ob)
+sfe_ob <- logNormCounts(sfe_ob)
+gs <- modelGeneVar(sfe_ob)
+hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+sfe_ob <- runUnivariate(sfe_ob, "localmoran", hvgs[1])
+
+ag <- spotPoly(sfe_ob)
+ag$gene <- logcounts(sfe_ob)[hvgs[2],]
+annotGeometry(sfe_ob, "foo") <- ag
+annotGraph(sfe_ob, "bar") <- colGraph(sfe_ob, "visium")
+sfe_ob <- annotGeometryUnivariate(sfe_ob, "LOSH", "gene", annotGeometryName = "foo",
+                                  annotGraphName = "bar")
+
+test_that("plotLocalResult with image", {
+    expect_ggplot("colGeometry", {
+        plotLocalResult(sfe_ob, "localmoran", hvgs[1], swap_rownames = "symbol",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0, image_id = "lowres")
+    })
+    expect_ggplot("annotGeometry", {
+        plotLocalResult(sfe_ob, "LOSH", "gene",
+                        annotGeometryName = "foo", image_id = "lowres")
+    })
+})
+
+sfe_ob <- runPCA(sfe_ob, ncomponents = 5, subset_row = hvgs)
+test_that("spatialReducedDim with image", {
+    expect_ggplot("", {
+        spatialReducedDim(sfe_ob, "PCA", 2, image_id = "lowres", maxcell = 5e4,
+                          divergent = TRUE, diverge_center = 0)
+    })
+})
+
+test_that("plotGeometry with image", {
+    expect_ggplot("One sample", {
+        plotGeometry(sfe_ob, "spotPoly", MARGIN = 2, image_id = "lowres")
+    })
+    expect_ggplot("Two samples", {
+        plotGeometry(sfe_ob3, "spotPoly", MARGIN = 2, image_id = "lowres")
     })
 })

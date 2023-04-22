@@ -17,6 +17,8 @@ plotLocalResult(
   annot_aes = list(),
   annot_fixed = list(),
   bbox = NULL,
+  image_id = NULL,
+  maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NULL,
@@ -36,6 +38,7 @@ plotLocalResult(
   bins = NULL,
   summary_fun = sum,
   hex = FALSE,
+  dark = FALSE,
   type = name,
   ...
 )
@@ -99,6 +102,15 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{image_id}{ID of the image to plot behind the geometries. If
+\code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+image IDs present.}
+
+\item{maxcell}{Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.}
 
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
@@ -169,8 +181,13 @@ used.}
 
 \item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
 \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
-\code{ggplot2} if you are getting horizontal stripes when
-\code{hex = TRUE}.}
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
+
+\item{dark}{Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.}
 
 \item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
 the name of one of such objects in the environment. If the

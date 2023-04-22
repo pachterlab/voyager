@@ -10,7 +10,9 @@ plotGeometry(
   MARGIN = 2L,
   sample_id = "all",
   ncol = NULL,
-  bbox = NULL
+  bbox = NULL,
+  image_id = NULL,
+  maxcell = 5e+05
 )
 }
 \arguments{
@@ -41,6 +43,15 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{image_id}{ID of the image to plot behind the geometries. If
+\code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+image IDs present.}
+
+\item{maxcell}{Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.}
 }
 \value{
 A ggplot object.

@@ -16,6 +16,8 @@ plotSpatialFeature(
   annot_fixed = list(),
   exprs_values = "logcounts",
   bbox = NULL,
+  image_id = NULL,
+  maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NA,
@@ -35,6 +37,7 @@ plotSpatialFeature(
   bins = NULL,
   summary_fun = sum,
   hex = FALSE,
+  dark = FALSE,
   ...
 )
 }
@@ -88,6 +91,15 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{image_id}{ID of the image to plot behind the geometries. If
+\code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+image IDs present.}
+
+\item{maxcell}{Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.}
 
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
@@ -158,8 +170,13 @@ used.}
 
 \item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
 \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
-\code{ggplot2} if you are getting horizontal stripes when
-\code{hex = TRUE}.}
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
+
+\item{dark}{Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
@@ -177,12 +194,26 @@ entity that corresponds to rows of the gene count matrix), a column in
 \code{colData}, or a column in the \code{colGeometry} \code{sf} data frame
 specified in the \code{colGeometryName} argument.
 
-For continuous variables, the Blues palette from colorbrewer is used if
-\code{divergent = FALSE}, and the roma palette from the \code{scico} package
-if \code{divergent = TRUE}. For discrete variables, the \code{dittoSeq}
-palette is used. The defaults are colorblind friendly. For annotation, the
-PuRd colorbrewer palette is used for continuous variables and the other end
-of the \code{dittoSeq} palette is used for discrete variables.
+In the light theme, for continuous variables, the Blues palette from
+colorbrewer is used if \code{divergent = FALSE}, and the roma palette from
+the \code{scico} package if \code{divergent = TRUE}. In the dark theme, the
+nuuk palette from \code{scico} is used if \code{divergent = FALSE}, and the
+berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
+discrete variables, the \code{dittoSeq} palette is used.
+
+For annotation, the PuRd colorbrewer palette is used for continuous variables
+in the light theme. In the dark theme, the acton palette from \code{scico} is
+used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
+is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
+palette is used for discrete variables.
+
+Each individual palette should be colorblind friendly, but when plotting
+continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}
+simultaneously, the combination of the two palettes is not guaranteed to be
+colorblind friendly.
+
+In addition, when plotting an image behind the geometries, the colors of the
+image may distort color perception of the values of the geometries.
 
 \code{theme_void} is used for all spatial plots in this package, because the
 units in the spatial coordinates are often arbitrary. This can be overriden

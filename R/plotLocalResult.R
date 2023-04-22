@@ -118,6 +118,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
                             annot_aes = list(), annot_fixed = list(), bbox = NULL,
+                            image_id = NULL, maxcell = 5e+5,
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
                             annot_divergent = FALSE,
@@ -126,7 +127,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             color = "black", fill = "gray80",
                             show_symbol = deprecated(), swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
-                            summary_fun = sum, hex = FALSE, type = name, ...) {
+                            summary_fun = sum, hex = FALSE, dark = FALSE,
+                            type = name, ...) {
     l <- .deprecate_show_symbol("plotLocalResult", show_symbol, swap_rownames)
     show_symbol <- l[[1]]; swap_rownames <- l[[2]]
 
@@ -172,12 +174,13 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             sfe, values, colGeometryName, sample_id,
             ncol,
             ncol_sample, annotGeometryName, annot_aes,
-            annot_fixed, bbox, aes_use, divergent,
+            annot_fixed, bbox, image_id, aes_use, divergent,
             diverge_center, annot_divergent,
             annot_diverge_center, size, shape, linewidth, linetype,
             alpha, color, fill,
             scattermore = scattermore, pointsize = pointsize,
-            bins = bins, summary_fun = summary_fun, hex = hex, ...
+            bins = bins, summary_fun = summary_fun, hex = hex,
+            maxcell = maxcell, dark = dark, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -186,8 +189,11 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         df <- df[,setdiff(names(df), names(values))]
         df <- cbind(df[,"sample_id"], values)
         df <- .crop(df, bbox)
+        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        else img_df <- NULL
+        if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
         out <- .wrap_spatial_plots(df,
-            annot_df = NULL, type_annot = NULL,
+            annot_df = NULL, img_df = img_df, type_annot = NULL,
             values, aes_use,
             annot_aes = list(), annot_fixed = list(),
             size, shape, linewidth, linetype, alpha,
@@ -195,7 +201,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
             pointsize = pointsize, bins = bins, summary_fun = summary_fun,
-            hex = hex, ...
+            hex = hex, maxcell = maxcell, dark = dark, ...
         )
     }
     # Add title to not to confuse with gene expression

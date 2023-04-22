@@ -32,6 +32,7 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
                               annotGeometryName = NULL,
                               annot_aes = list(), annot_fixed = list(),
                               exprs_values = "logcounts", bbox = NULL,
+                              image_id = NULL, maxcell = 5e+5,
                               aes_use = c("fill", "color", "shape", "linetype"),
                               divergent = FALSE, diverge_center = NULL,
                               annot_divergent = FALSE,
@@ -40,7 +41,7 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
                               linetype = 1, alpha = 1,
                               color = NA, fill = "gray80", scattermore = FALSE,
                               pointsize = 0, bins = NULL, summary_fun = sum,
-                              hex = FALSE, ...) {
+                              hex = FALSE, dark = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(ncomponents) == 1L) {
@@ -52,12 +53,13 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
     values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use, drop = FALSE])
     out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName,
-        annot_aes, annot_fixed, bbox, aes_use,
+        annot_aes, annot_fixed, bbox, image_id, aes_use,
         divergent, diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill,
         show_symbol = FALSE, scattermore = scattermore, pointsize = pointsize,
-        bins = bins, summary_fun = summary_fun, hex = hex, ...
+        bins = bins, summary_fun = summary_fun, hex = hex, maxcell = maxcell,
+        dark = dark, ...
     )
     if (is(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)

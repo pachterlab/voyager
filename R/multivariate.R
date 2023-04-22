@@ -30,9 +30,7 @@
 #'   from different samples separate. Some spatial methods can be sensibly run
 #'   jointly for multiple samples. In this case, "joint" will run the method
 #'   jointly for all samples, and "separate" will run the method separately for
-#'   each sample and concatenate the results. If the output of each sample is a
-#'   3D array, as in GWPCA, then the \code{abind} package needs to be installed
-#'   to concatenate the results of the different samples.
+#'   each sample and concatenate the results.
 #' @param dest Character, either "reducedDim" or "colData". If the output of the
 #'   multivariate method is a matrix or array, as in spatially informed
 #'   dimension reduction, then the only option is "reducedDim", so the results

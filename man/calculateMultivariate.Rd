@@ -93,9 +93,7 @@ is why \code{SpatialExperiment} uses \code{sample_id} to keep coordinates
 from different samples separate. Some spatial methods can be sensibly run
 jointly for multiple samples. In this case, "joint" will run the method
 jointly for all samples, and "separate" will run the method separately for
-each sample and concatenate the results. If the output of each sample is a
-3D array, as in GWPCA, then the \code{abind} package needs to be installed
-to concatenate the results of the different samples.}
+each sample and concatenate the results.}
 
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized. This

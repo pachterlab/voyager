@@ -93,8 +93,8 @@ horizontal directions. Overrides \code{bins} if both set.}
 
 \item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
 \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
-\code{ggplot2} if you are getting horizontal stripes when
-\code{hex = TRUE}.}
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
