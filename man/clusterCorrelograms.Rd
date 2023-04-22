@@ -8,11 +8,14 @@ clusterCorrelograms(
   sfe,
   features,
   BLUSPARAM,
-  sample_id = NULL,
+  sample_id = "all",
   method = "I",
   colGeometryName = NULL,
   annotGeometryName = NULL,
-  show_symbol = TRUE
+  reducedDimName = NULL,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
+  name = "sp.correlogram"
 )
 }
 \arguments{
@@ -34,18 +37,31 @@ for each sample.}
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
 
-\item{show_symbol}{Logical, whether to show gene symbol instead when Ensembl
-ID is supplied.}
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
+
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
+
+\item{name}{Name under which the correlogram results are stored, which is by
+default "sp.correlogram".}
 }
 \value{
-A \code{DataFrame} with 3 columns: \code{feature} for the features,
-\code{cluster} a factor for cluster membership of the features within each
-sample, and \code{sample_id} for the sample.
+A data frame with 3 columns: \code{feature} for the features,
+  \code{cluster} a factor for cluster membership of the features within each
+  sample, and \code{sample_id} for the sample.
 }
 \description{
 Cluster the correlograms to find patterns in length scales of spatial
 autocorrelation. All the correlograms clustered must be computed with the
-same method and have the same number of lags.
+same method and have the same number of lags. Correlograms are clustered
+jointly across samples.
 }
 \examples{
 library(SpatialFeatureExperiment)

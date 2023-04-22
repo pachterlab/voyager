@@ -8,27 +8,36 @@ plotSpatialFeature(
   sfe,
   features,
   colGeometryName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   ncol = NULL,
   ncol_sample = NULL,
   annotGeometryName = NULL,
   annot_aes = list(),
   annot_fixed = list(),
   exprs_values = "logcounts",
+  bbox = NULL,
+  image_id = NULL,
+  maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NA,
   annot_divergent = FALSE,
   annot_diverge_center = NA,
-  size = 0,
+  size = 0.5,
   shape = 16,
+  linewidth = 0,
   linetype = 1,
   alpha = 1,
-  color = NA,
+  color = "black",
   fill = "gray80",
-  show_symbol = TRUE,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
   scattermore = FALSE,
   pointsize = 0,
+  bins = NULL,
+  summary_fun = sum,
+  hex = FALSE,
+  dark = FALSE,
   ...
 )
 }
@@ -72,6 +81,26 @@ relevant defaults for this function.}
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
 
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+\code{bbox} is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If \code{NULL}, then the entire tissue is
+plotted.}
+
+\item{image_id}{ID of the image to plot behind the geometries. If
+\code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+image IDs present.}
+
+\item{maxcell}{Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.}
+
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
 discrete variables, it can be fill, color, shape, or linetype, whenever
@@ -90,12 +119,14 @@ case it's different.}
 \item{annot_diverge_center}{Just as \code{diverge_center}, but for the
 annotGeometry in case it's different.}
 
-\item{size}{Fixed size of points or width of lines, including outlines of
-polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.}
+\item{size}{Fixed size of points. For points defaults to 0.5. Ignored if
+\code{size_by} is specified.}
 
 \item{shape}{Fixed shape of points, ignored if \code{shape_by} is specified
 and applicable.}
+
+\item{linewidth}{Width of lines, including outlines of polygons. For
+polygons, this defaults to 0, meaning no outlines.}
 
 \item{linetype}{Fixed line type, ignored if \code{linetype_by} is specified
 and applicable.}
@@ -108,9 +139,13 @@ specified or not applicable, or for \code{annotGeometry} if
 
 \item{fill}{Similar to \code{color}, but for fill.}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{scattermore}{Logical, whether to use the \code{scattermore} package to
 greatly speed up plotting numerous points. Only used for POINT
@@ -122,6 +157,26 @@ multiple features.}
 
 \item{pointsize}{Radius of rasterized point in \code{scattermore}. Default to
 0 for single pixels (fastest).}
+
+\item{bins}{If binning the \code{colGeometry} in space due to large number of
+cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}. If \code{NULL} (default), then the
+\code{colGeometry} is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.}
+
+\item{summary_fun}{Function to summarize the feature value when the
+\code{colGeometry} is binned.}
+
+\item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
+
+\item{dark}{Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
@@ -139,12 +194,31 @@ entity that corresponds to rows of the gene count matrix), a column in
 \code{colData}, or a column in the \code{colGeometry} \code{sf} data frame
 specified in the \code{colGeometryName} argument.
 
-For continuous variables, the Blues palette from colorbrewer is used if
-\code{divergent = FALSE}, and the roma palette from the \code{scico} package
-if \code{divergent = TRUE}. For discrete variables, the \code{dittoSeq}
-palette is used. The defaults are colorblind friendly. For annotation, the
-PuRd colorbrewer palette is used for continuous variables and the other end
-of the \code{dittoSeq} palette is used for discrete variables.
+In the light theme, for continuous variables, the Blues palette from
+colorbrewer is used if \code{divergent = FALSE}, and the roma palette from
+the \code{scico} package if \code{divergent = TRUE}. In the dark theme, the
+nuuk palette from \code{scico} is used if \code{divergent = FALSE}, and the
+berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
+discrete variables, the \code{dittoSeq} palette is used.
+
+For annotation, the PuRd colorbrewer palette is used for continuous variables
+in the light theme. In the dark theme, the acton palette from \code{scico} is
+used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
+is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
+palette is used for discrete variables.
+
+Each individual palette should be colorblind friendly, but when plotting
+continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}
+simultaneously, the combination of the two palettes is not guaranteed to be
+colorblind friendly.
+
+In addition, when plotting an image behind the geometries, the colors of the
+image may distort color perception of the values of the geometries.
+
+\code{theme_void} is used for all spatial plots in this package, because the
+units in the spatial coordinates are often arbitrary. This can be overriden
+to show the axes by using a different theme as normally done in
+\code{ggplot2}.
 }
 \examples{
 library(SFEData)
@@ -174,4 +248,9 @@ plotSpatialFeature(sfe, "nCounts",
     annotGeometryName = "myofiber_simplified",
     annot_aes = list(fill = "area")
 )
+# Use a bounding box to zoom in
+bbox <- c(xmin = 5500, ymin = 13500, xmax = 6000, ymax = 14000)
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+                  annotGeometry = "myofiber_simplified",
+                  bbox = bbox, annot_fixed = list(linewidth = 0.3))
 }

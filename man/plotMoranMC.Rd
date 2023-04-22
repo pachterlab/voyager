@@ -2,18 +2,21 @@
 % Please edit documentation in R/plot-univar-downstream.R
 \name{plotMoranMC}
 \alias{plotMoranMC}
-\title{Plot Moran/Geary monte carlo results}
+\title{Plot Moran/Geary Monte Carlo results}
 \usage{
 plotMoranMC(
   sfe,
   features,
-  sample_id = NULL,
+  sample_id = "all",
   facet_by = c("sample_id", "features"),
   ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
+  reducedDimName = NULL,
   ptype = c("density", "histogram", "freqpoly"),
-  show_symbol = TRUE,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
+  name = "moran.mc",
   ...
 )
 }
@@ -21,7 +24,8 @@ plotMoranMC(
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{features}{Features to plot, must be in rownames of the gene count
-matrix, colnames of colData or a colGeometry.}
+matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+in \code{reducedDim}, or numeric indices of dimension reduction components.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
@@ -42,11 +46,23 @@ frames associated with cells/spots.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
+
 \item{ptype}{Plot type, one of "density", "histogram", or "freqpoly".}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
+
+\item{name}{Name under which the Monte Carlo results are stored, which
+defaults to "moran.mc". For Geary's C Monte Carlo, the default is
+"geary.mc".}
 
 \item{...}{Other arguments passed to \code{\link{geom_density}},
 \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on

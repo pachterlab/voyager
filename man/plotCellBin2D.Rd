@@ -4,10 +4,22 @@
 \alias{plotCellBin2D}
 \title{Plot cell density as 2D histogram}
 \usage{
-plotCellBin2D(sfe, bins = 200, binwidth = NULL, hex = FALSE)
+plotCellBin2D(
+  sfe,
+  sample_id = "all",
+  bins = 200,
+  binwidth = NULL,
+  hex = FALSE,
+  ncol = NULL,
+  bbox = NULL
+)
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
+
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{bins}{Numeric vector giving number of bins in both vertical and
 horizontal directions. Set to 100 by default.}
@@ -17,6 +29,20 @@ horizontal directions. Overrides \code{bins} if both set.}
 
 \item{hex}{Logical, whether to use hexagon rather than rectangular bins.
 Requires the \code{hexbin} package.}
+
+\item{ncol}{If facetting, the number of columns of facets, passed to
+\code{\link{facet_wrap}}.}
+
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+\code{bbox} is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If \code{NULL}, then the entire tissue is
+plotted.}
 }
 \value{
 A ggplot object.

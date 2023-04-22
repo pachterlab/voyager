@@ -8,10 +8,11 @@ clusterMoranPlot(
   sfe,
   features,
   BLUSPARAM,
-  sample_id = NULL,
+  sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
-  show_symbol = TRUE
+  show_symbol = deprecated(),
+  swap_rownames = NULL
 )
 }
 \arguments{
@@ -34,11 +35,16 @@ for each sample.}
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
 
-\item{show_symbol}{Logical, whether to show gene symbol instead when Ensembl
-ID is supplied.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 }
 \value{
-A \code{DataFrame} each column of which is a factor for cluster
+A data frame each column of which is a factor for cluster
   membership of each feature. The column names are the features.
 }
 \description{

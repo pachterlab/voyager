@@ -157,8 +157,9 @@
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
-#' @inheritParams calculateUnivariate
+#' @inheritParams plotCorrelogram
 #' @inheritParams plotColDataBin2D
+#' @inheritParams plotDimLoadings
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
 #'   to sentence case on the x axis and lower case in the y axis appended after
@@ -180,11 +181,10 @@
 #'   determine which points are singletons to plot differently on this plot.
 #' @param contour_color Color of the point density contours, which can be
 #'   changed so the contours stand out from the points.
-#' @param show_symbol Logical, whether to show human readable gene symbol on the
-#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param plot_influential Logical, whether to plot influential points with
 #'   different palette if \code{binned = TRUE}.
+#' @param name Name under which the Moran plot results are stored. By default
+#'   "moran.plot".
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
@@ -203,28 +203,35 @@
 #' sfe <- sfe[, colData(sfe)$in_tissue]
 #' sfe <- logNormCounts(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
-#' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
-#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1])
-moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
+#' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1",
+#'                      swap_rownames = "symbol")
+#' clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2),
+#'                           swap_rownames = "symbol")
+#' moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1],
+#'           swap_rownames = "symbol")
+moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       contour_color = "cyan", color_by = NULL,
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE, binned = FALSE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      show_symbol = TRUE, bins = 100, binwidth = NULL,
-                      hex = FALSE, plot_influential = TRUE, ...) {
+                      swap_rownames = NULL, show_symbol = deprecated(),
+                      bins = 100, binwidth = NULL, hex = FALSE,
+                      plot_influential = TRUE, name = "moran.plot", ...) {
+    l <- .deprecate_show_symbol("moranPlot", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
-    if (not_geometry) feature <- .symbol2id(sfe, feature)
+    if (not_geometry) feature <- .symbol2id(sfe, feature, swap_rownames)
     mp <- localResult(sfe,
-        type = "moran.plot", feature = feature,
+        type = name, feature = feature,
         sample_id = sample_id, colGeometryName = colGeometryName,
         annotGeometryName = annotGeometryName
     )
     if (show_symbol && not_geometry) {
-        if (feature %in% rownames(sfe) && "symbol" %in% colnames(rowData(sfe))) {
-            feature <- rowData(sfe)[feature, "symbol"]
+        if (feature %in% rownames(sfe) && swap_rownames %in% colnames(rowData(sfe))) {
+            feature <- rowData(sfe)[feature, swap_rownames]
         }
     }
 
@@ -283,32 +290,43 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     }
 }
 
-.get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
-                                     colGeometryName, annotGeometryName, name,
-                                     show_symbol) {
-    ress <- .get_feature_metadata(
-        sfe, features, name, sample_id, colGeometryName,
-        annotGeometryName, show_symbol
-    )
+.get_color_by <- function(sfe, features, color_by, sample_id,
+                          colGeometryName, annotGeometryName, reducedDimName,
+                          show_symbol, swap_rownames) {
+    if (is.data.frame(color_by)) return(NULL)
     if (!is.null(color_by)) {
         # Different from moranPlot
         if (is.character(color_by) && length(color_by) == 1L) {
             color_value <- .get_feature_metadata(
                 sfe, features, color_by, sample_id,
-                colGeometryName, annotGeometryName,
-                show_symbol
+                colGeometryName, annotGeometryName, reducedDimName,
+                show_symbol, swap_rownames
             )
-            color_value <- color_value[names(ress)]
+            color_value <- color_value[features]
         } else if (length(color_by) == length(features)) {
             if (is.null(names(color_by))) names(color_by) <- features
-            color_value <- color_by[names(ress)]
+            color_value <- color_by[features]
         } else {
             stop(
                 "color_by must be either the name of a feature in sfe or a vector ",
-                "the same length as the number of the features argument."
+                "the same length as the features argument."
             )
         }
-    }
+        color_value
+    } else NULL
+}
+
+.get_plot_correlogram_df <- function(sfe, features, sample_id, method, color_by,
+                                     colGeometryName, annotGeometryName,
+                                     reducedDimName, name,
+                                     show_symbol, swap_rownames) {
+    ress <- .get_feature_metadata(
+        sfe, features, name, sample_id, colGeometryName,
+        annotGeometryName, reducedDimName, show_symbol, swap_rownames
+    )
+    color_value <- .get_color_by(sfe, features, color_by, sample_id,
+                              colGeometryName, annotGeometryName, reducedDimName,
+                              show_symbol, swap_rownames)
     if (method == "corr") {
         dfs <- lapply(seq_along(ress), function(i) {
             res <- ress[[i]]
@@ -320,7 +338,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
                 res = res
             )
             if (length(ress) > 1L) out$feature <- names(ress)[i]
-            if (!is.null(color_by)) out$color_by <- color_value[i]
+            if (!is.null(color_value)) out$color_by <- color_value[i]
             out
         })
     } else {
@@ -335,8 +353,8 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
             out$sd2 <- 2 * sqrt(out$variance)
             out$ymin <- out$res - out$sd2
             out$ymax <- out$res + out$sd2
-            if (length(features) > 1L) out$feature <- names(ress)[[i]]
-            if (!is.null(color_by)) out$color_by <- color_value[i]
+            out$feature <- names(ress)[[i]]
+            if (!is.null(color_value)) out$color_by <- color_value[i]
             out
         })
     }
@@ -360,6 +378,13 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
     do.call(rbind, dfs)
 }
 
+.dimred_feature_order <- function(df) {
+    # Make sure that PC2 follows PC1, not PC10
+    feature_num <- sort(as.numeric(unique(gsub("^[A-Z]*", "", df$feature))))
+    pre <- unique(gsub("\\d+$", "", df$feature))
+    df$feature <- factor(df$feature, levels = paste0(pre, feature_num))
+    df
+}
 #' Plot correlogram
 #'
 #' Use \code{ggplot2} to plot correlograms computed by
@@ -374,11 +399,20 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' @inheritParams plotSpatialFeature
 #' @inheritParams calculateUnivariate
 #' @inheritParams spdep::sp.correlogram
+#' @inheritParams plotDimLoadings
+#' @inheritParams getParams
+#' @param features Features to plot, must be in rownames of the gene count
+#'   matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+#'   in \code{reducedDim}, or numeric indices of dimension reduction components.
 #' @param color_by Name of a column in \code{rowData(sfe)} or in the
 #'   \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 #'   \code{colGeometry}, or \code{annotGeometry} by which to color the
 #'   correlogram of each feature. Alternatively, a vector of the same length as
-#'   \code{features}.
+#'   \code{features}, or a data frame from \code{\link{clusterCorrelograms}}.
+#' @param colGeometryName Name of a \code{colGeometry} \code{sf} data frame
+#'   whose numeric columns of interest are to be used to compute the metric. Use
+#'   \code{\link{colGeometryNames}} to look up names of the \code{sf} data
+#'   frames associated with cells/spots.
 #' @param plot_signif Logical, whether to plot significance symbols: p < 0.001:
 #'   ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
 #'   p-values are two sided, based on the assumption that the estimated Moran's
@@ -395,6 +429,8 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #'   \code{\link{p.adjust}}, to correct for multiple testing (number of lags
 #'   times number of features) in the Moran's I estimates if \code{plot_signif =
 #'   TRUE}.
+#' @param name Name under which the correlogram results are stored, which is by
+#' default "sp.correlogram".
 #' @return A ggplot object.
 #' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
 #' @importFrom stats p.adjust pnorm symnum
@@ -423,26 +459,33 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = NULL,
 #' plotCorrelogram(sfe, features, color_by = clust$cluster)
 #' # Facet by features
 #' plotCorrelogram(sfe, features, facet_by = "features")
-plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
+plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
                             color_by = NULL,
                             facet_by = c("sample_id", "features"),
                             ncol = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
+                            reducedDimName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            show_symbol = TRUE) {
+                            show_symbol = deprecated(), swap_rownames = NULL,
+                            name = "sp.correlogram") {
+    l <- .deprecate_show_symbol("plotCorrelogram", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
         facet_by <- match.arg(facet_by)
     }
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
-    name <- paste("sp.correlogram", method, sep = "_")
+    name <- paste(name, method, sep = "_")
+    is_dimred <- is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName) && length(features) > 1L
     df <- lapply(sample_id, function(s) {
         o <- .get_plot_correlogram_df(
             sfe, features, s, method, color_by,
-            colGeometryName, annotGeometryName, name,
-            show_symbol
+            colGeometryName, annotGeometryName, reducedDimName, name,
+            show_symbol, swap_rownames
         )
         o$sample_id <- s
         o
@@ -451,6 +494,16 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
         df <- do.call(rbind, df)
     } else {
         df <- df[[1]]
+    }
+    if (is_dimred){
+        df <- .dimred_feature_order(df)
+    }
+    if (is.data.frame(color_by)) {
+        if (length(unique(color_by$cluster)) < 2L) color_by <- NULL
+        else {
+            df <- merge(df, color_by, by = c("feature", "sample_id"), all.x = TRUE)
+            names(df)[names(df) == "cluster"] <- "color_by"
+        }
     }
     if (method %in% c("I", "C") && plot_signif) {
         df$z <- (df$res - df$expectation) / sqrt(df$variance)
@@ -474,10 +527,14 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
                 )
             } else {
                 p <- ggplot(df, aes(lags, res, color = feature))
-                pal <- .get_pal(df,
-                    feature_aes = list(color = "feature"), option = 1,
-                    divergent, diverge_center
-                )
+                if (is_dimred) {
+                    pal <- scale_color_viridis_d(end = 0.9, option = "E")
+                } else {
+                    pal <- .get_pal(df,
+                                    feature_aes = list(color = "feature"), option = 1,
+                                    divergent, diverge_center
+                    )
+                }
             }
             p <- p + pal
             if (method %in% c("I", "C")) {
@@ -548,9 +605,10 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
         p <- p + geom_hline(yintercept = 0, linetype = 2, alpha = 0.7)
     }
     if (!is.null(color_by) && length(features) > 1L) {
+        name_use <- if (is.data.frame(color_by)) "cluster" else "color_by"
         pal <- .get_pal(df,
-            feature_aes = list(color = "color_by"), option = 1,
-            divergent, diverge_center
+                        feature_aes = list(color = "color_by"), option = 1,
+                        divergent, diverge_center, name = name_use
         )
         p <- p + pal
     }
@@ -570,18 +628,21 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 }
 
 .get_plot_mc_df <- function(sfe, features, sample_id, name,
-                            colGeometryName, annotGeometryName, show_symbol) {
+                            colGeometryName, annotGeometryName, reducedDimName,
+                            show_symbol, swap_rownames) {
     # Ah, the weight of tradition. .get_feature_metadata only works for one sample at a time
     # As a result, this function deals with one sample at a time.
     ress <- .get_feature_metadata(sfe, features,
         name = paste0(name, "_res"),
         sample_id = sample_id, colGeometryName,
-        annotGeometryName, show_symbol
+        annotGeometryName, reducedDimName,
+        show_symbol, swap_rownames
     )
     res_stats <- .get_feature_metadata(sfe, features,
         name = paste0(name, "_statistic"),
         sample_id = sample_id, colGeometryName,
-        annotGeometryName, show_symbol
+        annotGeometryName, reducedDimName,
+        show_symbol, swap_rownames
     )
     dfs <- lapply(seq_along(ress), function(i) {
         if (isTRUE(is.na(ress[[i]]))) {
@@ -600,10 +661,15 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
     if (!length(dfs)) {
         stop("None of the features have the specified MC computed.")
     }
-    do.call(rbind, dfs)
+    df <- do.call(rbind, dfs)
+    if (is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName) && length(features) > 1L){
+        df <- .dimred_feature_order(df)
+    }
+    df
 }
 
-#' Plot Moran/Geary monte carlo results
+#' Plot Moran/Geary Monte Carlo results
 #'
 #' Plot the simulations as a density plot or histogram compared to the observed
 #' Moran's I or Geary's C, with ggplot2 so it looks nicer. Unlike the plotting
@@ -613,6 +679,9 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #'
 #' @inheritParams plotCorrelogram
 #' @param ptype Plot type, one of "density", "histogram", or "freqpoly".
+#' @param name Name under which the Monte Carlo results are stored, which
+#'   defaults to "moran.mc". For Geary's C Monte Carlo, the default is
+#'   "geary.mc".
 #' @param ... Other arguments passed to \code{\link{geom_density}},
 #'   \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on
 #'   \code{ptype}.
@@ -626,11 +695,16 @@ plotCorrelogram <- function(sfe, features, sample_id = NULL, method = "I",
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' sfe <- colDataUnivariate(sfe, type = "moran.mc", "nCounts", nsim = 100)
 #' plotMoranMC(sfe, "nCounts")
-plotMoranMC <- function(sfe, features, sample_id = NULL,
+plotMoranMC <- function(sfe, features, sample_id = "all",
                         facet_by = c("sample_id", "features"), ncol = NULL,
                         colGeometryName = NULL, annotGeometryName = NULL,
+                        reducedDimName = NULL,
                         ptype = c("density", "histogram", "freqpoly"),
-                        show_symbol = TRUE, ...) {
+                        show_symbol = deprecated(), swap_rownames = NULL,
+                        name = "moran.mc", ...) {
+    l <- .deprecate_show_symbol("plotMoranMC", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     ptype <- match.arg(ptype)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
@@ -638,7 +712,6 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
     }
     facet_sample <- length(sample_id) > 1L && facet_by == "sample_id"
     facet_feature <- length(features) > 1L && facet_by == "features"
-    name <- "moran.mc"
     group_sample <- !facet_sample && length(sample_id) > 1L
 
     dens_geom <- switch(ptype,
@@ -651,8 +724,8 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
         .get_plot_mc_df(
             sfe, features, s, name,
             colGeometryName,
-            annotGeometryName,
-            show_symbol
+            annotGeometryName, reducedDimName,
+            show_symbol, swap_rownames
         )
     })
     if (length(sample_id) > 1L) {
@@ -682,8 +755,13 @@ plotMoranMC <- function(sfe, features, sample_id = NULL,
             geom_vline(aes(xintercept = statistic, color = sample_id))
     }
     method_show <- if (grepl("[mM]oran", name)) "Moran's I" else "Geary's C"
-    p <- p + dens_geom(aes(res), ...) +
-        scale_color_manual(values = ditto_colors) +
+    if (is.null(colGeometryName) && is.null(annotGeometryName) &&
+        !is.null(reducedDimName)) {
+        pal <- scale_color_viridis_d(end = 0.9, option = "E")
+    } else {
+        pal <- scale_color_manual(values = ditto_colors)
+    }
+    p <- p + dens_geom(aes(res), ...) + pal +
         labs(x = paste0("Monte-Carlo simulation of ", method_show))
     if (facet_feature) p <- p + facet_wrap(~feature)
     if (facet_sample) p <- p + facet_wrap(~sample_id)

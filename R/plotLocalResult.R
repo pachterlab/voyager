@@ -31,10 +31,19 @@
 #' statistic.
 #'
 #' @inheritParams plotSpatialFeature
-#' @inheritParams calculateUnivariate
-#' @param type Which local spatial results. Use
+#' @inheritParams plotCorrelogram
+#' @inheritParams plotDimLoadings
+#' @param name Which local spatial results. Use
 #'   \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types
 #'   of results have already been calculated.
+#' @param type An \code{\link{SFEMethod}} object or a string corresponding to
+#'   the name of one of such objects in the environment. If the
+#'   \code{localResult} of interest was manually added outside
+#'   \code{\link{runUnivariate}} and \code{\link{runBivariate}}, so the method
+#'   is not recorded, then the \code{type} argument can be used to specify the
+#'   method to properly get the title and labels. By default, this argument is
+#'   set to be the same as argument \code{name}. If the method parameters are
+#'   recorded, then the \code{type} argument is ignored.
 #' @param features Character vector of vectors. To see which features have the
 #'   results of a given type, see
 #'   \code{\link[SpatialFeatureExperiment]{localResultFeatures}}.
@@ -66,6 +75,7 @@
 #' library(SFEData)
 #' library(scater)
 #' sfe <- McKellarMuscleData("small")
+#' sfe <- sfe[,sfe$in_tissue]
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' feature_use <- rownames(sfe)[1]
 #' sfe <- logNormCounts(sfe)
@@ -103,25 +113,56 @@
 #'     annotGeometryName = "myofiber_simplified"
 #' )
 #' # don't use annot_* arguments when annotGeometry is plotted without colGeometry
-plotLocalResult <- function(sfe, type, features, attribute = NULL,
-                            sample_id = NULL,
+plotLocalResult <- function(sfe, name, features, attribute = NULL,
+                            sample_id = "all",
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
-                            annot_aes = list(), annot_fixed = list(),
+                            annot_aes = list(), annot_fixed = list(), bbox = NULL,
+                            image_id = NULL, maxcell = 5e+5,
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
                             annot_divergent = FALSE,
                             annot_diverge_center = NULL,
-                            size = 0, shape = 16, linetype = 1, alpha = 1,
-                            color = NA, fill = "gray80", show_symbol = TRUE,
-                            scattermore = FALSE, pointsize = 0, ...) {
+                            size = 0.5, shape = 16, linewidth = 0, linetype = 1, alpha = 1,
+                            color = "black", fill = "gray80",
+                            show_symbol = deprecated(), swap_rownames = NULL,
+                            scattermore = FALSE, pointsize = 0, bins = NULL,
+                            summary_fun = sum, hex = FALSE, dark = FALSE,
+                            type = name, ...) {
+    l <- .deprecate_show_symbol("plotLocalResult", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    values <- .get_localResult_values(sfe, type, features, attribute,
+    if (!is.null(colGeometryName)) {
+        pred <- any(features %in% names(colGeometry(sfe, colGeometryName,
+                                                    sample_id = "all")))
+        cg_name <- if (pred) colGeometryName else NULL
+    } else cg_name <- NULL
+    if (!is.null(annotGeometryName)) {
+        pred <- any(features %in% names(annotGeometry(sfe, annotGeometryName,
+                                                      sample_id = "all")))
+        ag_name <- if (pred) annotGeometryName else NULL
+    } else ag_name <- NULL
+    params <- getParams(sfe, name, local = TRUE,
+                        colGeometryName = cg_name,
+                        annotGeometryName = ag_name)
+    # params NULL if localResults manually added outside runUnivariate
+    if (is.null(params)) {
+        if (is.character(type))
+            type <- get(type, mode = "S4")
+    } else type <- get(params$name, mode = "S4")
+
+    if (is.null(attribute)) attribute <- info(type, "default_attr")
+    base <- info(type, "title")
+    title_use <- paste0(base, " (", attribute, ")")
+
+    values <- .get_localResult_values(sfe, name, type, features, attribute,
         sample_id, colGeometryName,
         annotGeometryName,
-        show_symbol = show_symbol
+        show_symbol = show_symbol, swap_rownames = swap_rownames
     )
+
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
     # without specifying colGeometries.
@@ -133,32 +174,41 @@ plotLocalResult <- function(sfe, type, features, attribute = NULL,
             sfe, values, colGeometryName, sample_id,
             ncol,
             ncol_sample, annotGeometryName, annot_aes,
-            annot_fixed, aes_use, divergent,
+            annot_fixed, bbox, image_id, aes_use, divergent,
             diverge_center, annot_divergent,
-            annot_diverge_center, size, shape, linetype,
-            alpha, color, fill, show_symbol = show_symbol, 
-            scattermore = scattermore, pointsize = pointsize, ...
+            annot_diverge_center, size, shape, linewidth, linetype,
+            alpha, color, fill,
+            scattermore = scattermore, pointsize = pointsize,
+            bins = bins, summary_fun = summary_fun, hex = hex,
+            maxcell = maxcell, dark = dark, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
     } else {
         df <- annotGeometry(sfe, annotGeometryName, sample_id)
+        df <- df[,setdiff(names(df), names(values))]
+        df <- cbind(df[,"sample_id"], values)
+        df <- .crop(df, bbox)
+        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        else img_df <- NULL
+        if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
         out <- .wrap_spatial_plots(df,
-            annot_df = NULL, type_annot = NULL,
+            annot_df = NULL, img_df = img_df, type_annot = NULL,
             values, aes_use,
             annot_aes = list(), annot_fixed = list(),
-            size, shape, linetype, alpha,
+            size, shape, linewidth, linetype, alpha,
             color, fill, ncol, ncol_sample, divergent,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
-            pointsize = pointsize, ...
+            pointsize = pointsize, bins = bins, summary_fun = summary_fun,
+            hex = hex, maxcell = maxcell, dark = dark, ...
         )
     }
     # Add title to not to confuse with gene expression
     if (is(out, "patchwork")) {
-        out <- out + plot_annotation(title = .local_type2title(type, attribute))
+        out <- out + plot_annotation(title = title_use)
     } else {
-        out <- out + ggtitle(.local_type2title(type, attribute))
+        out <- out + ggtitle(title_use)
     }
     out
 }
