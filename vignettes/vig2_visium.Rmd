@@ -420,6 +420,9 @@ The error bars are twice the standard deviation of the Moran's I value. The stan
 
 Again, this can be done for Geary's C, `colData`, `annotGeometry`, and etc.
 
+# Univariate local
+Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. See [@Fotheringham2009-ak] for an interesting discussion of relationships between global and local spatial statistics. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
+
 ## Moran scatter plot
 In the Moran scatter plot [@Anselin1996-mo], the x axis is the value at a spot, and the y axis is the average value of the neighbors. The slope of the fitted line is Moran's I. Sometimes clusters appear in this plot, showing different kinds of neighborhoods. 
 
@@ -457,9 +460,6 @@ plotSpatialFeature(sfe_tissue, "Myh2_moranPlot_clust", colGeometryName = "spotPo
 ```
 
 This can also be done for `colData`, `annotGeometry`, and etc. as in Moran's I and permutation testing. 
-
-# Univariate local
-Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. See [@Fotheringham2009-ak] for an interesting discussion of relationships between global and local spatial statistics. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
 
 ## Local Moran's I
 To recap, global Moran's I is defined as
