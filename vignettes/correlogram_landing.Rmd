@@ -1,0 +1,26 @@
+---
+title: "Vignettes using correlogram"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{correlogram_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Spatial autocorrelation occurs at different length scales. For example, climate in Los Angeles is similar to that in San Diego, but within LA there are many neighborhoods with very different socioeconomic statuses -- climate has a much longer length scale of spatial autocorrelation than socioeconomic status. Length scale of spatial autocorrelation can be explored with the correlogram, which computes [Moran's I](https://pachterlab.github.io/voyager/articles/moran_landing.html) or [Geary's C](https://pachterlab.github.io/voyager/articles/geary_landing.html) over higher orders of neighborhoods. For example, a second order neighbor is a neighbor of a neighbor, and 3rd order means neighbor of neighbor of neighbor, and so on. This can be a proxy for spatial distance. In most cases where spatial autocorrelation is present, the magnitude of autocorrelation decays with increasing order of neighborhoods, but in some cases it may increase from the first to second order neighbors. Genes exhibit different rate of decay with increasing order of neighborhoods. Computing the correlogram with high order of neighbors is not scalable; the [variogram](https://pachterlab.github.io/voyager/articles/variogram_landing.html) is more appropriate for longer distances to explore length scales of spatial autocorrelation.
+
+Below is a list of vignettes that use the correlogram. The links point to the sections that use correlograms. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#correlogram) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Moran's I correlogram on QC metrics in mouse skeletal muscle dataset
+| [Spatial analysis with 10X example Visium dataset](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/visium_10x.ipynb) | Moran's I correlogram on QC metrics and gene expression in mouse olfactory bulb dataset from 10X website.
+| [CosMX NSCLC analysis](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#spatial-autocorrelation-in-qc-metrics)| [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig4_cosmx.ipynb) | Moran's I correlogram on QC metrics and on all genes, with multithreading, in a human non-small cell lung cancer dataset
+| [10X v3 Basic](https://pachterlab.github.io/voyager/articles/nonspatial.html#morans-i-1) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/nonspatial.ipynb) | Apply Moran's I correlogram to top cluster marker genes in non-spatial human PBMC scRNA-seq dataset, with k nearest neighbor graph in gene expression PCA space rather than histological space

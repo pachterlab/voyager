@@ -24,7 +24,7 @@ Questions, suggestions, or problems should be submitted as [GitHub issues](https
 ```r
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(version = "3.16") # or 'devel'
+BiocManager::install()
 BiocManager::install(c("SpatialFeatureExperiment", "Voyager"))
 ```
 

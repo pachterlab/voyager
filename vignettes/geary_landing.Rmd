@@ -1,0 +1,33 @@
+---
+title: "Vignettes using Geary's C"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{geary_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+Besides [Moran's I](https://pachterlab.github.io/voyager/articles/moran_landing.html) another spatial autocorrelation metric is Geary's C, defined as:
+
+$$
+C = \frac{(n-1)}{2\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij}(x_i - x_j)^2}{{\sum_{i=1}^n (x_i - \bar{x})^2}},
+$$
+
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood. 
+
+Geary's C  below 1 indicates positive spatial autocorrelation, and above 1 indicates negative spatial autocorrelation. Central to Geary's C is the square of differences between cells or spots, which makes Geary's C related to the [variogram](https://pachterlab.github.io/voyager/articles/variogram_landing.html).
+
+Below is a list of vignettes that use Geary's C. The links point to the sections that use Geary's C. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#gearys-c) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Perform Geary's C on QC metrics in mouse skeletal muscle dataset
+| [seqFISH exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig7_seqfish.html#univariate-spatial-statistics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig7_seqfish.ipynb) | Perform Geary's C with permutation testing on top highly variable genes in mouse gastrulation data
