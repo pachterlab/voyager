@@ -263,7 +263,7 @@ Now we have the tissue mask, which we will convert to polygon. While OpenCV can 
 ```{r}
 raster2polygon <- function(seg, keep = 0.2) {
     r <- rast(as.array(seg), extent = ext(0, nrow(seg), 0, ncol(seg))) |> 
-        rev()
+        trans() |> flip()
     r[r < 1] <- NA
     contours <- st_as_sf(as.polygons(r, dissolve = TRUE))
     simplified <- ms_simplify(contours, keep = keep)
@@ -305,8 +305,7 @@ sfe <- SpatialFeatureExperiment::transpose(sfe)
 ```{r}
 plotSpatialFeature(sfe, "sum", annotGeometryName = "tissueBoundary", 
                    annot_fixed = list(fill = NA, color = "black"),
-                   image_id = "lowres") +
-    theme_void()
+                   image_id = "lowres")
 ```
 
 Then we can use geometric operations to find which spots intersect tissue, which spots are covered by tissue, and how much of each spot intersects tissue.
@@ -564,7 +563,8 @@ select(gget_info2, ncbi_description)
 ```
 
 ```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3) & theme_void()
+plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3, swap_rownames = "symbol",
+                   image_id = "lowres", maxcell = 5e4)
 ```
 
 Although this Moran's I was not computed in histological space, these genes with the highest Moran's I in PCA space also show spatial structure, as different cell types reside in different spatial regions.

@@ -141,8 +141,7 @@ head(read.csv("outs/spatial/spatial_enrichment.csv"))
 
 Here we read the Space Ranger output into R as an SFE object:
 ```{r}
-sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw")
-sfe
+(sfe <- read10xVisiumSFE(samples = ".", type = "sparse", data = "raw"))
 ```
 
 # Quality control (QC)
@@ -157,33 +156,16 @@ sfe <- addPerCellQCMetrics(sfe, subsets = list(mito = is_mt))
 ```{r}
 names(colData(sfe))
 ```
+The mouse olfactory bulb is conventionally plotted horizontally. The entire SFE object can be transposed in histologial space to make the olfactory bulb horizontal.
+
+```{r}
+sfe <- SpatialFeatureExperiment::transpose(sfe)
+```
 
 ```{r, fig.width=8, fig.height=6}
-plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"),
-                   ncol = 2) & theme_void()
+plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"), 
+                   image_id = "lowres", maxcell = 5e4, ncol = 2)
 ```
-
-The H&E image needs to be rotated to be aligned to the Visium spots. As the tissue can be mounted in any orientation, there is no standard rotation to align the image to the spots. The `rotateImg()` function in `SpatialExperiment` rotates the image and degrees is clockwise. The `mirroImg()` function reflects the image. At present `SpatialExperiment` does not automatically rotate or reflect the image. This much be done manually. 
-
-```{r}
-plot(imgRaster(sfe))
-```
-
-The image is stored in the `data` column `imgData` field, which is a `DataFrame`:
-```{r}
-imgData(sfe)
-```
-
-The image should be rotated 90 degrees counterclockwise.
-```{r}
-imgData(sfe)$data[[1]] <- rotateImg(imgData(sfe)$data[[1]], degrees = -90)
-```
-
-```{r}
-plot(imgRaster(sfe))
-```
-
-The current version of Voyager does not plot the image, and the current version of `SpatialFeatureExperiment` does not touch the image. In a future version, the image may be cropped when the SFE object is subsetted. Use the [`ggspavis`](https://bioconductor.org/packages/release/bioc/html/ggspavis.html) package to plot the image behind the spots.
 
 Percentage of mitochondrial counts in spots outside tissue is higher near the tissue, especially on the left.
 ```{r}
@@ -237,7 +219,8 @@ names(rowData(sfe_tissue))
 ```
 
 ```{r}
-plotDimLoadings(sfe_tissue, dims = 1:5, show_symbol = TRUE, ncol = 3)
+plotDimLoadings(sfe_tissue, dims = 1:5, show_symbol = TRUE, ncol = 3,
+                swap_rownames = "symbol")
 ```
 
 Do the clustering to show on the dimension reduction plots
@@ -257,15 +240,14 @@ plotPCA(sfe_tissue, ncomponents = 5, colour_by = "cluster")
 
 ```{r}
 plotSpatialFeature(sfe_tissue, features = "cluster", 
-                   colGeometryName = "spotPoly") +
-    theme_void()
+                   colGeometryName = "spotPoly", image_id = "lowres")
 ```
 
 ```{r, fig.width=8, fig.height=8}
 spatialReducedDim(sfe_tissue, "PCA", ncomponents = 5, 
                   colGeometryName = "spotPoly", divergent = TRUE, 
-                  diverge_center = 0, ncol = 2) &
-    theme_void()
+                  diverge_center = 0, ncol = 2, 
+                  image_id = "lowres", maxcell = 5e4)
 ```
 
 ```{r}
@@ -282,8 +264,8 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 
 These genes are interesting to view in spatial context:
 ```{r, fig.width=8, fig.height=8}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2) &
-    theme_void()
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2,
+                   swap_rownames = "symbol", image_id = "lowres", maxcell = 5e4)
 ```
 
 More spatial analyses on this dataset is performed in [an "advanced" version of this vignette](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html).
