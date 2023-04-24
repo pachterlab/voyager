@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -63,8 +63,9 @@ The data used in this vignette are described in [Integration of spatial and sing
 The data have been added to the `SFEData` package on Bioconductor and will be available in the 3.17 release. 
 
 We will begin by downloading the data and loading it in to R. 
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
+library(SFEData)
 library(SingleCellExperiment)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
@@ -85,10 +86,8 @@ theme_set(theme_bw())
 ```
 
 ```{r}
-download.file("https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj",'./seqfish_em3.Rds', mode='wb', method = 'wget', quiet = TRUE)
-
-sfe <- readRDS("./seqfish_em3.Rds")
-sfe
+# Only Bioc 3.17 and above
+sfe <- LohoffGastrulationData()
 ```
 
 The rows in the count matrix correspond to the 351 barcoded genes measured by seqFISH. Additionally, the authors provide some metadata, including the field of view and z-slice for each cell. We will filter the count matrix and metadata to include only  cells from a single z-slice. 
@@ -112,8 +111,7 @@ violin <- plotColData(sfe, "nCounts") +
     geom_hline(yintercept = avg, color='red') +
     theme(legend.position = "top") 
 
-spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "seg_coords") +
-    theme_void()
+spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "seg_coords")
 
 violin + spatial
 ```
@@ -164,8 +162,7 @@ violin <- plotColData(sfe, "nGenes") +
     geom_hline(yintercept = avg, color='red') +
     theme(legend.position = "top") 
 
-spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "seg_coords") +
-    theme_void()
+spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "seg_coords")
 
 violin + spatial
 ```
@@ -208,7 +205,6 @@ meta <- meta |>
 
 prop_lq <- ggplot(meta, aes(pos, prop_lq)) + 
     geom_bar(stat = 'identity' ) + 
-    theme_bw() +
     theme(axis.text.x = element_text(angle = 90)) 
 
 prop_lq
@@ -248,8 +244,7 @@ ggplot(gene_meta, aes(mean, variance)) +
   facet_wrap(~ pos) +
   geom_abline(slope = 1, intercept = 0, color = "red") +
   scale_x_log10() + scale_y_log10() +
-  annotation_logticks() +
-  theme_bw()
+  annotation_logticks()
 ```
 
 The red line represents the line $y = x$, which is the mean-variance relationship that would be expected for Poisson distributed data. The data deviate from this expectation in each FOV. In each case, the variance is greater than what would be expected. 
@@ -273,8 +268,7 @@ assay(sfe, "reconstructed") <- assay(sfe_red, "reconstructed")
 
 Now we will visualize the first two PCs in space. Here we notice that the PCs may show some spatial structure that correlates to biological niches of cells. 
 ```{r}
-spatialReducedDim(sfe, "PCA", ncomponents = 2, divergent = TRUE, diverge_center = 0) &
-    theme_void()
+spatialReducedDim(sfe, "PCA", ncomponents = 2, divergent = TRUE, diverge_center = 0)
 ```
 
 Unfortunately, FOV artifacts can still be seen.
@@ -296,8 +290,7 @@ colData(sfe)$cluster <-
 The plot below is colored by cluster ID and by the cell types provided by the author. 
 ```{r, fig.width=10, fig.height=5}
 plotSpatialFeature(sfe, c("cluster", "celltype_mapped_refined"), 
-                   colGeometryName = "seg_coords") & 
-    theme_void()
+                   colGeometryName = "seg_coords")
 ```
 
 The authors have assigned cells to more types than are identified in the clustering step. In any case, the clustering results seem to recapitulate the major cell niches from the previous annotations. We can compute the [Rand index](https://en.wikipedia.org/wiki/Rand_index) using a function from the `fossil` package to assess the similarity between the two clustering results. A value of 1 would suggest the clustering results are identical, while a value of 0 would suggest that the results do not agree at all. 
@@ -332,13 +325,13 @@ We use the `runUnivariate()` function to compute the spatial autocorrelation met
 ```{r}
 sfe <- runUnivariate(
   sfe, type = "geary.mc", features = hvgs, 
-  colGraphName = "knn5", nsim = 100)
+  colGraphName = "knn5", nsim = 100, BPPARAM = MulticoreParam(2))
 ```
 
 ```{r}
 sfe <- runUnivariate(
   sfe, type = "moran.mc", features = hvgs,
-  colGraphName = "knn5", nsim = 100)
+  colGraphName = "knn5", nsim = 100, BPPARAM = MulticoreParam(2))
 
 sfe <- colDataUnivariate(
   sfe, type = "moran.mc", features = c("nCounts", "nGenes"), 
@@ -358,8 +351,7 @@ Now, we might ask: which genes display the most spatial autocorrelation?
 ```{r, fig.width=8, fig.height=8}
 top_moran <- rownames(sfe)[order(-rowData(sfe)$moran.mc_statistic_sample01)[1:4]]
 
-plotSpatialFeature(sfe, top_moran, colGeometryName = "seg_coords") &
-    theme_void()
+plotSpatialFeature(sfe, top_moran, colGeometryName = "seg_coords")
 ```
 
 It appears that the genes with the highest spatial autocorrelation seem to have obvious expression patterns in the tissue. 

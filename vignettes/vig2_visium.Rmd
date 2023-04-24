@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -101,6 +101,14 @@ Tissue boundary, nuclei, myofiber, and Visium spot polygons are stored as `sf` d
 The H&E image of this section:
 ![A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers.](https://raw.githubusercontent.com/pachterlab/voyager/documentation/vignettes/tissue_lowres_5a.jpeg)
 
+The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
+```{r}
+sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+              image_id = "lowres", 
+              scale_fct = 1024/22208)
+sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
+```
+
 # Exploratory data analysis
 ## Spots in tissue
 While the example dataset has all Visium spots whether on tissue or not, only spots that intersect tissue are used for further analyses. 
@@ -140,8 +148,8 @@ The myofiber polygons from `annotGeometries` can be plotted as shown below, colo
 plotSpatialFeature(sfe_tissue, features = "nCounts", 
                    colGeometryName = "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), alpha = 0.5) +
-    theme_void()
+                   aes_use = "color", linewidth = 0.5, fill = NA,
+                   annot_aes = list(fill = "area"))
 ```
 
 The larger myofibers seem to have fewer total counts, possibly because the larger size of these myofibers dilutes the transcripts. This hints at the need for a normalization procedure.
@@ -155,7 +163,8 @@ colData(sfe_tissue)$n_myofibers <-
 
 ```{r, fig.width=8, fig.height=4, fig.alt="Plot of Visium spots in tissue in physical space, colored by number of myofibers intersecting each spot."}
 plotSpatialFeature(sfe_tissue, features = "n_myofibers", 
-                   colGeometryName = "spotPoly") + theme_void()
+                   colGeometryName = "spotPoly", image = "lowres", color = "black",
+                   linewidth = 0.1)
 ```
 
 There is no one-to-one mapping between Visium spots and myofibers. However, we can relate attributes of myofibers to gene expression detected at the Visium spots. One way to do so is to summarize the attributes of all myofibers that intersect (or choose another better predicate implemented in `sf`) each spot, such as to calculate the mean, median, or sum. This can be done with the `annotSummary()` function in `SpatialFeatureExperiment`. The default predicate is `st_intersects()`, and the default summary function is `mean()`.
@@ -167,8 +176,8 @@ colData(sfe_tissue)$mean_myofiber_area <-
 
 ```{r, fig.alt="Plot of Visium spots in tissue in physical space, colored by the average area of myofibers that intersect each spot. The average area is higher near the mid-top right part of the tissue."}
 # The gray spots don't intersect any myofiber
-plotSpatialFeature(sfe_tissue, "mean_myofiber_area", "spotPoly") +
-    theme_void()
+plotSpatialFeature(sfe_tissue, "mean_myofiber_area", "spotPoly", image = "lowres", 
+                   color = "black", linewidth = 0.1)
 ```
 
 This reveals the relationship between the mean area of myofibers intersecting each Visium spot and other aspects of the spots, such as total counts and gene expression.
@@ -213,16 +222,17 @@ plot_counts_logcounts <- function(sfe, feature) {
   p1 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
                    annot_aes = list(fill = "area"), show_symbol = TRUE, 
-                   exprs_values = "counts", alpha = 0.5) +
+                   exprs_values = "counts", aes_use = "color", linewidth = 0.5,
+                   fill = NA) +
     ggtitle("Raw counts")
   p2 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
                    annot_aes = list(fill = "area"), show_symbol = TRUE, 
-                   exprs_values = "logcounts", alpha = 0.5) +
+                   exprs_values = "logcounts", aes_use = "color", linewidth = 0.5,
+                   fill = NA) +
     ggtitle("Log normalized counts")
   p1 + p2 +
-    plot_annotation(title = feature) &
-      theme_void()
+    plot_annotation(title = feature)
 }
 ```
 
@@ -267,8 +277,7 @@ plotColGraph(sfe_tissue, colGraphName = "visium", colGeometryName = "spotPoly") 
 Similarly, the `plotAnnotGraph()` function plots the graph associated with an `annotGeometry`, along with the geometry of interest. 
 ```{r, fig.alt="Spatial neighborhood graph of myofibers, where each edge connects two myofibers that touch."}
 plotAnnotGraph(sfe_tissue, annotGraphName = "myofiber_poly2nb", 
-               annotGeometryName = "myofiber_simplified") +
-    theme_void()
+               annotGeometryName = "myofiber_simplified") + theme_void()
 ```
 
 There is no `plotRowGraph` yet since we haven't worked with a dataset where spatial graphs related to genes are relevant, although the SFE object supports row graphs.
@@ -413,7 +422,7 @@ sfe_tissue <- runUnivariate(sfe_tissue, hvgs[1:2], colGraphName = "visium",
 
 The results can be plotted with `plotCorrelogram`:
 ```{r, fig.alt="Line plot with order of neighbors (lags) in the x axis and Moran's I value at each lag in the y axis. The x axis ranges from 1 to 10, and the y axis ranges from 0 to 0.8. The lines show trends of decay of spatial autocorrelation with increasing distance of neighbors. Two genes, Car3 and Mb, are shown. Moran's I of both genes decay somewhat linearly from lag 1 to 10. Car3 decays from around 0.75 to around 0.23. Mb decays from around 0.7 to around 0.13. At each lag the error bars are tight (see next paragraph in the main text) and the p-values are less than 0.001 after Benjamini-Hochberg multiple testing correction over the 2 genes and 10 lags."}
-plotCorrelogram(sfe_tissue, hvgs[1:2])
+plotCorrelogram(sfe_tissue, hvgs[1:2], swap_rownames = "symbol")
 ```
 
 The error bars are twice the standard deviation of the Moran's I value. The standard deviation and p-values (null hypothesis is that Moran's I is 0) come from `moran.test()` (for Geary's C correlogram, `geary.test()`); these should be taken with a grain of salt for data that is not normally distributed. The p-values have been corrected for multiple hypothesis testing across all orders and features. As usual, . means p < 0.1, \* means p < 0.05, \*\* means p < 0.01, and \*\*\* means p < 0.001. 
@@ -429,18 +438,19 @@ In the Moran scatter plot [@Anselin1996-mo], the x axis is the value at a spot, 
 For gene expression, to use one gene (log normalized value) to demonstrate:
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, "Myh2", colGraphName = "visium", 
-                            type = "moran.plot")
+                            type = "moran.plot", swap_rownames = "symbol")
 ```
 
 ```{r, fig.alt="Moran scatter plot of log normalized values of gene Myh2. This plot is described in the upcoming main text."}
-moranPlot(sfe_tissue, "Myh2", graphName = "visium")
+moranPlot(sfe_tissue, "Myh2", graphName = "visium", swap_rownames = "symbol")
 ```
 
 The dashed lines mark the mean in Myh2 and spatially lagged Myh2. There are no singletons here. Some Visium spots with lower Myh2 expression have neighbors that don't express Myh2 but spots that don't express Myh2 usually have at least some neighbors that do. There are twp main clusters for spots whose neighbors do express Myh2: those with high (above average) expression whose neighbors also have high expression, and those with low expression whose neighbors also have low expression. Other features may show different kinds of clusters. We can use k-means clustering to identify clusters, though any clustering method supported by the `bluster` package can be used.
 
 ```{r}
 set.seed(29)
-clusts <- clusterMoranPlot(sfe_tissue, "Myh2", BLUSPARAM = KmeansParam(2))
+clusts <- clusterMoranPlot(sfe_tissue, "Myh2", BLUSPARAM = KmeansParam(2),
+                           swap_rownames = "symbol")
 ```
 
 We can use the [gget search](https://pachterlab.github.io/gget/search.html) module to get the Ensembl ID for Myh2:
@@ -449,14 +459,15 @@ gget$search("Myh2", species="mouse")
 ```
 
 ```{r, fig.alt="Moran scatter plot of log normalized value of Myh1, colored by 2 k-means clusters, which correspond to the high-high and low-low spots."}
-moranPlot(sfe_tissue, "Myh2", graphName = "visium", color_by = clusts$ENSMUSG00000033196)
+moranPlot(sfe_tissue, "Myh2", graphName = "visium", 
+          color_by = clusts$ENSMUSG00000033196, swap_rownames = "symbol")
 ```
 
 Plot the clusters in space
 ```{r, fig.alt="Visium spots in space colored by the k-means clusters. Cluster 2 (high-high) are mostly in the upper left and lower left parts of the tissue, and the rest of the spots are cluster 1."}
 colData(sfe_tissue)$Myh2_moranPlot_clust <- clusts$ENSMUSG00000033196
-plotSpatialFeature(sfe_tissue, "Myh2_moranPlot_clust", colGeometryName = "spotPoly") +
-    theme_void()
+plotSpatialFeature(sfe_tissue, "Myh2_moranPlot_clust", colGeometryName = "spotPoly",
+                   image = "lowres", color = "black", linewidth = 0.1)
 ```
 
 This can also be done for `colData`, `annotGeometry`, and etc. as in Moran's I and permutation testing. 
@@ -478,27 +489,30 @@ It's similar to global Moran's I, but the values at locations $i$ are not summed
 
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, type = "localmoran", features = "Myh2",
-                            colGraphName = "visium")
+                            colGraphName = "visium", swap_rownames = "symbol")
 ```
 
 It is useful to plot the log normalized Myh2 gene expression as context to interpret the local results:
 ```{r}
-plotSpatialFeature(sfe_tissue, features = "Myh2", colGeometryName = "spotPoly") +
-    theme_void()
+plotSpatialFeature(sfe_tissue, features = "Myh2", colGeometryName = "spotPoly",
+                   swap_rownames = "symbol", image_id = "lowres", color = "black",
+                   linewidth = 0.1)
 ```
 
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
                 colGeometryName = "spotPoly",divergent = TRUE,
-                diverge_center = 0) +
-    theme_void()
+                diverge_center = 0, image_id = "lowres", 
+                swap_rownames = "symbol", color = "black",
+                linewidth = 0.1)
 ```
 
 We see that regions with higher Myh2 expression also have stronger spatial autocorrelation. It is interesting to see how spatial autocorrelation relates to gene expression level, much as finding how variance relates to mean in the expression of each gene, which usually indicates overdispersion compared to Poisson in scRNA-seq and Visium data:
 
 ```{r}
 df <- data.frame(myh2 = logcounts(sfe_tissue)[rowData(sfe_tissue)$symbol == "Myh2",],
-                 Ii = localResult(sfe_tissue, "localmoran", "Myh2")[,"Ii"])
+                 Ii = localResult(sfe_tissue, "localmoran", "Myh2", 
+                                  swap_rownames = "symbol")[,"Ii"])
 ggplot(df, aes(myh2, Ii)) + geom_point(alpha = 0.3) +
     labs(x = "Myh2 (log counts)", y = "localmoran")
 ```
@@ -507,7 +521,7 @@ For this gene, Visium spots with higher expression also tend to have higher loca
 
 Local spatial analyses often return a matrix or data frame. The `plotLocalResult()` function has a default column for each local spatial method, but other columns can be plotted as well. Use the `localResultAttrs()` function to see which columns are present, and use the `attribute` argument to specify which column to plot.
 ```{r}
-localResultAttrs(sfe_tissue, "localmoran", "Myh2")
+localResultAttrs(sfe_tissue, "localmoran", "Myh2", swap_rownames = "symbol")
 ```
 
 Some local spatial methods return p-values at each location, in a column with name like `Pr(z != E(Ii))`, where the test is two sided (default, can be changed with the `alternative` argument in `runUnivariate()` which is passed to the relevant underlying function in `spdep`). Negative log of the p-value is computed to facilitate visualization, and the p-value is corrected for multiple hypothesis testing with `p.adjustSP()` in `spdep`, where the number of tests is the number of neighbors of each location rather than the total number of locations (`-log10p_adj`).
@@ -515,8 +529,9 @@ Some local spatial methods return p-values at each location, in a column with na
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
                 colGeometryName = "spotPoly", attribute = "-log10p_adj", divergent = TRUE,
-                diverge_center = -log10(0.05)) +
-    theme_void()
+                diverge_center = -log10(0.05), swap_rownames = "symbol",
+                image_id = "lowres", color = "black",
+                linewidth = 0.1)
 ```
 
 In this plot and all following plots of p-values, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the bluish spots are significant while a dark brown means _really_ not significant.
@@ -524,8 +539,9 @@ In this plot and all following plots of p-values, a divergent palette is used to
 The "pysal" column displays the quadrants relative to the means in the Moran plot. The result is similar to that from k-means clustering shown above.
 ```{r}
 plotLocalResult(sfe_tissue, "localmoran", features = "Myh2", 
-                colGeometryName = "spotPoly", attribute = "pysal") +
-    theme_void()
+                colGeometryName = "spotPoly", attribute = "pysal", 
+                swap_rownames = "symbol", image_id = "lowres", color = "black",
+                linewidth = 0.1)
 ```
 
 ## Getis-Ord Gi\*
@@ -538,19 +554,21 @@ colGraph(sfe_tissue, "visium_B") <- findVisiumGraph(sfe_tissue, style = "B")
 
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, type = "localG_perm", features = "Myh2",
-                            colGraphName = "visium_B", include_self = TRUE)
+                            colGraphName = "visium_B", include_self = TRUE,
+                            swap_rownames = "symbol")
 ```
 
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2", 
                 colGeometryName = "spotPoly", divergent = TRUE,
-                diverge_center = 0) + theme_void()
+                diverge_center = 0, image_id = "lowres", swap_rownames = "symbol", 
+                color = "black", linewidth = 0.1)
 ```
 
 High values of Gi\* indicate hotspots, while low values of Gi\* indicate coldspots.
 
 ```{r}
-localResultAttrs(sfe_tissue, "localG_perm", "Myh2")
+localResultAttrs(sfe_tissue, "localG_perm", "Myh2", swap_rownames = "symbol")
 ```
 
 Plot the pseudo-p-values from the simulation
@@ -558,7 +576,8 @@ Plot the pseudo-p-values from the simulation
 plotLocalResult(sfe_tissue, "localG_perm", features = "Myh2", 
                 attribute = "-log10p_adj Sim",
                 colGeometryName = "spotPoly", divergent = TRUE,
-                diverge_center = -log10(0.05)) + theme_void()
+                diverge_center = -log10(0.05), swap_rownames = "symbol",
+                image_id = "lowres")
 ```
 
 The hotspots are as expected. Here warm color indicates adjusted $p < 0.05$. 
@@ -580,16 +599,14 @@ sfe_tissue <- annotGeometryUnivariate(sfe_tissue, "localG_perm", "area",
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", "area", 
                 annotGeometryName = "myofiber_simplified",
-                divergent = TRUE, diverge_center = 0) +
-    theme_void()
+                divergent = TRUE, diverge_center = 0)
 ```
 
 ```{r}
 plotLocalResult(sfe_tissue, "localG_perm", "area", 
                 annotGeometryName = "myofiber_simplified",
                 attribute = "-log10p_adj Sim",
-                divergent = TRUE, diverge_center = -log10(0.05)) +
-    theme_void()
+                divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
 The hotspots and coldspots are as expected. Warm color indicates adjusted $p < 0.05$.
@@ -610,19 +627,19 @@ $$
 By default, $a = 2$ so LOSH is like a local variance. See [@Ord2012-qi] for more details and interpretation. 
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, "LOSH.cs", "Myh2", 
-                            colGraphName = "visium")
+                            colGraphName = "visium", swap_rownames = "symbol")
 ```
 
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
-                colGeometryName = "spotPoly") +
-    theme_void()
+                colGeometryName = "spotPoly", swap_rownames = "symbol",
+                image_id = "lowres")
 ```
 
 For this gene, it isn't clear whether LOSH relates to gene expression levels.
 
 ```{r}
-localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2")
+localResultAttrs(sfe_tissue, "LOSH.cs", "Myh2", swap_rownames = "symbol")
 ```
 
 While `Voyager` does wrap `LOSH.mc()` to perform permutation testing of LOSH, this is very time consuming. A chi-squared approximation is described in the 2012 LOSH paper to account for non-normality of the data and to approximate the mean and variance of the permutation distributions, so p-values of LOSH can be more quickly computed, with `LOSH.cs()`.
@@ -630,19 +647,18 @@ While `Voyager` does wrap `LOSH.mc()` to perform permutation testing of LOSH, th
 ```{r}
 plotLocalResult(sfe_tissue, "LOSH.cs", features = "Myh2", 
                 attribute = "-log10p_adj", colGeometryName = "spotPoly",
-                divergent = TRUE, diverge_center = -log10(0.05)) +
+                divergent = TRUE, diverge_center = -log10(0.05),
+                swap_rownames = "symbol", image_id = "lowres") +
     theme_void()
 ```
 
-For this gene, the local conditions are mostly homogenous, except for a few spots. Warm color indicates adjusted $p < 0.05$.
+For this gene, the local conditions are mostly homogenous, except for a few spots most at the injury site. Warm color indicates adjusted $p < 0.05$.
 
 # Caveats
 1. In the current version of `Voyager`, only univariate spatial autocorrelation metrics are supported. Anisotropy, bivariate, and multivariate spatial analyses will be added in later versions.
-2. The plotting functions don't plot the H&E image in the background. This is not implemented in the first version since when the Visium spots are plotted, they block out the H&E image anyway. Also, the plots are small and not interactive, which is good enough for visualizing gene expression on Visium spots, while the H&E image would be more informative when more zoomed in. Interactive data visualization is beyond the scope of this package.
-3. It's more convoluted to trick `geom_sf` into flipping the y axis, since the coordinates are in pixels in full resolution image and the image has the origin at the top left.
-4. Only 2D data is supported at present, although in principle, `sf` and `GEOS` support 3D data.
-5. At present, when `runUnivariate` with the same `type` but different parameter is called, the existing results are overwritten. In the next version of `Voyager`, we may append any non-default parameters to the names of the `localResults` and relevant column names of `rowData` to keep a record of the parameters and to distinguish between results with different parameters, in case those results are to be compared.
-6. Spatial neighborhoods only make sense within the same tissue section. Then what to do with multiple tissue sections, from biological replica, and from different conditions? For the mouse brain, different biological replica can be registered to the Allen Common Coordinate Framework (CCF) to be spatially comparable. Indeed, it would be interesting to see the biological variability of healthy wild type gene expression at the same fine scaled region in the brain. However, there is no CCF for tissues without a stereotypical structure, such as adipose and skeletal muscle. We don't have a good solution to spatially compare different tissue sections yet. Perhaps global spatial statistics over the whole section or histological regions within the section can be compared. The problem remains to select the most informative metrics to compare. Perhaps a spatially-informed dimension reduction method, taking not only the gene count matrix, but also the adjacency matrices of the spatial neighborhood graphs (different sections will be different blocks in the matrix) projecting the cells or Visium spots from different sections into a shared low dimensional space can facilitate the comparison. Here batch effect must be corrected, and the dimension reduction should be interpretable, and scalable.
+2. The H&E image can alter perception of the colors of the geometries.
+3. Only 2D data is supported at present, although in principle, `sf` and `GEOS` support 3D data.
+4. Spatial neighborhoods only make sense within the same tissue section. Then what to do with multiple tissue sections, from biological replica, and from different conditions? For the mouse brain, different biological replica can be registered to the Allen Common Coordinate Framework (CCF) to be spatially comparable. Indeed, it would be interesting to see the biological variability of healthy wild type gene expression at the same fine scaled region in the brain. However, there is no CCF for tissues without a stereotypical structure, such as adipose and skeletal muscle. We don't have a good solution to spatially compare different tissue sections yet. Perhaps global spatial statistics over the whole section or histological regions within the section can be compared. The problem remains to select the most informative metrics to compare. Perhaps a spatially-informed dimension reduction method, taking not only the gene count matrix, but also the adjacency matrices of the spatial neighborhood graphs (different sections will be different blocks in the matrix) projecting the cells or Visium spots from different sections into a shared low dimensional space can facilitate the comparison. Here batch effect must be corrected, and the dimension reduction should be interpretable, and scalable.
 
 # Session info
 ```{r}

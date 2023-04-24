@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -63,25 +63,23 @@ Here we load the packages used in this vignette.
 
 ```{r setup}
 library(Voyager)
-library(SFEData) # Pushed fix to Bioc but changes may take a while to show up
+library(SFEData) 
 library(SingleCellExperiment)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
 library(ggplot2)
 library(stringr)
-library(scater) # devel version of plotExpression
+library(scater) 
 library(scuttle)
 library(BiocParallel)
 library(BiocSingular)
 library(bluster)
 library(scran)
 library(patchwork)
-theme_set(theme_void())
+theme_set(theme_bw())
 ```
 
 ```{r}
-# Fixed version this function may not immediately show up on Bioconductor
-# Use remotes::install_github("pachterlab/SFEData") if Bioc version doesn't work
 (sfe <- JanesickBreastData(dataset = "rep2"))
 ```
 
@@ -95,15 +93,12 @@ colnames(sfe) <- seq_len(ncol(sfe))
 This is what the tissue, with the cell outlines, looks like
 
 ```{r}
-ggplot(cellSeg(sfe)) + geom_sf() +
-    theme_bw() +
-    scale_x_continuous(expand = expansion()) +
-    scale_y_continuous(expand = expansion())
+plotGeometry(sfe, "cellSeg")
 ```
 
 Plot cell density in space
 ```{r}
-plotCellBin2D(sfe) + theme_bw()
+plotCellBin2D(sfe, hex = TRUE)
 ```
 
 # Quality control
@@ -125,7 +120,7 @@ colData(sfe)$nGenes_normed <- sfe$nGenes/n_panel
 Here we divided nCounts by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. 
 
 ```{r}
-plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed")) + theme_bw()
+plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed"))
 ```
 
 Compared to the [FFPE CosMX non-small cell lung cancer dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#cells), more transcripts per gene on average and a larger proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX.
@@ -142,15 +137,14 @@ plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
 
 A standard examination is to look at the relationship between nCounts and nGenes:
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "nGenes") + theme_bw()
+plotColDataBin2D(sfe, "nCounts", "nGenes")
 ```
 
 There appear to be two branches. 
 
 Here we plot the distribution of cell area
 ```{r}
-plotColDataHistogram(sfe, c("cell_area", "nucleus_area"), scales = "free_y") +
-    theme_bw()
+plotColDataHistogram(sfe, c("cell_area", "nucleus_area"), scales = "free_y")
 ```
 
 That should be in pixels. There's a very long tail. The nuclei are much smaller than the cells.
@@ -171,7 +165,7 @@ There's an outlier near the right edge of the section, throwing off the dynamic 
 
 These observations motivate an examination of the relationship between cell area and nuclei area:
 ```{r}
-plotColDataBin2D(sfe, "cell_area", "nucleus_area") + theme_bw() +
+plotColDataBin2D(sfe, "cell_area", "nucleus_area") + 
     scale_fill_viridis_c()
 ```
 
@@ -184,7 +178,7 @@ colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
 ```
 
 ```{r}
-plotColDataHistogram(sfe, "prop_nuc") + theme_bw()
+plotColDataHistogram(sfe, "prop_nuc")
 ```
 
 This distribution could have been generated from two peaks that were combined. From the histogram, there do not seem to be cells without nuclei or segmentation artifacts where the nucleus is larger than the cell. However, there are so many cells in this dataset and it is possible that just a few cells would not be visible on this histogram. We double check:
@@ -204,7 +198,7 @@ Cells in some histological regions have larger proportions occupied by the nucle
 
 Below we plot a 2D histogram to better show the density of points on this plot:
 ```{r}
-plotColDataBin2D(sfe, "cell_area", "prop_nuc") + theme_bw() +
+plotColDataBin2D(sfe, "cell_area", "prop_nuc") + 
     scale_fill_viridis_c()
 ```
 
@@ -212,7 +206,7 @@ Smaller cells tend to have higher proportion occupied by the nucleus. This can b
 
 We also examine the relationship between nucleus area and the proportion of cell occupied by the nucleus:
 ```{r}
-plotColDataBin2D(sfe, "nucleus_area", "prop_nuc") + theme_bw() +
+plotColDataBin2D(sfe, "nucleus_area", "prop_nuc") + 
     scale_fill_viridis_c()
 ```
 
@@ -277,15 +271,14 @@ Next we plot the proportion of transcript counts coming from any negative contro
 
 ```{r}
 cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
-plotColDataHistogram(sfe, cols_use, bins = 100, ncol = 3) + theme_bw()
+plotColDataHistogram(sfe, cols_use, bins = 100, ncol = 3)
 ```
 
 The histogram is dominated by the bin at zero and there are some extreme outliers too few to be seen but evident from the scale of the x axis. We also plot the histogram only for cells with at least 1 count from a negative control. The NA's come from cells that got segmented but have no transcripts detected.
 ```{r}
 plotColDataHistogram(sfe, cols_use, bins = 100, ncol = 3) + 
     scale_x_log10() +
-    annotation_logticks(sides = "b") +
-    theme_bw()
+    annotation_logticks(sides = "b")
 ```
 
 The vast majority of these cells have less than 1% of transcript counts from negative controls, but there are outliers with up to 50%. 
@@ -295,8 +288,7 @@ Next we plot the distribution of the number of negative control counts per cell:
 cols_use2 <- names(colData(sfe))[str_detect(names(colData(sfe)), "_detected$")]
 plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
     # Avoid decimal breaks on x axis unless there're too few breaks
-    scale_x_continuous(breaks = scales::breaks_extended(Q = c(1,2,5))) +
-    theme_bw()
+    scale_x_continuous(breaks = scales::breaks_extended(Q = c(1,2,5)))
 ```
 
 The counts are low, mostly zero, but there are outliers with up to 10 counts of all types aggregated. Then the outlier with 50% of counts from negative controls must have very low total real transcript counts to begin with.
@@ -338,8 +330,7 @@ plotSpatialFeature(sfe, "is_blank_outlier", colGeometryName = "cellSeg")
 We find that the outliers are difficult to see:
 ```{r}
 plotColData(sfe, y = "is_blank_outlier", x = "cell_area", 
-            # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
-            ) 
+            point_fun = function(...) list()) 
 ```
 
 The analysis reveals that the outliers seem to be smaller. Outliers for negative probe controls and negative codeword controls are also hard to see on the plot, so their plots are skipped here. But the top left region in the tissue tends to have more counts from antisense controls. 
@@ -361,8 +352,7 @@ Next we check how many negative control features are detected per cell:
 ```{r}
 plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
     # Avoid decimal breaks on x axis unless there're too few breaks
-    scale_x_continuous(breaks = scales::breaks_extended(3, Q = c(1,2,5))) +
-    theme_bw()
+    scale_x_continuous(breaks = scales::breaks_extended(3, Q = c(1,2,5)))
 ```
 
 There are at most 3 counts per cell per type. For the non-outliers, each type is at most around 1%, so this data looks good. 
@@ -390,8 +380,7 @@ plotRowDataBin2D(sfe, "means", "vars", subset = "is_neg",
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
     annotation_logticks() +
-    coord_equal() +
-    theme_bw()
+    coord_equal()
 ```
 
 The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed.
@@ -446,7 +435,7 @@ sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```{r, fig.width=8, fig.height=7}
 p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
 p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
-p1 / p2 + plot_layout(guides = "collect") & theme_bw()
+p1 / p2 + plot_layout(guides = "collect")
 ```
 
 There are no obvious clusters here. In the lower panel, the 2D histogram of influential points is plotted in red.
@@ -514,11 +503,11 @@ sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
 ```
 
 ```{r}
-ElbowPlot(sfe, ndims = 30) + theme_bw()
+ElbowPlot(sfe, ndims = 30)
 ```
 
 ```{r}
-plotDimLoadings(sfe, dims = 1:6) + theme_bw()
+plotDimLoadings(sfe, dims = 1:6)
 ```
 
 ```{r, fig.width=9, fig.height=9}
@@ -527,11 +516,6 @@ spatialReducedDim(sfe, "PCA", 6, colGeometryName = "centroids", divergent = TRUE
 ```
 
 While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types.
-
-```{r}
-set.seed(29)
-sfe <- runUMAP(sfe, dimred = "PCA", n_dimred = 15)
-```
 
 Non-spatial clustering and locating the clusters in space
 ```{r}
@@ -546,10 +530,6 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
 Now the `scater` can also rasterize the plots with lots of points with the `rasterise` argument, but with a different mechanism from `scattermore` that requires more system dependencies. 
 ```{r, fig.height=8, fig.width=8}
 plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = FALSE)
-```
-
-```{r}
-plotUMAP(sfe, colour_by = "cluster", rasterise = FALSE)
 ```
 
 Plot the location of the clusters in space
@@ -572,9 +552,7 @@ markers[[6]]
 The code below extracts the significant markers for each cluster:
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", 
-              # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
-              )
+plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 This allows for plotting more top marker genes in a heatmap:
@@ -606,7 +584,7 @@ sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "kn
 ```
 
 ```{r, fig.width=9, fig.height=9}
-plotLocalResult(sfe, type = "localmoran", features = genes_use, 
+plotLocalResult(sfe, "localmoran", features = genes_use, 
                 colGeometryName = "centroids", ncol = 3, divergent = TRUE,
                 diverge_center = 0, scattermore = TRUE, pointsize = 0.3)
 ```
@@ -620,7 +598,7 @@ sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
 ```
 
 ```{r, fig.width=9, fig.height=9}
-plotLocalResult(sfe, type = "LOSH", features = genes_use, 
+plotLocalResult(sfe, "LOSH", features = genes_use, 
                 colGeometryName = "centroids", ncol = 3, scattermore = TRUE, 
                 pointsize = 0.3)
 ```

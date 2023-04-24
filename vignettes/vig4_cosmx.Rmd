@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -71,7 +71,7 @@ library(stringr)
 library(spdep)
 library(BiocParallel)
 library(BiocSingular)
-theme_set(theme_void())
+theme_set(theme_bw())
 ```
 
 ```{r}
@@ -80,17 +80,14 @@ theme_set(theme_void())
 
 Only the first biological replicate is included in the `SFEData` package. This biological replicate has 980 features and 100,290 cells. Take a look at the cells in space:
 ```{r}
-ggplot(cellSeg(sfe)) + geom_sf() +
-    theme_bw() +
-    scale_x_continuous(expand = expansion()) +
-    scale_y_continuous(expand = expansion())
+plotGeometry(sfe, MARGIN = 2L, type = "cellSeg")
 ```
 
 With single cell resolution, a lot of the details can be seen, although there's some artifact from borders of fields of view (FOVs).
 
 Plot cell density
 ```{r}
-plotCellBin2D(sfe) + theme_bw()
+plotCellBin2D(sfe, hex = TRUE)
 ```
 
 # Quality control (QC)
@@ -109,9 +106,7 @@ Since plotting 100,000 polygons is slow and the plot isn't large enough for us t
 ```{r}
 # Function to plot violin plot for distribution and spatial at once
 plot_violin_spatial <- function(sfe, feature) {
-    violin <- plotColData(sfe, feature, 
-                          # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
-                          )
+    violin <- plotColData(sfe, feature, point_fun = function(...))
     spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "centroids",
                                   scattermore = TRUE)
     violin + spatial +
@@ -137,8 +132,7 @@ colData(sfe)$nGenes_normed <- sfe$nGenes/n_panel
 ```
 
 ```{r}
-plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed")) +
-    theme_bw()
+plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed"))
 ```
 
 This means the cells mostly have less than 1 transcript count per gene on average, which is not surprising since not all cells express all genes. Most cells are detected to express less than 30% of all genes probed.
@@ -156,8 +150,7 @@ Based on the spatial plot, it seems that nCounts and nGenes are biologically rel
 
 How nCounts relates to nGenes
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "nGenes") +
-    theme_bw()
+plotColDataBin2D(sfe, "nCounts", "nGenes")
 ```
 
 What's the nature of the cells without transcripts?
@@ -206,15 +199,14 @@ The NA's are empty cells, and the proportion is very low except for a few outlie
 
 ```{r}
 plotColDataBin2D(sfe, "nCounts", "prop_neg") +
-    scale_fill_viridis_c() + theme_bw()
+    scale_fill_viridis_c()
 ```
 
 This looks kind of like the proportion of mitochondrial counts vs. nCounts plot for scRNA-seq, where cells with fewer total counts tend to have higher proportion of mitochondrial counts.
 ```{r}
 # The zeros are removed
 plotColDataHistogram(sfe, "prop_neg") +
-    scale_x_log10() +
-    theme_bw()
+    scale_x_log10()
 ```
 
 The distribution is not obviously bimodal, and since the x-axis is log transformed to better visualize the distribution, the 0's have been removed. It's kind of arbitrary; for now we'll remove cells with more than 10% of transcripts from negative controls.
@@ -251,8 +243,7 @@ plotRowDataBin2D(sfe, "means", "vars", subset = "is_neg", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
     annotation_logticks() +
-    coord_equal() +
-    theme_bw()
+    coord_equal()
 ```
 
 The red line $y = x$ is expected from Poisson data. Gene expression in this dataset has more variance than expected from Poisson, even for gene with lower expression. Zoom into the negative controls
@@ -264,8 +255,7 @@ as.data.frame(rowData(sfe)[neg_inds,]) |>
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
     annotation_logticks() +
-    coord_equal() +
-    theme_bw()
+    coord_equal()
 ```
 
 Among the "high quality" cells, the negative controls still have higher variance relative to mean compared to Poisson. 
@@ -290,7 +280,7 @@ See [Chapter 14 of Spatial Data Science](https://r-spatial.org/book/14-Areal.htm
 
 While `spdep` caters to areal data, `gstat` caters to geostatistical data, where a continuous spatial process is sampled at point locations. In some ways, spatial transcriptomics data is analogous to geostatistical data. Visium samples the supposed spatial biological process in a regular hexagonal grid, if we pretend that Visium spots are points. In smFISH-based single cell resolution data, the cells observed can be thought of as a sample of an underlying spatial biological process supervening on the specific locations of the cells. In a sense, the cells are not samples, since smFISH based technologies attempt to visualize all cells in the tissue section. However, as the biological function of the tissue does not depend on this particular spatial arrangement of individual cells (i.e. supervenes on this particular spatial arrangement), but more of cell types, the specific cell locations observed can be thought of as samples of the process, if we consider the cell the basic unit of the spatial process. 
 
-In the next release of Voyager, we plan to add semivariograms (from the [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) package) as an exploratory tool to identify the presence of spatial autocorrelation, its length scale, and anisotropy (i.e. different in different directions). Covariates can be specified when computing the variogram to account for spatial trends and adjust for another spatial variable. However, unlike Morans's I, the semivariogram can't identify negative spatial autocorrelation, although since the spatial neighborhood graph typically does not encode spatial directions, `spdep` autocorrelation metrics can't identify anisotropy. Another problem with the semivariogram is that it assumes that the data is intrinsically stationary, i.e. the semivariogram holds in the entire dataset, or that similarity between two cells only depends on their distance from each other, which may not be the case when spatial autocorrelation varies in space as evident for some genes in local spatial analyses. 
+In Voyager 1.2.0 (Bioconductor 3.17), we have added semivariograms (from the [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html) package) as an exploratory tool to identify the presence of spatial autocorrelation, its length scale, and anisotropy (i.e. different in different directions). Covariates can be specified when computing the variogram to account for spatial trends and adjust for another spatial variable. However, unlike Morans's I, the semivariogram can't identify negative spatial autocorrelation, although since the spatial neighborhood graph typically does not encode spatial directions, `spdep` autocorrelation metrics can't identify anisotropy. Another problem with the semivariogram is that it assumes that the data is intrinsically stationary, i.e. the semivariogram holds in the entire dataset, or that similarity between two cells only depends on their distance from each other, which may not be the case when spatial autocorrelation varies in space as evident for some genes in local spatial analyses. 
 
 Single cell smFISH based data is also dissimiliar to both areal and geostatistical data in important ways. In geospatial areal data, data from numerous basic units of the spatial process (e.g. people in epidemiology) are aggregated over areas (e.g. cities), whereas in histological space, the cell is arguably a more sensible basic unit of the biological spatial process than individual mRNA molecules. Unlike in geostatistical data, the cells as seen in the tissue section are often polygons tessellating the tissue section rather than points. Furthermore, while ideally the samples of the underlying spatial process should not affect the spatial process itself in geostatistical data, the cells play active roles in the biological spatial process. 
 
@@ -333,8 +323,7 @@ system.time(
 Note that `MulticoreParam()` doesn't work on Windows; this vignette was built on Linux. Use `SnowParam()` or `DoparParam()` for Windows. See `?BiocParallelParam` for the available parallel processing backends. We did not notice significant performance differences between `ShowParam()` and `MulticoreParam()` in this context.
 
 ```{r}
-plotCorrelogram(sfe, features_use) +
-    theme_bw()
+plotCorrelogram(sfe, features_use)
 ```
 
 They seem to have similar length scales, but aspect ratios tend to decay more quickly.
@@ -348,10 +337,10 @@ In the first panel, the density is for all points in this plot, and in the secon
 ```{r, fig.width=8, fig.height=7}
 p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE)
 p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
-p1 / p2 + plot_layout(guides = "collect") & theme_bw()
+p1 / p2 + plot_layout(guides = "collect")
 ```
 
-There are no obvious clusters in this plot but the clusters may be obscured by overplotting.
+There are no obvious clusters in this plot.
 
 Local Moran's I for nCounts
 ```{r}
@@ -406,11 +395,11 @@ sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
 ```
 
 ```{r}
-ElbowPlot(sfe, ndims = 30) + theme_bw()
+ElbowPlot(sfe, ndims = 30)
 ```
 
 ```{r}
-plotDimLoadings(sfe, dims = 1:6) + theme_bw()
+plotDimLoadings(sfe, dims = 1:6)
 ```
 
 ```{r, fig.width=9, fig.height=9}
@@ -419,11 +408,6 @@ spatialReducedDim(sfe, "PCA", 6, colGeometryName = "centroids", divergent = TRUE
 ```
 
 The first PC highlights the epithelium. PC2 highlights T cells. PC4 might highlight other leukocytes. Need to check the genes with the highest loadings to find what the other PCs mean.
-
-```{r}
-set.seed(29)
-sfe <- runUMAP(sfe, dimred = "PCA", n_dimred = 15)
-```
 
 Non-spatial clustering and locating the clusters in space
 ```{r}
@@ -435,12 +419,13 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
                                             objective_function = "modularity")))
 ```
 
-```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster")
+```{r}
+data("ditto_colors")
 ```
 
-```{r}
-plotUMAP(sfe, colour_by = "cluster")
+```{r, fig.height=8, fig.width=8}
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster") +
+    scale_color_manual(values = ditto_colors)
 ```
 
 ```{r}
@@ -468,9 +453,7 @@ markers[[6]]
 Get the the significant marker for each cluster to plot. Since there're too many points, here we used the development version of `scater` to not to plot the points, which are uninformative due to overplotting and make this plot really slow.
 ```{r}
 genes_use <- vapply(markers, function(x) rownames(x)[1], FUN.VALUE = character(1))
-plotExpression(sfe, genes_use, x = "cluster", 
-               # point_fun = function(...) list() # uncomment to not to plot points (only in devel version of scater)
-               )
+plotExpression(sfe, genes_use, x = "cluster", point_fun = function(...) list())
 ```
 
 Plot more top marker genes in a heatmap
@@ -499,7 +482,7 @@ sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "kn
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotLocalResult(sfe, type = "localmoran", features = genes_use, 
+plotLocalResult(sfe, "localmoran", features = genes_use, 
                 colGeometryName = "centroids", ncol = 2, divergent = TRUE,
                 diverge_center = 0, scattermore = TRUE)
 ```
@@ -513,7 +496,7 @@ sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotLocalResult(sfe, type = "LOSH", features = genes_use, 
+plotLocalResult(sfe, "LOSH", features = genes_use, 
                 colGeometryName = "centroids", ncol = 2, scattermore = TRUE)
 ```
 

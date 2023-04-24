@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -80,6 +80,8 @@ library(ggplot2)
 library(sparseMatrixStats)
 library(dplyr)
 library(reticulate)
+library(concordexR)
+library(BiocNeighbors)
 theme_set(theme_bw(10))
 ```
 
@@ -114,6 +116,15 @@ The SFE object of this dataset is provided in the `SFEData` package; we begin by
 The authors provided the full resolution hematoxylin and eosin (H&E) image on GEO, which we downsized to facilitate its display:
 ![A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers.](https://raw.githubusercontent.com/pachterlab/voyager/documentation/vignettes/tissue_lowres_5a.jpeg)
 
+The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
+```{r}
+sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+              image_id = "lowres", 
+              scale_fct = 1024/22208)
+sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
+```
+
+
 # Quality control
 ## Spots
 We begin quality control (QC) by plotting various metrics both as violin plots and in space. The QC metrics are pre-computed and stored in `colData` (for spots) and `rowData` of the SFE object.
@@ -122,13 +133,15 @@ We begin quality control (QC) by plotting various metrics both as violin plots a
 names(colData(sfe))
 ```
 
-Below we plot the total unique molecular identifier (UMI) counts per spot. The commented out line of code shows how to compute the total UMI counts.
+Below we plot the total unique molecular identifier (UMI) counts per spot. The commented out line of code shows how to compute the total UMI counts. The `maxcell` argument is the maximum number of pixels to plot for the image; the image is downsampled if it has more pixels than `maxcells`. This can speed up plotting when plotting the same image in multiple facets.
 ```{r}
 # colData(sfe)$nCounts <- colSums(counts(sfe))
 violin <- plotColData(sfe, "nCounts", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary") +
+                              annotGeometryName = "tissueBoundary", 
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -142,8 +155,8 @@ violin <- plotColData(sfe, "nGenes", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "spotPoly",
                               annotGeometryName = "tissueBoundary",
-                              annot_fixed = list(fill = NA, color = "black", 
-                                                 size = 0.5)) +
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -163,8 +176,8 @@ violin <- plotColData(sfe, "prop_mito", x = "in_tissue", colour_by = "in_tissue"
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "prop_mito", colGeometryName = "spotPoly",
                               annotGeometryName = "tissueBoundary",
-                              annot_fixed = list(fill = NA, color = "black", 
-                                                 size = 0.5)) +
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -252,7 +265,7 @@ ElbowPlot(sfe_tissue, ndims = 30)
 ```
 
 ```{r}
-plotDimLoadings(sfe_tissue, dims = 1:4)
+plotDimLoadings(sfe_tissue, dims = 1:4, swap_rownames = "symbol")
 ```
 
 Do the clustering to show on the dimension reduction plots
@@ -269,15 +282,14 @@ colData(sfe_tissue)$cluster <- clusterRows(reducedDim(sfe_tissue, "PCA")[,1:3],
 plotPCA(sfe_tissue, ncomponents = 3, colour_by = "cluster")
 ```
 
-The principal components (PCs) can be plotted in space. Due to spatial autocorrelation of many genes and spatial regions of different histological characters, even though spatial information is not used in the PCA procedure, the PCs may show spatial structure.
+The principal components (PCs) can be plotted in space. Due to spatial autocorrelation of many genes and spatial regions of different histological characters, even though spatial information is not used in the PCA procedure, the PCs may show spatial structure. 
 ```{r, fig.width=6, fig.height=8}
 spatialReducedDim(sfe_tissue, "PCA", ncomponents = 4, 
                   colGeometryName = "spotPoly", divergent = TRUE, 
-                  diverge_center = 0) &
-    theme_void()
+                  diverge_center = 0, image = "lowres", maxcell = 5e4)
 ```
 
-PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
+PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlights the center of the injury site and some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
 
 It is also possible to run UMAP following the PCA, as is done for scRNA-seq. We do not recommend producing a UMAP since the procedure distorts distances, and does not respect either local or global structure in the data [@Chari2021-hb]. However, for completeness, we show how to compute a UMAP below:
 ```{r}
@@ -289,9 +301,30 @@ sfe_tissue <- runUMAP(sfe_tissue, dimred = "PCA", n_dimred = 3)
 plotUMAP(sfe_tissue, colour_by = "cluster")
 ```
 
+UMAP is often used to visualize clusters. An alternative to UMAP is [`concordex`](https://bioconductor.org/packages/devel/bioc/html/concordexR.html), which quantitatively shows the proportion of neighbors on the k nearest neighbor graph with the same cluster label. To be consistent with the default in igraph Leiden clustering, we use k = 10.
+
+```{r}
+g <- findKNN(reducedDim(sfe_tissue, "PCA")[,1:3], k = 10)
+res <- calculateConcordex(g$index, labels = sfe_tissue$cluster, k = 10, 
+                          return.map = TRUE)
+```
+
+The cluster labels are permuted to estimate a null distribution, and the observed values can be compared to the simulated values:
+```{r}
+plotConcordexSim(res)
+```
+
+The observed value is much higher than in the simulated values, indicating good clustering. The single number is the average of all clusters. Values for different clusters can be plotted in a heatmap:
+```{r, fig.width=5, fig.height=4}
+heatConcordex(res, angle_col = 0, cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+The diagonal represents the proportion of neighbors of cells from each cluster that are from the same cluster. That the off diagonal entries are very low indicate good clustering.
+
 More interesting in spatial transcriptomics, is to locate the clusters in space, and this can be done as follows:
 ```{r}
-plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly")
+plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly",
+                   image = "lowres")
 ```
 
 While spatial information is not explicitly used in clustering, due to spatial autocorrelation of gene expression and the histological regions, some of these clusters are spatially contiguous. There are many methods to find spatially informed clusters, such as [`BayesSpace`](https://bioconductor.org/packages/release/bioc/html/BayesSpace.html) [@Zhao2021-vb], which is on Bioconductor.
@@ -311,7 +344,7 @@ markers <- findMarkers(sfe_tissue, groups = colData(sfe_tissue)$cluster,
 
 The result is sorted by p-values:
 ```{r}
-markers[[6]]
+markers[[1]]
 ```
 
 We can use the [gget enrichr](https://pachterlab.github.io/gget/enrichr.html) module from the [gget](https://pachterlab.github.io/gget/) package to perform a gene enrichment analysis. You can choose from >200 enrichment databases which are listed on the [Enrichr website](https://maayanlab.cloud/Enrichr/#libraries). Here, we are analyzing the top 20 genes for cluster 1 using the default ontology database [GO_Biological_Process_2021](http://geneontology.org/):
@@ -377,9 +410,9 @@ select(gget_info, ncbi_description)
 ```
 
 These genes are interesting to view in spatial context:
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 4) &
-    theme_void()
+```{r, fig.width=9, fig.height=7}
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 3,
+                   image = "lowres", maxcell = 5e4, swap_rownames = "symbol")
 ```
 
 # Moran's I
@@ -443,9 +476,9 @@ select(gget_info2, ncbi_description)
 ```
 
 Let's plot these genes:
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") &
-    theme_void()
+```{r, fig.width=9, fig.height=7}
+plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly",
+                   image = "lowres", maxcell = 5e4, swap_rownames = "symbol")
 ```
 
 These genes do indeed look spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran's I, such as [`SpatialDE`](https://bioconductor.org/packages/release/bioc/html/spatialDE.html) [@Svensson2018-sx]. However, such methods usually don't account for the histological regions, except for `C-SIDE` [@Cable2022-ma], which identifies spatially variable genes within cell types. This leads to the question of what is really meant by "cell type". It remains to see how spatial methods made specifically for identifying spatially variable genes compare with methods that don't explicitly use spatial information but simply perform differential analysis between cell types which often are in spatially defined histological regions. 

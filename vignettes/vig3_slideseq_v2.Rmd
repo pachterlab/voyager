@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.16", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -132,8 +132,7 @@ violin <- plotColData(sfe, "log_nCounts") +
 
 spatial <- plotSpatialFeature(sfe, features = "log_nCounts",
                                colGeometryName = "centroids",
-                              size = 0.2) +
-    theme_void()
+                              size = 0.2)
 violin + spatial
 ```
 
@@ -148,8 +147,7 @@ violin <- plotColData(sfe, "nGenes") +
 
 spatial <- plotSpatialFeature(sfe, features = "nGenes",
                               colGeometryName = "centroids",
-                              size = 0.2) +
-    theme_void()
+                              size = 0.2)
 violin + spatial
 ```
 
@@ -230,8 +228,7 @@ We see that the first few components explain most of the variance in the data. T
 ```{r}
 spatialReducedDim(sfe_filt, "PCA", ncomponents = 4, 
                   colGeometryName = "centroids", divergent = TRUE, 
-                  diverge_center = 0, scattermore = TRUE, pointsize = 0.5) &
-    theme_void()
+                  diverge_center = 0, scattermore = TRUE, pointsize = 0.5)
 ```
 
 Without the cellular overlays, we can only speculate about the potential relevance of the barcodes that seem to be separated by each PC, but each PC doe seem to separate distinct neighborhoods of barcodes.  
@@ -250,8 +247,7 @@ colData(sfe_filt)$cluster <- clusterRows(reducedDim(sfe_filt, "PCA")[,1:3],
 The plot below is colored by cluster id. A naive interpretation of the plot shows distinct niches of barcodes separated by more abundant, intervening types. This may be indicative of the biological processes at hand, namely melanoma metastasis, where 'hotspots' of melanoma proliferation would be separated by unaffected normal tissue. 
 ```{r}
 plotSpatialFeature(sfe_filt, "cluster", colGeometryName = "centroids") +
-  guides(colour = guide_legend(override.aes = list(size=3))) +
-    theme_void()
+  guides(colour = guide_legend(override.aes = list(size=3)))
 ```
 
 ## Moran's *I*
@@ -269,8 +265,7 @@ Now, we might ask: which genes display the most spatial autocorrelation?
 top_moran <- rownames(sfe_filt)[order(rowData(sfe_filt)$moran_sample01, 
                                       decreasing = TRUE)[1:4]]
 plotSpatialFeature(sfe_filt, top_moran, colGeometryName = "centroids",
-                   scattermore = TRUE, pointsize = 0.5) &
-    theme_void()
+                   scattermore = TRUE, pointsize = 0.5)
 ```
 
 Spatial variability can also be investigated using  differential expression testing known anatomical regions complemented with spatial location. One potential drawback to this approach is the variability that is induced by the melanoma, rather than the native tissue architecture, which may preclude identification of typical structures. 
