@@ -915,7 +915,8 @@ if (!dir.exists("outs")) dir.create("outs")
 mat_fn <- file.path("outs", "filtered_feature_bc_matrix.h5")
 if (!file.exists(mat_fn))
     download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_filtered_feature_bc_matrix.h5",
-                  destfile = file.path("outs", "filtered_feature_bc_matrix.h5"))
+                  destfile = file.path("outs", "filtered_feature_bc_matrix.h5"),
+                  mode = "wb")
 if (!dir.exists(file.path("outs", "spatial"))) {
     download.file("https://cf.10xgenomics.com/samples/spatial-exp/2.0.0/Visium_Mouse_Olfactory_Bulb/Visium_Mouse_Olfactory_Bulb_spatial.tar.gz",
                   destfile = file.path("outs", "spatial.tar.gz"))
