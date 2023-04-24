@@ -394,7 +394,7 @@
                                        exprs_values, BPPARAM, zero.policy,
                                        returnDF = TRUE,
                                        include_self = include_self, p.adjust.method = p.adjust.method,
-                                       ...
+                                       name = name, ...
             )
             if (local) {
                 x <- .add_localResults_info(x, sample_id = s,
