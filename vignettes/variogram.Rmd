@@ -1,0 +1,232 @@
+---
+title: "Variogram"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{variogram}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+# Other packages used in this vignette
+packageVersion("Voyager")
+```
+
+# Introduction
+In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process model to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. The semivariogram is defined as
+
+$$
+\gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
+$$
+
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2, which comes from the assumption that the Gaussian process is intrinsically stationary, i.e. the covariance between two locations only depends on the spatial lag between them:
+
+$$\begin{align}
+\mathrm{Var}(X_{t_2} - X_{t_1}) &= \mathrm{Var}(X_{t_2}) + \mathrm{Var}(X_{t_1}) - 2\mathrm{Cov}(X_{t_2}, X_{t_1}) \\
+&= 2\rho(0) - 2\rho(t_2 - t_1),
+\end{align}$$
+
+where $\rho$ is a covariance function and $t_1$ and $t_2$ are spatial locations. A model can be fitted to the empirical semivariogram, to model this $\rho$.
+
+This vignette demonstrates the variogram as an ESDA tool, including interpretation of the univariate variogram, anisotropic variograms (variograms in different directions), variogram maps, and bivariate cross variograms.
+
+Here we load the packages:
+```{r, message=FALSE}
+library(Voyager)
+library(SFEData)
+library(SpatialFeatureExperiment)
+library(scater)
+library(scran)
+library(ggplot2)
+library(BiocParallel)
+library(bluster)
+library(dplyr)
+theme_set(theme_bw())
+```
+
+The Slide-seq melanoma metastasis data [@Biermann2022-cu] is used for demonstration. QC is performed in [another vignette](https://pachterlab.github.io/voyager/articles/vig3_slideseq_v2.html).
+```{r}
+(sfe <- BiermannMelaMetasData(dataset = "MBM05_rep1"))
+```
+
+```{r}
+sfe <- sfe[, colData(sfe)$prop_mito < 0.1]
+sfe <- sfe[rowSums(counts(sfe)) > 0,]
+```
+
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+Variograms will be demonstrated on some of the top highly variable genes (HVGs)
+```{r}
+dec <- modelGeneVar(sfe)
+hvgs <- getTopHVGs(dec, n = 50)
+```
+
+# Variogram
+The same user interface used to run Moran's I can be used to compute variograms. However, since the variogram uses spatial distances instead of spatial neighborhood graph, the `colGraph` does not need to be specified. Instead, a `colGeometry` can be specified, and if the geometry is not `POINT`, then `spatialCoords(sfe)` will be used to compute the distances. Behind the scene, the [`automap`](https://github.com/cran/automap/tree/master) package is used, which fits a number of different variogram models to the empirical variogram and chooses one that fits the best. The `automap` package is a user friendly wrapper of `gstat`, a time honored package for geostatistics.
+
+```{r}
+sfe <- runUnivariate(sfe, "variogram", hvgs, BPPARAM = SnowParam(2),
+                     model = "Ste")
+```
+
+```{r}
+plotVariogram(sfe, hvgs[1:4], name = "variogram")
+```
+
+The data is binned by distance between spots and the semivariance is computed for each bin. The numbers by the points in the plot indicate the number of pairs of spots in each bin. "Ste" means the Matern model with M. Stein's parameterization was fitted to the points. 
+
+Nugget is the variance at distance 0, or variance within the first distance bin. The data is scaled by default prior to variogram computation to make the variograms for multiple genes comparable. 
+
+Spatial autocorrelation makes the variance smaller at shorter distances. When the variogram levels off, it means that spatial autocorrelation no longer has an effect at this distance. Sill is the semivariance where the variogram levels off. Range is the distance where the variogram levels off. 
+
+In the first 4 genes, IGHG3 and IGKC seem to have stronger spatial autocorrelation that dissipate in 100 to 200 units (whether it's microns or pixels is unclear from the publication), whereas spatial autocorrelation of B2M and MT-RNR1 is much weaker and has longer length scale. 
+
+Here the genes are plotted in space:
+
+```{r, fig.width=9, fig.height=6}
+plotSpatialFeature(sfe, hvgs[1:4], size = 0.3) & 
+    theme_bw() # To show the length units
+```
+
+The length scales of spatial autocorrelation for these genes are quite obvious from just plotting the genes. Then what's the point of plotting variograms for ESDA? We can also compute variograms for a larger number of genes and cluster the variograms for patterns in spatial autocorrelation length scales, or compare variograms of the same genes across different samples. Here we cluster the variograms for top highly variable genes (HVGs):
+
+The `BLUSPARAM` argument is used to specify methods of clustering, as implemented in the `bluster` package. Here we use hierarchical clustering.
+```{r}
+clusts <- clusterVariograms(sfe, hvgs, BLUSPARAM = HclustParam())
+```
+
+Then plot the clusters:
+```{r}
+plotVariogram(sfe, hvgs, color_by = clusts, group = "feature", use_lty = FALSE,
+              show_np = FALSE)
+```
+
+It seems that there are many genes, like MT-RNR1, with weak spatial autocorrelation over longer length scales, genes with stronger and shorter range spatial autocorrelation (around 150 to 200 units) like IGKC, and genes with somewhat longer length scale of spatial autocorrelation (around 400 units).
+
+Plot one gene from each cluster in space:
+```{r}
+genes_clusts <- clusts |> 
+    group_by(cluster) |> 
+    slice_head(n = 1) |> 
+    pull(feature)
+```
+
+```{r, fig.width=10, fig.height=6}
+plotSpatialFeature(sfe, genes_clusts, size = 0.3)
+```
+
+MT-RNR1 is more widely expressed. IGKC and ICHC3 are restricted to smaller areas, and IGHM is restricted to even smaller areas. Note that genes with variograms in the same cluster don't have to be co-expressed; they only need to have similar length scales and strengths of spatial autocorrelation.
+
+# Anisotropy
+Anisotropy means different in different directions. An example is the cerebral cortex, which has a layered structure. The variogram can be computed in different directions.
+
+## Anisotropic variogram
+The directions on which to compute variograms can be explicitly specified, in the `alpha` argument. However, since `gstat` does not fit anisotropic variograms, the model is fitted to all directions and the empirical variograms at each angle are plotted separately. Here we compute anisotropic variograms for the 4 genes above:
+
+```{r}
+sfe <- runUnivariate(sfe, "variogram", genes_clusts, alpha = c(0, 45, 90, 135),
+                     # To not to overwrite omnidirectional variogram results
+                     name = "variogram_anis", model = "Ste", 
+                     BPPARAM = SnowParam(2))
+```
+
+```{r}
+plotVariogram(sfe, genes_clusts, group = "angle", name = "variogram_anis",
+              show_np = FALSE)
+```
+
+Here the line is the variogram model fitted to all directions and the text describes this model. The points show the angles in different colors. Zero degree points north (up), and the angles go clockwise.
+
+## Variogram map
+
+The variogram map is another way to visualize spatial autocorrelation in different directions. It bins distances in x and distances in y, so we have a grid of distances where the variance is computed. Just like the variograms above, the origin usually has a low value, because spatial autocorrelation reduces the variance in a short distance, and the values increase with increasing distance from the origin, but it can increase more quickly in some directions than others. Here to compute variogram maps for the 4 genes above:
+
+```{r}
+sfe <- runUnivariate(sfe, "variogram_map", genes_clusts, width = 100, 
+                     cutoff = 800, BPPARAM = SnowParam(2), name = "variogram_map2")
+```
+
+The `width` argument is the width of the bins, and `cutoff` is the maximum distance.
+
+```{r}
+plotVariogramMap(sfe, genes_clusts, name = "variogram_map2")
+```
+
+# Cross variogram
+The cross variogram is used in cokriging, which uses multiple variables in the spatial interpolation model. The cross variogram is defined as
+
+$$
+\gamma(t) = \frac 1 2 \mathrm{Cov}(X_t - X_0, Y_t - Y_0),
+$$
+
+where $Y$ is another variable. The cross variogram also has nugget, sill, and range. It shows how the covariance between two variables changes with distance. `Voyager` supports multiple bivariate spatial methods, and the cross variogram is one of them. Just like for univariate spatial methods, `Voyager` provides a uniform user interface for bivariate methods. However, bivariate local methods can't be stored in the SFE object at present because they tend to have very different formats in outputs (e.g. a correlation matrix for Lee's L and a list for most other methods) some of which may not be straightforward to store in the SFE object.
+
+```{r}
+cross_v <- calculateBivariate(sfe, "cross_variogram", 
+                              feature1 = "IGKC", feature2 = "IGHG3")
+```
+
+```{r}
+plotCrossVariogram(cross_v, show_np = FALSE)
+```
+
+The facets are shown in a matrix, whose diagonal is the variogram for each gene, and off diagonal entries are cross variograms. Here for IGKC and IGHG3, the length scale of the covariance is similar to that of spatial autocorrelation. 
+
+There is also a cross variogram map to show the cross variogram in different directions:
+```{r}
+cross_v_map <- calculateBivariate(sfe, "cross_variogram_map",
+                                  feature1 = "IGKC", feature2 = "IGHG3",
+                                  width = 100, cutoff = 800)
+```
+
+```{r}
+plotCrossVariogramMap(cross_v_map)
+```
+
+# Session Info
+
+
+# References
