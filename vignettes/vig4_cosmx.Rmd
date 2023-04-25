@@ -106,7 +106,7 @@ Since plotting 100,000 polygons is slow and the plot isn't large enough for us t
 ```{r}
 # Function to plot violin plot for distribution and spatial at once
 plot_violin_spatial <- function(sfe, feature) {
-    violin <- plotColData(sfe, feature, point_fun = function(...))
+    violin <- plotColData(sfe, feature, point_fun = function(...) list())
     spatial <- plotSpatialFeature(sfe, feature, colGeometryName = "centroids",
                                   scattermore = TRUE)
     violin + spatial +
