@@ -374,7 +374,7 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
             facet_wrap(f, ncol = ncol)
     }
     p <- p +
-        labs(x = "Distance", y = "Semivariance",
+        labs(x = "Distance", y = "Variance",
              title = "Experimental variogram and fitted variogram model")
     p
 }
@@ -386,7 +386,7 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
 #'
 #' @inheritParams plotVariogram
 #' @param plot_np Logical, whether to plot the number of pairs in each distance
-#'   bin instead of the semivariance.
+#'   bin instead of the variance.
 #' @return A ggplot object.
 #' @seealso plotVariogram
 #' @export
@@ -427,7 +427,7 @@ plotVariogramMap <- function(sfe, features, sample_id = "all", plot_np = FALSE,
         name_use <- "Number\nof pairs"
     } else {
         aes_use <- modifyList(aes_use, aes(fill = var1))
-        name_use <- "Semivariance"
+        name_use <- "Variance"
     }
     p <- ggplot(df, aes_use) +
         geom_tile() +
@@ -552,7 +552,7 @@ plotCrossVariogramMap <- function(res, plot_np = FALSE) {
     } else {
         cols_use <- cols_use[!is_np]
         res <- res[,c(cols_use, "dx", "dy")]
-        name_use <- "Semivariance"
+        name_use <- "Variance"
     }
     res <- reshape(res, varying = cols_use, direction = "long",
                    v.names = "value", timevar = "variable",
