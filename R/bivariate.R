@@ -123,7 +123,7 @@ setMethod("calculateBivariate", "ANY",
                   out <- .call_fun(x, y, type, listw = listw,
                                    zero.policy = zero.policy,
                                    coords_df = coords_df,
-                                   simplify = !is.vector(x) && is.vector(y), ...)
+                                   simplify = !(is.vector(x) && is.vector(y)), ...)
               } else {
                   # fun only takes vectors for x and y and at least one of x and y is a matrix
                   x <- .to_mat1(x, "x")

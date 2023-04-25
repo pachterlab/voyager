@@ -63,9 +63,11 @@
         dots$formula <- NULL
     }
     if (!is.null(y)) {
+        do_message <- nrow(x) > 1L || nrow(y) > 1L
         x <- rbind(x, y)
         rownames(x) <- make.names(rownames(x)) # in case of duplicates
-        message("Cross correlograms within columns of x and within columns of y are also computed.")
+        if (do_message)
+            message("Cross correlograms within columns of x and within columns of y are also computed.")
     }
     ns <- rownames(x)
     x <- t(x)
