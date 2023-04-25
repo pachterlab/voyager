@@ -4,7 +4,7 @@
 name: pkgdown-devel
 on:
   schedule:
-    - cron: "30 22 * * *"
+    - cron: "13 13 * * *"
 jobs:
   pkgdown:
     runs-on: macos-12
@@ -28,9 +28,6 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-      - name: Install github version of scater
-        run: remotes::install_github("Alanocallaghan/scater")
-        shell: Rscript {0}
       - name: Setup python
         uses: actions/setup-python@v2
         with:
