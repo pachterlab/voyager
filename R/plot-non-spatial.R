@@ -227,6 +227,9 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     function(sce, x, y, facet_by = NULL, subset = NULL, bins = 100,
              binwidth = NULL, hex = FALSE, name_true = NULL, name_false = NULL,
              ncol = NULL, ...) {
+        lifecycle::deprecate_warn("1.2.0", I("plotCol/RowDataBin2D()"),
+                                  with = I("scater::plotCol/RowData()"),
+                                  details = "Set `bins` argument to enable binning.")
         args <- list(...)
         if (missing(sce) && "sfe" %in% names(args)) {
             warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
