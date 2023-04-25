@@ -8,7 +8,10 @@
 [![codecov](https://codecov.io/gh/pachterlab/voyager/branch/devel/graph/badge.svg?token=RCIXA7AQER)](https://codecov.io/gh/pachterlab/voyager)
 <!-- badges: end -->
 
+
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
+
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
 
 [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) is a package that facilitates exploratory spatial data analysis and visualization for spatial genomics data represented by [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) objects. 
 
@@ -22,10 +25,9 @@ Questions, suggestions, or problems should be submitted as [GitHub issues](https
 `SpatialFeatureExperiment` and `Voyager` can be installed from Bioconductor version 3.16 or higher:
 
 ```r
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install()
-BiocManager::install(c("SpatialFeatureExperiment", "Voyager"))
+if (!requireNamespace("BiocManager")) install.packages("BiocManager")
+BiocManager::install(version = "3.17") # Or a higher version in the future
+BiocManager::install("Voyager")
 ```
 
 <img src="https://github.com/pachterlab/voyager/raw/documentation/vignettes/voyager_schematics.png" width="1024"/>
