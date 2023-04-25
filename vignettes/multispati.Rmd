@@ -1,0 +1,205 @@
+---
+title: "MULTISPATI PCA and negative spatial autocorrelation"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{multispati}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+install.packages(c("tidyr", "tibble", "stringr"))
+
+# Other packages used in this vignette
+packageVersion("Voyager")
+```
+
+# Introduction
+Due to the large number of genes quantified in single cell and spatial transcriptomics, dimension reduction is part of the standard workflow to analyze such data, to visualize, to help interpreting the data, to distill relevant information and reduce noise, to facilitate downstream analyses such as clustering and pseudotime, to project different samples into a shared latent space for data integration, and so on.
+
+The first dimension reduction methods we learn about, such as good old principal component analysis (PCA), tSNE, and UMAP, don't use spatial information. With the rise of spatial transcriptomics, some dimension reduction methods that take spatial dependence into account have been written. Some, such as `SpatialPCA` [@Shang2022-qy], `NSF` [@Townes2023-bi], and `MEFISTO` [@Velten2022-gv] use factor analysis or probabilistic PCA which is related to factor analysis, and model the factors as Gaussian processes, with a spatial kernel for the covariance matrix, so the factors have positive spatial autocorrelation and can be used for downstream clustering where the clusters can be more spatially coherent. Some use graph convolution networks on a spatial neighborhood graph to find spatially informed embeddings of the cells, such as `conST` [@Zong2022-tb] and `SpaceFlow` [@Ren2022-qx]. `SpaSRL` [@Zhang2023-kf] finds a low dimension projection of spatial neighborhood augmented data. 
+
+Spatially informed dimension reduction is actually not new, and dates back to at least 1985, with Wartenberg's crossover of Moran's I and PCA [@Wartenberg1985-fk], which was generalized and further developed as MULTISPATI PCA [@Dray2008-en], implemented in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package on CRAN. In short, while PCA tries to maximize the variance explained by each PC, MULTISPATI maximizes the product of Moran's I and variance explained. Also, while all the eigenvalues from PCA are non-negative, because the covariance matrix is positive semidefinite, MULTISPATI can give negative eigenvalues, which represent negative spatial autocorrelation, which can be present and interesting but is not as common as positive spatial autocorrelation and is often masked by the latter [@Griffith2019-bo]. 
+
+In single cell -omics conventions, let $X$ denote a gene count matrix whose columns are cells or Visium spots and whose rows are genes, with $n$ columns. Let $W$ denote the row normalized $n\times n$ adjacency matrix of the spatial neighborhood graph of the cells or Visium spots, which does not have to be symmetric. MULTISPATI diagonalizes a symmetric matrix
+
+$$
+H = \frac 1 {2n} X(W^t+W)X^t
+$$
+
+However, the implementation in `adespatial` is more general and can be used for other multivariate analyses in the [duality diagram](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3265363/) paradigm, such as correspondence analysis; the equation above is simplified just for PCA, without having to introduce the duality diagram here.
+
+Voyager 1.2.0 (Bioconductor 3.17) has a much faster implementation of MULTISPATI PCA based on [`RSpectra`](https://cran.r-project.org/web/packages/RSpectra/index.html). See benchmark [here](https://lambdamoses.github.io/thevoyages/posts/2023-03-25-multispati-part-2/).
+
+In this vignette, we perform MULTISPATI PCA on the MERFISH mouse liver dataset. See the first vignette using this dataset [here](https://pachterlab.github.io/voyager/articles/vig6_merfish.html).
+
+Here we load the packages used:
+
+```{r setup, message=FALSE}
+library(Voyager)
+library(SFEData)
+library(SpatialFeatureExperiment)
+library(scater)
+library(scuttle)
+library(ggplot2)
+library(stringr)
+library(tidyr)
+library(tibble)
+library(BiocSingular)
+theme_set(theme_bw())
+```
+
+```{r}
+(sfe <- VizgenLiverData())
+```
+
+# Quality control
+QC was already performed in the [first vignette](https://pachterlab.github.io/voyager/articles/vig6_merfish.html). We do the same QC here, but see the first vignette for more details.
+```{r}
+is_blank <- str_detect(rownames(sfe), "^Blank-")
+sfe <- addPerCellQCMetrics(sfe, subset = list(blank = is_blank))
+```
+
+```{r}
+get_neg_ctrl_outliers <- function(col, sfe, nmads = 3, log = FALSE) {
+    inds <- colData(sfe)$nCounts > 0 & colData(sfe)[[col]] > 0
+    df <- colData(sfe)[inds,]
+    outlier_inds <- isOutlier(df[[col]], type = "higher", nmads = nmads, log = log)
+    outliers <- rownames(df)[outlier_inds]
+    col2 <- str_remove(col, "^subsets_")
+    col2 <- str_remove(col2, "_percent$")
+    new_colname <- paste("is", col2, "outlier", sep = "_")
+    colData(sfe)[[new_colname]] <- colnames(sfe) %in% outliers
+    sfe
+}
+```
+
+```{r}
+sfe <- get_neg_ctrl_outliers("subsets_blank_percent", sfe, log = TRUE)
+```
+
+Remove the outliers and empty cells:
+```{r}
+(sfe <- sfe[, !sfe$is_blank_outlier & sfe$nCounts > 0])
+```
+
+There still are over 390,000 cells left after removing the outliers. Next we compute Moran's I for QC metrics, which requires a spatial neighborhood graph:
+
+```{r}
+system.time(
+    colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
+                                                  dist_type = "idw", k = 5, 
+                                                  style = "W")
+)
+```
+
+```{r}
+sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
+                      colGraphName = "knn5")
+```
+
+```{r}
+colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),]
+```
+
+Here Moran's I is a little negative, which may or may not be significant. The lower bound of Moran's I given the spatial neighborhood graph is usually greater than -1, while the upper bound is usually around 1. The bounds given this particular spatial neighborhood graph can be found here:
+
+```{r}
+(mb <- moranBounds(colGraph(sfe, "knn5")))
+```
+
+# Non-spatial PCA
+First we run non-spatial PCA, to compare to MULTISPATI.
+```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
+set.seed(29)
+system.time(
+    sfe <- runPCA(sfe, ncomponents = 20, subset_row = !is_blank,
+                  exprs_values = "logcounts",
+                  scale = TRUE, BSPARAM = IrlbaParam())
+)
+gc()
+```
+
+That's pretty quick for almost 400,000 cells, but there aren't that many genes here. Use the elbow plot to see variance explained by each PC:
+
+```{r}
+ElbowPlot(sfe)
+```
+
+Plot top gene loadings in each PC
+```{r}
+plotDimLoadings(sfe)
+```
+
+Many of these genes seem to be related to the endothelium.
+
+Plot the first 4 PCs in space
+```{r, fig.width=9, fig.height=7}
+spatialReducedDim(sfe, "PCA", 4, colGeometryName = "centroids", scattermore = TRUE,
+                  divergent = TRUE, diverge_center = 0)
+```
+
+PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. 
+
+While PC2 and PC3 don't seem to have large scale spatial structure, they may have more local spatial structure not obvious from plotting the entire section, so we zoom into a bounding box:
+
+```{r}
+bbox_use <- c(xmin = 3000, xmax = 3500, ymin = 2500, ymax = 3000)
+```
+
+```{r, fig.width=9, fig.height=7}
+spatialReducedDim(sfe, "PCA", ncomponents = 4, colGeometryName = "cellSeg",
+                  bbox = bbox_use, divergent = TRUE, diverge_center = 0)
+```
+
+There's some spatial structure in PC2 and PC3 at a smaller scale, perhaps some negative spatial autocorrelation.
+
+
+# MULTISPATI PCA
+
+
