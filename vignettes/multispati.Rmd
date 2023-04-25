@@ -49,8 +49,6 @@ system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
 )
 
-install.packages(c("tidyr", "tibble", "stringr"))
-
 # Other packages used in this vignette
 packageVersion("Voyager")
 ```
@@ -81,12 +79,17 @@ library(Voyager)
 library(SFEData)
 library(SpatialFeatureExperiment)
 library(scater)
+library(scran)
 library(scuttle)
 library(ggplot2)
 library(stringr)
 library(tidyr)
 library(tibble)
+library(bluster)
 library(BiocSingular)
+library(BiocParallel)
+library(sf)
+library(patchwork)
 theme_set(theme_bw())
 ```
 
@@ -121,10 +124,13 @@ sfe <- get_neg_ctrl_outliers("subsets_blank_percent", sfe, log = TRUE)
 
 Remove the outliers and empty cells:
 ```{r}
-(sfe <- sfe[, !sfe$is_blank_outlier & sfe$nCounts > 0])
+inds <- !sfe$is_blank_outlier & sfe$nCounts > 0
+(sfe <- sfe[, inds])
 ```
 
-There still are over 390,000 cells left after removing the outliers. Next we compute Moran's I for QC metrics, which requires a spatial neighborhood graph:
+There still are over 390,000 cells left after removing the outliers. 
+
+Next we compute Moran's I for QC metrics, which requires a spatial neighborhood graph:
 
 ```{r}
 system.time(
@@ -135,25 +141,40 @@ system.time(
 ```
 
 ```{r}
-sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "volume"), 
-                      colGraphName = "knn5")
+features_use <- c("nCounts", "nGenes", "volume")
+sfe <- colDataUnivariate(sfe, "moran.mc", features_use, 
+                         colGraphName = "knn5", nsim = 49, 
+                         BPPARAM = MulticoreParam(2))
 ```
 
 ```{r}
-colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),]
+plotMoranMC(sfe, features_use)
 ```
 
-Here Moran's I is a little negative, which may or may not be significant. The lower bound of Moran's I given the spatial neighborhood graph is usually greater than -1, while the upper bound is usually around 1. The bounds given this particular spatial neighborhood graph can be found here:
+Here Moran's I is a little negative, but from the permutation testing, it is significant, though that can also be the large number of cells. The lower bound of Moran's I given the spatial neighborhood graph is usually closer to -0.5 than -1, while the upper bound is usually around 1. The bounds given a specific spatial neighborhood graph can be found with `moranBounds()`, but because it double centers the adjacency matrix, hence making it dense, there isn't enough memory to use it for the entire dataset. But we can look at the Moran bounds of a small subset of data, which might be generalizable to the whole dataset given that this tissue appears quite homogeneous in space.
 
 ```{r}
-(mb <- moranBounds(colGraph(sfe, "knn5")))
+bbox_use <- c(xmin = 6000, xmax = 7000, ymin = 4000, ymax = 5000)
+inds2 <- st_intersects(cellSeg(sfe), st_as_sfc(st_bbox(bbox_use)), 
+                       sparse = FALSE)[,1]
+sfe_sub <- sfe[, inds2]
 ```
+
+```{r}
+(mb <- moranBounds(colGraph(sfe_sub, "knn5")))
+```
+
+So considering the bounds, the MOran's I values of the QC metrics are more like
+```{r}
+setNames(colFeatureData(sfe)[c("nCounts", "nGenes", "volume"), 
+                             "moran.mc_statistic_sample01"] / mb["Imin"],
+         features_use)
+```
+
+whose magnitudes seem more substantial for `nCounts` and `nGenes` if it's positive spatial autocorrelation. So there may be mild to moderate negative spatial autocorrelation.
 
 # Non-spatial PCA
 First we run non-spatial PCA, to compare to MULTISPATI.
-```{r}
-sfe <- logNormCounts(sfe)
-```
 
 ```{r}
 set.seed(29)
@@ -197,9 +218,208 @@ spatialReducedDim(sfe, "PCA", ncomponents = 4, colGeometryName = "cellSeg",
                   bbox = bbox_use, divergent = TRUE, diverge_center = 0)
 ```
 
-There's some spatial structure in PC2 and PC3 at a smaller scale, perhaps some negative spatial autocorrelation.
-
+There's some spatial structure at a smaller scale, perhaps some negative spatial autocorrelation.
 
 # MULTISPATI PCA
 
+```{r}
+sfe <- runMultivariate(sfe, "multispati", colGraphName = "knn5", nfposi = 20,
+                       nfnega = 20)
+```
 
+Then plot the most positive and most negative eigenvalues. Note that the eigenvalues here are not variance explained. Instead, they are the product of variance explained and Moran's I. So the most positive eigenvalues correspond to eigenvectors that simultaneously explain more variance and have large positive Moran's I. The most negative eigenvalues correspond to eigenvectors that simultaneously explain more variance and have large negative Moran's I.
+```{r}
+ElbowPlot(sfe, nfnega = 20, reduction = "multispati")
+```
+
+Here the positive eigenvalues drop sharply from PC1 to PC4, and there is only one very negative eigenvalue which might be interesting, which is unsurprising given the moderately negative Moran's I for `nCounts` and `nGenes`. However, from the [first MERFISH vignette](https://pachterlab.github.io/voyager/articles/vig6_merfish.html#morans-i), none of the genes have very negative Moran's I. Perhaps the negative eigenvalue comes from negative spatial autocorrelation in a gene program or "eigengene" and is not obvious from individual genes. This is the beauty of multivariate analysis.
+
+What do these components mean? Each component is a linear combination of genes to maximize the product of variance explained and Moran's I. The second component maximizes this product provided that it's orthogonal to the first component, and so on. As the loss in variance explained is usually not huge, these components can be considered axes along which _spatially coherent_ groups of spots are separated from each other as much as possible according to expression of the highly variable genes, so in theory, clustering with positive MULTISPATI components should give more spatially coherent clusters. Because of the spatial coherence, MULTISPATI might be more robust to outliers.
+
+```{r}
+plotDimLoadings(sfe, dims = c(1:3, 40), reduction = "multispati")
+```
+
+From gene loadings, PC40 seems to separate blood vessels from hepatocytes.
+
+Plot the first 4 MULTISPATI PCs
+```{r, fig.width=9, fig.height=7}
+spatialReducedDim(sfe, "multispati", 4, colGeometryName = "centroids", scattermore = TRUE,
+                  divergent = TRUE, diverge_center = 0)
+```
+
+
+The first two PCs pick up zoning. PC3 and PC4 seem to have smaller scale spatial structure, so we zoom in here:
+
+```{r, fig.width=9, fig.height=7}
+spatialReducedDim(sfe, "multispati", ncomponents = 4, colGeometryName = "cellSeg",
+                  bbox = bbox_use, divergent = TRUE, diverge_center = 0)
+```
+
+What about the negative eigenvalue?
+```{r}
+spatialReducedDim(sfe, "multispati", 39:40, colGeometryName = "cellSeg", 
+                  divergent = TRUE, diverge_center = 0, bbox = bbox_use)
+```
+
+# Spatial autocorrelation of principal components
+## Moran's I
+Here we compare Moran's I for cell embeddings in each non-spatial and MULTISPATI PC:
+
+```{r}
+# non-spatial
+sfe <- reducedDimMoransI(sfe, dimred = "PCA", components = 1:20)
+# spatial
+sfe <- reducedDimMoransI(sfe, dimred = "multispati", components = 1:40)
+```
+
+```{r}
+df_moran <- tibble(PCA = reducedDimFeatureData(sfe, "PCA")$moran_sample01[1:20],
+                   MULTISPATI_pos = 
+                       reducedDimFeatureData(sfe, "multispati")$moran_sample01[1:20],
+                   MULTISPATI_neg = 
+                       reducedDimFeatureData(sfe,"multispati")$moran_sample01[21:40] |> 
+                       rev(),
+                   index = 1:20)
+```
+
+```{r}
+data("ditto_colors")
+```
+
+```{r}
+df_moran |> 
+    pivot_longer(cols = -index, values_to = "value", names_to = "name") |> 
+    ggplot(aes(index, value, color = name)) +
+    geom_line() +
+    scale_color_manual(values = ditto_colors) +
+    geom_hline(yintercept = 0) +
+    geom_hline(yintercept = mb, linetype = 2) +
+    scale_y_continuous(breaks = scales::breaks_pretty()) +
+    scale_x_continuous(breaks = scales::breaks_width(5)) +
+    labs(y = "Moran's I", color = "Type", x = "Component")
+```
+
+In MULTISPATI, Moran's I is high in PC1 and PC2, but then sharply drops. Moran's I for the PC with the most negative eigenvalues is not very negative, which means the large magnitude of that eigenvalue comes from explaining more variance. Non-spatial PCs are not sorted by Moran's I; PC5 has surprising large Moran's I. 
+
+```{r, fig.width=9, fig.height=4}
+spatialReducedDim(sfe, "PCA", 5:6, colGeometryName = "centroids", scattermore = TRUE,
+                  divergent = TRUE, diverge_center = 0)
+```
+
+PC5 must be about zonation. Also show a smaller scale:
+
+```{r, fig.width=9, fig.height=4}
+spatialReducedDim(sfe, "PCA", 5:6, colGeometryName = "cellSeg", 
+                  divergent = TRUE, diverge_center = 0, bbox = bbox_use)
+```
+
+## Moran scatter plot
+Local positive and negative spatial autocorrelation can average out in global Moran's I. From the zoomed in plots above, PCs 1, 3, 4, and 6 pick up something about the blood vessel. The Moran scatter plot can help discovering more local heterogeneity.
+```{r}
+sfe <- reducedDimUnivariate(sfe, "moran.plot", dimred = "PCA", components = 1:6)
+```
+
+```{r}
+plts <- lapply(seq_len(6), function(i) {
+    moranPlot(sfe, paste0("PC", i), binned = TRUE, hex = TRUE, plot_influential = FALSE)
+})
+```
+
+```{r, fig.width=10, fig.height=6}
+wrap_plots(plts, widths = 1, heights = 1) +
+    plot_layout(ncol = 3) +
+    plot_annotation(tag_levels = "1", 
+                    title = "Moran scatter plot for non-spatial PCs") &
+    theme(legend.position = "none")
+```
+
+PCs 1-3 have some fainter clusters outside the main cluster, indicating heterogeneous spatial autocorrelation. Also make Moran scatter plots for MULTISPATI
+
+```{r}
+sfe <- reducedDimUnivariate(sfe, "moran.plot", dimred = "multispati", 
+                            components = c(1:5, 40), 
+                            # Not to overwrite non-spatial PCA moran plots
+                            name = "moran.plot2") 
+```
+
+```{r}
+plts2 <- lapply(c(1:5, 40), function(i) {
+    moranPlot(sfe, paste0("PC", i), binned = TRUE, hex = TRUE, 
+              plot_influential = FALSE, name = "moran.plot2")
+})
+```
+
+```{r, fig.width=10, fig.height=6}
+wrap_plots(plts2, widths = 1, heights = 1) +
+    plot_layout(ncol = 3) +
+    plot_annotation(tag_levels = "1",
+                    title = "Moran scatter plot for MULTISPATI PCs") &
+    theme(legend.position = "none")
+```
+
+There are some interesting clusters.
+
+# Clustering with MULTISPATI PCA
+
+In the standard scRNA-seq data analysis workflow, a k nearest neighbor graph is found in the PCA space, which is then used for graph based clustering such as Louvain and Leiden, which is used to perform differential expression. Spatial dimension reductions can similarly be used to perform clustering, to identify spatial regions in the tissue, as done in [@Shang2022-qy; @Ren2022-qx; @Zhang2023-kf]. This type of studies often use a manual segmentation as ground truth to compare different methods that identify spatial regions. 
+
+The problem with this is that spatial region methods are meant to help us to identify novel spatial regions based on new -omics data, which might reveal what's previously unknown from manual annotations. If the output from a method doesn't match manual annotations, it might simply be pointing out a previously unknown aspect of the tissue rather than wrong. Depending on the questions being asked, there can simultaneously be multiple spatial partitions. This happens in geographical space. For instance, there's land use and neighborhood boundaries, but equally valid are watershed boundaries and types of rock formation. Which one is relevant depends on the questions asked.
+
+Here we perform Leiden clustering with non-spatial and MULTISPATI PCA and compare the results. For the k nearest neighbor graph, I used the default k = 10.
+
+```{r}
+system.time({
+    set.seed(29)
+    sfe$clusts_nonspatial <- clusterCells(sfe, use.dimred = "PCA", 
+                                          BLUSPARAM = NNGraphParam(
+                                              cluster.fun = "leiden",
+                                              cluster.args = list(
+                                                  objective_function = "modularity",
+                                                  resolution_parameter = 1
+                                              )
+                                          ))
+})
+```
+
+See if clustering with the positive MULTISPATI PCs give more spatially coherent clusters
+```{r}
+system.time({
+    set.seed(29)
+    sfe$clusts_multispati <- clusterRows(reducedDim(sfe, "multispati")[,1:20], 
+                                          BLUSPARAM = NNGraphParam(
+                                              cluster.fun = "leiden",
+                                              cluster.args = list(
+                                                  objective_function = "modularity",
+                                                  resolution_parameter = 1
+                                              )
+                                          ))
+})
+```
+
+Plot the clusters in space:
+```{r, fig.width=11, fig.height=4}
+plotSpatialFeature(sfe, c("clusts_nonspatial", "clusts_multispati"), 
+                   colGeometryName = "centroids",
+                   scattermore = TRUE) &
+     guides(colour = guide_legend(override.aes = list(size=2), ncol = 2))
+```
+
+The MULTISPATI clusters do look somewhat more spatially structured than clusters from non-spatial PCA. Also zoom into a small area:
+```{r, fig.width=11, fig.height=4}
+plotSpatialFeature(sfe, c("clusts_nonspatial", "clusts_multispati"), 
+                   colGeometryName = "cellSeg",
+                   bbox = bbox_use) &
+     guides(fill = guide_legend(ncol = 2))
+```
+
+What do these clusters mean? Clusters are supposed to be groups of different spots that are more similar within a group, sharing some characteristics. Non-spatial and MULTISPATI PCA use different characteristics for the clustering. Non-spatial PCA finds genes that are good for telling cell types apart, although those genes may happen to be very spatially structured. Non-spatial clustering aims to find these groups only from gene expression, and cells with similar gene expression can be surrounded by cells of other types in histological space. This is just like mapping Art Deco buildings, which are often near Spanish revival and Beaux Art buildings whose styles are quite different and perform different functions, thus not necessarily forming a coherent spatial region. 
+
+In contrast, MULTISPATI's positive components find genes that must characterize spatial regions in addition to distinguishing between different cell types. Which genes are involved in each MULTISPATI component may be as interesting as the clusters. It would be interesting to perform gene set enrichment analysis, or to interpret this as some sort of spatial patterns of spatially variable genes. This is like mapping when the buildings were built, so Art Deco, Spanish revival, Beaux Art popular in the 1920s and 1930s will end up in the same cluster and form a more spatially coherent region, which can be found in DTLA Historical Core and Jewelry District, and Old Pasadena. Hence non-spatial clustering of spatial data isn't necessarily bad. Rather, it tells a different story and reveals different aspects of the data from spatial clustering. 
+
+# Session Info
+```{r}
+sessionInfo()
+```
+
+# References
