@@ -152,6 +152,13 @@ test_that("Cross variogram map", {
     })
 })
 
+test_that("Cross variogram map for one pair", {
+    out <- calculateBivariate(x = mat_x[1,], y = mat_y[1,],
+                              type = "cross_variogram_map", width = 500,
+                              cutoff = 2000, coords_df = df)
+    expect_named(out, c("x.y", "np.x.y", "y", "np.y", "x", "np.x", "dx", "dy"))
+})
+
 test_that("calculateBivariate SFE method", {
     expect_error(calculateBivariate(sfe, type = "lee", feature1 = hvgs[1]),
                  "feature2 must be specified when feature1 has length 1.")
