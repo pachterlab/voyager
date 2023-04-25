@@ -182,6 +182,10 @@ whose magnitudes seem more substantial for `nCounts` and `nGenes` if it's positi
 First we run non-spatial PCA, to compare to MULTISPATI.
 
 ```{r}
+sfe <- logNormCounts(sfe)
+```
+
+```{r}
 set.seed(29)
 system.time(
     sfe <- runPCA(sfe, ncomponents = 20, subset_row = !is_blank,
@@ -273,9 +277,11 @@ Here we compare Moran's I for cell embeddings in each non-spatial and MULTISPATI
 
 ```{r}
 # non-spatial
-sfe <- reducedDimMoransI(sfe, dimred = "PCA", components = 1:20)
+sfe <- reducedDimMoransI(sfe, dimred = "PCA", components = 1:20,
+                         BPPARAM = MulticoreParam(2))
 # spatial
-sfe <- reducedDimMoransI(sfe, dimred = "multispati", components = 1:40)
+sfe <- reducedDimMoransI(sfe, dimred = "multispati", components = 1:40,
+                         BPPARAM = MulticoreParam(2))
 ```
 
 ```{r}
