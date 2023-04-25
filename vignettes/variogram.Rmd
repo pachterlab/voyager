@@ -116,11 +116,11 @@ sfe <- runUnivariate(sfe, "variogram", hvgs, BPPARAM = SnowParam(2),
 plotVariogram(sfe, hvgs[1:4], name = "variogram")
 ```
 
-The data is binned by distance between spots and the semivariance is computed for each bin. The numbers by the points in the plot indicate the number of pairs of spots in each bin. "Ste" means the Matern model with M. Stein's parameterization was fitted to the points. 
+The data is binned by distance between spots and the variance is computed for each bin. While `gstat`'s plotting functions say "semivariance", because the data is scaled so the variance is 1, I do think the variance rather than semivariance is plotted. The numbers by the points in the plot indicate the number of pairs of spots in each bin. "Ste" means the Matern model with M. Stein's parameterization was fitted to the points. 
 
 Nugget is the variance at distance 0, or variance within the first distance bin. The data is scaled by default prior to variogram computation to make the variograms for multiple genes comparable. 
 
-Spatial autocorrelation makes the variance smaller at shorter distances. When the variogram levels off, it means that spatial autocorrelation no longer has an effect at this distance. Sill is the semivariance where the variogram levels off. Range is the distance where the variogram levels off. 
+Spatial autocorrelation makes the variance smaller at shorter distances. When the variogram levels off, it means that spatial autocorrelation no longer has an effect at this distance. Sill is the variance where the variogram levels off. Range is the distance where the variogram levels off. 
 
 In the first 4 genes, IGHG3 and IGKC seem to have stronger spatial autocorrelation that dissipate in 100 to 200 units (whether it's microns or pixels is unclear from the publication), whereas spatial autocorrelation of B2M and MT-RNR1 is much weaker and has longer length scale. 
 
