@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/pachterlab/voyager/branch/devel/graph/badge.svg?token=RCIXA7AQER)](https://codecov.io/gh/pachterlab/voyager)
 <!-- badges: end -->
 
-This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `adespatial` to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
 
 The [companion website](https://pachterlab.github.io/voyager/) for this package includes vignettes that showcase the functionality of `Voyager` in the context of the Visium, Slide-seq V2, CosMx, Xenium, and MERFISH technologies.  
 ## Installation
@@ -16,7 +16,7 @@ This package is in Bioconductor version 3.16 and above. Install with
 
 ```r
 if (!requireNamespace("BiocManager")) install.packages("BiocManager")
-BiocManager::install(version = "3.16") # Or a higher version in the future
+BiocManager::install(version = "3.17") # Or a higher version in the future
 BiocManager::install("Voyager")
 ```
 
