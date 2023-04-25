@@ -1,0 +1,34 @@
+---
+title: "Vignettes using MULTISPATI PCA"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{moranplot_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ref.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Spatially informed dimension reduction is actually not new, and dates back to at least 1985, with Wartenberg's crossover of Moran's I and PCA [@Wartenberg1985-fk], which was generalized and further developed as MULTISPATI PCA [@Dray2008-en], implemented in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package on CRAN. In short, while PCA tries to maximize the variance explained by each PC, MULTISPATI maximizes the product of Moran's I and variance explained. Also, while all the eigenvalues from PCA are non-negative, because the covariance matrix is positive semidefinite, MULTISPATI can give negative eigenvalues, which represent negative spatial autocorrelation, which can be present and interesting but is not as common as positive spatial autocorrelation and is often masked by the latter [@Griffith2019-bo]. 
+
+In single cell -omics conventions, let $X$ denote a gene count matrix whose columns are cells or Visium spots and whose rows are genes, with $n$ columns. Let $W$ denote the row normalized $n\times n$ adjacency matrix of the spatial neighborhood graph of the cells or Visium spots, which does not have to be symmetric. MULTISPATI diagonalizes a symmetric matrix
+
+$$
+H = \frac 1 {2n} X(W^t+W)X^t
+$$
+
+However, the implementation in `adespatial` is more general and can be used for other multivariate analyses in the [duality diagram](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3265363/) paradigm, such as correspondence analysis; the equation above is simplified just for PCA, without having to introduce the duality diagram here.
+
+Voyager 1.2.0 (Bioconductor 3.17) has a much faster implementation of MULTISPATI PCA based on [`RSpectra`](https://cran.r-project.org/web/packages/RSpectra/index.html). See benchmark [here](https://lambdamoses.github.io/thevoyages/posts/2023-03-25-multispati-part-2/).
+
+Below is a list of vignettes that use MULTISPATI PCA. The links point to the sections that use MULTISPATI PCA. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [MULTISPATI PCA and negative spatial autocorrelation](https://pachterlab.github.io/voyager/articles/multispati.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/multispati.ipynb) | Run MULTISPATI PCA on MERFISH mouse liver dataset, and compare the results to those from non-spatial PCA
+
+# References

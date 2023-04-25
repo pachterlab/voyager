@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{visium_10x}
@@ -20,6 +25,30 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
+
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+packageVersion("Voyager")
 ```
 
 # Introduction
@@ -89,10 +118,7 @@ list.files("outs/spatial")
 The outputs in the spatial directory is explained [here on the 10X website](https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/spatial).
 
 The `tissue_hires_image.png` is a relatively high resolution image of the tissue, but not full resolution. The `tissue_lowres_image.png` file is a low resolution image of the tissue, suitable for quick plotting, and is shown here:
-
-```{r}
-knitr::include_graphics("outs/spatial/tissue_lowres_image.png")
-```
+![tissue_lowres_image.png](https://raw.githubusercontent.com/pachterlab/voyager/documentation-devel/vignettes/tissue_lowres_image.png)
 
 The array of dots framing the tissue seen in this image is the fiducials, used to align the tissue image to the positions of the Visium spots, so gene expression can be matched to spatial locations. The alignment of the fiducials is shown in `aligned_fiducials.jpg`. Space Ranger can automatically detect which spots are in tissue, and these spots are highlighted in `detected_tissue_image.jpg`. 
 
@@ -115,8 +141,7 @@ head(read.csv("outs/spatial/spatial_enrichment.csv"))
 
 Here we read the Space Ranger output into R as an SFE object:
 ```{r}
-sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw")
-sfe
+(sfe <- read10xVisiumSFE(samples = ".", type = "sparse", data = "raw"))
 ```
 
 # Quality control (QC)
@@ -131,33 +156,16 @@ sfe <- addPerCellQCMetrics(sfe, subsets = list(mito = is_mt))
 ```{r}
 names(colData(sfe))
 ```
+The mouse olfactory bulb is conventionally plotted horizontally. The entire SFE object can be transposed in histologial space to make the olfactory bulb horizontal.
+
+```{r}
+sfe <- SpatialFeatureExperiment::transpose(sfe)
+```
 
 ```{r, fig.width=8, fig.height=6}
-plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"),
-                   ncol = 2) & theme_void()
+plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent"), 
+                   image_id = "lowres", maxcell = 5e4, ncol = 2)
 ```
-
-The H&E image needs to be rotated to be aligned to the Visium spots. As the tissue can be mounted in any orientation, there is no standard rotation to align the image to the spots. The `rotateImg()` function in `SpatialExperiment` rotates the image and degrees is clockwise. The `mirroImg()` function reflects the image. At present `SpatialExperiment` does not automatically rotate or reflect the image. This much be done manually. 
-
-```{r}
-plot(imgRaster(sfe))
-```
-
-The image is stored in the `data` column `imgData` field, which is a `DataFrame`:
-```{r}
-imgData(sfe)
-```
-
-The image should be rotated 90 degrees counterclockwise.
-```{r}
-imgData(sfe)$data[[1]] <- rotateImg(imgData(sfe)$data[[1]], degrees = -90)
-```
-
-```{r}
-plot(imgRaster(sfe))
-```
-
-The current version of Voyager does not plot the image, and the current version of `SpatialFeatureExperiment` does not touch the image. In a future version, the image may be cropped when the SFE object is subsetted. Use the [`ggspavis`](https://bioconductor.org/packages/release/bioc/html/ggspavis.html) package to plot the image behind the spots.
 
 Percentage of mitochondrial counts in spots outside tissue is higher near the tissue, especially on the left.
 ```{r}
@@ -211,7 +219,8 @@ names(rowData(sfe_tissue))
 ```
 
 ```{r}
-plotDimLoadings(sfe_tissue, dims = 1:5, show_symbol = TRUE, ncol = 3)
+plotDimLoadings(sfe_tissue, dims = 1:5, show_symbol = TRUE, ncol = 3,
+                swap_rownames = "symbol")
 ```
 
 Do the clustering to show on the dimension reduction plots
@@ -231,15 +240,14 @@ plotPCA(sfe_tissue, ncomponents = 5, colour_by = "cluster")
 
 ```{r}
 plotSpatialFeature(sfe_tissue, features = "cluster", 
-                   colGeometryName = "spotPoly") +
-    theme_void()
+                   colGeometryName = "spotPoly", image_id = "lowres")
 ```
 
 ```{r, fig.width=8, fig.height=8}
 spatialReducedDim(sfe_tissue, "PCA", ncomponents = 5, 
                   colGeometryName = "spotPoly", divergent = TRUE, 
-                  diverge_center = 0, ncol = 2) &
-    theme_void()
+                  diverge_center = 0, ncol = 2, 
+                  image_id = "lowres", maxcell = 5e4)
 ```
 
 ```{r}
@@ -256,8 +264,8 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 
 These genes are interesting to view in spatial context:
 ```{r, fig.width=8, fig.height=8}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2) &
-    theme_void()
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 2,
+                   swap_rownames = "symbol", image_id = "lowres", maxcell = 5e4)
 ```
 
 More spatial analyses on this dataset is performed in [an "advanced" version of this vignette](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html).

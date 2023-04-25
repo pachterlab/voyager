@@ -1,13 +1,13 @@
 # 10. What to do with the image when using geom_sf
-# Shall I also allow users to plot dimension reductions as features?
-# For example, plotting PC1 in space, as opposed to MULTISPATI PC1. I think I'll
-# do that, not only for plotting functions, but also for the metrics.
 # To do:
 # 2. reverse_y? It's kind of hard to do that with sf.
 
 #' Get beginning and end of palette to center a divergent palette
 #'
-#' The title is self-explanatory.
+#' This function is no longer used internally as it's unnecessary for
+#' \code{scico} divergent palettes. But it can be useful when using divergent
+#' palettes outside \code{scico} where one must specify beginning and end but
+#' not midpoint, to override the default palette.
 #'
 #' @param values Numeric vector to be colored.
 #' @param diverge_center Value to center on, defaults to 0.
@@ -45,26 +45,24 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (type %in% c("POINT", "MULTIPOINT")) {
         names_use <- c("size", "shape", "alpha", "color")
         if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
-        if (is.na(fixed$color)) fixed$color <- "black"
         shape <- fixed[["shape"]]
         if (!is.null(shape) && shape > 20L) {
             names_use <- c(names_use, "fill")
         }
     } else if (type %in% c("LINESTRING", "MULTILINESTRING")) {
-        if (isTRUE(all.equal(0, fixed$size))) fixed$size <- 0.5
-        if (is.na(fixed$color)) fixed$color <- "black"
-        names_use <- c("size", "linetype", "alpha", "color")
+        if (isTRUE(all.equal(0, fixed$linewidth))) fixed$linewidth <- 0.5
+        names_use <- c("linewidth", "linetype", "alpha", "color")
     } else {
         # i.e. polygons
-        names_use <- c("size", "linetype", "fill", "color", "alpha")
+        names_use <- c("linewidth", "linetype", "fill", "color", "alpha")
     }
     fixed_applicable <- .drop_null_list(fixed[names_use])
     fixed_applicable
 }
 
 .get_pal <- function(df, feature_aes, option, divergent, diverge_center,
-                     name = waiver()) {
-    feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color")]
+                     name = waiver(), dark = FALSE) {
+    feature_aes <- feature_aes[names(feature_aes) %in% c("fill", "color", "z")]
     if (length(feature_aes)) {
         # color_by is set to NULL if fill_by is applicable and present
         m <- df[[unlist(feature_aes)]]
@@ -84,29 +82,51 @@ getDivergeRange <- function(values, diverge_center = 0) {
         pal <- pal_fun(values = .pal, na.value = "gray", name = name)
     } else {
         if (divergent) {
-            .pal <- switch(option,
-                "roma",
-                "bam"
-            )
+            if (dark) {
+                .pal <- switch(option,
+                               "berlin",
+                               "vanimo"
+                )
+            } else {
+                .pal <- switch(option,
+                               "roma",
+                               "bam"
+                )
+            }
             pal_fun <- switch(.aes,
                 fill = scale_fill_scico,
-                color = scale_color_scico
+                color = scale_color_scico,
+                z = scale_fill_scico
             )
+            .direction <- if (.pal == "berlin") 1 else -1
             pal <- pal_fun(
-                palette = .pal, direction = -1, midpoint = diverge_center,
+                palette = .pal, direction = .direction, midpoint = diverge_center,
                 na.value = "gray", name = name
             )
         } else {
-            pal_fun <- switch(.aes,
-                fill = scale_fill_distiller,
-                color = scale_color_distiller
-            )
-            .pal <- switch(option,
-                "Blues",
-                "PuRd"
-            )
-            pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1,
-                           name = name)
+            if (dark) {
+                .pal <- switch(option,
+                               "nuuk",
+                               "acton")
+                pal_fun <- switch(.aes,
+                                   fill = scale_fill_scico,
+                                   color = scale_color_scico,
+                                   z = scale_fill_scico
+                )
+                pal <- pal_fun(na.value = "gray", name = name, palette = .pal)
+            } else {
+                pal_fun <- switch(.aes,
+                                  fill = scale_fill_distiller,
+                                  color = scale_color_distiller,
+                                  z = scale_fill_distiller
+                )
+                .pal <- switch(option,
+                               "Blues",
+                               "PuRd"
+                )
+                pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1,
+                               name = name)
+            }
         }
     }
     pal
@@ -114,43 +134,74 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 .fill_defaults <- function(fixed) {
     defaults <- list(
-        size = 0, shape = 16,
-        linetype = 1, alpha = 1, color = NA, fill = "gray80",
-        divergent = FALSE, diverge_center = NA
+        size = 0, linewidth = 0, shape = 16,
+        linetype = 1, alpha = 1, color = "black", fill = "gray80",
+        divergent = FALSE, diverge_center = NULL
     )
     fill <- defaults[setdiff(names(defaults), names(fixed))]
     out <- .drop_null_list(c(fixed, fill))
-    if (is.na(out$fill) && "size" %in% names(fill)) {
-        out$size <- 0.5
-        out$color <- "black"
+    if (is.na(out$fill) && "linewidth" %in% names(fill)) {
+        out$linewidth <- 0.5
     }
     out
+}
+
+#' @importFrom ggplot2 element_rect element_text theme margin
+.dark_theme <- function() {
+    # From Seurat but no axes
+    black.background <- element_rect(fill = 'black')
+    black.background.no.border <- element_rect(fill = 'black', size = 0)
+    font.margin <- 4
+    white.text <- element_text(
+        colour = 'white',
+        margin = margin(
+            t = font.margin,
+            r = font.margin,
+            b = font.margin,
+            l = font.margin
+        )
+    )
+    # Create the dark theme
+    dark.theme <- theme(
+        #   Set background colors
+        plot.background = black.background,
+        panel.background = black.background,
+        legend.background = black.background,
+        legend.box.background = black.background.no.border,
+        legend.key = black.background.no.border,
+        strip.background = black.background,
+        #   Set text colors
+        text = white.text,
+        #   Validate the theme
+        validate = TRUE
+    )
 }
 
 #' @importFrom sf st_drop_geometry st_geometry_type
 #' @importFrom ggplot2 ggplot geom_sf scale_fill_manual
 #' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
-#' geom_segment stat_density2d waiver
+#' geom_segment stat_density2d waiver stat_summary_2d stat_summary_hex
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
-.plot_var_sf <- function(df, annot_df, type, type_annot, feature_aes,
+.plot_var_sf <- function(df, annot_df, img_df, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
-                         ncol_sample, scattermore, pointsize) {
+                         ncol_sample, scattermore, pointsize,
+                         bins, summary_fun, hex, maxcell, dark) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
         annot_fixed <- annot_fixed[setdiff(names(annot_fixed), names(annot_aes))]
-        if ("color" %in% names(annot_aes) && annot_fixed$size == 0) {
-            annot_fixed$size <- 0.5
+        if ("color" %in% names(annot_aes) && annot_fixed$linewidth == 0) {
+            annot_fixed$linewidth <- 0.5
         }
         geom_annot <- do.call(geom_sf, c(
             list(mapping = aes(!!!syms(annot_aes)), data = annot_df),
             annot_fixed
         ))
         pal_annot <- .get_pal(annot_df, annot_aes, 2, annot_divergent,
-                              annot_diverge_center)
+                              annot_diverge_center, dark = dark)
     }
     # Deal with gene symbols that are not legal R object names
     df_names_orig <- names(df)
@@ -160,6 +211,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (length(name_fix)) name_show <- name_fix else name_show <- waiver()
 
     p <- ggplot()
+    data <- NULL
+    if (!is.null(img_df)) {
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
+                              maxcell = maxcell)
+    }
     # Filled polygon annotations go beneath feature plot
     is_annot_filled <- !is.null(annot_df) &&
         ("fill" %in% names(c(annot_aes, annot_fixed))) &&
@@ -185,6 +241,16 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                                            feature_aes))),
                                    data = df, pointsize = pointsize),
                               feature_fixed))
+    } else if (!is.null(bins)) {
+        names(feature_aes)[names(feature_aes) == "color"] <- "z"
+        name_show <- paste("Aggregated", feature_aes[["z"]], sep = "\n")
+        feature_fixed <- feature_fixed["alpha"]
+        stat_fun <- if (hex) stat_summary_hex else stat_summary_2d
+        geom_use <- do.call(stat_fun,
+                            c(list(mapping = aes(!!!syms(c(list(x = "X", y = "Y"),
+                                                           feature_aes))),
+                                   data = df, bins = bins, fun = summary_fun),
+                              feature_fixed))
     } else {
         geom_use <- do.call(geom_sf, c(
             list(mapping = aes(!!!syms(feature_aes)), data = df),
@@ -192,10 +258,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
         ))
     }
     p <- p + geom_use
-    if (scattermore) p <- p + coord_equal()
+    if (scattermore || !is.null(bins)) p <- p + coord_equal()
     # Palette
     pal <- .get_pal(df, feature_aes, 1, divergent, diverge_center,
-                    name = name_show)
+                    name = name_show, dark = dark)
     if (!is.null(pal)) p <- p + pal
 
     # Line and point annotations go above feature plot
@@ -212,6 +278,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p +
             facet_wrap(~sample_id, ncol = ncol_sample)
     }
+    p <- p + theme_void()
+    if (dark) p <- p + .dark_theme()
     p
 }
 
@@ -247,26 +315,25 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-.wrap_spatial_plots <- function(df, annot_df, type_annot, values, aes_use,
-                                annot_aes, annot_fixed, size, shape, linetype,
-                                alpha, color, fill, ncol, ncol_sample,
+.wrap_spatial_plots <- function(df, annot_df, img_df, type_annot, values, aes_use,
+                                annot_aes, annot_fixed, size, shape, linewidth,
+                                linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
-                                ...) {
+                                bins, summary_fun, hex, maxcell, dark, ...) {
     feature_fixed <- list(
-        size = size, shape = shape, linetype = linetype,
+        size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
-    type <- if(scattermore) "POINT" else .get_generalized_geometry_type(df)
+    type <- if(scattermore || !is.null(bins)) "POINT" else .get_generalized_geometry_type(df)
     plots <- lapply(names(values), function(n) {
-        df[[n]] <- values[[n]]
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
         feature_aes <- setNames(list(n), feature_aes_name)
         .plot_var_sf(
-            df, annot_df, type, type_annot, feature_aes, feature_fixed,
+            df, annot_df, img_df, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
             annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize
+            pointsize, bins, summary_fun, hex, maxcell, dark
         )
     })
     if (length(plots) > 1L) {
@@ -277,23 +344,141 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
+#' @importFrom sf st_as_sfc st_bbox st_intersection
+.bbox_sample <- function(df, bbox) {
+    if (is(df, "sf")) {
+        # Only for one sample
+        bbox_use <- st_as_sfc(st_bbox(bbox))
+        suppressWarnings(df <- st_intersection(df, bbox_use))
+        #df <- df[bbox_use,]
+        df$geometry <- st_geometry(df) - bbox[c("xmin", "ymin")]
+    } else {
+        # i.e. centroids. Assume column names x and y
+        inds <- df$x > bbox["xmin"] & df$x < bbox["xmax"] &
+            df$y > bbox["ymin"] & df$y < bbox["ymax"]
+        df <- df[inds,, drop = FALSE]
+    }
+    if (nrow(df) == 0L)
+        stop("The bounding box does not overlap with the geometry.")
+    df
+}
+
+# Burning question: what if the bboxes of different samples are very different
+# so there will be a lot of empty space in the facetted plot?
+# I suppose I'll subtract xmin and ymin. The original coordinates are known
+# from the bbox anyway.
+# But what if bboxes of different samples have very different sizes?
+# Well, it's up to the user to not to do it.
+.crop <- function(df, bbox) {
+    if (is.null(bbox)) return(df)
+    if (!is.atomic(bbox) && !is.matrix(bbox)) {
+        stop("bbox must be either a numeric vector or a matrix.")
+    }
+    names_use <- c("xmin", "ymin", "xmax", "ymax")
+    if (is.matrix(bbox)) {
+        if (nrow(bbox) == 1L) bbox <- setNames(bbox, colnames(bbox))
+        if (ncol(bbox) == 1L) bbox <- setNames(bbox, rownames(bbox))
+    }
+    if (is.vector(bbox)) {
+        if (!is.numeric(bbox)) stop("bbox must be a numeric vector")
+        if (length(bbox) != 4L)
+            stop("bbox must have length 4, corresponding to xmin, ymin, xmax, and ymax.")
+
+        if (!is.null(names(bbox)) && !setequal(names(bbox), names_use)) {
+            stop("Names of bbox must be same as the set ",
+                 paste(names_use, collapse = ", "))
+        }
+        if (is.null(names(bbox))) {
+            warning("No names available for bbox. Assuming ",
+                    paste(names_use, collapse = ", "), ", in this order.")
+            names(bbox) <- names_use
+        }
+    }
+    if (is.matrix(bbox)) {
+        if (setequal(colnames(bbox), names_use)) bbox <- t(bbox)
+        if (nrow(bbox) != 4L)
+            stop("bbox must have 4 rows, corresponding to xmin, ymin, xmax, and ymax.")
+        if (!setequal(rownames(bbox), names_use))
+            stop("Row names of bbox must be same as the set ",
+                 paste(names_use, collapse = ", "))
+        if (length(setdiff(unique(df$sample_id), colnames(bbox)))) {
+            stop("Column names of bbox must match the sample IDs")
+        }
+        if (!"sample_id" %in% names(df)) {
+            warning("Only the first column of the matrix bbox will be used.")
+            bbox <- bbox[,1]
+        } else
+            bbox <- bbox[,unique(df$sample_id)]
+    }
+
+    if (!"sample_id" %in% names(df) || length(unique(df$sample_id)) == 1L) {
+        df <- .bbox_sample(df, bbox)
+    } else {
+        df_split <- split(df, df$sample_id)
+        if (is.vector(bbox)) {
+            df_split <- lapply(df_split, .bbox_sample, bbox = bbox)
+        } else {
+            samples <- names(df_split)
+            df_split <- lapply(samples, function(n)
+                .bbox_sample(df_split[[n]], bbox[,n]))
+        }
+        df <- do.call(rbind, df_split)
+    }
+    df
+}
+
+.get_img_df <- function(sfe, sample_id, image_id, bbox) {
+    img_df <- imgData(sfe)
+    img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id == image_id,
+                     c("sample_id", "data")]
+    if (!is.null(bbox)) {
+        img_df <- img_df[order(img_df$sample_id),]
+        if (length(sample_id) == 1L) {
+            bbox <- matrix(bbox, ncol = 1, dimnames = list(names(bbox), sample_id))
+        }
+        new_imgs <- lapply(sample_id, function(s) {
+            img_data <- img_df$data[img_df$sample_id == s]
+            bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
+            bb <- as.vector(bbox_use)
+            lapply(img_data, function(img) {
+                img_cropped <- terra::crop(img@image, bbox_use, snap = "out")
+                img_cropped <- terra::shift(img_cropped,
+                                            dx = -bb["xmin"],
+                                            dy = -bb["ymin"])
+                new("SpatRasterImage", image = img_cropped)
+            })
+        })
+        new_imgs <- unlist(new_imgs, recursive = FALSE)
+        img_df$data <- I(new_imgs)
+    }
+    as.data.frame(img_df)
+}
+
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
-                                annot_fixed, aes_use, divergent,
+                                annot_fixed, bbox, image_id, aes_use, divergent,
                                 diverge_center, annot_divergent,
-                                annot_diverge_center, size, shape, linetype,
-                                alpha, color, fill, scattermore, pointsize,
-                                ...) {
+                                annot_diverge_center, size, shape, linewidth,
+                                linetype, alpha, color, fill, scattermore,
+                                pointsize, bins, summary_fun, hex, maxcell,
+                                dark, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
-    if (length(sample_id) > 1L) {
-        df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    df <- cbind(df[,c("geometry", "sample_id")], values)
+    df <- .crop(df, bbox)
+    type_df <- .get_generalized_geometry_type(df)
+    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && size > 0 &&
+        linewidth == 0) {
+        message("Please use linewidth instead of size for thickness of polygon outlines.")
+        linewidth <- size
     }
-    if (scattermore) {
-        check_installed("scattermore", reason = "to plot points with scattermore")
-        type_df <- .get_generalized_geometry_type(df)
+    if (scattermore || !is.null(bins)) {
+        if (scattermore)
+            check_installed("scattermore",
+                            reason = "to plot points with scattermore")
         if (type_df != "POINT") {
-            warning("scattermore only applies to points. Using centroids.")
+            message("scattermore and binning only apply to points. Using centroids.")
             df_coords <- as.data.frame(st_coordinates(st_centroid(st_geometry(df))))
         } else {
             df_coords <- as.data.frame(st_coordinates(df))
@@ -304,16 +489,21 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(annotGeometryName)) {
         annot_df <- annotGeometry(sfe, annotGeometryName, sample_id)
         type_annot <- .get_generalized_geometry_type(annot_df)
+        annot_df <- .crop(annot_df[,c(unlist(annot_aes), "sample_id")], bbox)
     } else {
         annot_df <- NULL
         type_annot <- NULL
     }
+    if (!is.null(image_id)) {
+        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+    } else img_df <- NULL
+    if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
-        df, annot_df, type_annot, values, aes_use,
-        annot_aes, annot_fixed, size, shape, linetype, alpha,
+        df, annot_df, img_df, type_annot, values, aes_use,
+        annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, ...
+        pointsize, bins, summary_fun, hex, maxcell, dark, ...
     )
 }
 
@@ -327,25 +517,56 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' \code{colData}, or a column in the \code{colGeometry} \code{sf} data frame
 #' specified in the \code{colGeometryName} argument.
 #'
-#' For continuous variables, the Blues palette from colorbrewer is used if
-#' \code{divergent = FALSE}, and the roma palette from the \code{scico} package
-#' if \code{divergent = TRUE}. For discrete variables, the \code{dittoSeq}
-#' palette is used. The defaults are colorblind friendly. For annotation, the
-#' PuRd colorbrewer palette is used for continuous variables and the other end
-#' of the \code{dittoSeq} palette is used for discrete variables.
+#' In the light theme, for continuous variables, the Blues palette from
+#' colorbrewer is used if \code{divergent = FALSE}, and the roma palette from
+#' the \code{scico} package if \code{divergent = TRUE}. In the dark theme, the
+#' nuuk palette from \code{scico} is used if \code{divergent = FALSE}, and the
+#' berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
+#' discrete variables, the \code{dittoSeq} palette is used.
 #'
-#' @inheritParams calculateUnivariate
+#' For annotation, the PuRd colorbrewer palette is used for continuous variables
+#' in the light theme. In the dark theme, the acton palette from \code{scico} is
+#' used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
+#' is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
+#' palette is used for discrete variables.
+#'
+#' Each individual palette should be colorblind friendly, but when plotting
+#' continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}
+#' simultaneously, the combination of the two palettes is not guaranteed to be
+#' colorblind friendly.
+#'
+#' In addition, when plotting an image behind the geometries, the colors of the
+#' image may distort color perception of the values of the geometries.
+#'
+#' \code{theme_void} is used for all spatial plots in this package, because the
+#' units in the spatial coordinates are often arbitrary. This can be overriden
+#' to show the axes by using a different theme as normally done in
+#' \code{ggplot2}.
+#'
+#' @inheritParams plotCorrelogram
+#' @inheritParams plotDimLoadings
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
+#' @param bbox A bounding box to specify a smaller region to plot, useful when
+#'   the dataset is large. Can be a named numeric vector with names "xmin",
+#'   "xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+#'   should be a matrix with sample IDs as column names and "xmin", "ymin",
+#'   "xmax", and "ymax" as row names. If multiple samples are plotted but
+#'   \code{bbox} is a vector rather than a matrix, then the same bounding box
+#'   will be used for all samples. You may see points at the edge of the
+#'   geometries if the intersection between the bounding box and a geometry
+#'   happens to be a point there. If \code{NULL}, then the entire tissue is
+#'   plotted.
 #' @param divergent Logical, whether a divergent palette should be used.
 #' @param diverge_center If \code{divergent = TRUE}, the center from which the
 #'   palette should diverge. If \code{NULL}, then not centering.
-#' @param size Fixed size of points or width of lines, including outlines of
-#'   polygons. For polygons, this defaults to 0, meaning no outlines. For points
-#'   and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.
+#' @param size Fixed size of points. For points defaults to 0.5. Ignored if
+#'   \code{size_by} is specified.
 #' @param shape Fixed shape of points, ignored if \code{shape_by} is specified
 #'   and applicable.
+#' @param linewidth Width of lines, including outlines of polygons. For
+#'   polygons, this defaults to 0, meaning no outlines.
 #' @param linetype Fixed line type, ignored if \code{linetype_by} is specified
 #'   and applicable.
 #' @param color Fixed color for \code{colGeometry} if \code{color_by} is not
@@ -353,6 +574,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   \code{annot_color_by} is not specified or not applicable.
 #' @param fill Similar to \code{color}, but for fill.
 #' @param alpha Transparency.
+#' @param exprs_values Integer scalar or string indicating which assay of x
+#'   contains the expression values.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
 #' @param annot_aes A named list of plotting parameters for the annotation sf
@@ -380,9 +603,6 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   case it's different.
 #' @param annot_diverge_center Just as \code{diverge_center}, but for the
 #'   annotGeometry in case it's different.
-#' @param show_symbol Logical, whether to show human readable gene symbol on the
-#'   plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-#'   be a column in \code{rowData(sfe)} called "symbol" for this to work.
 #' @param scattermore Logical, whether to use the \code{scattermore} package to
 #'   greatly speed up plotting numerous points. Only used for POINT
 #'   \code{colGeometries}. If the geometry is not POINT, then the centroids are
@@ -390,13 +610,37 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   the cell polygons can't be seen when plotted due to the large number of
 #'   cells and small plot size such as when plotting multiple panels for
 #'   multiple features.
+#' @param bins If binning the \code{colGeometry} in space due to large number of
+#'   cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+#'   \code{\link{geom_hex}}. If \code{NULL} (default), then the
+#'   \code{colGeometry} is plotted without binning. If binning, a point geometry
+#'   is recommended. If the geometry is not point, then the centroids will be
+#'   used.
+#' @param summary_fun Function to summarize the feature value when the
+#'   \code{colGeometry} is binned.
+#' @param hex Logical, whether to use \code{\link{geom_hex}}. Note that
+#'   \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+#'   \code{ggplot2} if you are getting horizontal stripes when \code{hex =
+#'   TRUE}.
+#' @param image_id ID of the image to plot behind the geometries. If
+#'   \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+#'   image IDs present.
+#' @param maxcell Maximum number of pixels to plot in the image. If the image is
+#'   larger, it will be resampled so it have less than this number of pixels to
+#'   save memory and for faster plotting. We recommend reducing this number when
+#'   plotting multiple facets.
 #' @param pointsize Radius of rasterized point in \code{scattermore}. Default to
 #'   0 for single pixels (fastest).
+#' @param dark Logical, whether to use dark theme. When using dark theme, the
+#'   palette will have lighter color represent higher values as if glowing in
+#'   the dark. This is intended for plotting gene expression on top of
+#'   fluorescent images.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
+#' @importFrom SpatialExperiment imgData getImg imgRaster
 #' @importMethodsFrom Matrix t
 #' @export
 #' @examples
@@ -427,33 +671,48 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'     annotGeometryName = "myofiber_simplified",
 #'     annot_aes = list(fill = "area")
 #' )
+#' # Use a bounding box to zoom in
+#' bbox <- c(xmin = 5500, ymin = 13500, xmax = 6000, ymax = 14000)
+#' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+#'                   annotGeometry = "myofiber_simplified",
+#'                   bbox = bbox, annot_fixed = list(linewidth = 0.3))
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
-                               sample_id = NULL, ncol = NULL,
+                               sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
                                annotGeometryName = NULL,
                                annot_aes = list(), annot_fixed = list(),
-                               exprs_values = "logcounts",
+                               exprs_values = "logcounts", bbox = NULL,
+                               image_id = NULL, maxcell = 5e+5,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NA,
                                annot_divergent = FALSE,
                                annot_diverge_center = NA,
-                               size = 0, shape = 16, linetype = 1, alpha = 1,
-                               color = NA, fill = "gray80", show_symbol = TRUE,
-                               scattermore = FALSE, pointsize = 0, ...) {
+                               size = 0.5, shape = 16, linewidth = 0,
+                               linetype = 1, alpha = 1,
+                               color = "black", fill = "gray80",
+                               show_symbol = deprecated(), swap_rownames = NULL,
+                               scattermore = FALSE, pointsize = 0,
+                               bins = NULL, summary_fun = sum, hex = FALSE,
+                               dark = FALSE, ...) {
+    l <- .deprecate_show_symbol("plotSpatialFeature", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
         colGeometryName = colGeometryName,
         exprs_values = exprs_values,
+        swap_rownames = swap_rownames,
         show_symbol = show_symbol
     )
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
-        annot_fixed, aes_use, divergent,
+        annot_fixed, bbox, image_id, aes_use, divergent,
         diverge_center, annot_divergent,
-        annot_diverge_center, size, shape, linetype,
-        alpha, color, fill, scattermore, pointsize, ...
+        annot_diverge_center, size, shape, linewidth, linetype,
+        alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
+        maxcell, dark, ...
     )
 }
 
@@ -499,11 +758,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     do.call(rbind, dfs)
 }
 
-#' @importFrom ggplot2 geom_line
+#' @importFrom ggplot2 geom_line theme_void
 #' @importFrom SpatialFeatureExperiment rowGeometry df2sf
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL,
-                        weights = FALSE) {
+                        weights = FALSE, bbox = NULL) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (!is.null(geometry_name)) {
         gf <- switch(MARGIN,
@@ -512,16 +771,19 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
             annotGeometry
         )
         geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
+        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id
     } else {
         geometry <- NULL
     }
     df <- .get_graph_df(sfe, MARGIN, sample_id, graph_name, geometry)
+    df <- .crop(df, bbox)
+    if (!is.null(geometry)) geometry <- .crop(geometry[,"sample_id"], bbox)
     p <- ggplot()
     if (!is.null(geometry_name)) {
         p <- p +
             geom_sf(
                 data = geometry, size = geometry_size, fill = NA,
-                color = "gray80"
+                color = "gray70"
             )
     }
     if (weights) {
@@ -586,27 +848,27 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'     weights = TRUE
 #' )
 plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
-                         sample_id = NULL, weights = FALSE, segment_size = 0.5,
-                         geometry_size = 0.5, ncol = NULL) {
+                         sample_id = "all", weights = FALSE, segment_size = 0.5,
+                         geometry_size = 0.5, ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
         MARGIN = 2L, sample_id = sample_id, graph_name = colGraphName,
         geometry_name = colGeometryName,
         segment_size = segment_size, geometry_size = geometry_size,
-        ncol = ncol, weights = weights
+        ncol = ncol, weights = weights, bbox = bbox
     )
 }
 
 #' @rdname plotColGraph
 #' @export
 plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
-                           sample_id = NULL, weights = FALSE,
+                           sample_id = "all", weights = FALSE,
                            segment_size = 0.5, geometry_size = 0.5,
-                           ncol = NULL) {
+                           ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
         MARGIN = 3L, sample_id = sample_id, graph_name = annotGraphName,
         geometry_name = annotGeometryName,
         segment_size = segment_size, geometry_size = geometry_size,
-        ncol = ncol, weights = weights
+        ncol = ncol, weights = weights, bbox = bbox
     )
 }
 
@@ -616,22 +878,76 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' especially helpful for larger smFISH-based datasets.
 #'
 #' @inheritParams plotColDataBin2D
+#' @inheritParams plotSpatialFeature
 #' @return A ggplot object.
 #' @export
 #' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
 #' plotCellBin2D(sfe)
-plotCellBin2D <- function(sfe, bins = 200, binwidth = NULL, hex = FALSE) {
+plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
+                          hex = FALSE, ncol = NULL, bbox = NULL) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     bin_fun <- if (hex) geom_hex else geom_bin2d
     df <- as.data.frame(spatialCoords(sfe))
     names(df) <- c("x", "y")
+    df$sample_id <- colData(sfe)$sample_id
+    df <- .crop(df, bbox)
     x <- y <- NULL
-    ggplot(df, aes(x, y)) +
+    p <- ggplot(df, aes(x, y)) +
         bin_fun(bins = bins, binwidth = binwidth) +
         scale_fill_distiller(palette = "Blues", direction = 1) +
         coord_equal() +
         scale_x_continuous(expand = expansion()) +
         scale_y_continuous(expand = expansion()) +
         labs(x = NULL, y = NULL)
+    if (length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id)
+    }
+    p
+}
+
+#' Plot geometries without coloring
+#'
+#' Different samples are plotted in separate facets.
+#'
+#' @inheritParams plotSpatialFeature
+#' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @return A ggplot object.
+#' @export
+#' @examples
+#' library(SFEData)
+#' sfe1 <- McKellarMuscleData("small")
+#' sfe2 <- McKellarMuscleData("small2")
+#' sfe <- cbind(sfe1, sfe2)
+#' sfe <- removeEmptySpace(sfe)
+#' plotGeometry(sfe, "spotPoly")
+#' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
+                         ncol = NULL, bbox = NULL, image_id = NULL,
+                         maxcell = 5e+5) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
+    df <- fun(sfe, type, sample_id = sample_id)
+    if (MARGIN == 2L) {
+        df$sample_id <- sfe$sample_id
+    }
+    if (MARGIN == 3L) {
+        sample_id <- unique(df$sample_id)
+    }
+    df <- .crop(df[,"sample_id"], bbox)
+    p <- ggplot()
+    if (!is.null(image_id))
+        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+    else img_df <- NULL
+    if (!is.null(image_id) && nrow(img_df)) {
+        data <- NULL
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
+                              maxcell = maxcell)
+    }
+    p <- p + geom_sf(data = df)
+    if (MARGIN != 1L && length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id, ncol = ncol)
+    }
+    p + theme_void()
 }

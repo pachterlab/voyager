@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{visium_10x_spatial}
@@ -20,6 +25,37 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
+
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+# Additional dependencies for this notebook
+system("apt-get install -y libfftw3-dev libprotobuf-dev")
+BiocManager::install("EBImage")
+BiocManager::install("terra")
+BiocManager::install("rmapshaper")
+install.packages("reticulate")
+
+packageVersion("Voyager")
 ```
 
 # Introduction
@@ -46,7 +82,23 @@ library(rmapshaper)
 library(dplyr)
 library(BiocParallel)
 library(BiocNeighbors)
+library(reticulate)
 theme_set(theme_bw())
+```
+
+```{r}
+# Specify Python version to use gget
+PY_PATH <- system("which python", intern = TRUE)
+use_python(PY_PATH)
+py_config()
+```
+
+```{r, eval=FALSE, include=FALSE}
+system("pip3 install gget")
+```
+
+```{r}
+gget <- import("gget")
 ```
 
 Here we download the data from the 10X website. This is the unfiltered gene count matrix:
@@ -76,7 +128,7 @@ Contents of the `outs` directory as from Space Ranger is explained in [the intro
 
 Here we read the data into R as an SFE object.
 ```{r}
-(sfe <- read10xVisiumSFE(samples = "outs", type = "sparse", data = "raw"))
+(sfe <- read10xVisiumSFE(samples = ".", type = "sparse", data = "raw"))
 ```
 
 Here we add QC metrics, already plotted in the introductory vignette.
@@ -205,18 +257,13 @@ display(paintObjects(mask_label, img, col=c("red", "yellow"), opac=c(1, 0.3)))
 
 This segmentation process took a lot of manual oversight, in choosing the threshold, choosing kernel size and shape in the opening and closing operations, deciding whether to fill the holes, and deciding what is debris and what is tissue. 
 
-Finally, the image needs to be rotated to match the spots.
-```{r}
-mask_label <- EBImage::rotate(mask_label, 270)
-display(mask_label)
-```
-
 # Convert tissue mask to polygon
 Now we have the tissue mask, which we will convert to polygon. While OpenCV can directly perform the conversion, as there isn't a comprehensive R wrapper of OpenCV, this conversion is more convoluted in R. We first convert the `Image` object to a raster as implemented in `terra`, the core R package for geospatial raster data. Then `terra` can convert the raster to polygon. As this image is downsized, the polygon will look quite pixelated. To mitigate this pixelation and save memory, the `ms_simplify()` function is used to simplify the polygon, only keeping a small proportion of all vertices. The `st_simplify()` function in `sf` can also simplify the polygons, but we can't specify what proportion of vertices to keep.
 
 ```{r}
 raster2polygon <- function(seg, keep = 0.2) {
-    r <- rast(t(as.array(seg)), extent = ext(0, nrow(seg), 0, ncol(seg)))
+    r <- rast(as.array(seg), extent = ext(0, nrow(seg), 0, ncol(seg))) |> 
+        trans() |> flip()
     r[r < 1] <- NA
     contours <- st_as_sf(as.polygons(r, dissolve = TRUE))
     simplified <- ms_simplify(contours, keep = keep)
@@ -238,15 +285,27 @@ scale_factors <- fromJSON(file = "outs/spatial/scalefactors_json.json")
 tb$simplified$geometry <- tb$simplified$geometry / scale_factors$tissue_hires_scalef
 ```
 
-
 ```{r}
 tissueBoundary(sfe) <- tb$simplified
 ```
 
 ```{r}
 plotSpatialFeature(sfe, "sum", annotGeometryName = "tissueBoundary", 
-                   annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
+                   annot_fixed = list(fill = NA, color = "black"),
+                   image_id = "lowres") +
     theme_void()
+```
+
+The mouse olfactory bulb is conventionally plotted horizontally. The entire SFE object can be transposed in histologial space to make the olfactory bulb horizontal.
+
+```{r}
+sfe <- SpatialFeatureExperiment::transpose(sfe)
+```
+
+```{r}
+plotSpatialFeature(sfe, "sum", annotGeometryName = "tissueBoundary", 
+                   annot_fixed = list(fill = NA, color = "black"),
+                   image_id = "lowres")
 ```
 
 Then we can use geometric operations to find which spots intersect tissue, which spots are covered by tissue, and how much of each spot intersects tissue.
@@ -270,8 +329,7 @@ sfe$diff_sr <- case_when(sfe$in_tissue == sfe$int_tissue ~ "same",
 plotSpatialFeature(sfe, "diff_sr", 
                    annotGeometryName = "tissueBoundary", 
                    annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
-    scale_fill_brewer(type = "div", palette = 4) +
-    theme_void()
+    scale_fill_brewer(type = "div", palette = 4)
 ```
 
 Spots at the margin can intersect the tissue without being covered by it.
@@ -279,8 +337,7 @@ Spots at the margin can intersect the tissue without being covered by it.
 sfe$diff_int_cov <- sfe$int_tissue != sfe$cov_tissue
 plotSpatialFeature(sfe, "diff_int_cov", 
                    annotGeometryName = "tissueBoundary", 
-                   annot_fixed = list(fill = NA, size = 0.5, color = "black")) +
-    theme_void()
+                   annot_fixed = list(fill = NA, size = 0.5, color = "black"))
 ```
 
 We can also get the geometries of the intersections between the tissue and the Visium spots, and then calculate what percentage of each spot is in tissue. However, this percentage may not be very useful if the tissue segmentation is subject to error. This percentage may be more useful for pathologist annotated histological regions or objects such as nuclei and myofibers.
@@ -336,8 +393,7 @@ sfe_tissue <- colDataUnivariate(sfe_tissue, "localmoran", qc_features)
 ```{r, fig.width=8, fig.height=6}
 plotLocalResult(sfe_tissue, "localmoran", qc_features, ncol = 2,
                 colGeometryName = "spotPoly", divergent = TRUE, 
-                diverge_center = 0) &
-    theme_void()
+                diverge_center = 0, image_id = "lowres", maxcell = 5e4)
 ```
 
 ```{r}
@@ -346,8 +402,7 @@ sfe_tissue <- colDataUnivariate(sfe_tissue, "LOSH", qc_features)
 
 ```{r, fig.width=8, fig.height=6}
 plotLocalResult(sfe_tissue, "LOSH", qc_features, ncol = 2,
-                colGeometryName = "spotPoly") &
-    theme_void()
+                colGeometryName = "spotPoly", image_id = "lowres", maxcell = 5e4)
 ```
 
 ```{r}
@@ -373,7 +428,7 @@ dec <- modelGeneVar(sfe_tissue)
 hvgs <- getTopHVGs(dec, n = 2000)
 ```
 
-Find Moran's I for all highly variable genes
+Find Moran's I for all highly variable genes:
 ```{r}
 sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, BPPARAM = MulticoreParam(2))
 ```
@@ -382,27 +437,45 @@ sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, BPPARAM = MulticoreParam(2
 plotRowDataHistogram(sfe_tissue, "moran_sample01")
 ```
 
-The vast majority of genes have positive Moran's I. Here we plot the genes with the highest Moran's I.
+The vast majority of genes have positive Moran's I. Here we'll find the genes with the highest Moran's I:
 ```{r}
 top_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
                                         decreasing = TRUE)[1:9]]
 ```
 
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, top_moran, ncol = 3) & theme_void()
+We can use the [gget info](https://pachterlab.github.io/gget/info.html) module from the [gget](https://pachterlab.github.io/gget/) package to get additional information on these genes, such as their descriptions, synonyms, transcripts and more from a collection of reference databases including [Ensembl](https://ensembl.org/), [UniProt](https://www.uniprot.org/) and [NCBI](https://www.ncbi.nlm.nih.gov/) Here, we are showing their gene descriptions from [NCBI](https://www.ncbi.nlm.nih.gov/):
+```{r}
+gget_info <- gget$info(top_moran)
+
+rownames(gget_info) <- gget_info$primary_gene_name
+select(gget_info, ncbi_description)
+```
+
+Plot the genes with the highest Moran's I:
+```{r, fig.width=9, fig.height=5}
+plotSpatialFeature(sfe_tissue, top_moran, ncol = 3, image_id = "lowres",
+                   maxcell = 5e4, swap_rownames = "symbol")
 ```
 
 Here global Moran's I seems to be more about tissue structure. 
 
-Some genes have negative Moran's I that might not be statistically significant
-
+Some genes have negative Moran's I that might not be statistically significant:
 ```{r}
 neg_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
                                         decreasing = FALSE)[1:9]]
 ```
 
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3) & theme_void()
+```{r}
+# Display NCBI descriptions for these genes
+gget_info_neg <- gget$info(neg_moran)
+
+rownames(gget_info_neg) <- gget_info_neg$primary_gene_name
+select(gget_info_neg, ncbi_description)
+```
+
+```{r, fig.width=9, fig.height=5}
+plotSpatialFeature(sfe_tissue, neg_moran, ncol = 3, swap_rownames = "symbol",
+                   image_id = "lowres", maxcell = 5e4)
 ```
 
 ```{r}
@@ -411,14 +484,14 @@ sfe_tissue <- runUnivariate(sfe_tissue, "moran.mc", neg_moran,
 ```
 
 ```{r}
-plotMoranMC(sfe_tissue, neg_moran)
+plotMoranMC(sfe_tissue, neg_moran, swap_rownames = "symbol")
 ```
 
 ```{r}
 rowData(sfe_tissue)[neg_moran, c("moran_sample01", "moran.mc_p.value_sample01")]
 ```
 
-As there're 2000 highly variable genes and 2000 tests, these would no longer be significant after correcting for multiple testing. 
+As there are 2000 highly variable genes and 2000 tests, these would no longer be significant after correcting for multiple testing. 
 
 Does global Moran's I relate to gene expression level?
 
@@ -470,19 +543,28 @@ colGraph(sfe_tissue, "knn10") <- listw
 
 ```{r}
 sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, BPPARAM = MulticoreParam(2),
-                         colGraphName = "knn10")
+                         colGraphName = "knn10", name = "moran_ns")
 ```
 
-Caveat in the current version of Voyager: running Moran's I again with a different neighborhood graph will overwrite the existing Moran's I results. In the next version, users may specify new names for the same statistics with different parameters and the parameters will be stored in `rowData`.
+Here we store the results in "moran_ns", not to be confused with spatial Moran's I results.
 
 These are the genes that tend to be more similar to their neighbors in the 10 nearest neighbor graph in PCA space for gene expression rather than in histological space:
 ```{r}
-top_moran2 <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01, 
+top_moran2 <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_ns_sample01, 
                                         decreasing = TRUE)[1:9]]
 ```
 
+```{r}
+# Display NCBI descriptions for these genes
+gget_info2 <- gget$info(top_moran2)
+
+rownames(gget_info2) <- gget_info2$primary_gene_name
+select(gget_info2, ncbi_description)
+```
+
 ```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3) & theme_void()
+plotSpatialFeature(sfe_tissue, top_moran2, ncol = 3, swap_rownames = "symbol",
+                   image_id = "lowres", maxcell = 5e4)
 ```
 
 Although this Moran's I was not computed in histological space, these genes with the highest Moran's I in PCA space also show spatial structure, as different cell types reside in different spatial regions.

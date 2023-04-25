@@ -6,31 +6,35 @@
 \title{Plot histograms for colData and rowData columns}
 \usage{
 plotColDataHistogram(
-  sfe,
+  sce,
   feature,
   fill_by = NULL,
+  facet_by = NULL,
   subset = NULL,
   bins = 100,
   binwidth = NULL,
   scales = "free",
   ncol = 1,
-  position = "identity"
+  position = "stack",
+  ...
 )
 
 plotRowDataHistogram(
-  sfe,
+  sce,
   feature,
   fill_by = NULL,
+  facet_by = NULL,
   subset = NULL,
   bins = 100,
   binwidth = NULL,
   scales = "free",
   ncol = 1,
-  position = "identity"
+  position = "stack",
+  ...
 )
 }
 \arguments{
-\item{sfe}{A \code{SpatialFeatureExperiment} object.}
+\item{sce}{A \code{SingleCellExperiment} object.}
 
 \item{feature}{Names of columns in \code{colData} or \code{rowData} to plot.
 When multiple features are specified, they will be plotted in separate
@@ -38,6 +42,12 @@ facets.}
 
 \item{fill_by}{Name of a categorical column in \code{colData} or
 \code{rowData} to fill the histogram.}
+
+\item{facet_by}{Column in \code{colData} or \code{rowData} to facet with.
+When multiple features are plotted, the features will be in different
+facets. In this case, setting \code{facet_by} will call
+\code{\link{facet_grid}} so the features are in rows and categories in
+\code{facet_by} will be in columns.}
 
 \item{subset}{Name of a logical column to only plot a subset of the data.}
 
@@ -57,6 +67,11 @@ free (\code{"free"}), or free in one dimension (\code{"free_x"},
 (e.g. \code{"jitter"} to use \code{position_jitter}), or the result of a call to a
 position adjustment function. Use the latter if you need to change the
 settings of the adjustment.}
+
+\item{...}{Other arguments passed on to \code{\link[ggplot2:layer]{layer()}}. These are
+often aesthetics, used to set an aesthetic to a fixed value, like
+\code{colour = "red"} or \code{size = 3}. They may also be parameters
+to the paired geom/stat.}
 }
 \value{
 A ggplot object
@@ -68,8 +83,11 @@ Plot histograms for colData and rowData columns
 library(SFEData)
 sfe <- McKellarMuscleData()
 plotColDataHistogram(sfe, c("nCounts", "nGenes"), fill_by = "in_tissue",
-                     bins = 50)
+                     bins = 50, position = "stack")
 plotColDataHistogram(sfe, "nCounts", subset = "in_tissue")
 sfe2 <- sfe[, sfe$in_tissue]
 plotColDataHistogram(sfe2, c("nCounts", "nGenes"), bins = 50)
+}
+\seealso{
+plotColDataFreqpoly
 }

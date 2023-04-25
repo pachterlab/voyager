@@ -7,25 +7,29 @@
 plotCorrelogram(
   sfe,
   features,
-  sample_id = NULL,
+  sample_id = "all",
   method = "I",
   color_by = NULL,
   facet_by = c("sample_id", "features"),
   ncol = NULL,
   colGeometryName = NULL,
   annotGeometryName = NULL,
+  reducedDimName = NULL,
   plot_signif = TRUE,
   p_adj_method = "BH",
   divergent = FALSE,
   diverge_center = NULL,
-  show_symbol = TRUE
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
+  name = "sp.correlogram"
 )
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
 \item{features}{Features to plot, must be in rownames of the gene count
-matrix, colnames of colData or a colGeometry.}
+matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+in \code{reducedDim}, or numeric indices of dimension reduction components.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
@@ -37,7 +41,7 @@ for each sample.}
 \code{featureData} of \code{colData} (see \code{\link{colFeatureData}}),
 \code{colGeometry}, or \code{annotGeometry} by which to color the
 correlogram of each feature. Alternatively, a vector of the same length as
-\code{features}.}
+\code{features}, or a data frame from \code{\link{clusterCorrelograms}}.}
 
 \item{facet_by}{Whether to facet by sample_id (default) or features. If
 facetting by sample_id, then different features will be plotted in the same
@@ -53,6 +57,10 @@ frames associated with cells/spots.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
+
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
 
 \item{plot_signif}{Logical, whether to plot significance symbols: p < 0.001:
 ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
@@ -72,9 +80,16 @@ TRUE}.}
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
+
+\item{name}{Name under which the correlogram results are stored, which is by
+default "sp.correlogram".}
 }
 \value{
 A ggplot object.

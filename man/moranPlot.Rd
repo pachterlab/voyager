@@ -8,7 +8,7 @@ moranPlot(
   sfe,
   feature,
   graphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   contour_color = "cyan",
   color_by = NULL,
   colGeometryName = NULL,
@@ -18,11 +18,13 @@ moranPlot(
   filled = FALSE,
   divergent = FALSE,
   diverge_center = NULL,
-  show_symbol = TRUE,
+  swap_rownames = NULL,
+  show_symbol = deprecated(),
   bins = 100,
   binwidth = NULL,
   hex = FALSE,
   plot_influential = TRUE,
+  name = "moran.plot",
   ...
 )
 }
@@ -71,21 +73,34 @@ non-influential points and only plot influential points as points.}
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
-\item{bins}{Numeric vector giving number of bins in both vertical and
-horizontal directions. Set to 100 by default.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{bins}{If binning the \code{colGeometry} in space due to large number of
+cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}. If \code{NULL} (default), then the
+\code{colGeometry} is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.}
 
 \item{binwidth}{Numeric vector giving bin width in both vertical and
 horizontal directions. Overrides \code{bins} if both set.}
 
-\item{hex}{Logical, whether to use hexagon rather than rectangular bins.
-Requires the \code{hexbin} package.}
+\item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
+
+\item{name}{Name under which the Moran plot results are stored. By default
+"moran.plot".}
 
 \item{...}{Other arguments to pass to \code{\link{geom_density2d}}.}
 }
@@ -110,7 +125,10 @@ sfe <- McKellarMuscleData("full")
 sfe <- sfe[, colData(sfe)$in_tissue]
 sfe <- logNormCounts(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1")
-clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2))
-moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1])
+sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1",
+                     swap_rownames = "symbol")
+clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2),
+                          swap_rownames = "symbol")
+moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1],
+          swap_rownames = "symbol")
 }

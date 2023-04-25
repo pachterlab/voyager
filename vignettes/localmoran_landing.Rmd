@@ -1,0 +1,45 @@
+---
+title: "Vignettes using local Moran's I"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{localmoran_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ref.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Global Moran's I is defined as
+
+$$
+I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
+$$
+
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood. 
+
+Local Moran's I [@Anselin1995-cs] is defined as
+
+$$
+I_i = (n-1)\frac{(x_i - \bar{x})\sum_{j=1}^n w_{ij} (x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
+$$
+
+It's similar to global Moran's I, but the values at locations $i$ are not summed and there's no normalization by the sum of spatial weights. 
+
+Below is a list of vignettes that use local Moran's I. The links point to the sections that use local Moran's I. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial analysis with 10X example Visium dataset](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/visium_10x.ipynb) | Perform local Moran's I on QC metrics and gene expression in mouse olfactory bulb dataset from 10X website.
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#local-morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Perform Moran's I on gene Myh2 (myosin heavy chain 2) in mouse skeletal muscle dataset
+| [CosMX NSCLC analysis](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig4_cosmx.ipynb) | Perform local Moran's I on QC metrics and on marker genes in a human non-small cell lung cancer dataset
+| [Xenium breast cancer analysis](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#local-spatial-statistics-of-marker-genes) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig5_xenium.ipynb) | Perform local Moran's I on QC metrics and marker genes in a human breast cancer dataset
+| [MERFISH mouse liver analysis](https://pachterlab.github.io/voyager/articles/vig6_merfish.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig6_merfish.ipynb) | Perform local Moran's I on QC metrics in a mouse liver dataset
+| [10X v3 Basic](https://pachterlab.github.io/voyager/articles/nonspatial.html#local-morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/nonspatial.ipynb) | Apply local Moran's I to QC metrics and marker genes in non-spatial human PBMC scRNA-seq dataset, with k nearest neighbor graph in gene expression PCA space rather than histological space
+
+# References

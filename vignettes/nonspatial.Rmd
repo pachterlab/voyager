@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{nonspatial}
@@ -20,6 +25,33 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
+
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
+
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
+
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
+
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+# Additional dependencies for this notebook
+install.packages("reticulate")
+
+packageVersion("Voyager")
 ```
 
 # Introduction
@@ -43,7 +75,19 @@ library(BiocSingular)
 library(spdep)
 library(patchwork)
 library(dplyr)
+library(reticulate)
 theme_set(theme_bw())
+```
+
+```{r}
+# Specify Python version to use gget
+PY_PATH <- Sys.which("python")
+use_python(PY_PATH)
+py_config()
+
+# Install and load gget
+system("pip3 install gget")
+gget <- import("gget")
 ```
 
 Here we download the filtered [Cell Ranger gene count matrix from the 10X website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.2/5k_pbmc_v3_nextgem?). The empty droplets have already been removed.
@@ -64,14 +108,10 @@ This is loaded into R as a `SingleCellExperiment` (SCE) object.
 colnames(sce) <- sce$Barcode
 ```
 
-```{r}
-names(rowData(sce))[2] <- "symbol"
-```
-
 # Quality control (QC)
 Here we perform some basic QC, to remove low quality cells with high proportion of mitochondrially encoded counts. 
 ```{r}
-is_mito <- str_detect(rowData(sce)$symbol, "^MT-")
+is_mito <- str_detect(rowData(sce)$Symbol, "^MT-")
 sum(is_mito)
 ```
 
@@ -112,7 +152,7 @@ Here we normalize the data, perform PCA, cluster the cells, and find marker gene
 sce <- logNormCounts(sce)
 ```
 
-Use the highly variable genes for PCA
+Use the highly variable genes for PCA:
 ```{r}
 hvgs <- getTopHVGs(sce, n = 2000)
 ```
@@ -128,10 +168,10 @@ How many PCs shall we use for further analyses?
 ElbowPlot(sce, ndims = 30)
 ```
 
-Variance explained drops sharply from PC1 and then from PC4 and then levels off. Plot genes with the largest loadings of the top 4 PCs:
+Variance explained drops sharply from PC1 and again from PC4 and then levels off. Plot genes with the largest loadings of the top 4 PCs:
 
 ```{r}
-plotDimLoadings(sce)
+plotDimLoadings(sce, swap_rownames = "Symbol")
 ```
 
 
@@ -158,7 +198,7 @@ How many cells are there in each cluster?
 table(sce$cluster)
 ```
 
-Then we use the conventional Wilcoxon rank sum test to find marker genes for each cluster. The test is compares each cluster to the rest of the cells, and only genes more highly expressed in the cluster compared to the other cells are considered. The results are a list of data frames, where each data frame is for one cluster. Areas under the receiver operator curve (AUC) distinguishing each cluster vs. any other cluster are also included, the closer to 1 the better while 0.5 means no better than random guessing. The false discovery rate (FDR) column is the Benjamini-Hochberg corrected p-values. Genes in these data frames are already sorted by p-values.
+Then we use the conventional Wilcoxon rank sum test to find marker genes for each cluster. The test compares each cluster to the rest of the cells, and only genes more highly expressed in the cluster compared to the other cells are considered. The result is a list of data frames, where each data frame corresponds to one cluster. Areas under the receiver operator curve (AUC), distinguishing each cluster vs. any other cluster, are also included. The closer to 1 the better, while 0.5 means no better than random guessing. The false discovery rate (FDR) column contains the Benjamini-Hochberg corrected p-values. Genes in these data frames are already sorted by p-values.
 ```{r}
 markers <- findMarkers(sce, groups = colData(sce)$cluster,
                        test.type = "wilcox", pval.type = "all", direction = "up")
@@ -166,22 +206,28 @@ markers[[4]]
 ```
 
 
-See how specific the top markers to each cluster
+See how specific the top markers are to each cluster:
 
 ```{r}
 top_markers <- unlist(lapply(markers, function(x) head(rownames(x), 1)))
-top_markers_symbol <- rowData(sce)[top_markers, "symbol"]
+top_markers_symbol <- rowData(sce)[top_markers, "Symbol"]
 ```
 
 ```{r}
-plotExpression(sce, top_markers_symbol, x = "cluster", point_fun = function(...) list(),
-               swap_rownames = "symbol")
+plotExpression(sce, top_markers_symbol, x = "cluster", swap_rownames = "Symbol",
+               point_fun = function(...) list())
 ```
 
+We can use the [gget info](https://pachterlab.github.io/gget/info.html) module from the [gget](https://pachterlab.github.io/gget/) package to get additional information for these marker genes. For example, their [NCBI](https://www.ncbi.nlm.nih.gov/) description:
+```{r}
+gget_info <- gget$info(top_markers)
+
+rownames(gget_info) <- gget_info$ensembl_gene_name
+select(gget_info, ncbi_description)
+```
 
 # "Spatial" analyses for QC metrics
-Find k nearest neighbor graph in PCA space for Moran's I. We are not using `spdep` here since its `nb2listwdist()` function for distance based edge weighting requires 2-3 dimensional spatial coordinates while the coordinates here have 10 dimensions. Here inverse distance weighting is used for edge weights.
-
+Find k nearest neighbor graph in PCA space for Moran's I: We are not using `spdep` here since its `nb2listwdist()` function for distance based edge weighting requires 2-3 dimensional spatial coordinates while the coordinates here have 10 dimensions. Here, inverse distance weighting is used for edge weights.
 ```{r}
 foo <- findKNN(reducedDim(sce, "PCA")[,1:10], k=10, BNPARAM=AnnoyParam())
 # Split by row
@@ -203,14 +249,13 @@ class(listw) <- "listw"
 attr(listw, "region.id") <- colnames(sce)
 ```
 
-While there's no histological space, we convert the SCE object into `SpatialFeatureExperiment` (SFE) to use the spatial analysis and plotting functions from `Voyager`, and pretend that the first 2 PCs are the histological space.
+Because there is no histological space, we convert the SCE object into `SpatialFeatureExperiment` (SFE) to use the spatial analysis and plotting functions from `Voyager`, and pretend that the first 2 PCs are the histological space.
 ```{r}
-spe <- toSpatialExperiment(sce, spatialCoords = reducedDim(sce, "PCA")[,1:2])
-sfe <- toSpatialFeatureExperiment(spe)
-sfe
+(sfe <- toSpatialFeatureExperiment(sce, spatialCoords = reducedDim(sce, "PCA")[,1:2],
+                                  spatialCoordsNames = NULL))
 ```
 
-Add the k nearest neighbor graph to the SFE object.
+Add the k nearest neighbor graph to the SFE object:
 ```{r}
 colGraph(sfe, "knn10") <- listw
 ```
@@ -226,7 +271,6 @@ For total UMI counts (sum) and genes detected (detected), Moran's I is quite str
 ## Moran plot
 
 How about the local variations on the k nearest neighbors graph? In the Moran plot, the x axis is the value for each cell, and the y axis is the average value among neighboring cells in the graph weighted by edge weights. The slope of the fitted line is Moran's I. Sometimes there are clusters in this plot, showing different kinds of neighborhoods.
-
 ```{r}
 sfe <- colDataUnivariate(sfe, "moran.plot", c("sum", "detected", "subsets_mito_percent"))
 ```
@@ -236,8 +280,7 @@ The dashed lines are the averages on the x and y axes.
 moranPlot(sfe, "sum", color_by = "cluster")
 ```
 
-While most cells are in the cluster around the average, there is a cluster of cells with lower total counts whose neighbors also have lower total counts and a cluster of cells with higher total counts whose neighbors also have higher total counts. These clusters seem to be somewhat related to some gene expression based clusters.
-
+While most cells are in the cluster around the average, there is a cluster of cells with lower total counts whose neighbors also have lower total counts. There also is a cluster of cells with higher total counts whose neighbors also have higher total counts. These clusters seem to be somewhat related to some gene expression based clusters.
 ```{r}
 moranPlot(sfe, "detected", color_by = "cluster")
 ```
@@ -246,7 +289,7 @@ moranPlot(sfe, "detected", color_by = "cluster")
 moranPlot(sfe, "subsets_mito_percent", color_by = "cluster")
 ```
 
-For the number of genes detected and percentage of mitochondrial counts there's one main cluster on this plot but cells are somewhat separated by gene expression clusters, which is not surprising because the gene expression clusters are also based on the k nearest neighbor graph. Cluster 4 cells have higher percentage of mitochondrial counts and so do their neighbors. 
+There is one main cluster on this plot for the number of genes detected and for the percentage of mitochondrial counts. However, cells are somewhat separated by gene expression clusters. This is not surprising because the gene expression clusters are also based on the k nearest neighbor graph. Cluster 4 cells have a higher percentage of mitochondrial counts and so do their neighbors. 
 
 ## Local Moran's I
 Also see local Moran's I for these 3 QC metrics:
@@ -255,19 +298,19 @@ Also see local Moran's I for these 3 QC metrics:
 sfe <- colDataUnivariate(sfe, "localmoran", c("sum", "detected", "subsets_mito_percent"))
 ```
 
-Here we don't have histological space. Then how to visualize the local "spatial" statistics? UMAP is bad but here PCA can somewhat separate the clusters, so in this case we can use the first 2 PCs as if they're the histological space. As a reference, we plot the metrics themselves and the clusters in the first 2 PCs. 
+Here, we don't have a histological space. So how can we visualize the local "spatial" statistics? [UMAP is bad](https://www.biorxiv.org/content/10.1101/2021.08.25.457696v1), but in this case PCA can somewhat separate the clusters. We can use the first 2 PCs as if they are the histological space. As a reference, we plot the metrics themselves and the clusters in the first 2 PCs. 
 ```{r, fig.width = 8, fig.height=6}
 plotSpatialFeature(sfe, c("sum", "detected", "subsets_mito_percent", "cluster"))
 ```
 
-Here plot the local Moran's I for these metrics in the first 2 PCs:
+Plot the local Moran's I for these metrics in the first 2 PCs:
 ```{r, fig.width=8, fig.height=6}
 plotLocalResult(sfe, "localmoran", c("sum", "detected", "subsets_mito_percent"), 
                 colGeometryName = "centroids",
                 divergent = TRUE, diverge_center = 0, ncol = 2)
 ```
 
-However, what if there's no good 2D representation of the data for easy plotting? Remember that here the k nearest neighbor graph was computed on the first 10 PCs rather than the first 2 PCs. The graph is not tied to the 2D representation. We can still plot histograms to show the distribution and scatter plots to compare the same local metric for different variables, which can be colored by another variable such as cluster. This may be added to the next release of Voyager. For now we add the results of interest to `colData(sfe)` and use the existing `colData` plotting functions from `scater` and `Voyager`.
+However, what if there is no good 2D representation of the data for easy plotting? Remember that here the k nearest neighbor graph was computed on the first 10 PCs rather than the first 2 PCs. The graph is not tied to the 2D representation. We can still plot histograms to show the distribution and scatter plots to compare the same local metric for different variables, which can be colored by another variable such as cluster. This may be added to the next release of Voyager. For now, we add the results of interest to `colData(sfe)` and use the existing `colData` plotting functions from `scater` and `Voyager`.
 ```{r}
 localResultAttrs(sfe, "localmoran", "sum")
 ```
@@ -284,40 +327,43 @@ data("ditto_colors")
 ```
 
 ```{r}
-plotColDataHistogram(sfe, c("sum_localmoran", "detected_localmoran", 
-                            "pct_mito_localmoran"), bins = 50, 
-                     fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, c("sum_localmoran", "detected_localmoran", 
+                           "pct_mito_localmoran"), bins = 50, 
+                    color_by = "cluster") +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
 
-The y axis is log transformed (hence that warning when some bins have no cells) so the color of cells in the long tail can be seen because most cells don't have very strong local Moran's I. Cells in cluster 7 have high local Moran's I in total UMI counts and genes detected, which means that they tend to be more homogeneous in these QC metrics.
+The y axis is log transformed (hence that warning when some bins have no cells), so the color of cells in the long tail can be seen because most cells don't have very strong local Moran's I. Cells in cluster 7 have high local Moran's I in total UMI counts and genes detected, which means that they tend to be more homogeneous in these QC metrics.
 
 How do local Moran's I for these QC metrics relate to each other?
 
 ```{r}
-plotColData(sfe, x = "sum_localmoran", y = "detected_localmoran", color_by = "cluster")
+plotColData(sfe, x = "sum_localmoran", y = "detected_localmoran", 
+            color_by = "cluster") +
+    scale_color_manual(values = ditto_colors)
 ```
 
 Cells more locally homogeneous in total UMI counts are also more homogeneous in number of genes detected, which is not surprising given the correlation between the two.
 
 ```{r}
 plotColData(sfe, x = "sum_localmoran", y = "pct_mito_localmoran", 
-            color_by = "cluster")
+            color_by = "cluster") +
+    scale_color_manual(values = ditto_colors)
 ```
 
-For local Moran's I, `sum` vs percentage mitochondrial counts shows a more interesting pattern highlighting clusters 4 and 7, as in the Moran plots.
+For local Moran's I, `sum` vs percentage mitochondrial counts shows a more interesting pattern, highlighting clusters 4 and 7 as in the Moran plots.
 
 How does local Moran's I relate to the value itself?
 ```{r}
 plotColData(sfe, x = "sum", y = "sum_localmoran", color_by = "cluster") +
     geom_density2d(data = as.data.frame(colData(sfe)),
                    mapping = aes(x = sum, y = sum_localmoran), color = "blue", 
-                   linewidth = 0.3)
+                   linewidth = 0.3) +
+    scale_color_manual(values = ditto_colors)
 ```
 
-In this case, generally cells with higher total counts also tend to have higher local Moran's I in total counts, but there's another wing where cells with lower total counts have slightly higher local Moran's I in total counts and there's a central value of total counts with near 0 local Moran's I. The density contour shows that cells are concentrated at that central value.
+In this case, generally cells with higher total counts also tend to have higher local Moran's I in total counts. However, there is another wing where cells with lower total counts have slightly higher local Moran's I in total counts and there's a central value of total counts with near 0 local Moran's I. The density contour shows that cells are concentrated at that central value.
 
 ## Local spatial heteroscedasticity (LOSH)
 
@@ -344,18 +390,18 @@ sfe$pct_mito_losh <- localResult(sfe, "LOSH", "subsets_mito_percent")[,"Hi"]
 ```
 
 ```{r}
-plotColDataHistogram(sfe, c("sum_losh", "detected_losh", 
-                            "pct_mito_losh"), bins = 50, 
-                     fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, c("sum_losh", "detected_losh", 
+                           "pct_mito_losh"), bins = 50, 
+                     color_by = "cluster") +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
 
-Here clusters 2 and 6 tend to be more locally heterogeneous. How do total counts and genes detected relate in LOSH?
+Here, clusters 2 and 6 tend to be more locally heterogeneous. How do total counts and genes detected relate in LOSH?
 
 ```{r}
-plotColData(sfe, x = "sum_losh", y = "detected_losh", color_by = "cluster")
+plotColData(sfe, x = "sum_losh", y = "detected_losh", color_by = "cluster") +
+    scale_color_manual(values = ditto_colors)
 ```
 
 While generally cells higher in LOSH in total counts are also higher in LOSH in genes detected, there are some outliers that are very high in both, with more heterogeneous neighborhoods. Absolute distance to the neighbors is not taken into account when the adjacency matrix is row normalized. It would be interesting to see if those outliers tend to be further away from their 10 nearest neighbors, or in a region in the PCA space where cells are further apart.
@@ -363,13 +409,14 @@ While generally cells higher in LOSH in total counts are also higher in LOSH in 
 How does total counts itself relate to its LOSH?
 
 ```{r}
-plotColData(sfe, x = "sum", y = "sum_losh", color_by = "cluster")
+plotColData(sfe, x = "sum", y = "sum_losh", color_by = "cluster") +
+    scale_color_manual(values = ditto_colors)
 ```
 
 There does not seem to be a clear relationship in this case. 
 
 # "Spatial" analyses for gene expression
-Here we reorganize the differential expression results
+First, we need to reorganize the differential expression results:
 ```{r}
 top_markers_df <- lapply(seq_along(markers), function(i) {
     out <- markers[[i]][markers[[i]]$FDR < 0.05, c("FDR", "summary.AUC")]
@@ -377,7 +424,7 @@ top_markers_df <- lapply(seq_along(markers), function(i) {
     out
 })
 top_markers_df <- do.call(rbind, top_markers_df)
-top_markers_df$symbol <- rowData(sce)[rownames(top_markers_df), "symbol"]
+top_markers_df$symbol <- rowData(sce)[rownames(top_markers_df), "Symbol"]
 ```
 
 ## Moran's I
@@ -407,8 +454,8 @@ plotSpatialFeature(sfe, top_moran, ncol = 2)
 ```
 
 ```{r}
-top_moran_symbol <- rowData(sfe)[top_moran, "symbol"]
-plotExpression(sfe, top_moran_symbol, swap_rownames = "symbol")
+top_moran_symbol <- rowData(sfe)[top_moran, "Symbol"]
+plotExpression(sfe, top_moran_symbol, swap_rownames = "Symbol")
 ```
 
 They are all marker genes for the same cluster, cluster 9. Perhaps these genes have high Moran's I because they are specific to a cell type. Then how does the Moran's I relate to cluster AUC and cluster differential expression p-value?
@@ -434,7 +481,7 @@ as.data.frame(top_markers_df) |>
     scale_color_manual(values = ditto_colors)
 ```
 
-Generally more significant marker genes tend to have higher Moran's I. This is not surprising because the clusters and Moran's I here are both based on the k nearest neighbor graph.
+Generally, more significant marker genes tend to have higher Moran's I. This is not surprising because the clusters and Moran's I here are both based on the k nearest neighbor graph.
 
 ```{r}
 as.data.frame(top_markers_df) |> 
@@ -446,7 +493,7 @@ as.data.frame(top_markers_df) |>
 
 Similarly, genes with higher AUC tend to have higher Moran's I. For other clusters, generally speaking, genes more specific to a cluster tend to have higher Moran's I.
 
-Use permutation testing to see if Moran's I is statistically significant
+Let's use permutation testing to see if Moran's I is statistically significant:
 ```{r}
 sfe <- runUnivariate(sfe, "moran.mc", features = top_markers, nsim = 200)
 ```
@@ -456,12 +503,12 @@ top_markers_symbol
 ```
 
 ```{r}
-plotMoranMC(sfe, top_markers)
+plotMoranMC(sfe, top_markers, swap_rownames = "Symbol")
 ```
 
 They all seem to be very significant. 
 
-The correlogram finds Moran's I for higher and higher order of neighbors and can be a proxy for distance. It's 
+The correlogram finds Moran's I for a higher order of neighbors and can be a proxy for distance. 
 
 ```{r}
 system.time({
@@ -471,10 +518,10 @@ system.time({
 ```
 
 ```{r}
-plotCorrelogram(sfe, top_markers)
+plotCorrelogram(sfe, top_markers, swap_rownames = "Symbol")
 ```
 
-Here we see different patterns of decay in spatial autocorrelation and different length scales of spatial autocorrelation. PF4 is a marker gene very specific cluster 10, which is a small cluster, for platelets. There are only 27 cells in that cluster, so higher order neighbors are very likely to be from other clusters. Marker genes for the other larger clusters with hundreds of cells nevertheless display different patterns in the correlogram.
+We see different patterns of decay in spatial autocorrelation and different length scales of spatial autocorrelation. CLU is a marker gene very specific to the smallest cluster, so higher order neighbors are very likely to be from other clusters. Marker genes for the other larger clusters with hundreds of cells nevertheless display different patterns in the correlogram.
 
 ## Local Moran's I
 ```{r}
@@ -483,10 +530,11 @@ sfe <- runUnivariate(sfe, "localmoran", features = top_markers)
 
 ```{r, fig.width=12, fig.height=9}
 plotLocalResult(sfe, "localmoran", top_markers, colGeometryName = "centroids", 
-                divergent = TRUE, diverge_center = 0, ncol = 3)
+                divergent = TRUE, diverge_center = 0, ncol = 3,
+                swap_rownames = "Symbol")
 ```
 
-We also plot the histograms, but for now the results need to ba added to `colData` first.
+We will also plot the histograms, but for now the results need to be added to `colData` first.
 
 ```{r}
 new_colname <- paste0("cluster", seq_along(top_markers), "_", 
@@ -499,8 +547,7 @@ for (i in seq_along(top_markers)) {
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotColDataHistogram(sfe, new_colname, fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, new_colname, color_by = "cluster") +
     ggtitle("Local Moran's I") +
     theme(legend.position = "top") +
     scale_y_log10() +
@@ -509,10 +556,11 @@ plotColDataHistogram(sfe, new_colname, fill_by = "cluster") +
 
 Again, the y axis is log transformed to make the tail more visible. For some clusters, the top marker gene's local Moran's I forms its own peak for cells in the cluster with higher local Moran's I than other cells. However, sometimes cells within the cluster form a long tail shared with some cells from other clusters. Then the local Moran's I could be another method for differential expression. Or since both local Moran's I and Leiden clustering use the k nearest neighbor graph in PCA space, local Moran's I of marker genes or perhaps eigengenes signifying gene programs for each cell type on this k nearest neighbor graph can validate or criticize Leiden clusters. Furthermore, interestingly, for some genes, the tallest peak in the histogram is away from 0.
 
-The scatter plots as shown in the "spatial" analyses for QC metrics section can be made to see how local Moran's I relates to the expression of the gene itself.
+The scatter plots as shown in the "spatial" analyses for the QC metrics section can be made to see how local Moran's I relates to the expression of the gene itself.
 ```{r}
 i <- 6 # Change if running this notebook
-plotExpression(sfe, top_markers[i], x = new_colname[i], color_by = "cluster") +
+plotExpression(sfe, top_markers_symbol[i], x = new_colname[i], color_by = "cluster",
+               swap_rownames = "Symbol") +
     scale_color_manual(values = ditto_colors) +
     coord_flip() +
     # comment out in case of error after changing i
@@ -522,7 +570,8 @@ plotExpression(sfe, top_markers[i], x = new_colname[i], color_by = "cluster") +
                    color = "blue", linewidth = 0.3) 
 ```
 
-For this gene, just like for total UMI counts, there are two wings and a central value where local Moran's I is around 0, and generally cells with higher expression of this gene have higher local Moran's I for this gene as well. The density contours show that cells concentrate around 0 expression and some weaker positive local Moran. The streak of cells with 0 expression means that many cells don't express this gene but their neighbors have low and slightly homogeneous expression of this gene. This pattern may be different for different genes. Also, the p-values for each cell for local Moran's I are available and corrected for multiple hypothesis testing, and can be plotted. The p-values are based on the z score of the local Moran statistic, although how the statistic is distributed for gene expression data warrants more investigation. This p-value can also be computed with permutation (see `localmoran_perm()`). 
+For this gene, just like for total UMI counts, there are two wings and a central value where local Moran's I is around 0. Generally, cells with higher expression of this gene have higher local Moran's I for this gene as well. The density contours show that cells concentrate around 0 expression and some weaker positive local Moran. The streak of cells with 0 expression means that many cells don't express this gene, and their neighbors have low and slightly homogeneous expression of this gene. This pattern may be different for different genes. Also, the p-values for each cell for local Moran's I are available and corrected for multiple hypothesis testing, and can be plotted. The p-values are based on the z score of the local Moran statistic, although how the statistic is distributed for gene expression data warrants more investigation. This p-value can also be computed with permutation (see `localmoran_perm()`). 
+
 ```{r}
 localResultAttrs(sfe, "localmoran", top_markers[1])
 ```
@@ -534,12 +583,13 @@ sfe <- runUnivariate(sfe, "LOSH", top_markers)
 ```
 
 ```{r, fig.width=12, fig.height=9}
-plotLocalResult(sfe, "LOSH", top_markers, colGeometryName = "centroids", ncol = 3)
+plotLocalResult(sfe, "LOSH", top_markers, colGeometryName = "centroids", ncol = 3,
+                swap_rownames = "Symbol")
 ```
 
-In the two genes on the right, it's interesting to see higher LOSH in the middle cluster. The two genes on the left have some outliers throwing off the dynamic range. but it seems that their high LOSH regions are different.
+In the two genes on the right, it's interesting to see higher LOSH in the middle cluster. The two genes on the left have some outliers throwing off the dynamic range, but it seems that their high LOSH regions are different.
 
-Again, we plot the histograms
+Again, we plot the histograms:
 ```{r}
 new_colname2 <- paste0("cluster", seq_along(top_markers), "_", 
                       top_markers_symbol, "_losh")
@@ -551,19 +601,19 @@ for (i in seq_along(top_markers)) {
 ```
 
 ```{r, fig.width=8, fig.height=12}
-plotColDataHistogram(sfe, new_colname2, fill_by = "cluster") +
-    scale_fill_manual(values = ditto_colors) +
+plotColDataFreqpoly(sfe, new_colname2, color_by = "cluster") +
     ggtitle("Local heteroscedasticity") +
     theme(legend.position = "top") +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
 
-Relationship between expression and LOSH is more complicated. For some genes, such as the top marker gene for cluster 1 LYAR, cells in the cluster, i.e. higher expression, also have higher LOSH, much like how in Poisson and negative binomial distributions, higher mean also means higher variance. However, for some genes, such as the top marker gene for cluster 2 CTSS, have lower LOSH among cells that have higher expression, which means expression of this gene is more homogeneous within the cluster, consistent with local Moran. 
+The relationship between expression and LOSH is more complicated. For some genes, such as the top marker gene for cluster 1 LYAR, cells in the cluster with higher expression also have higher LOSH - much like how in Poisson and negative binomial distributions, higher mean also means higher variance. However, some genes, such as the top marker gene for cluster 2 CTSS, have lower LOSH among cells that have higher expression, which means expression of this gene is more homogeneous within the cluster, consistent with local Moran. 
 
 ```{r}
 i <- 6 # Change if running this notebook
-plotExpression(sfe, top_markers[i], x = new_colname2[i], color_by = "cluster") +
+plotExpression(sfe, top_markers_symbol[i], x = new_colname2[i], 
+               color_by = "cluster", swap_rownames = "Symbol") +
     scale_color_manual(values = ditto_colors) +
     coord_flip() +
     # comment out in case of error after changing i
@@ -587,10 +637,10 @@ As a reference, we show Moran's I for the top marker genes, which is the slope o
 top_markers_df[top_markers,]
 ```
 
-There's no significant marker gene for cluster 7. These plots are shown in sequence 
-
+There is no significant marker gene for cluster 7. These plots are shown in sequence
 ```{r}
-plts <- lapply(top_markers, moranPlot, sfe = sfe, color_by = "cluster")
+plts <- lapply(top_markers, moranPlot, sfe = sfe, color_by = "cluster", 
+               swap_rownames = "Symbol")
 ```
 
 ```{r, fig.width=9, fig.height=9}
@@ -601,7 +651,7 @@ wrap_plots(plts, widths = 1, heights = 1) +
 
 For some genes, the points are so concentrated around the origin that there aren't "enough" points elsewhere to plot the density contours. But for the cells that do express these genes, there are clusters on this plot. Some genes are not expressed in many cells, but those cells have neighbors that do express the gene, hence the vertical streak at x = 0. 
 
-Here we applied univariate spatial statistics to the k nearest neighbor graph in the gene expression PCA space rather than the histological space. Just like in histological space, it would be impractical to examine all these statistics gene by gene, so multivariate analyses that incorporate the k nearest neighbor graph may be interesting.
+In this tutorial, we applied univariate spatial statistics to the k nearest neighbor graph in the gene expression PCA space rather than the histological space. Just like in histological space, it would be impractical to examine all these statistics gene by gene, so multivariate analyses that incorporate the k nearest neighbor graph may be interesting.
 
 # Session info
 ```{r}

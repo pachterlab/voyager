@@ -5,6 +5,7 @@
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![BioC status](http://www.bioconductor.org/shields/build/release/bioc/Voyager.svg)](https://bioconductor.org/checkResults/release/bioc-LATEST/Voyager)
+[![codecov](https://codecov.io/gh/pachterlab/voyager/branch/devel/graph/badge.svg?token=RCIXA7AQER)](https://codecov.io/gh/pachterlab/voyager)
 <!-- badges: end -->
 
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
@@ -23,7 +24,7 @@ Questions, suggestions, or problems should be submitted as [GitHub issues](https
 ```r
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(version = "3.16") # or 'devel'
+BiocManager::install()
 BiocManager::install(c("SpatialFeatureExperiment", "Voyager"))
 ```
 

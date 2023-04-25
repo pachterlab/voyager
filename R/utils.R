@@ -19,93 +19,15 @@
 #' colGeometry colGeometry<-
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
+#' @importFrom SingleCellExperiment int_colData int_colData<-
+#' @importFrom methods new
+#' @importFrom utils packageVersion
 .add_name_sample_id <- function(out, sample_id) {
     names(out) <- vapply(names(out), .add_sample_id,
         sample_id = sample_id,
         FUN.VALUE = character(1)
     )
     out
-}
-
-#' @importFrom S4Vectors make_zero_col_DFrame
-#' @importFrom SingleCellExperiment int_metadata int_metadata<-
-.initialize_featureData <- function(df) {
-    if (is.null(attr(df, "featureData"))) {
-        fd <- make_zero_col_DFrame(nrow = ncol(df))
-        rownames(fd) <- colnames(df)
-        attr(df, "featureData") <- fd
-    }
-    df
-}
-
-.add_fd <- function(x, df, res, features, sample_id, name) {
-    res <- .add_name_sample_id(res, sample_id)
-    df <- .initialize_featureData(df)
-    fd <- attr(df, "featureData")
-    fd[features, names(res)] <- res
-    attr(df, "featureData") <- fd
-    df
-}
-
-.initialize_fd_dimData <- function(x, MARGIN) {
-    fd_name <- switch(MARGIN,
-        "rowFeatureData",
-        "colFeatureData"
-    )
-    if (is.null(int_metadata(x)[[fd_name]])) {
-        rownames_use <- switch(MARGIN,
-            names(rowData(x)),
-            names(colData(x))
-        )
-        fd <- make_zero_col_DFrame(nrow = length(rownames_use))
-        rownames(fd) <- rownames_use
-        int_metadata(x)[[fd_name]] <- fd
-    }
-    x
-}
-
-# Because adding a new column to S4 DataFrame will remove the attributes
-# Put the featureData of colData and rowData in int_metadata instead
-.add_fd_dimData <- function(x, MARGIN, res, features, sample_id, type, ...) {
-    res <- .add_name_sample_id(res, sample_id)
-    x <- .initialize_fd_dimData(x, MARGIN)
-    fd_name <- switch(MARGIN,
-        "rowFeatureData",
-        "colFeatureData"
-    )
-    fd <- int_metadata(x)[[fd_name]]
-    fd[features, names(res)] <- res
-    int_metadata(x)[[fd_name]] <- fd
-    x
-}
-
-#' Get metadata of colData and rowData
-#'
-#' Results of spatial analyses on columns in \code{colData} and \code{rowData}
-#' are stored in \code{int_metadata(sfe)}, or internal metadata. This function
-#' allows the users to access these results.
-#'
-#' @param sfe An SFE object.
-#' @return A \code{DataFrame}.
-#' @export
-#' @name colFeatureData
-#' @examples
-#' library(SpatialFeatureExperiment)
-#' library(SingleCellExperiment)
-#' library(SFEData)
-#' sfe <- McKellarMuscleData("small")
-#' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' # Moran's I for colData
-#' sfe <- colDataMoransI(sfe, "nCounts")
-#' colFeatureData(sfe)
-colFeatureData <- function(sfe) {
-    int_metadata(sfe)$colFeatureData
-}
-
-#' @rdname colFeatureData
-#' @export
-rowFeatureData <- function(sfe) {
-    int_metadata(sfe)$rowFeatureData
 }
 
 .cbind_all <- function(values, features_list) {
@@ -125,8 +47,8 @@ rowFeatureData <- function(sfe) {
 .get_feature_values <- function(sfe, features, sample_id,
                                 colGeometryName = NULL, annotGeometryName = NULL,
                                 exprs_values = "logcounts", cbind_all = TRUE,
-                                show_symbol = TRUE) {
-    features_list <- .check_features(sfe, features, colGeometryName)
+                                show_symbol = TRUE, swap_rownames = "symbol") {
+    features_list <- .check_features(sfe, features, colGeometryName, swap_rownames)
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
@@ -135,8 +57,8 @@ rowFeatureData <- function(sfe) {
             drop = FALSE
         ]
         # So symbol is shown instead of Ensembl ID
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-            rownames(values_assay) <- rowData(sfe)[rownames(values_assay), "symbol"]
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
+            rownames(values_assay) <- rowData(sfe)[rownames(values_assay), swap_rownames]
         }
         values_assay <- as.data.frame(as.matrix(t(values_assay)))
         values[["assay"]] <- values_assay
@@ -170,9 +92,9 @@ rowFeatureData <- function(sfe) {
 
 #' @importFrom SpatialFeatureExperiment localResultFeatures
 .check_features_lr <- function(sfe, type, features, sample_id, colGeometryName,
-                               annotGeometryName) {
+                               annotGeometryName, swap_rownames) {
     features_assay <- localResultFeatures(sfe, type) # includes colData
-    features <- .symbol2id(sfe, features)
+    features <- .symbol2id(sfe, features, swap_rownames)
     features_assay <- intersect(features_assay, features)
     if (!is.null(colGeometryName)) {
         # Because colGeometryName is also specified for plotting
@@ -229,49 +151,36 @@ rowFeatureData <- function(sfe) {
     data.frame(out, check.names = FALSE)
 }
 
-.get_default_attribute <- function(type) {
-    switch(type,
-        localmoran = "Ii",
-        localmoran_perm = "Ii",
-        localC_perm = "localC",
-        localG = "localG",
-        localG_perm = "localG",
-        LOSH = "Hi",
-        LOSH.mc = "Hi",
-        LOSH.cs = "Hi",
-        moran.plot = "wx"
-    )
-}
-
-.get_localResult_values <- function(sfe, type, features, attribute, sample_id,
+.get_localResult_values <- function(sfe, name, type, features, attribute, sample_id,
                                     colGeometryName = NULL,
                                     annotGeometryName = NULL,
-                                    cbind_all = TRUE, show_symbol = TRUE) {
+                                    cbind_all = TRUE, show_symbol = TRUE,
+                                    swap_rownames = "symbol") {
     features_list <- .check_features_lr(
-        sfe, type, features, sample_id,
-        colGeometryName, annotGeometryName
+        sfe, name, features, sample_id,
+        colGeometryName, annotGeometryName, swap_rownames
     )
     if (is.null(attribute)) {
-        attribute <- .get_default_attribute(type)
+        attribute <- info(type, "default_attr")
     }
     values <- list()
     sample_id_ind <- colData(sfe)$sample_id %in% sample_id
     if (length(features_list[["assay"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["assay"]])
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
+        lrs <- localResults(sfe, sample_id, name, features_list[["assay"]])
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
             ind <- names(lrs) %in% rownames(sfe)
-            names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], "symbol"]
+            names(lrs)[ind] <- rowData(sfe)[names(lrs)[ind], swap_rownames]
         }
         values[["assay"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["colgeom"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["colgeom"]],
+        lrs <- localResults(sfe, sample_id, name, features_list[["colgeom"]],
             colGeometryName = colGeometryName
         )
         values[["colgeom"]] <- .get_localResult_attrs(lrs, attribute)
     }
     if (length(features_list[["annotgeom"]])) {
-        lrs <- localResults(sfe, sample_id, type, features_list[["annotgeom"]],
+        lrs <- localResults(sfe, sample_id, name, features_list[["annotgeom"]],
             annotGeometryName = annotGeometryName
         )
         values[["annotgeom"]] <- .get_localResult_attrs(lrs, attribute)
@@ -297,22 +206,23 @@ rowFeatureData <- function(sfe) {
 
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
-                                  show_symbol) {
+                                  reducedDimName,
+                                  show_symbol, swap_rownames) {
     colname_use <- .add_sample_id(name, sample_id)
-    out_rd <- out_cd <- out_cg <- out_ag <- NULL
+    out_rd <- out_cd <- out_cg <- out_ag <- out_reddim <- NULL
     features_rd <- intersect(features, rownames(sfe))
-    if (!length(features_rd) && "symbol" %in% names(rowData(sfe))) {
-        features_symbol <- intersect(features, rowData(sfe)$symbol)
+    if (!length(features_rd) && show_symbol && swap_rownames %in% names(rowData(sfe))) {
+        features_symbol <- intersect(features, rowData(sfe)[[swap_rownames]])
         .warn_symbol_duplicate(sfe, features_rd)
         features <- setdiff(features, features_symbol)
-        features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)$symbol)]
+        features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)[[swap_rownames]])]
         if (all(is.na(features_rd))) features_rd <- NULL
     }
     if (length(features_rd)) {
         out_rd <- .get_not_na_items(rowData(sfe), features_rd, colname_use)
         features <- setdiff(features, names(out_rd))
-        if ("symbol" %in% names(rowData(sfe)) && show_symbol) {
-            names(out_rd) <- rowData(sfe)[names(out_rd), "symbol"]
+        if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
+            names(out_rd) <- rowData(sfe)[names(out_rd), swap_rownames]
             .warn_symbol_duplicate(sfe, names(out_rd))
         }
     }
@@ -346,7 +256,24 @@ rowFeatureData <- function(sfe) {
             }
         }
     }
-    out <- c(out_rd, out_cd, out_cg, out_ag)
+    if (!is.null(reducedDimName)) {
+        reddim <- reducedDim(sfe, reducedDimName)
+        if (is.null(colnames(reddim))) {
+            names_use <- paste0(reducedDimName, ncol(reddim))
+        } else names_use <- colnames(reddim)
+        if (is.numeric(features))
+            features_reddim <- names_use[features]
+        else
+            features_reddim <- intersect(features, names_use)
+        fd <- reducedDimFeatureData(sfe, reducedDimName)
+        if (!is.null(fd)) {
+            out_reddim <- .get_not_na_items(fd, features_reddim, colname_use)
+            if (is.numeric(features)) features <- NULL
+            else
+                features <- setdiff(features, names(out_reddim))
+        }
+    }
+    out <- c(out_rd, out_cd, out_cg, out_ag, out_reddim)
     if (!length(out)) {
         stop("None of the features has the requested metadata.")
     }
@@ -359,19 +286,29 @@ rowFeatureData <- function(sfe) {
     out
 }
 
-.local_type2title <- function(type, attribute) {
-    if (is.null(attribute)) attribute <- .get_default_attribute(type)
-    base <- switch(type,
-        localmoran = "Local Moran's I",
-        localmoran_perm = "Local Moran's I permutation testing",
-        localC = "Local Geary's C",
-        localC_perm = "Local Geary's C permutation testing",
-        localG = "Getis-Ord Gi(*)",
-        localG_perm = "Getis-Ord Gi(*) with permutation testing",
-        LOSH = "Local spatial heteroscedasticity",
-        LOSH.mc = "Local spatial heteroscedasticity permutation testing",
-        LOSH.cs = "Local spatial heteroscedasticity Chi-square test",
-        moran.plot = "Moran plot"
-    )
-    paste0(base, " (", attribute, ")")
+.deprecate_show_symbol <- function(fun_name, show_symbol, swap_rownames) {
+    if (is_present(show_symbol)) {
+        deprecate_warn("1.2.0", paste0(fun_name, "(show_symbol = )"),
+                       paste0(fun_name, "(swap_rownames = )"))
+        # The old behavior
+        if (show_symbol) swap_rownames <- "symbol"
+    } else show_symbol <- !is.null(swap_rownames)
+    list(show_symbol, swap_rownames)
+}
+
+#' @importFrom SingleCellExperiment reducedDim reducedDim<-
+.add_reddim_colnames <- function(sfe, dimred) {
+    rd <- reducedDim(sfe, dimred)
+    if (is.null(colnames(rd)))
+        colnames(rd) <- paste0(dimred, seq_len(ncol(rd)))
+    reducedDim(sfe, dimred) <- rd
+    sfe
+}
+
+# As in MatrixExtra, only for Csparse for now
+.empty_dgc <- function(nrow, ncol) {
+    out <- new("dgCMatrix")
+    out@Dim <- as.integer(c(nrow, ncol))
+    out@p <- integer(ncol+1L)
+    out
 }

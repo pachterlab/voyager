@@ -1,0 +1,37 @@
+---
+title: "Vignettes using Geary's C"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{variogram_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process model to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. The semivariogram is defined as
+
+$$
+\gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
+$$
+
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2, which comes from the assumption that the Gaussian process is intrinsically stationary, i.e. the covariance between two locations only depends on the spatial lag between them:
+
+$$\begin{align}
+\mathrm{Var}(X_{t_2} - X_{t_1}) &= \mathrm{Var}(X_{t_2}) + \mathrm{Var}(X_{t_1}) - 2\mathrm{Cov}(X_{t_2}, X_{t_1}) \\
+&= 2\rho(0) - 2\rho(t_2 - t_1),
+\end{align}$$
+
+where $\rho$ is a covariance function and $t_1$ and $t_2$ are spatial locations. A model can be fitted to the empirical semivariogram, to model this $\rho$.
+
+Below is a list of vignettes that use the variogram. The links point to the sections that use the variogram. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [MERFISH mouse liver analysis](https://pachterlab.github.io/voyager/articles/vig6_merfish.html#semivariogram) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig6_merfish.ipynb) | Compute variogram, variogram map, and anisotropic variogram on spatially binned total transcript counts
+| [Variogram demo](https://pachterlab.github.io/voyager/articles/variogram.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/variogram.ipynb) | Demonstrate variogram on melanoma metastasis Slide-seq data

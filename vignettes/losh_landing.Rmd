@@ -1,0 +1,42 @@
+---
+title: "Vignettes using LOSH"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{losh_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ref.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Local spatial heteroscedasticity (LOSH) [@Ord2012-qi] is defined as
+
+$$
+H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
+$$
+
+where where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood, $h_1 = \sum_i \left| e_i \right|^a/n$, $e_j = x_j - \bar{x}_j$, $x$ is a variable with values at each location, and
+
+$$
+\bar{x}_j = \frac{\sum_j w_{jk}x_k}{\sum_j w_{jk}}.
+$$
+
+By default, $a = 2$ so LOSH is like a local variance. See [@Ord2012-qi] for more details and interpretation. 
+
+Below is a list of vignettes that use Moran's I. The links point to the sections that use Moran's I. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial analysis with 10X example Visium dataset](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/visium_10x.ipynb) | Perform LOSH on QC metrics in mouse olfactory bulb dataset from 10X website.
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#losh) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Perform LOSH on gene Myh2 (myosin heavy chain 2) in mouse skeletal muscle dataset
+| [CosMX NSCLC analysis](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig4_cosmx.ipynb) | Perform LOSH on QC metrics and on marker genes in a human non-small cell lung cancer dataset
+| [Xenium breast cancer analysis](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#local-spatial-statistics-of-marker-genes) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig5_xenium.ipynb) | Perform LOSH on QC metrics and marker genes in a human breast cancer dataset
+| [10X v3 Basic](https://pachterlab.github.io/voyager/articles/nonspatial.html#losh) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/nonspatial.ipynb) | Apply LOSH to QC metrics and marker genes in non-spatial human PBMC scRNA-seq dataset, with k nearest neighbor graph in gene expression PCA space rather than histological space
+
+# References

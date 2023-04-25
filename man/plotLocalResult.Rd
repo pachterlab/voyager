@@ -6,37 +6,47 @@
 \usage{
 plotLocalResult(
   sfe,
-  type,
+  name,
   features,
   attribute = NULL,
-  sample_id = NULL,
+  sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
   ncol = NULL,
   ncol_sample = NULL,
   annot_aes = list(),
   annot_fixed = list(),
+  bbox = NULL,
+  image_id = NULL,
+  maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
   diverge_center = NULL,
   annot_divergent = FALSE,
   annot_diverge_center = NULL,
-  size = 0,
+  size = 0.5,
   shape = 16,
+  linewidth = 0,
   linetype = 1,
   alpha = 1,
-  color = NA,
+  color = "black",
   fill = "gray80",
-  show_symbol = TRUE,
+  show_symbol = deprecated(),
+  swap_rownames = NULL,
   scattermore = FALSE,
   pointsize = 0,
+  bins = NULL,
+  summary_fun = sum,
+  hex = FALSE,
+  dark = FALSE,
+  type = name,
   ...
 )
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
-\item{type}{Which local spatial results. Use
+\item{name}{Which local spatial results. Use
 \code{\link[SpatialFeatureExperiment]{localResultNames}} to see which types
 of results have already been calculated.}
 
@@ -82,6 +92,26 @@ Tidyeval is NOT supported.}
 settings, such as \code{color = "gray"}. The defaults are the same as the
 relevant defaults for this function.}
 
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+\code{bbox} is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If \code{NULL}, then the entire tissue is
+plotted.}
+
+\item{image_id}{ID of the image to plot behind the geometries. If
+\code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
+image IDs present.}
+
+\item{maxcell}{Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.}
+
 \item{aes_use}{Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
 discrete variables, it can be fill, color, shape, or linetype, whenever
@@ -100,12 +130,14 @@ case it's different.}
 \item{annot_diverge_center}{Just as \code{diverge_center}, but for the
 annotGeometry in case it's different.}
 
-\item{size}{Fixed size of points or width of lines, including outlines of
-polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 0.5. Ignored if \code{size_by} is specified.}
+\item{size}{Fixed size of points. For points defaults to 0.5. Ignored if
+\code{size_by} is specified.}
 
 \item{shape}{Fixed shape of points, ignored if \code{shape_by} is specified
 and applicable.}
+
+\item{linewidth}{Width of lines, including outlines of polygons. For
+polygons, this defaults to 0, meaning no outlines.}
 
 \item{linetype}{Fixed line type, ignored if \code{linetype_by} is specified
 and applicable.}
@@ -118,9 +150,13 @@ specified or not applicable, or for \code{annotGeometry} if
 
 \item{fill}{Similar to \code{color}, but for fill.}
 
-\item{show_symbol}{Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in \code{rowData(sfe)} called "symbol" for this to work.}
+\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
+be consistent with \code{scater} plotting functions.}
+
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{scattermore}{Logical, whether to use the \code{scattermore} package to
 greatly speed up plotting numerous points. Only used for POINT
@@ -132,6 +168,35 @@ multiple features.}
 
 \item{pointsize}{Radius of rasterized point in \code{scattermore}. Default to
 0 for single pixels (fastest).}
+
+\item{bins}{If binning the \code{colGeometry} in space due to large number of
+cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}. If \code{NULL} (default), then the
+\code{colGeometry} is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.}
+
+\item{summary_fun}{Function to summarize the feature value when the
+\code{colGeometry} is binned.}
+
+\item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
+\code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update
+\code{ggplot2} if you are getting horizontal stripes when \code{hex =
+TRUE}.}
+
+\item{dark}{Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.}
+
+\item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
+the name of one of such objects in the environment. If the
+\code{localResult} of interest was manually added outside
+\code{\link{runUnivariate}} and \code{\link{runBivariate}}, so the method
+is not recorded, then the \code{type} argument can be used to specify the
+method to properly get the title and labels. By default, this argument is
+set to be the same as argument \code{name}. If the method parameters are
+recorded, then the \code{type} argument is ignored.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
@@ -190,6 +255,7 @@ library(SpatialFeatureExperiment)
 library(SFEData)
 library(scater)
 sfe <- McKellarMuscleData("small")
+sfe <- sfe[,sfe$in_tissue]
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 feature_use <- rownames(sfe)[1]
 sfe <- logNormCounts(sfe)

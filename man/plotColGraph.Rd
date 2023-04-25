@@ -9,22 +9,24 @@ plotColGraph(
   sfe,
   colGraphName = 1L,
   colGeometryName = NULL,
-  sample_id = NULL,
+  sample_id = "all",
   weights = FALSE,
   segment_size = 0.5,
   geometry_size = 0.5,
-  ncol = NULL
+  ncol = NULL,
+  bbox = NULL
 )
 
 plotAnnotGraph(
   sfe,
   annotGraphName = 1L,
   annotGeometryName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   weights = FALSE,
   segment_size = 0.5,
   geometry_size = 0.5,
-  ncol = NULL
+  ncol = NULL,
+  bbox = NULL
 )
 }
 \arguments{
@@ -53,6 +55,17 @@ LINESTRING and POLYGON) to plot the geometry in the background.}
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.}
+
+\item{bbox}{A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+\code{bbox} is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If \code{NULL}, then the entire tissue is
+plotted.}
 
 \item{annotGraphName}{Name of the annotation graph to plot.}
 

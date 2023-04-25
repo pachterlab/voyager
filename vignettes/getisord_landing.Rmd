@@ -1,0 +1,26 @@
+---
+title: "Vignettes using Getis-Ord Gi*"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{getisord_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ref.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij}x_j $), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in [@Getis1992-fr]. Binary weights in the spatial neighborhood graph are recommended for Getis-Ord Gi\*.
+
+Below is a list of vignettes that use Moran's I. The links point to the sections that use Moran's I. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#getis-ord-gi) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Getis-Ord Gi* of gene Myh2 (myosin heavy chain 2) in mouse skeletal muscle dataset
+
+# References

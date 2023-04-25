@@ -8,6 +8,11 @@ output:
   toc_float:
     collapsed: false
   toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
 bibliography: ref.bib
 vignette: >
   %\VignetteIndexEntry{visium_basic}
@@ -22,16 +27,40 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
+```{r, include = FALSE, eval = FALSE}
+# Install Google Colab dependencies
+# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
 
-In this introductory vignette for [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) analysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
+# First install `sf`, `ragg` and `textshaping` and their system dependencies:
+system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
+install.packages("sf")
+install.packages("textshaping")
+install.packages("ragg")
 
-This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz]. The code can be run on [Google Colab](https://colab.research.google.com/drive/1EPbPu71O7mvc1Hsp1VI3Jc3xI5mzJ0eM?usp=sharing).
+# Install system dependencies of some other R packages that Voyager either imports or suggests:
+system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
-```{r, echo = FALSE, fig.alt='Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.'}
-knitr::include_graphics("https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png")
+# Install Voyager from Bioconductor:
+install.packages("BiocManager")
+BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install("scater")
+system.time(
+  BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
+)
+
+# Additional dependencies for this notebook
+install.packages("reticulate")
+
+packageVersion("Voyager")
 ```
 
+# Introduction
+
+In this introductory vignette for the [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) data representation and [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) analysis package, we demonstrate a basic exploratory data analysis (EDA) of spatial transcriptomics data. Basic knowledge of R and [`SingleCellExperiment`](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html) is assumed.
+
+This vignette showcases the packages with a Visium spatial gene expression system dataset. The technology was chosen due to its popularity, and therefore the availability of numerous publicly available datasets for analysis [@Moses2022-xz].  
+
+![Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are "regions of interest" (ROI) methods, along with 2016 ST and some other ROI selection methods.](https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png)
 While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. For a vignette illustrating univariate spatial analysis with the same dataset, see the more advanced [exploratory spatial data analyis vignette](https://pachterlab.github.io/voyager/articles/vig2_visium.html) with the same dataset.
 
 Here we load the packages used in this vignette.
@@ -49,7 +78,26 @@ library(BiocParallel)
 library(stringr)
 library(ggplot2)
 library(sparseMatrixStats)
+library(dplyr)
+library(reticulate)
+library(concordexR)
+library(BiocNeighbors)
 theme_set(theme_bw(10))
+```
+
+```{r}
+# Specify Python version to use gget
+PY_PATH <- Sys.which("python")
+use_python(PY_PATH)
+py_config()
+```
+
+```{r, eval=FALSE, include=FALSE}
+system("pip3 install gget")
+```
+
+```{r}
+gget <- import("gget")
 ```
 
 # Mouse skeletal muscle dataset
@@ -66,9 +114,16 @@ The SFE object of this dataset is provided in the `SFEData` package; we begin by
 ```
 
 The authors provided the full resolution hematoxylin and eosin (H&E) image on GEO, which we downsized to facilitate its display:
-```{r, echo=FALSE, out.width = "100%", fig.alt="A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers."}
-knitr::include_graphics("tissue_lowres_5a.jpeg")
+![A cross section of mouse muscle is slightly off center to the lower left. In the middle of the tissue is the notexin injury site with leukocyte infiltration and fewer myofibers. The rest of the tissue section is tightly packed with myofibers.](https://raw.githubusercontent.com/pachterlab/voyager/documentation/vignettes/tissue_lowres_5a.jpeg)
+
+The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
+```{r}
+sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+              image_id = "lowres", 
+              scale_fct = 1024/22208)
+sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
 ```
+
 
 # Quality control
 ## Spots
@@ -78,15 +133,15 @@ We begin quality control (QC) by plotting various metrics both as violin plots a
 names(colData(sfe))
 ```
 
-Below we plot the total unique molecular identifier (UMI) counts per spot. The commented out line of code shows how to compute the total UMI counts.
+Below we plot the total unique molecular identifier (UMI) counts per spot. The commented out line of code shows how to compute the total UMI counts. The `maxcell` argument is the maximum number of pixels to plot for the image; the image is downsampled if it has more pixels than `maxcells`. This can speed up plotting when plotting the same image in multiple facets.
 ```{r}
 # colData(sfe)$nCounts <- colSums(counts(sfe))
 violin <- plotColData(sfe, "nCounts", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
-                              annotGeometryName = "tissueBoundary",
-                              annot_fixed = list(fill = NA, color = "black", 
-                                                 size = 0.5)) +
+                              annotGeometryName = "tissueBoundary", 
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -100,8 +155,8 @@ violin <- plotColData(sfe, "nGenes", x = "in_tissue", colour_by = "in_tissue") +
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "nGenes", colGeometryName = "spotPoly",
                               annotGeometryName = "tissueBoundary",
-                              annot_fixed = list(fill = NA, color = "black", 
-                                                 size = 0.5)) +
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -121,8 +176,8 @@ violin <- plotColData(sfe, "prop_mito", x = "in_tissue", colour_by = "in_tissue"
     theme(legend.position = "top")
 spatial <- plotSpatialFeature(sfe, "prop_mito", colGeometryName = "spotPoly",
                               annotGeometryName = "tissueBoundary",
-                              annot_fixed = list(fill = NA, color = "black", 
-                                                 size = 0.5)) +
+                              image = "lowres", maxcell = 5e4,
+                              annot_fixed = list(fill = NA, color = "black")) +
     theme_void()
 violin + spatial
 ```
@@ -210,7 +265,7 @@ ElbowPlot(sfe_tissue, ndims = 30)
 ```
 
 ```{r}
-plotDimLoadings(sfe_tissue, dims = 1:4)
+plotDimLoadings(sfe_tissue, dims = 1:4, swap_rownames = "symbol")
 ```
 
 Do the clustering to show on the dimension reduction plots
@@ -227,15 +282,14 @@ colData(sfe_tissue)$cluster <- clusterRows(reducedDim(sfe_tissue, "PCA")[,1:3],
 plotPCA(sfe_tissue, ncomponents = 3, colour_by = "cluster")
 ```
 
-The principal components (PCs) can be plotted in space. Due to spatial autocorrelation of many genes and spatial regions of different histological characters, even though spatial information is not used in the PCA procedure, the PCs may show spatial structure.
+The principal components (PCs) can be plotted in space. Due to spatial autocorrelation of many genes and spatial regions of different histological characters, even though spatial information is not used in the PCA procedure, the PCs may show spatial structure. 
 ```{r, fig.width=6, fig.height=8}
 spatialReducedDim(sfe_tissue, "PCA", ncomponents = 4, 
                   colGeometryName = "spotPoly", divergent = TRUE, 
-                  diverge_center = 0) &
-    theme_void()
+                  diverge_center = 0, image = "lowres", maxcell = 5e4)
 ```
 
-PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlight some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
+PC1, which explains far more variance than PC2, separates the injury site leukocytes and myofibers close to the site from the Visium myofibers. PC2 highlights the center of the injury site and some myofibers near the edge. PC3 highlights the muscle tendon junctions. PC4 does not seem to be informative; it might have picked up an outlier.
 
 It is also possible to run UMAP following the PCA, as is done for scRNA-seq. We do not recommend producing a UMAP since the procedure distorts distances, and does not respect either local or global structure in the data [@Chari2021-hb]. However, for completeness, we show how to compute a UMAP below:
 ```{r}
@@ -247,9 +301,30 @@ sfe_tissue <- runUMAP(sfe_tissue, dimred = "PCA", n_dimred = 3)
 plotUMAP(sfe_tissue, colour_by = "cluster")
 ```
 
+UMAP is often used to visualize clusters. An alternative to UMAP is [`concordex`](https://bioconductor.org/packages/devel/bioc/html/concordexR.html), which quantitatively shows the proportion of neighbors on the k nearest neighbor graph with the same cluster label. To be consistent with the default in igraph Leiden clustering, we use k = 10.
+
+```{r}
+g <- findKNN(reducedDim(sfe_tissue, "PCA")[,1:3], k = 10)
+res <- calculateConcordex(g$index, labels = sfe_tissue$cluster, k = 10, 
+                          return.map = TRUE)
+```
+
+The cluster labels are permuted to estimate a null distribution, and the observed values can be compared to the simulated values:
+```{r}
+plotConcordexSim(res)
+```
+
+The observed value is much higher than in the simulated values, indicating good clustering. The single number is the average of all clusters. Values for different clusters can be plotted in a heatmap:
+```{r, fig.width=5, fig.height=4}
+heatConcordex(res, angle_col = 0, cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+The diagonal represents the proportion of neighbors of cells from each cluster that are from the same cluster. That the off diagonal entries are very low indicate good clustering.
+
 More interesting in spatial transcriptomics, is to locate the clusters in space, and this can be done as follows:
 ```{r}
-plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly") + theme_void()
+plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly",
+                   image = "lowres")
 ```
 
 While spatial information is not explicitly used in clustering, due to spatial autocorrelation of gene expression and the histological regions, some of these clusters are spatially contiguous. There are many methods to find spatially informed clusters, such as [`BayesSpace`](https://bioconductor.org/packages/release/bioc/html/BayesSpace.html) [@Zhao2021-vb], which is on Bioconductor.
@@ -269,7 +344,54 @@ markers <- findMarkers(sfe_tissue, groups = colData(sfe_tissue)$cluster,
 
 The result is sorted by p-values:
 ```{r}
-markers[[6]]
+markers[[1]]
+```
+
+We can use the [gget enrichr](https://pachterlab.github.io/gget/enrichr.html) module from the [gget](https://pachterlab.github.io/gget/) package to perform a gene enrichment analysis. You can choose from >200 enrichment databases which are listed on the [Enrichr website](https://maayanlab.cloud/Enrichr/#libraries). Here, we are analyzing the top 20 genes for cluster 1 using the default ontology database [GO_Biological_Process_2021](http://geneontology.org/):
+```{r}
+enrichr_genes <- rownames(markers[[1]])[1:20]
+gget_e <- gget$enrichr(enrichr_genes, ensembl=TRUE, database = "ontology")
+
+# Plot results of gene enrichment analysis
+# Count number of overlapping genes
+gget_e$overlapping_genes_count <- lapply(gget_e$overlapping_genes, length) |> as.numeric()
+# Only keep the top 10 results
+gget_e <- gget_e[1:10,]
+gget_e |>
+    ggplot() +
+    geom_bar(aes(
+        x = -log10(adj_p_val),
+        y = reorder(path_name, -adj_p_val)
+    ),
+    stat = "identity",
+  	fill = "lightgrey",
+  	width = 0.5,
+    color = "black") +
+    geom_text(
+        aes(
+            y = path_name,
+            x = (-log10(adj_p_val)),
+            label = overlapping_genes_count
+        ),
+        nudge_x = 0.25,
+        show.legend = NA,
+        color = "red"
+    ) +
+  	geom_text(
+        aes(
+            y = Inf,
+            x = Inf,
+      			hjust = 1,
+      			vjust = 1,
+            label = "# of overlapping genes"
+        ),
+        show.legend = NA,
+        size=4,
+        color = "red"
+    ) +
+    geom_vline(linetype = "dashed", linewidth = 0.5, xintercept = -log10(0.05)) +
+    ylab("Pathway name") +
+    xlab("-log10(adjusted P value)")
 ```
 
 Significant markers for each cluster can be obtained as follows:
@@ -279,10 +401,18 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
                colour_by = "cluster", swap_rownames = "symbol")
 ```
 
+We'll use the module [gget info](https://pachterlab.github.io/gget/info.html) to get additional information on these genes, such as their descriptions, synonyms, transcripts and more from a collection of reference databases including [Ensembl](https://ensembl.org/), [UniProt](https://www.uniprot.org/), and [NCBI](https://www.ncbi.nlm.nih.gov/). Here, we are showing their gene descriptions from [NCBI](https://www.ncbi.nlm.nih.gov/):
+```{r}
+gget_info <- gget$info(genes_use)
+
+rownames(gget_info) <- gget_info$primary_gene_name
+select(gget_info, ncbi_description)
+```
+
 These genes are interesting to view in spatial context:
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 4) &
-    theme_void()
+```{r, fig.width=9, fig.height=7}
+plotSpatialFeature(sfe_tissue, genes_use, colGeometryName = "spotPoly", ncol = 3,
+                   image = "lowres", maxcell = 5e4, swap_rownames = "symbol")
 ```
 
 # Moran's I
@@ -290,7 +420,7 @@ Tobler's first law of geography states that
 
 > Everything is related to everything else. But near things are more related than distant things.
 
-This observation motivates the examination of spatial autocorrelation. Positive spatial autocorrelation is evident when nearby things tend to be similar, such as that weather in Pasadena and downtown Los Angeles (as opposed to the weather in Pasadena and San Francisco). Negative spatial autocorrelation is evident when nearby things tend to be more dissimilar, like squares on a chessboard. Spatial autocorrelation can be arise from an intrinsic process such as diffusion or communication by physical contact, or result from a covariate that has such an intrinsic process, or in areal data, when the areal units of observation are smaller than the scale of the spatial process.
+This observation motivates the examination of spatial autocorrelation. Positive spatial autocorrelation is evident when nearby things tend to be similar, such as that weather in Pasadena and downtown Los Angeles (as opposed to the weather in Pasadena and San Francisco). Negative spatial autocorrelation is evident when nearby things tend to be more dissimilar, like squares on a chessboard. Spatial autocorrelation can arise from an intrinsic process such as diffusion or communication by physical contact, or result from a covariate that has such an intrinsic process, or in areal data, when the areal units of observation are smaller than the scale of the spatial process.
 
 The most commonly used measure of spatial autocorrelation is Moran's I, defined as
 
@@ -298,14 +428,13 @@ $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
 $$
 
-where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood. 
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood and whether to normalize the number of neighbors. The [`spdep`](https://r-spatial.github.io/spdep/index.html) package uses the neighborhood.
 
 Moran's I is similar to the Pearson correlation between the value at each location and the average value at its neighbors (but not identical, see [@Lee2001-tm]). Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
 Spatial dependence analysis in `spdep` requires a spatial neighborhood graph. The graph for adjacent Visium spot can be found with
 ```{r}
 colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
 ```
-
 
 We mentioned that spatial autocorrelation is apparent in total UMI counts. Here's what Moran's I shows:
 ```{r}
@@ -316,7 +445,7 @@ calculateMoransI(t(colData(sfe_tissue)[,c("nCounts", "nGenes")]),
 K means kurtosis. The positive values of Moran's I indicate positive spatial autocorrelation.
 
 ## Spatially variable genes
-A spatially variable gene is a gene whose expression depends on spatial locations, rather than being spatially random, like salt grains spread on a soup. Spatially variable genes can be identified by spatial autocorrelation signatures, and sometimes Moran's I is used to compare and assess spatially variable genes identified with different methods. Below `BPPARAM` is used to parallelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
+A spatially variable gene is a gene whose expression depends on spatial locations, rather than being spatially random, like salt grains spread on a soup. Spatially variable genes can be identified by spatial autocorrelation signatures, and sometimes Moran's I is used to compare and assess spatially variable genes identified with different methods. Below `BPPARAM` is used to paralelize the computation of Moran's I for 2000 highly variable genes, and 2 cores are used with the SNOW backend.
 
 ```{r}
 sfe_tissue <- runMoransI(sfe_tissue, features = hvgs, colGraphName = "visium",
@@ -336,10 +465,20 @@ ord <- order(df$moran_Vis5A, decreasing = TRUE)
 df[ord, c("symbol", "moran_Vis5A")]
 ```
 
-We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation. We can plot the genes with the strongest positive spatial autocorrelation in space:
-```{r, fig.width=9, fig.height=6}
-plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly") &
-    theme_void()
+We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation.
+
+Let's get some additional information on the genes with the strongest positive spatial autocorrelation in space using [gget info](https://pachterlab.github.io/gget/info.html) as above:
+```{r}
+gget_info2 <- gget$info(rownames(df)[1:6])
+
+rownames(gget_info2) <- gget_info2$primary_gene_name
+select(gget_info2, ncbi_description)
+```
+
+Let's plot these genes:
+```{r, fig.width=9, fig.height=7}
+plotSpatialFeature(sfe_tissue, rownames(df)[1:6], colGeometryName = "spotPoly",
+                   image = "lowres", maxcell = 5e4, swap_rownames = "symbol")
 ```
 
 These genes do indeed look spatially variable. However, such spatial variability can simply be due to the histological regions in space, or in other words, spatial distribution of different cell types. There are many methods to identify spatially variable genes, often involving Gaussian process modeling, which are far more complex than Moran's I, such as [`SpatialDE`](https://bioconductor.org/packages/release/bioc/html/spatialDE.html) [@Svensson2018-sx]. However, such methods usually don't account for the histological regions, except for `C-SIDE` [@Cable2022-ma], which identifies spatially variable genes within cell types. This leads to the question of what is really meant by "cell type". It remains to see how spatial methods made specifically for identifying spatially variable genes compare with methods that don't explicitly use spatial information but simply perform differential analysis between cell types which often are in spatially defined histological regions. 

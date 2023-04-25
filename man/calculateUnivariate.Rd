@@ -3,8 +3,9 @@
 \name{calculateUnivariate}
 \alias{calculateUnivariate}
 \alias{calculateMoransI}
-\alias{calculateUnivariate,ANY-method}
-\alias{calculateUnivariate,SpatialFeatureExperiment-method}
+\alias{calculateUnivariate,ANY,SFEMethod-method}
+\alias{calculateUnivariate,ANY,character-method}
+\alias{calculateUnivariate,SpatialFeatureExperiment,ANY-method}
 \alias{calculateMoransI,ANY-method}
 \alias{calculateMoransI,SpatialFeatureExperiment-method}
 \alias{colDataUnivariate}
@@ -15,50 +16,76 @@
 \alias{annotGeometryMoransI}
 \alias{runUnivariate}
 \alias{runMoransI}
+\alias{reducedDimUnivariate}
+\alias{reducedDimMoransI}
 \title{Univariate spatial stiatistics}
 \usage{
-\S4method{calculateUnivariate}{ANY}(
+\S4method{calculateUnivariate}{ANY,SFEMethod}(
   x,
-  listw,
-  type = c("moran", "geary", "moran.mc", "geary.mc", "moran.test", "geary.test",
-    "globalG.test", "sp.correlogram", "moran.plot", "localmoran", "localmoran_perm",
-    "localC", "localC_perm", "localG", "localG_perm", "LOSH", "LOSH.mc", "LOSH.cs",
-    "gwss"),
+  type,
+  listw = NULL,
+  coords_df = NULL,
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
-\S4method{calculateUnivariate}{SpatialFeatureExperiment}(
+\S4method{calculateUnivariate}{ANY,character}(
+  x,
+  type,
+  listw = NULL,
+  coords_df = NULL,
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  returnDF = TRUE,
+  p.adjust.method = "BH",
+  name = NULL,
+  ...
+)
+
+\S4method{calculateUnivariate}{SpatialFeatureExperiment,ANY}(
   x,
   type,
   features = NULL,
   colGraphName = 1L,
-  sample_id = NULL,
+  colGeometryName = 1L,
+  sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
   include_self = FALSE,
   p.adjust.method = "BH",
+  swap_rownames = NULL,
+  name = NULL,
   ...
 )
 
-\S4method{calculateMoransI}{ANY}(x, ..., BPPARAM = SerialParam(), zero.policy = NULL)
+\S4method{calculateMoransI}{ANY}(
+  x,
+  ...,
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  name = "moran"
+)
 
 \S4method{calculateMoransI}{SpatialFeatureExperiment}(
   x,
   features = NULL,
   colGraphName = 1L,
-  sample_id = NULL,
+  colGeometryName = 1L,
+  sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   returnDF = TRUE,
   include_self = FALSE,
   p.adjust.method = "BH",
+  swap_rownames = NULL,
+  name = NULL,
   ...
 )
 
@@ -67,11 +94,12 @@ colDataUnivariate(
   type,
   features,
   colGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -79,11 +107,12 @@ colDataMoransI(
   x,
   features,
   colGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -93,11 +122,12 @@ colGeometryUnivariate(
   features,
   colGeometryName = 1L,
   colGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -106,11 +136,12 @@ colGeometryMoransI(
   features,
   colGeometryName = 1L,
   colGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -120,11 +151,12 @@ annotGeometryUnivariate(
   features,
   annotGeometryName = 1L,
   annotGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -133,11 +165,12 @@ annotGeometryMoransI(
   features,
   annotGeometryName = 1L,
   annotGraphName = 1L,
-  sample_id = NULL,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -146,12 +179,15 @@ runUnivariate(
   type,
   features = NULL,
   colGraphName = 1L,
-  sample_id = NULL,
+  colGeometryName = 1L,
+  sample_id = "all",
   exprs_values = "logcounts",
   BPPARAM = SerialParam(),
+  swap_rownames = NULL,
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 
@@ -159,12 +195,44 @@ runMoransI(
   x,
   features = NULL,
   colGraphName = 1L,
-  sample_id = NULL,
+  colGeometryName = 1L,
+  sample_id = "all",
   exprs_values = "logcounts",
+  BPPARAM = SerialParam(),
+  swap_rownames = NULL,
+  zero.policy = NULL,
+  include_self = FALSE,
+  p.adjust.method = "BH",
+  name = NULL,
+  ...
+)
+
+reducedDimUnivariate(
+  x,
+  type,
+  dimred = 1L,
+  components = 1L,
+  colGraphName = 1L,
+  sample_id = "all",
   BPPARAM = SerialParam(),
   zero.policy = NULL,
   include_self = FALSE,
   p.adjust.method = "BH",
+  name = NULL,
+  ...
+)
+
+reducedDimMoransI(
+  x,
+  dimred = 1L,
+  components = 1L,
+  colGraphName = 1L,
+  sample_id = "all",
+  BPPARAM = SerialParam(),
+  zero.policy = NULL,
+  include_self = FALSE,
+  p.adjust.method = "BH",
+  name = NULL,
   ...
 )
 }
@@ -173,12 +241,21 @@ runMoransI(
 \code{SpatialFeatureExperiment} (SFE) object with such a matrix in an
 assay.}
 
-\item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
-object.}
+\item{type}{An \code{\link{SFEMethod}} object, or a string matching the name
+of an \code{SFEMethod} object. The methods mentioned above correspond to
+\code{SFEMethod} objects already implemented in the Voyager package. Use
+\code{\link{listSFEMethods}} to see which methods are available. You can
+implement new \code{SFEMethod} objects to apply Voyager functions to other
+spatial analysis methods. This is in part inspired by the \code{caret},
+\code{parsnip}, and \code{BiocSingular} packages.}
 
-\item{type}{An integer specifying the index or string specifying the name of
-the *Geometry to query or replace. If missing, then the first item in the
-*Geometries will be returned or replaced.}
+\item{listw}{Weighted neighborhood graph as a \code{spdep} \code{listw}
+object. Not used when the method specified in \code{type} does not use a
+spatial neighborhood graph, such as the variogram.}
+
+\item{coords_df}{A \code{sf} data frame specifying location of each cell. Not
+used when the method specified in \code{type} uses a spatial neighborhood
+graph. Must be specified otherwise.}
 
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized.}
@@ -192,11 +269,17 @@ whether the results should be formatted as a \code{DataFrame}.}
 \code{\link[spdep]{p.adjustSP}}. Methods allowed are in
 \code{\link{p.adjust.methods}}.}
 
+\item{name}{Name to use to store the results, defaults to the name in the
+\code{SFEMethod} object passed to argument \code{type}. Can be set to
+distinguish between results from the same method but with different
+parameters.}
+
 \item{...}{Other arguments passed to S4 method (for convenience wrappers like
 \code{calculateMoransI}) or method used to compute metrics as specified by
 the argument \code{type} (as in more general functions like
-\code{calculateUnivariate}). See documentation in the \code{spdep} package
-for the latter.}
+\code{calculateUnivariate}). See documentation of functions with the same
+name as specified in \code{type} in the \code{spdep} package for the method
+specific arguments. For variograms, see \code{\link{.variogram}}.}
 
 \item{features}{Genes (\code{calculate*} SFE method and \code{run*}) or
 numeric columns of \code{colData(x)} (\code{colData*}) or any
@@ -205,18 +288,27 @@ numeric columns of \code{colData(x)} (\code{colData*}) or any
 univariate metric is to be computed. Default to \code{NULL}. When
 \code{NULL}, then the metric is computed for all genes with the values in
 the assay specified in the argument \code{exprs_values}. This can be
-parallelized with the argument \code{BPPARAM}. For genes, if the column
-"symbol" is present in \code{rowData} and the row names of the SFE object
-are Ensembl IDs, then the gene symbol can be used and converted to IDs
-behind the scene. However, if one symbol matches multiple IDs, a warning
-will be given and the first match will be used. Internally, the results are
-always stored by the Ensembl ID rather than symbol.}
+parallelized with the argument \code{BPPARAM}. For genes, if the row names
+of the SFE object are Ensembl IDs, then the gene symbol can be used and
+converted to IDs behind the scene with a column in \code{rowData} can be
+specified in \code{swap_rownames}. However, if one symbol matches multiple
+IDs, a warning will be given and the first match will be used. Internally,
+the results are always stored by the Ensembl ID rather than symbol.}
 
 \item{colGraphName}{Name of the listw graph in the SFE object that
 corresponds to entities represented by columns of the gene count matrix.
 Use \code{\link{colGraphNames}} to look up names of the available graphs
 for cells/spots. Note that for multiple \code{sample_id}s, it is assumed
 that all of them have a graph of this same name.}
+
+\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots. In the SFE method of
+\code{calculateUnivariate}, this is to specify location of cells for
+methods that don't take a spatial neighborhood graph such as the variogram.
+If the geometry is not of type \code{POINT}, then \code{spatialCoords(x)}
+is used instead.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
@@ -229,10 +321,10 @@ contains the expression values.}
 include edges from each location to itself. This is for Getis-Ord Gi* as in
 \code{localG} and \code{localG_perm}, not to be used for any other method.}
 
-\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute the metric. Use
-\code{\link{colGeometryNames}} to look up names of the \code{sf} data
-frames associated with cells/spots.}
+\item{swap_rownames}{Column name of \code{rowData(object)} to be used to
+identify features instead of \code{rownames(object)} when labeling plot
+elements. If not found in \code{rowData}, then rownames of the gene count
+matrix will be used.}
 
 \item{annotGeometryName}{Name of a \code{annotGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -243,6 +335,12 @@ frames associated with annotations.}
 corresponds to the \code{annotGeometry} of interest. Use
 \code{\link{annotGraphNames}} to look up names of available annotation
 graphs.}
+
+\item{dimred}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}.}
+
+\item{components}{Numeric vector of which components in the dimension
+reduction to compute spatial statistics on.}
 }
 \value{
 In \code{calculateUnivariate}, if \code{returnDF = TRUE}, then a
@@ -264,7 +362,8 @@ methods are global, meaning returning one result for all spatial locations in
 the dataset: \code{\link[spdep]{moran}}, \code{\link[spdep]{geary}},
 \code{\link[spdep]{moran.mc}}, \code{\link[spdep]{geary.mc}},
 \code{\link[spdep]{moran.test}}, \code{\link[spdep]{geary.test}},
-\code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}.
+\code{\link[spdep]{globalG.test}}, \code{\link[spdep]{sp.correlogram}}. The
+variogram and variogram map from the \code{gstat} package are also supported.
 
 The following methods are local, meaning each location has its own results:
 \code{\link[spdep]{moran.plot}}, \code{\link[spdep]{localmoran}},
@@ -277,18 +376,31 @@ The following methods are local, meaning each location has its own results:
 Global results for genes are stored in \code{rowData}. For \code{colGeometry}
 and \code{annotGeometry}, the results are added to an attribute of the data
 frame called \code{featureData}, which is a DataFrame analogous to
-\code{rowData} for the gene count matrix. New column names in
+\code{rowData} for the gene count matrix, and can be accessed with the
+\code{\link{geometryFeatureData}} function. New column names in
 \code{featureData} would follow the same rules as in \code{rowData}. For
-\code{colData}, the results can be accessed with the \code{colFeatureData}
-function.
+\code{colData}, the results can be accessed with the
+\code{\link{colFeatureData}} function.
 
 Local results are stored in the field \code{localResults} field of the SFE
 object, which can be accessed with
 \code{\link[SpatialFeatureExperiment]{localResults}} or
 \code{\link[SpatialFeatureExperiment]{localResult}}. If the results have
-p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-Note that in the multiple testing correction, \code{\link[spdep]{p.adjustSP}}
-is used.
+p-values, then -log10 p and adjusted -log10 p are added. Note that in the
+multiple testing correction, \code{\link[spdep]{p.adjustSP}} is used.
+
+When the results are stored in the SFE object, parameters used to compute the
+results as well as to construct the spatial neighborhood graph are also
+added. For \code{localResults}, the parameters are added to the metadata
+field \code{params} of the \code{localResults} sorted by \code{name}, which
+defaults to the name in the \code{SFEMethod} object as specified in the
+\code{type} argument. For global methods, parameters for results for genes
+are in the metadata of \code{rowData(x)}, organized by \code{name}
+(\code{metadata(rowData(x))$params[[name]]}). For \code{colData}, the global
+method parameters are stored in metadata of \code{colData} in the field
+\code{params} (\code{metadata(colData(x))$params[[name]]}). For geometries,
+the global method parameters are in an attribute named "params" of the
+corresponding \code{sf} data frame (\code{attr(df, "params")[[name]]}).
 }
 \examples{
 library(SpatialFeatureExperiment)
@@ -345,4 +457,17 @@ sfe <- annotGeometryUnivariate(sfe,
 head(localResult(sfe, "localG", "area",
     annotGeometryName = "myofiber_simplified"
 ))
+}
+\references{
+Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
+
+  Anselin, L. (1995), Local Indicators of Spatial Association-LISA.
+  Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x
+
+  Ord, J. K., & Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The
+  Annals of Regional Science, 48 (2), 529-539.
+
+  Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics:
+  distributional issues and an application. Geographical Analysis, 27,
+  286-306
 }

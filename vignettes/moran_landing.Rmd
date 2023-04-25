@@ -1,0 +1,51 @@
+---
+title: "Vignettes using Moran's I"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{moran_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ref.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+Tobler's first law of geography states that
+
+> Everything is related to everything else. But near things are more related than distant things.
+
+This observation motivates the examination of spatial autocorrelation. Positive spatial autocorrelation is evident when nearby things tend to be similar, such as that weather in Pasadena and downtown Los Angeles (as opposed to the weather in Pasadena and San Francisco). Negative spatial autocorrelation is evident when nearby things tend to be more dissimilar, like squares on a chessboard. Spatial autocorrelation can arise from an intrinsic process such as diffusion or communication by physical contact, or result from a covariate that has such an intrinsic process, or in areal data, when the areal units of observation are smaller than the scale of the spatial process.
+
+Moran's I is one of the most commonly used statistic of spatial autocorrelation, defined as
+
+$$
+I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
+$$
+
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ is a variable with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood. 
+
+Moran's I is similar to the Pearson correlation between the value at each location and the average value at its neighbors (but not identical, see [@Lee2001-tm]). Just like Pearson correlation, Moran's I is generally bound between -1 and 1, where positive value indicates positive spatial autocorrelation and negative value indicates negative spatial autocorrelation. 
+
+Below is a list of vignettes that use Moran's I. The links point to the sections that use Moran's I. The corresponding Google Colab notebooks are also linked to. The list is sorted by technology.
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Spatial analysis with 10X example Visium dataset](https://pachterlab.github.io/voyager/articles/visium_10x_spatial.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/visium_10x.ipynb) | Perform Moran's I on QC metrics and gene expression in mouse olfactory bulb dataset from 10X website. Also apply Moran's I to k nearest neighbor graph in gene expression PCA space instead of histological space.
+| [Basic Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig1_visium_basic.html#morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig1_visium_basic.ipynb) | Perform Moran's I on QC metrics and highly variable genes in mouse skeletal muscle dataset
+| [Spatial Visium exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig2_visium.html#morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig2_visium.ipynb) | Perform Moran's I on QC metrics and highly variable genes in mouse skeletal muscle dataset, and with permutation testing
+| [Slide-seqV2 exploratory data analysis](https://pachterlab.github.io/voyager/dev/articles/vig3_slideseq_v2.html#morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig3_slideseq_v2.ipynb) | Perform Moran's I on highly variable genes in human melanoma metastasis Slide-seq2 dataset
+| [CosMX NSCLC analysis](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#morans-i) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig4_cosmx.ipynb) | Perform Moran's I on QC metrics and on all genes, with multithreading, in a human non-small cell lung cancer dataset
+| [Xenium breast cancer analysis](https://pachterlab.github.io/voyager/articles/vig5_xenium.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig5_xenium.ipynb) | Perform Moran's I on QC metrics and all genes, with multithreading, in a human breast cancer dataset
+| [MERFISH mouse liver analysis](https://pachterlab.github.io/voyager/articles/vig6_merfish.html#spatial-autocorrelation-of-qc-metrics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig6_merfish.ipynb) | Perform Moran's I on QC metrics and all genes, with multithreading, in a mouse liver dataset
+| [MULTISPATI PCA and negative spatial autocorrelation](https://pachterlab.github.io/voyager/articles/multispati.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/multispati.ipynb) | Run MULTISPATI PCA on MERFISH mouse liver dataset, and compare the results to those from non-spatial PCA. Moran's I was computed on QC metrics and cell embeddings in non-spatial and MULTISPATI PCs.
+| [seqFISH exploratory data analysis](https://pachterlab.github.io/voyager/articles/vig7_seqfish.html#univariate-spatial-statistics) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig7_seqfish.ipynb) | Perform Moran's I with permutation testing on top highly variable genes in mouse gastrulation data
+| [CODEX colon analysis](https://pachterlab.github.io/voyager/dev/articles/vig8_codex.html#spatial-eda) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig8_codex.ipynb) | Perform Moran's I with permutation testing on genes profiled in human colon with CODEX proteomics
+| [10X v3 Basic](https://pachterlab.github.io/voyager/articles/nonspatial.html#morans-i-1) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/nonspatial.ipynb) | Apply Moran's I to non-spatial human PBMC scRNA-seq dataset, with k nearest neighbor graph in gene expression PCA space rather than histological space
+
+# References
