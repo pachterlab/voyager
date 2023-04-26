@@ -207,8 +207,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df_names_orig <- names(df)
     names(df) <- make.names(names(df))
     feature_aes <- lapply(feature_aes, make.names)
-    name_fix <- setdiff(df_names_orig, names(df))
-    if (length(name_fix)) name_show <- name_fix else name_show <- waiver()
+    inds <- !df_names_orig %in% names(df)
+    ind_plot <- which(names(df) == unlist(feature_aes)) # should be only one
+    if (any(inds) && length(ind_plot))
+        name_show <- df_names_orig[ind_plot] else name_show <- waiver()
 
     p <- ggplot()
     data <- NULL
