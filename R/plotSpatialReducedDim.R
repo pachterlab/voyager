@@ -11,6 +11,9 @@
 #' @param ncomponents A numeric scalar indicating the number of dimensions to
 #'   plot, starting from the first dimension. Alternatively, a numeric vector
 #'   specifying the dimensions to be plotted.
+#' @param components A numeric scalar or vector specifying which dimensions to
+#'   be plotted. Use this instead of \code{ncomponents} when plotting only one
+#'   dimension.
 #' @return Same as in \code{\link{plotSpatialFeature}}. A \code{ggplot2} object
 #'   if plotting one component. A \code{patchwork} object if plotting multiple
 #'   components.
@@ -22,12 +25,13 @@
 #' sfe <- McKellarMuscleData("small")
 #' sfe <- logNormCounts(sfe)
 #' sfe <- runPCA(sfe, ncomponents = 2)
-#' spatialReducedDim(sfe, "PCA", 2, "spotPoly",
+#' spatialReducedDim(sfe, "PCA", ncomponents = 2, "spotPoly",
 #'     annotGeometryName = "tissueBoundary",
 #'     divergent = TRUE, diverge_center = 0
 #' )
 #' # Basically PC1 separates spots not on tissue from those on tissue.
-spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
+spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
+                              components = ncomponents, colGeometryName = 1L,
                               sample_id = "all", ncol = NULL, ncol_sample = NULL,
                               annotGeometryName = NULL,
                               annot_aes = list(), annot_fixed = list(),
@@ -46,9 +50,9 @@ spatialReducedDim <- function(sfe, dimred, ncomponents, colGeometryName = 1L,
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(ncomponents) == 1L) {
         dims_use <- seq_len(ncomponents)
-    } else {
+    } else if (length(ncomponents) > 1L) {
         dims_use <- ncomponents
-    }
+    } else dims_use <- components
     sample_ind <- colData(sfe)$sample_id %in% sample_id
     values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use, drop = FALSE])
     out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,

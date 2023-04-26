@@ -465,8 +465,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 dark, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    # In case of illegal names
+    names_orig <- names(values)
     df <- cbind(df[,c("geometry", "sample_id")], values)
     df <- .crop(df, bbox)
+    names(df)[!names(df) %in% c("geometry", "sample_id")] <- names_orig
     type_df <- .get_generalized_geometry_type(df)
     if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && size > 0 &&
         linewidth == 0) {
@@ -705,6 +708,10 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         swap_rownames = swap_rownames,
         show_symbol = show_symbol
     )
+
+    inds <- !names(values) %in% features
+    if (any(inds))
+        features[inds] <- rowData(sfe)[features[inds], swap_rownames]
     values <- values[,features, drop = FALSE]
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
