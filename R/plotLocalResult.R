@@ -162,7 +162,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         annotGeometryName,
         show_symbol = show_symbol, swap_rownames = swap_rownames
     )
-
+    values <- values[,features, drop = FALSE]
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
     # without specifying colGeometries.

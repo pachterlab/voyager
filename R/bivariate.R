@@ -205,7 +205,8 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
                          exprs_values = "logcounts", BPPARAM = SerialParam(),
                          swap_rownames = NULL,
                          zero.policy = NULL,
-                         p.adjust.method = "BH", name = NULL, ...) {
+                         p.adjust.method = "BH", name = NULL, overwrite = FALSE,
+                         ...) {
     if (is.character(type)) type <- get(type, mode = "S4")
     if (!is_local(type)) {
         stop("Global bivariate results can't be stored in the SFE object.",
@@ -223,8 +224,10 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
                      p.adjust.method = p.adjust.method,
                      graph_params = attr(g, "method")), other_args)
 
-    old_params <- getParams(x, name, local = TRUE)
-    .check_old_params(params, old_params, name, args_not_check(type))
+    if (!overwrite) {
+        old_params <- getParams(x, name, local = TRUE)
+        .check_old_params(params, old_params, name, args_not_check(type))
+    }
 
     feature1_id <- .symbol2id(x, feature1, swap_rownames)
     if (!is.null(feature2)) feature2_id <- .symbol2id(x, feature2, swap_rownames)

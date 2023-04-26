@@ -54,4 +54,5 @@ localmoran_bv <- SFEMethod(name = "localmoran_bv",
                                spdep::localmoran_bv(x, y, listw, ...),
                            title = "Local bivariate Moran's I",
                            reorganize_fun = .LOSHmc2df, package = "spdep",
+                           default_attr = "Ibvi",
                            variate = "bi", scope = "local", use_matrix = FALSE)
