@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,7 +47,42 @@
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
+        <h6 class="dropdown-header" data-toc-skip>Global</h6>
+        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
+        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+        <h6 class="dropdown-header" data-toc-skip>Local</h6>
+        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
+        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
+        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
+      </div>
+    </li>
   </div>
 </li>
 <li class="nav-item">
@@ -61,7 +96,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -77,9 +119,9 @@
                         <h4 data-toc-skip class="author">Kayla
 Jackson</h4>
             
-            <h4 data-toc-skip class="date">2023-02-23</h4>
+            <h4 data-toc-skip class="date">2023-04-26</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig3_slideseq_v2.Rmd" class="external-link"><code>vignettes/vig3_slideseq_v2.Rmd</code></a></small>
       <div class="d-none name"><code>vig3_slideseq_v2.Rmd</code></div>
     </div>
 
@@ -106,8 +148,10 @@ contains raw counts, QC metrics such as number of UMIs and genes
 detected per barcode, and centroid coordinates for each barcode as a
 <code>sf</code> POINT geometry.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">Voyager</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'utils::findMatches' by</span></span>
+<span><span class="co">#&gt; 'S4Vectors::findMatches' when loading 'AnnotationDbi'</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
 <span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
@@ -150,6 +194,9 @@ detected per barcode, and centroid coordinates for each barcode as a
 <span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     findMatches</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     expand.grid, I, unname</span></span>
@@ -178,27 +225,18 @@ detected per barcode, and centroid coordinates for each barcode as a
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: sp</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'sp'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:IRanges':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     %over%</span></span>
 <span><span class="co">#&gt; Loading required package: spData</span></span>
 <span><span class="co">#&gt; To access larger datasets in this package, install the spDataLarge</span></span>
 <span><span class="co">#&gt; package with: `install.packages('spDataLarge',</span></span>
 <span><span class="co">#&gt; repos='https://nowosad.github.io/drat/', type='source')`</span></span>
 <span><span class="co">#&gt; Loading required package: sf</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/BiermannMelaMetasData.html" class="external-link">BiermannMelaMetasData</a></span><span class="op">(</span>dataset <span class="op">=</span> <span class="st">"MBM05_rep1"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; snapshotDate(): 2022-10-31</span></span>
 <span><span class="co">#&gt; see ?SFEData and browseVignettes('SFEData') for documentation</span></span>
-<span><span class="co">#&gt; downloading 1 resources</span></span>
-<span><span class="co">#&gt; retrieving 1 resource</span></span>
 <span><span class="co">#&gt; loading from cache</span></span>
 <span><span class="co">#&gt; require("SpatialFeatureExperiment")</span></span>
 <span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
@@ -216,6 +254,7 @@ detected per barcode, and centroid coordinates for each barcode as a
 <span><span class="co">#&gt; spatialCoords names(2) : xcoord ycoord</span></span>
 <span><span class="co">#&gt; imgData names(1): sample_id</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; unit: full_res_image_pixels</span></span>
 <span><span class="co">#&gt; Geometries:</span></span>
 <span><span class="co">#&gt; colGeometries: centroids (POINT) </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -240,7 +279,7 @@ of UMI counts per barcode as a violin plot and in space. For the latter
 task, we leverage the function <code><a href="../reference/plotSpatialFeature.html">plotSpatialFeature()</a></code> which
 uses <code><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf()</a></code> to plot geometries where applicable. The
 first few lines compute the average number of UMI counts per barcode and
-this average is plotted as a red line in the vilin plot.</p>
+this average is plotted as a red line in the violin plot.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">avg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="op">-</span><span class="va">sample_id</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span></span>
@@ -253,7 +292,7 @@ this average is plotted as a red line in the vilin plot.</p>
 <span>                               colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-4-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Each barcode is represented as an <code>sf</code> POINT geometry In
 the plot above, we note that many beads have quite low UMI counts, but
 there are small regions throughout the tissue that appear to have high
@@ -275,7 +314,7 @@ represent more than one barcode.</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">expansion</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-5-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>It is worthwhile to note that cell segmentation data were not
 included with this dataset. Even though Slide-Seq V2 does not profile
 gene expression at single cell resolution, cell segmentation data can be
@@ -295,10 +334,9 @@ barcodes localized to a single cell.</p>
 <span></span>
 <span><span class="va">spatial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, features <span class="op">=</span> <span class="st">"log_nCounts"</span>,</span>
 <span>                               colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
-<span>                              size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>                              size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-6-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The plot above visualizes the number of UMI counts per barcode on a
 log scale. It appears that barcodes with higher counts are co-localized
 in regions throughout the tissue, however, these regions are rather
@@ -313,10 +351,9 @@ attribute for barcodes.</p>
 <span></span>
 <span><span class="va">spatial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, features <span class="op">=</span> <span class="st">"nGenes"</span>,</span>
 <span>                              colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
-<span>                              size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>                              size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">spatial</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-7-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-8-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Similar to the number of UMI counts per barcode, there seem to be
 small regions with higher number of genes throughout the tissue. These
 may correspond to regions of cellular diversity or high cellular
@@ -347,7 +384,9 @@ k-nearest neighbors algorithm. This is implemented in the
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn5"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>,</span>
 <span>                                              dist_type <span class="op">=</span> <span class="st">"idw"</span>, k <span class="op">=</span> <span class="fl">5</span>, </span>
-<span>                                              style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span></code></pre></div>
+<span>                                              style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
+<span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span></code></pre></div>
 <p>Now compute Moran's I for some barcode QC metrics using
 <code><a href="../reference/calculateUnivariate.html">colDataMoransI()</a></code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -376,7 +415,7 @@ for each barcode.</p>
 <span><span class="va">mito</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"nCounts"</span>, y <span class="op">=</span> <span class="st">"prop_mito"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">violin</span> <span class="op">+</span> <span class="va">mito</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-11-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-12-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>In keeping with expectations, barcodes associated with fewer counts
 appear to be associated with higher proportions of mitochondrial reads.
 We will exclude barcodes containing more than &gt;10% mitochondrial
@@ -389,7 +428,9 @@ method.</p>
 <span><span class="co"># Use drop = TRUE to drop the graph without reconstruction, whose indices are </span></span>
 <span><span class="co"># no longer valid</span></span>
 <span><span class="va">sfe_filt</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">prop_mito</span> <span class="op">&lt;</span> <span class="fl">0.1</span><span class="op">]</span></span>
-<span><span class="va">sfe_filt</span> <span class="op">&lt;-</span> <span class="va">sfe_filt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_filt</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
+<span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
+<span><span class="va">sfe_filt</span> <span class="op">&lt;-</span> <span class="va">sfe_filt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_filt</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="data-normalization">Data Normalization<a class="anchor" aria-label="anchor" href="#data-normalization"></a>
@@ -430,7 +471,7 @@ any spatial information.</p>
 <p>We can plot the variance explained by each PC.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_filt</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-15-1.png" width="700" style="display: block; margin: auto;"></p>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-16-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>We see that the first few components explain most of the variance in
 the data. The principal components (PCs) can be plotted in space. Here
 we notice that the PCs may show some spatial structure that correlates
@@ -438,9 +479,8 @@ to biological niches of cells.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_filt</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, </span>
 <span>                  colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                  diverge_center <span class="op">=</span> <span class="fl">0</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-16-1.png" width="700" style="display: block; margin: auto;"></p>
+<span>                  diverge_center <span class="op">=</span> <span class="fl">0</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-17-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Without the cellular overlays, we can only speculate about the
 potential relevance of the barcodes that seem to be separated by each
 PC, but each PC doe seem to separate distinct neighborhoods of
@@ -461,9 +501,8 @@ hand, namely melanoma metastasis, where ‘hotspots’ of melanoma
 proliferation would be separated by unaffected normal tissue.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_filt</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>override.aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-18-1.png" width="700" style="display: block; margin: auto;"></p>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>override.aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-19-1.png" width="700" style="display: block; margin: auto;"></p>
 <div class="section level3">
 <h3 id="morans-i">Moran’s <em>I</em><a class="anchor" aria-label="anchor" href="#morans-i"></a>
 </h3>
@@ -485,9 +524,8 @@ autocorrelation?</p>
 <code class="sourceCode R"><span><span class="va">top_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe_filt</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe_filt</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, </span>
 <span>                                      decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_filt</span>, <span class="va">top_moran</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
-<span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-20-1.png" width="700" style="display: block; margin: auto;"></p>
+<span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig3_slideseq_v2_files/figure-html/unnamed-chunk-21-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Spatial variability can also be investigated using differential
 expression testing known anatomical regions complemented with spatial
 location. One potential drawback to this approach is the variability
@@ -507,107 +545,110 @@ neighborhoods of melanoma cells?</li>
 </h2>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.2.2 (2022-10-31)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: macOS Big Sur ... 10.16</span></span>
+<span><span class="co">#&gt; R version 4.3.0 Patched (2023-04-24 r84317)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
+<span><span class="co">#&gt; Running under: macOS Monterey 12.6.5</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib</span></span>
-<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</span></span>
+<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
 <span><span class="co">#&gt; [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: internal</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats4    stats     graphics  grDevices utils     datasets  methods  </span></span>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.0.3 BiocParallel_1.32.5           </span></span>
-<span><span class="co">#&gt;  [3] spdep_1.2-7                    sf_1.0-9                      </span></span>
-<span><span class="co">#&gt;  [5] spData_2.2.1                   sp_1.6-0                      </span></span>
-<span><span class="co">#&gt;  [7] patchwork_1.1.2                bluster_1.8.0                 </span></span>
-<span><span class="co">#&gt;  [9] scran_1.26.2                   scater_1.27.6                 </span></span>
-<span><span class="co">#&gt; [11] ggplot2_3.4.1                  scuttle_1.8.4                 </span></span>
-<span><span class="co">#&gt; [13] SpatialExperiment_1.8.0        SingleCellExperiment_1.20.0   </span></span>
-<span><span class="co">#&gt; [15] SummarizedExperiment_1.28.0    Biobase_2.58.0                </span></span>
-<span><span class="co">#&gt; [17] GenomicRanges_1.50.2           GenomeInfoDb_1.34.9           </span></span>
-<span><span class="co">#&gt; [19] IRanges_2.32.0                 S4Vectors_0.36.1              </span></span>
-<span><span class="co">#&gt; [21] BiocGenerics_0.44.0            MatrixGenerics_1.10.0         </span></span>
-<span><span class="co">#&gt; [23] matrixStats_0.63.0             SFEData_1.0.2                 </span></span>
-<span><span class="co">#&gt; [25] Voyager_1.0.10                </span></span>
+<span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.1.6 BiocParallel_1.33.12          </span></span>
+<span><span class="co">#&gt;  [3] spdep_1.2-8                    sf_1.0-12                     </span></span>
+<span><span class="co">#&gt;  [5] spData_2.2.2                   patchwork_1.1.2               </span></span>
+<span><span class="co">#&gt;  [7] bluster_1.9.1                  scran_1.27.3                  </span></span>
+<span><span class="co">#&gt;  [9] scater_1.27.9                  ggplot2_3.4.2                 </span></span>
+<span><span class="co">#&gt; [11] scuttle_1.9.4                  SpatialExperiment_1.9.5       </span></span>
+<span><span class="co">#&gt; [13] SingleCellExperiment_1.21.1    SummarizedExperiment_1.29.1   </span></span>
+<span><span class="co">#&gt; [15] Biobase_2.59.0                 GenomicRanges_1.51.4          </span></span>
+<span><span class="co">#&gt; [17] GenomeInfoDb_1.35.17           IRanges_2.33.1                </span></span>
+<span><span class="co">#&gt; [19] S4Vectors_0.37.7               BiocGenerics_0.45.3           </span></span>
+<span><span class="co">#&gt; [21] MatrixGenerics_1.11.1          matrixStats_0.63.0            </span></span>
+<span><span class="co">#&gt; [23] SFEData_1.1.5                  Voyager_1.2.0                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] AnnotationHub_3.6.0           BiocFileCache_2.6.1          </span></span>
-<span><span class="co">#&gt;   [3] systemfonts_1.0.4             igraph_1.4.0                 </span></span>
-<span><span class="co">#&gt;   [5] scattermore_0.8               digest_0.6.31                </span></span>
-<span><span class="co">#&gt;   [7] htmltools_0.5.4               viridis_0.6.2                </span></span>
-<span><span class="co">#&gt;   [9] magick_2.7.3                  fansi_1.0.4                  </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                memoise_2.0.1                </span></span>
-<span><span class="co">#&gt;  [13] ScaledMatrix_1.6.0            cluster_2.1.4                </span></span>
-<span><span class="co">#&gt;  [15] limma_3.54.1                  Biostrings_2.66.0            </span></span>
-<span><span class="co">#&gt;  [17] R.utils_2.12.2                pkgdown_2.0.7                </span></span>
-<span><span class="co">#&gt;  [19] colorspace_2.1-0              ggrepel_0.9.3                </span></span>
-<span><span class="co">#&gt;  [21] blob_1.2.3                    rappdirs_0.3.3               </span></span>
-<span><span class="co">#&gt;  [23] textshaping_0.3.6             xfun_0.37                    </span></span>
-<span><span class="co">#&gt;  [25] dplyr_1.1.0                   hexbin_1.28.2                </span></span>
-<span><span class="co">#&gt;  [27] crayon_1.5.2                  RCurl_1.98-1.10              </span></span>
-<span><span class="co">#&gt;  [29] jsonlite_1.8.4                glue_1.6.2                   </span></span>
-<span><span class="co">#&gt;  [31] gtable_0.3.1                  zlibbioc_1.44.0              </span></span>
-<span><span class="co">#&gt;  [33] XVector_0.38.0                DelayedArray_0.24.0          </span></span>
-<span><span class="co">#&gt;  [35] scico_1.3.1                   BiocSingular_1.14.0          </span></span>
-<span><span class="co">#&gt;  [37] DropletUtils_1.18.1           Rhdf5lib_1.20.0              </span></span>
-<span><span class="co">#&gt;  [39] HDF5Array_1.26.0              scales_1.2.1                 </span></span>
-<span><span class="co">#&gt;  [41] DBI_1.1.3                     edgeR_3.40.2                 </span></span>
-<span><span class="co">#&gt;  [43] Rcpp_1.0.10                   viridisLite_0.4.1            </span></span>
-<span><span class="co">#&gt;  [45] xtable_1.8-4                  units_0.8-1                  </span></span>
-<span><span class="co">#&gt;  [47] dqrng_0.3.0                   rsvd_1.0.5                   </span></span>
-<span><span class="co">#&gt;  [49] bit_4.0.5                     proxy_0.4-27                 </span></span>
-<span><span class="co">#&gt;  [51] metapod_1.6.0                 httr_1.4.4                   </span></span>
-<span><span class="co">#&gt;  [53] RColorBrewer_1.1-3            wk_0.7.1                     </span></span>
-<span><span class="co">#&gt;  [55] ellipsis_0.3.2                farver_2.1.1                 </span></span>
-<span><span class="co">#&gt;  [57] pkgconfig_2.0.3               R.methodsS3_1.8.2            </span></span>
-<span><span class="co">#&gt;  [59] sass_0.4.5                    dbplyr_2.3.0                 </span></span>
-<span><span class="co">#&gt;  [61] deldir_1.0-6                  locfit_1.5-9.7               </span></span>
-<span><span class="co">#&gt;  [63] utf8_1.2.3                    labeling_0.4.2               </span></span>
-<span><span class="co">#&gt;  [65] tidyselect_1.2.0              rlang_1.0.6                  </span></span>
-<span><span class="co">#&gt;  [67] later_1.3.0                   AnnotationDbi_1.60.0         </span></span>
-<span><span class="co">#&gt;  [69] munsell_0.5.0                 BiocVersion_3.16.0           </span></span>
-<span><span class="co">#&gt;  [71] tools_4.2.2                   cachem_1.0.6                 </span></span>
-<span><span class="co">#&gt;  [73] cli_3.6.0                     dbscan_1.1-11                </span></span>
-<span><span class="co">#&gt;  [75] ExperimentHub_2.6.0           generics_0.1.3               </span></span>
-<span><span class="co">#&gt;  [77] RSQLite_2.3.0                 evaluate_0.20                </span></span>
-<span><span class="co">#&gt;  [79] stringr_1.5.0                 fastmap_1.1.0                </span></span>
-<span><span class="co">#&gt;  [81] yaml_2.3.7                    ragg_1.2.5                   </span></span>
-<span><span class="co">#&gt;  [83] knitr_1.42                    bit64_4.0.5                  </span></span>
-<span><span class="co">#&gt;  [85] fs_1.6.1                      purrr_1.0.1                  </span></span>
-<span><span class="co">#&gt;  [87] s2_1.1.2                      KEGGREST_1.38.0              </span></span>
-<span><span class="co">#&gt;  [89] sparseMatrixStats_1.10.0      mime_0.12                    </span></span>
-<span><span class="co">#&gt;  [91] R.oo_1.25.0                   compiler_4.2.2               </span></span>
-<span><span class="co">#&gt;  [93] beeswarm_0.4.0                png_0.1-8                    </span></span>
-<span><span class="co">#&gt;  [95] filelock_1.0.2                curl_5.0.0                   </span></span>
-<span><span class="co">#&gt;  [97] interactiveDisplayBase_1.36.0 e1071_1.7-13                 </span></span>
-<span><span class="co">#&gt;  [99] statmod_1.5.0                 tibble_3.1.8                 </span></span>
-<span><span class="co">#&gt; [101] bslib_0.4.2                   stringi_1.7.12               </span></span>
-<span><span class="co">#&gt; [103] highr_0.10                    desc_1.4.2                   </span></span>
-<span><span class="co">#&gt; [105] lattice_0.20-45               Matrix_1.5-3                 </span></span>
-<span><span class="co">#&gt; [107] classInt_0.4-8                vctrs_0.5.2                  </span></span>
-<span><span class="co">#&gt; [109] pillar_1.8.1                  lifecycle_1.0.3              </span></span>
-<span><span class="co">#&gt; [111] rhdf5filters_1.10.0           BiocManager_1.30.19          </span></span>
-<span><span class="co">#&gt; [113] jquerylib_0.1.4               BiocNeighbors_1.16.0         </span></span>
-<span><span class="co">#&gt; [115] cowplot_1.1.1                 irlba_2.3.5.1                </span></span>
-<span><span class="co">#&gt; [117] bitops_1.0-7                  httpuv_1.6.9                 </span></span>
-<span><span class="co">#&gt; [119] R6_2.5.1                      promises_1.2.0.1             </span></span>
-<span><span class="co">#&gt; [121] gridExtra_2.3                 KernSmooth_2.23-20           </span></span>
-<span><span class="co">#&gt; [123] vipor_0.4.5                   codetools_0.2-19             </span></span>
-<span><span class="co">#&gt; [125] boot_1.3-28.1                 assertthat_0.2.1             </span></span>
-<span><span class="co">#&gt; [127] rhdf5_2.42.0                  rprojroot_2.0.3              </span></span>
-<span><span class="co">#&gt; [129] rjson_0.2.21                  withr_2.5.0                  </span></span>
-<span><span class="co">#&gt; [131] GenomeInfoDbData_1.2.9        parallel_4.2.2               </span></span>
-<span><span class="co">#&gt; [133] grid_4.2.2                    beachmat_2.14.0              </span></span>
-<span><span class="co">#&gt; [135] class_7.3-21                  rmarkdown_2.20               </span></span>
-<span><span class="co">#&gt; [137] DelayedMatrixStats_1.20.0     ggnewscale_0.4.8             </span></span>
-<span><span class="co">#&gt; [139] shiny_1.7.4                   ggbeeswarm_0.7.1</span></span></code></pre></div>
+<span><span class="co">#&gt;   [1] later_1.3.0                   bitops_1.0-7                 </span></span>
+<span><span class="co">#&gt;   [3] filelock_1.0.2                tibble_3.2.1                 </span></span>
+<span><span class="co">#&gt;   [5] R.oo_1.25.0                   lifecycle_1.0.3              </span></span>
+<span><span class="co">#&gt;   [7] edgeR_3.41.9                  rprojroot_2.0.3              </span></span>
+<span><span class="co">#&gt;   [9] lattice_0.21-8                magrittr_2.0.3               </span></span>
+<span><span class="co">#&gt;  [11] limma_3.55.10                 sass_0.4.5                   </span></span>
+<span><span class="co">#&gt;  [13] rmarkdown_2.21                jquerylib_0.1.4              </span></span>
+<span><span class="co">#&gt;  [15] yaml_2.3.7                    metapod_1.7.0                </span></span>
+<span><span class="co">#&gt;  [17] httpuv_1.6.9                  sp_1.6-0                     </span></span>
+<span><span class="co">#&gt;  [19] RColorBrewer_1.1-3            cowplot_1.1.1                </span></span>
+<span><span class="co">#&gt;  [21] DBI_1.1.3                     zlibbioc_1.45.0              </span></span>
+<span><span class="co">#&gt;  [23] purrr_1.0.1                   R.utils_2.12.2               </span></span>
+<span><span class="co">#&gt;  [25] RCurl_1.98-1.12               rappdirs_0.3.3               </span></span>
+<span><span class="co">#&gt;  [27] GenomeInfoDbData_1.2.10       ggrepel_0.9.3                </span></span>
+<span><span class="co">#&gt;  [29] irlba_2.3.5.1                 terra_1.7-29                 </span></span>
+<span><span class="co">#&gt;  [31] units_0.8-1                   RSpectra_0.16-1              </span></span>
+<span><span class="co">#&gt;  [33] dqrng_0.3.0                   pkgdown_2.0.7                </span></span>
+<span><span class="co">#&gt;  [35] DelayedMatrixStats_1.21.0     codetools_0.2-19             </span></span>
+<span><span class="co">#&gt;  [37] DropletUtils_1.19.3           DelayedArray_0.25.0          </span></span>
+<span><span class="co">#&gt;  [39] tidyselect_1.2.0              farver_2.1.1                 </span></span>
+<span><span class="co">#&gt;  [41] ScaledMatrix_1.7.1            viridis_0.6.2                </span></span>
+<span><span class="co">#&gt;  [43] BiocFileCache_2.7.2           jsonlite_1.8.4               </span></span>
+<span><span class="co">#&gt;  [45] BiocNeighbors_1.17.1          e1071_1.7-13                 </span></span>
+<span><span class="co">#&gt;  [47] ellipsis_0.3.2                systemfonts_1.0.4            </span></span>
+<span><span class="co">#&gt;  [49] tools_4.3.0                   ggnewscale_0.4.8             </span></span>
+<span><span class="co">#&gt;  [51] ragg_1.2.5                    Rcpp_1.0.10                  </span></span>
+<span><span class="co">#&gt;  [53] glue_1.6.2                    gridExtra_2.3                </span></span>
+<span><span class="co">#&gt;  [55] xfun_0.39                     dplyr_1.1.2                  </span></span>
+<span><span class="co">#&gt;  [57] HDF5Array_1.27.0              withr_2.5.0                  </span></span>
+<span><span class="co">#&gt;  [59] BiocManager_1.30.20           fastmap_1.1.1                </span></span>
+<span><span class="co">#&gt;  [61] boot_1.3-28.1                 rhdf5filters_1.11.2          </span></span>
+<span><span class="co">#&gt;  [63] fansi_1.0.4                   digest_0.6.31                </span></span>
+<span><span class="co">#&gt;  [65] rsvd_1.0.5                    R6_2.5.1                     </span></span>
+<span><span class="co">#&gt;  [67] mime_0.12                     textshaping_0.3.6            </span></span>
+<span><span class="co">#&gt;  [69] colorspace_2.1-0              wk_0.7.2                     </span></span>
+<span><span class="co">#&gt;  [71] scattermore_0.8               RSQLite_2.3.1                </span></span>
+<span><span class="co">#&gt;  [73] R.methodsS3_1.8.2             hexbin_1.28.3                </span></span>
+<span><span class="co">#&gt;  [75] utf8_1.2.3                    generics_0.1.3               </span></span>
+<span><span class="co">#&gt;  [77] class_7.3-21                  httr_1.4.5                   </span></span>
+<span><span class="co">#&gt;  [79] pkgconfig_2.0.3               scico_1.3.1                  </span></span>
+<span><span class="co">#&gt;  [81] gtable_0.3.3                  blob_1.2.4                   </span></span>
+<span><span class="co">#&gt;  [83] XVector_0.39.0                htmltools_0.5.5              </span></span>
+<span><span class="co">#&gt;  [85] scales_1.2.1                  png_0.1-8                    </span></span>
+<span><span class="co">#&gt;  [87] knitr_1.42                    rjson_0.2.21                 </span></span>
+<span><span class="co">#&gt;  [89] curl_5.0.0                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [91] cachem_1.0.7                  rhdf5_2.43.5                 </span></span>
+<span><span class="co">#&gt;  [93] stringr_1.5.0                 BiocVersion_3.17.1           </span></span>
+<span><span class="co">#&gt;  [95] KernSmooth_2.23-20            parallel_4.3.0               </span></span>
+<span><span class="co">#&gt;  [97] vipor_0.4.5                   AnnotationDbi_1.61.2         </span></span>
+<span><span class="co">#&gt;  [99] desc_1.4.2                    s2_1.1.2                     </span></span>
+<span><span class="co">#&gt; [101] pillar_1.9.0                  grid_4.3.0                   </span></span>
+<span><span class="co">#&gt; [103] vctrs_0.6.2                   promises_1.2.0.1             </span></span>
+<span><span class="co">#&gt; [105] BiocSingular_1.15.0           dbplyr_2.3.2                 </span></span>
+<span><span class="co">#&gt; [107] beachmat_2.15.2               xtable_1.8-4                 </span></span>
+<span><span class="co">#&gt; [109] cluster_2.1.4                 beeswarm_0.4.0               </span></span>
+<span><span class="co">#&gt; [111] evaluate_0.20                 magick_2.7.4                 </span></span>
+<span><span class="co">#&gt; [113] cli_3.6.1                     locfit_1.5-9.7               </span></span>
+<span><span class="co">#&gt; [115] compiler_4.3.0                rlang_1.1.0                  </span></span>
+<span><span class="co">#&gt; [117] crayon_1.5.2                  labeling_0.4.2               </span></span>
+<span><span class="co">#&gt; [119] classInt_0.4-9                fs_1.6.1                     </span></span>
+<span><span class="co">#&gt; [121] ggbeeswarm_0.7.1              stringi_1.7.12               </span></span>
+<span><span class="co">#&gt; [123] viridisLite_0.4.1             deldir_1.0-6                 </span></span>
+<span><span class="co">#&gt; [125] munsell_0.5.0                 Biostrings_2.67.2            </span></span>
+<span><span class="co">#&gt; [127] Matrix_1.5-4                  ExperimentHub_2.7.1          </span></span>
+<span><span class="co">#&gt; [129] sparseMatrixStats_1.11.1      bit64_4.0.5                  </span></span>
+<span><span class="co">#&gt; [131] Rhdf5lib_1.21.1               statmod_1.5.0                </span></span>
+<span><span class="co">#&gt; [133] KEGGREST_1.39.0               shiny_1.7.4                  </span></span>
+<span><span class="co">#&gt; [135] highr_0.10                    interactiveDisplayBase_1.37.0</span></span>
+<span><span class="co">#&gt; [137] AnnotationHub_3.7.4           igraph_1.4.2                 </span></span>
+<span><span class="co">#&gt; [139] memoise_2.0.1                 bslib_0.4.2                  </span></span>
+<span><span class="co">#&gt; [141] bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -629,7 +670,7 @@ Metastasis.”</span> <em>Cell</em> 185 (14): 2591–2608.e30.
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+<p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

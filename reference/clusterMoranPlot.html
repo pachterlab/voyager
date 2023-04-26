@@ -14,7 +14,7 @@ can be seen on the Moran plot, indicating different types of neighborhoods."><!-
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,42 @@ can be seen on the Moran plot, indicating different types of neighborhoods."><!-
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
+        <h6 class="dropdown-header" data-toc-skip>Global</h6>
+        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
+        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+        <h6 class="dropdown-header" data-toc-skip>Local</h6>
+        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
+        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
+        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
+      </div>
+    </li>
   </div>
 </li>
 <li class="active nav-item">
@@ -46,7 +81,13 @@ can be seen on the Moran plot, indicating different types of neighborhoods."><!-
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -54,7 +95,7 @@ can be seen on the Moran plot, indicating different types of neighborhoods."><!-
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Find clusters on the Moran plot</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/R/univariate-downstream.R" class="external-link"><code>R/univariate-downstream.R</code></a></small>
       <div class="d-none name"><code>clusterMoranPlot.Rd</code></div>
     </div>
 
@@ -70,10 +111,11 @@ can be seen on the Moran plot, indicating different types of neighborhoods.</p>
 <span>  <span class="va">sfe</span>,</span>
 <span>  <span class="va">features</span>,</span>
 <span>  <span class="va">BLUSPARAM</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  show_symbol <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,15 +153,22 @@ features.</p></dd>
 
 
 <dt>show_symbol</dt>
-<dd><p>Logical, whether to show gene symbol instead when Ensembl
-ID is supplied.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
+
+
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>A <code>DataFrame</code> each column of which is a factor for cluster
+<p>A data frame each column of which is a factor for cluster
   membership of each feature. The column names are the features.</p>
     </div>
 
@@ -130,7 +179,6 @@ ID is supplied.</p></dd>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
@@ -149,7 +197,7 @@ ID is supplied.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

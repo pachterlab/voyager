@@ -12,7 +12,7 @@ values."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,7 +32,42 @@ values."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
+        <h6 class="dropdown-header" data-toc-skip>Global</h6>
+        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
+        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+        <h6 class="dropdown-header" data-toc-skip>Local</h6>
+        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
+        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
+        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
+      </div>
+    </li>
   </div>
 </li>
 <li class="active nav-item">
@@ -44,7 +79,13 @@ values."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -52,7 +93,7 @@ values."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Plot local results</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/R/plotLocalResult.R" class="external-link"><code>R/plotLocalResult.R</code></a></small>
       <div class="d-none name"><code>plotLocalResult.Rd</code></div>
     </div>
 
@@ -65,30 +106,40 @@ values.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plotLocalResult</span><span class="op">(</span></span>
 <span>  <span class="va">sfe</span>,</span>
-<span>  <span class="va">type</span>,</span>
+<span>  <span class="va">name</span>,</span>
 <span>  <span class="va">features</span>,</span>
 <span>  attribute <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol_sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  bbox <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  image_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  maxcell <span class="op">=</span> <span class="fl">5e+05</span>,</span>
 <span>  aes_use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fill"</span>, <span class="st">"color"</span>, <span class="st">"shape"</span>, <span class="st">"linetype"</span><span class="op">)</span>,</span>
 <span>  divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annot_divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  annot_diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  size <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  size <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  shape <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  linewidth <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  linetype <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  color <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  fill <span class="op">=</span> <span class="st">"gray80"</span>,</span>
-<span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  show_symbol <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scattermore <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  pointsize <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  bins <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  summary_fun <span class="op">=</span> <span class="va">sum</span>,</span>
+<span>  hex <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  dark <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  type <span class="op">=</span> <span class="va">name</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -99,7 +150,7 @@ values.</p>
 <dd><p>A <code>SpatialFeatureExperiment</code> object.</p></dd>
 
 
-<dt>type</dt>
+<dt>name</dt>
 <dd><p>Which local spatial results. Use
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultNames</a></code> to see which types
 of results have already been calculated.</p></dd>
@@ -165,6 +216,32 @@ settings, such as <code>color = "gray"</code>. The defaults are the same as the
 relevant defaults for this function.</p></dd>
 
 
+<dt>bbox</dt>
+<dd><p>A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+<code>bbox</code> is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If <code>NULL</code>, then the entire tissue is
+plotted.</p></dd>
+
+
+<dt>image_id</dt>
+<dd><p>ID of the image to plot behind the geometries. If
+<code>NULL</code>, then not plotting images. Use <code><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">imgData</a></code> to see
+image IDs present.</p></dd>
+
+
+<dt>maxcell</dt>
+<dd><p>Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.</p></dd>
+
+
 <dt>aes_use</dt>
 <dd><p>Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
@@ -194,14 +271,18 @@ annotGeometry in case it's different.</p></dd>
 
 
 <dt>size</dt>
-<dd><p>Fixed size of points or width of lines, including outlines of
-polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 0.5. Ignored if <code>size_by</code> is specified.</p></dd>
+<dd><p>Fixed size of points. For points defaults to 0.5. Ignored if
+<code>size_by</code> is specified.</p></dd>
 
 
 <dt>shape</dt>
 <dd><p>Fixed shape of points, ignored if <code>shape_by</code> is specified
 and applicable.</p></dd>
+
+
+<dt>linewidth</dt>
+<dd><p>Width of lines, including outlines of polygons. For
+polygons, this defaults to 0, meaning no outlines.</p></dd>
 
 
 <dt>linetype</dt>
@@ -224,9 +305,15 @@ specified or not applicable, or for <code>annotGeometry</code> if
 
 
 <dt>show_symbol</dt>
-<dd><p>Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
+
+
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
 
 
 <dt>scattermore</dt>
@@ -242,6 +329,45 @@ multiple features.</p></dd>
 <dt>pointsize</dt>
 <dd><p>Radius of rasterized point in <code>scattermore</code>. Default to
 0 for single pixels (fastest).</p></dd>
+
+
+<dt>bins</dt>
+<dd><p>If binning the <code>colGeometry</code> in space due to large number of
+cells or spots, the number of bins, passed to <code><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></code> or
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. If <code>NULL</code> (default), then the
+<code>colGeometry</code> is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.</p></dd>
+
+
+<dt>summary_fun</dt>
+<dd><p>Function to summarize the feature value when the
+<code>colGeometry</code> is binned.</p></dd>
+
+
+<dt>hex</dt>
+<dd><p>Logical, whether to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. Note that
+<code>geom_hex</code> is broken in <code>ggplot2</code> version 3.4.0. Please update
+<code>ggplot2</code> if you are getting horizontal stripes when <code>hex =
+TRUE</code>.</p></dd>
+
+
+<dt>dark</dt>
+<dd><p>Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.</p></dd>
+
+
+<dt>type</dt>
+<dd><p>An <code><a href="SFEMethod.html">SFEMethod</a></code> object or a string corresponding to
+the name of one of such objects in the environment. If the
+<code>localResult</code> of interest was manually added outside
+<code><a href="calculateUnivariate.html">runUnivariate</a></code> and <code><a href="calculateBivariate.html">runBivariate</a></code>, so the method
+is not recorded, then the <code>type</code> argument can be used to specify the
+method to properly get the title and labels. By default, this argument is
+set to be the same as argument <code>name</code>. If the method parameters are
+recorded, then the <code>type</code> argument is ignored.</p></dd>
 
 
 <dt>...</dt>
@@ -315,9 +441,9 @@ statistic.</p>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
+<span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="va">sfe</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">feature_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
@@ -370,7 +496,7 @@ statistic.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

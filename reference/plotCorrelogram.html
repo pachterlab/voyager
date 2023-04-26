@@ -24,7 +24,7 @@ error bars are twice the standard deviation of the estimated Moran's I value."><
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,42 @@ error bars are twice the standard deviation of the estimated Moran's I value."><
     <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
     <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
+    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
+        <h6 class="dropdown-header" data-toc-skip>Global</h6>
+        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
+        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+        <h6 class="dropdown-header" data-toc-skip>Local</h6>
+        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
+        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+      </div>
+    </li>
+    <li class="dropdown-item">
+      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
+      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
+        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
+      </div>
+    </li>
   </div>
 </li>
 <li class="active nav-item">
@@ -56,7 +91,13 @@ error bars are twice the standard deviation of the estimated Moran's I value."><
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -64,7 +105,7 @@ error bars are twice the standard deviation of the estimated Moran's I value."><
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Plot correlogram</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/R/plot-univar-downstream.R" class="external-link"><code>R/plot-univar-downstream.R</code></a></small>
       <div class="d-none name"><code>plotCorrelogram.Rd</code></div>
     </div>
 
@@ -84,18 +125,21 @@ error bars are twice the standard deviation of the estimated Moran's I value.</p
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plotCorrelogram</span><span class="op">(</span></span>
 <span>  <span class="va">sfe</span>,</span>
 <span>  <span class="va">features</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"I"</span>,</span>
 <span>  color_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample_id"</span>, <span class="st">"features"</span><span class="op">)</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  reducedDimName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  plot_signif <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  p_adj_method <span class="op">=</span> <span class="st">"BH"</span>,</span>
 <span>  divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  show_symbol <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"sp.correlogram"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -107,7 +151,8 @@ error bars are twice the standard deviation of the estimated Moran's I value.</p
 
 <dt>features</dt>
 <dd><p>Features to plot, must be in rownames of the gene count
-matrix, colnames of colData or a colGeometry.</p></dd>
+matrix, colnames of colData or a colGeometry, colnames of cell embeddings
+in <code>reducedDim</code>, or numeric indices of dimension reduction components.</p></dd>
 
 
 <dt>sample_id</dt>
@@ -125,7 +170,7 @@ for each sample.</p></dd>
 <code>featureData</code> of <code>colData</code> (see <code><a href="colFeatureData.html">colFeatureData</a></code>),
 <code>colGeometry</code>, or <code>annotGeometry</code> by which to color the
 correlogram of each feature. Alternatively, a vector of the same length as
-<code>features</code>.</p></dd>
+<code>features</code>, or a data frame from <code><a href="clusterCorrelograms.html">clusterCorrelograms</a></code>.</p></dd>
 
 
 <dt>facet_by</dt>
@@ -149,6 +194,12 @@ frames associated with cells/spots.</p></dd>
 <dt>annotGeometryName</dt>
 <dd><p>Name of a <code>annotGeometry</code> of the SFE object, to
 annotate the gene expression plot.</p></dd>
+
+
+<dt>reducedDimName</dt>
+<dd><p>Name of a dimension reduction, can be seen in
+<code><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDimNames</a></code>. <code>colGeometryName</code> and
+<code>annotGeometryName</code> have precedence over <code>reducedDimName</code>.</p></dd>
 
 
 <dt>plot_signif</dt>
@@ -178,9 +229,20 @@ palette should diverge. If <code>NULL</code>, then not centering.</p></dd>
 
 
 <dt>show_symbol</dt>
-<dd><p>Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
+
+
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
+
+
+<dt>name</dt>
+<dd><p>Name under which the correlogram results are stored, which is by
+default "sp.correlogram".</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -197,7 +259,6 @@ be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
@@ -228,7 +289,7 @@ be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">
