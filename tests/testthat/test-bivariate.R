@@ -212,3 +212,11 @@ test_that("runBivariate", {
     rns_expect <- paste(rns_expect[[1]], rns_expect[[2]], sep = "__")
     expect_equal(localResultFeatures(sfe, "locallee"), rns_expect)
 })
+
+test_that("runBivariate when only feature1 is specified and with swap_rownames", {
+    sfe <- runBivariate(sfe, "locallee", feature1 = rownames(mat_x),
+                        swap_rownames = "symbol", colGraphName = "visium")
+    rns_expect <- expand.grid(rownames(mat_x), rownames(mat_x))
+    rns_expect <- paste(rns_expect[[1]], rns_expect[[2]], sep = "__")
+    expect_equal(localResultFeatures(sfe, "locallee"), rns_expect)
+})
