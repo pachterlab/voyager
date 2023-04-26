@@ -154,7 +154,8 @@ sce <- logNormCounts(sce)
 
 Use the highly variable genes for PCA:
 ```{r}
-hvgs <- getTopHVGs(sce, n = 2000)
+dec <- modelGeneVar(sce, lowess = FALSE)
+hvgs <- getTopHVGs(dec, n = 2000)
 ```
 
 ```{r}
