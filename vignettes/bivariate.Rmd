@@ -152,5 +152,90 @@ sfe_tissue <- runBivariate(sfe_tissue, "locallee", swap_rownames = "symbol",
                            feature1 = c("Myh2", "Myh1", "Ftl1"))
 ```
 
+Bivariate local results are stored in the `localResults` field and the feature names are the pairwise combinations of features supplied. When only `feature1` is specified, then the bivariate method is applied to all pairwise combinations of `feature1`. 
 
-Also localmoran_bv
+```{r}
+localResultFeatures(sfe_tissue, "locallee")
+```
+
+For Lee's L, both $L_{X,Y}$ and $L_{Y,X}$ are computed although they are the same. However, not all bivariate methods are symmetric (see next section). In the next release (Bioconductor 3.18), we may introduce another argument to indicate whether the method is symmetric and if so only compute $L_{X,Y}$ and not $L_{Y,X}$.
+
+First plot the three genes individually:
+```{r, fig.width=10, fig.height=4}
+plotSpatialFeature(sfe_tissue, c("Myh2", "Myh1", "Ftl1"), 
+                   swap_rownames = "symbol", image_id = "lowres", maxcell = 5e4)
+```
+
+Then plot the local L's:
+```{r, fig.width=10, fig.height=4}
+plotLocalResult(sfe_tissue, "locallee", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1"),
+                colGeometryName = "spotPoly",
+                image_id = "lowres", maxcell = 5e4,
+                divergent = TRUE, diverge_center = 0)
+```
+
+Here we see regions where Myh1 and Myh2 are more co-expressed, and where the myosins and Ftl1 are negatively correlated. 
+
+$L_{X,X}$ is also computed, so we can plot the local SSS for the three genes:
+```{r, fig.width=10, fig.height=4}
+plotLocalResult(sfe_tissue, "locallee", c("Myh1__Myh1", "Myh2__Myh2", "Ftl1__Ftl1"),
+                colGeometryName = "spotPoly",
+                image_id = "lowres", maxcell = 5e4)
+```
+
+See how the local SSS compares to local Moran's I:
+```{r}
+sfe_tissue <- runUnivariate(sfe_tissue, "localmoran", c("Myh2", "Myh1", "Ftl1"),
+                            swap_rownames = "symbol")
+```
+
+```{r, fig.width=10, fig.height=4}
+plotLocalResult(sfe_tissue, "localmoran", c("Myh1", "Myh2", "Ftl1"),
+                colGeometryName = "spotPoly", swap_rownames = "symbol",
+                image_id = "lowres", maxcell = 5e4,
+                divergent = TRUE, diverge_center = 0)
+```
+
+The patterns are qualitatively the same, but while local Moran's I is negative in heterogeneous regions, the SSS can't be negative.
+
+# Bivariate local Moran
+
+The `spdep` package implements a bivariate version of local Moran, which basically is 
+
+$$
+I_{X_i,Y_i} = (n-1)\frac{(x_i - \bar{x})\sum_{j=1}^n w_{ij} (y_j - \bar{y})}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2} \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2}}.
+$$
+
+Note that this is not symmetric, i.e. $I_{X_i,Y_i} \neq I_{Y_i,X_i}$.
+
+```{r}
+sfe_tissue <- runBivariate(sfe_tissue, "localmoran_bv", c("Myh1", "Myh2", "Ftl1"),
+                           swap_rownames = "symbol", nsim = 100)
+```
+
+```{r}
+localResultFeatures(sfe_tissue, "localmoran_bv")
+```
+
+Permutation testing is performed so we get a pseudo p-value
+```{r}
+localResultAttrs(sfe_tissue, "localmoran_bv", "Myh1__Myh2")
+```
+
+First plot the bivariate local Moran's I values
+```{r, fig.width=10, fig.height=4}
+plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1"),
+                colGeometryName = "spotPoly", attribute = "Ibvi",
+                image_id = "lowres", maxcell = 5e4,
+                divergent = TRUE, diverge_center = 0)
+```
+
+The first row plots XY while the second row plots YX; note that they are not symmetric. What does bivariate local Moran mean? It's kind of like correlation between $x$ and spatially lagged $y$.
+
+```{r, fig.width=10, fig.height=7.5}
+plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1",
+                                               "Myh2__Myh1", "Ftl1__Myh2", "Ftl1__Myh1"),
+                colGeometryName = "spotPoly", attribute = "-log10p_adj Sim",
+                image_id = "lowres", maxcell = 5e4,
+                divergent = TRUE, diverge_center = -log10(0.05))
+```
