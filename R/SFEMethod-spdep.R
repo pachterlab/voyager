@@ -1,9 +1,5 @@
 #' @include res2df.R
 
-spdep_uni <- c(package = "spdep", variate = "uni")
-uni_global <- c(spdep_uni, scope = "global", default_attr = NA)
-uni_local <- c(spdep_uni, scope = "local")
-
 # Construct SFEMethod object for Moran's I
 moran <- SFEMethod(
     name = "moran", title = "Moran's I", package = "spdep",

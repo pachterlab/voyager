@@ -8,6 +8,7 @@
 [![codecov](https://codecov.io/gh/pachterlab/voyager/branch/devel/graph/badge.svg?token=RCIXA7AQER)](https://codecov.io/gh/pachterlab/voyager)
 <!-- badges: end -->
 
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the SpatialFeatureExperiment class, which extends SpatialExperiment with sf.
 
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
 

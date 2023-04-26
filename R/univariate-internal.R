@@ -368,7 +368,8 @@
                         exprs_values = "logcounts", BPPARAM = SerialParam(),
                         swap_rownames = NULL,
                         zero.policy = NULL, include_self = FALSE,
-                        p.adjust.method = "BH", name = NULL, ...) {
+                        p.adjust.method = "BH", name = NULL, overwrite = FALSE,
+                        ...) {
         if (is.character(type)) type <- get(type, mode = "S4")
         sample_id <- .check_sample_id(x, sample_id, one = FALSE)
         if (is.null(name)) name <- info(type, "name")
@@ -383,8 +384,10 @@
                          graph_params = attr(g, "method")), other_args)
         local <- is_local(type)
         if (!local) params$p.adjust.method <- NULL
-        old_params <- getParams(x, name, local = local)
-        .check_old_params(params, old_params, name, args_not_check(type))
+        if (!overwrite) {
+            old_params <- getParams(x, name, local = local)
+            .check_old_params(params, old_params, name, args_not_check(type))
+        }
 
         if (is.null(features)) features <- rownames(x)
         # Requires devel version of SFE
