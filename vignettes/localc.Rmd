@@ -1,0 +1,118 @@
+---
+title: "Multivariate local Geary's C"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{localc}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+Local Geary's C [@Anselin1995-cs] is defined as:
+
+$$
+c_i = \sum_jw_{ij}(x_i - x_j)^2,
+$$
+
+where $w_{ij}$s are spatial weights from location $i$ to location $j$ and $x$ is a variable at spatial location. This is generalized to multiple variables in [@Anselin2019-uv]:
+
+$$
+c_{k,i} = \sum_{v=1}^k c_{v,i},
+$$
+
+where there are $k$ variables. This vignette demonstrates usage of multivariate local Geary's C 
+
+Here we load the packages used:
+```{r, message=FALSE}
+library(Voyager)
+library(SFEData)
+library(SpatialFeatureExperiment)
+library(scater)
+library(scran)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+QC was performed in [another vignette](https://pachterlab.github.io/voyager/articles/vig1_visium_basic.html), so this vignette will not plot QC metrics.
+```{r}
+(sfe <- McKellarMuscleData("full"))
+```
+
+The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
+```{r}
+sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+              image_id = "lowres", 
+              scale_fct = 1024/22208)
+sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
+```
+
+```{r}
+sfe_tissue <- sfe[,colData(sfe)$in_tissue]
+sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
+```
+
+```{r}
+sfe_tissue <- logNormCounts(sfe_tissue)
+```
+
+```{r}
+colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
+```
+
+Here we compute Lee's L for top highly variagle genes (HVGs) in this dataset:
+```{r}
+hvgs <- getTopHVGs(sfe_tissue, fdr.threshold = 0.01)
+```
+
+```{r}
+sfe_tissue <- runMultivariate(sfe_tissue, "localC_perm_multi", subset_row = hvgs)
+```
+
+The results are stored in `reducedDim` although it's not really a dimension reduction. It can also go into `colData` if `dest = "colData"`.
+```{r}
+names(reducedDim(sfe_tissue, "localC_perm_multi"))
+```
+
+```{r}
+spatialReducedDim(sfe_tissue, "localC_perm_multi", c(1, 12),
+                  image_id = "lowres", maxcell = 5e4)
+```
+
+In Geary's C, a value below 1 indicates positive spatial autocorrelation and a value above 1 indicates negative spatial autocorrelation. Local Geary's C is not scaled, but from the square difference expression, a low value means a more homogeneous neighborhood and a high value means a more heterogeneous neighborhood. Here considering all 341 top HVGs, the muscle tendon junction and the unjury site are more heterogeneous, which is detected as negative cluster.
+
+Permutation testing was performed, although Anselin noted that the pseudo-p-values should only be taken as indicative of _interesting_ regions and should not be interpreted in a strict sense.
+
+```{r}
+spatialReducedDim(sfe_tissue, "localC_perm_multi", c(11, 12),
+                  image_id = "lowres", maxcell = 5e4, 
+                  divergent = TRUE, diverge_center = -log10(0.05))
+```
+
+Warm colors indicate adjusted p < 0.05. This should be interpreted along with the clusters. In this dataset, there are interestingly homogeneous regions in the myofibers, and an interestingly heterogeneous region in the injury site.
+
+# Session info
+```{r}
+sessionInfo()
+```
+
+# References
