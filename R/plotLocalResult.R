@@ -155,7 +155,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
 
     if (is.null(attribute)) attribute <- info(type, "default_attr")
     base <- info(type, "title")
-    title_use <- if (is_na(attribute)) base else paste0(base, " (", attribute, ")")
+    title_use <- if (is.na(attribute)) base else paste0(base, " (", attribute, ")")
 
     values <- .get_localResult_values(sfe, name, type, features, attribute,
         sample_id, colGeometryName,
