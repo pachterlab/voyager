@@ -7,7 +7,8 @@
 spatialReducedDim(
   sfe,
   dimred,
-  ncomponents,
+  ncomponents = NULL,
+  components = ncomponents,
   colGeometryName = 1L,
   sample_id = "all",
   ncol = NULL,
@@ -49,6 +50,10 @@ result in \code{reducedDims(sfe)} to plot.}
 \item{ncomponents}{A numeric scalar indicating the number of dimensions to
 plot, starting from the first dimension. Alternatively, a numeric vector
 specifying the dimensions to be plotted.}
+
+\item{components}{A numeric scalar or vector specifying which dimensions to
+be plotted. Use this instead of \code{ncomponents} when plotting only one
+dimension.}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
@@ -192,7 +197,7 @@ library(scater)
 sfe <- McKellarMuscleData("small")
 sfe <- logNormCounts(sfe)
 sfe <- runPCA(sfe, ncomponents = 2)
-spatialReducedDim(sfe, "PCA", 2, "spotPoly",
+spatialReducedDim(sfe, "PCA", ncomponents = 2, "spotPoly",
     annotGeometryName = "tissueBoundary",
     divergent = TRUE, diverge_center = 0
 )
