@@ -1,0 +1,156 @@
+---
+title: "Bivariate spatial statistics"
+author: "Lambda Moses"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{bivariate}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+Consider two variables that are correlated, say with Pearson correlation of 0.8. The observations are spatially referenced. The locations of the observations can be permuted without affecting Pearson correlation. The purpose of bivariate spatial statistics is to indicate both correlation in value (as in Pearson correlation), and spatial autocorrelation and co-patterning. 
+One of the bivariate methods implemented in `Voyager` is the cross variogram, which is shown in the [variogram vignette](https://pachterlab.github.io/voyager/articles/variogram.html). This vignette demonstrates other bivariate spatial statistics, which use a spatial neighborhood graph, on the mouse skeletal muscle Visium dataset.
+
+Here we load the packages used:
+```{r, message=FALSE}
+library(Voyager)
+library(SFEData)
+library(SpatialFeatureExperiment)
+library(scater)
+library(scran)
+library(ggplot2)
+library(pheatmap)
+library(scico)
+theme_set(theme_bw())
+```
+
+A list of all bivariate global methods can be seen here:
+```{r}
+listSFEMethods(variate = "bi", scope = "global")
+```
+
+QC was performed in [another vignette](https://pachterlab.github.io/voyager/articles/vig1_visium_basic.html), so this vignette will not plot QC metrics.
+```{r}
+(sfe <- McKellarMuscleData("full"))
+```
+
+The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
+```{r}
+sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+              image_id = "lowres", 
+              scale_fct = 1024/22208)
+sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
+```
+
+```{r}
+sfe_tissue <- sfe[,colData(sfe)$in_tissue]
+sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
+```
+
+```{r}
+sfe_tissue <- logNormCounts(sfe_tissue)
+```
+
+```{r}
+colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
+```
+
+# Lee's L
+
+Lee's L [@Lee2001-tm] was developed from relating Moran's I to Pearson correlation, and is defined as
+
+$$
+L_{X,Y} = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \left[ \sum_{j=1}^n w_{ij}  (x_j - \bar{x}) \right] \left[ \sum_{j=1}^n w_{ij} (y_j - \bar{y}) \right]}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} },
+$$
+
+where $n$ is the number of spots or locations, $i$ and $j$ are different locations, or spots in the Visium context, $x$ and $y$ are variables with values at each location, and $w_{ij}$ is a spatial weight, which can be inversely proportional to distance between spots or an indicator of whether two spots are neighbors, subject to various definitions of neighborhood. 
+
+Here we compute Lee's L for top highly variagle genes (HVGs) in this dataset:
+```{r}
+hvgs <- getTopHVGs(sfe_tissue, fdr.threshold = 0.01)
+```
+
+Because bivariate global results can have very different formats (matrix for Lee's L and lists for many other methods), the results are not stored in the SFE object.
+
+```{r}
+res <- calculateBivariate(sfe_tissue, type = "lee", feature1 = hvgs)
+```
+
+This gives a spatially informed correlation matrix among the genes, which can be plotted as a heatmap:
+```{r}
+pal_rng <- getDivergeRange(res)
+pal <- scico(256, begin = pal_rng[1], end = pal_rng[2], palette = "vik")
+```
+
+```{r}
+pheatmap(res, color = pal, show_rownames = FALSE, 
+         show_colnames = FALSE, cellwidth = 1, cellheight = 1)
+```
+
+Some coexpression blocks can be seen. Note that unlike in Pearson correlation, the diagonal is not 1, because
+
+$$
+L_{X,X} = \frac{\sum_i (\tilde x_i - \bar x)^2}{\sum_i (x_i - \bar x)^2} = \mathrm{SSS}_X,
+$$
+
+which is approximated the ratio between the variance of spatially lagged $x$ and variance of $x$. Because the spatial lag introduces smoothing, the spatial lag reduced variance, making the diagonal less than 1. This is the spatial smoothing scalar (SSS), and Moran's I is approximately Pearson correlation between $X$ and spatially lagged $X$ ($\tilde X$) multiplied by SSS:
+
+$$
+I = \mathrm{SSS}_X \cdot \rho_{X, \tilde X}
+$$
+
+Similarly for Lee's L, as shown in [@Lee2001-tm],
+
+$$
+L_{X, Y} = \sqrt{\mathrm{SSS}_X}\sqrt{\mathrm{SSS}_Y} \cdot \rho_{\tilde X, \tilde Y}
+$$
+
+With more spatial clustering, the variance is less reduced by the spatial lag, leading to a larger SSS.
+
+Weighted correlation network analysis (WGCNA) [@Langfelder2008-fs] is a time honored method to find gene co-expression modules, and it can take any correlation matrix. Then it would be interesting to apply WGCNA to the Lee's L matrix to identify spatially informed gene co-expression modules.
+
+# Local Lee
+
+Local Lee's L is defined as
+
+$$
+L_i = \frac{n\left[ \sum_{j=1}^n w_{ij}  (x_j - \bar{x}) \right] \left[ \sum_{j=1}^n w_{ij} (y_j - \bar{y}) \right]}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} }
+$$
+
+Compare this to the global L in the previous section. Local L does not sum over the locations $i$. This is the contribution of each location to global L and can show spatial heterogeneity in the relationship between two variables. 
+
+All bivariate local methods in `Voyager` is listed here:
+```{r}
+listSFEMethods("bi", "local")
+```
+
+Here we compute local L for two myofiber marker genes and one gene highly expressed in the injury site:
+
+```{r}
+sfe_tissue <- runBivariate(sfe_tissue, "locallee", swap_rownames = "symbol",
+                           feature1 = c("Myh2", "Myh1", "Ftl1"))
+```
+
+
+Also localmoran_bv
