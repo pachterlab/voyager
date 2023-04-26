@@ -129,6 +129,8 @@
 #'   \code{\link{reducedDimNames}}.
 #' @param components Numeric vector of which components in the dimension
 #'   reduction to compute spatial statistics on.
+#' @param overwrite Logical, whether to overwrite existing results with the same
+#'   name. Defaults to \code{FALSE}.
 #' @param ... Other arguments passed to S4 method (for convenience wrappers like
 #'   \code{calculateMoransI}) or method used to compute metrics as specified by
 #'   the argument \code{type} (as in more general functions like

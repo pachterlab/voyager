@@ -705,6 +705,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         swap_rownames = swap_rownames,
         show_symbol = show_symbol
     )
+    values <- values[,features, drop = FALSE]
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
