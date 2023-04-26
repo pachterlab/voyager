@@ -144,6 +144,12 @@ The rule for `reorganize_fun` remains the same, and this is the `.other2df` func
 ```
 
 ## Local
+These are the univariate local methods in `Voyager`:
+
+```{r}
+listSFEMethods("uni", "local")
+```
+
 This is the code used to create the `SFEMethod` object for `localmoran`:
 
 ```{r, eval = FALSE}
@@ -181,6 +187,18 @@ The function must have arguments:
 The output is a list of organized results, each element for one gene, which will then be converted to a `DataFrame` and added to `localResults(sfe)`.
 
 # Bivariate
+These are the bivariate global methods in `Voyager`:
+
+```{r}
+listSFEMethods("bi", "global")
+```
+
+These are the bivariate local methods in `Voyager`:
+
+```{r}
+listSFEMethods("bi", "local")
+```
+
 The `SFEMethod` construction for bivariate methods is similar to that of univariate methods, except that the function in `fun` must have argument `y` after `x`. This is the code used to create the `SFEMethod` object for `lee`, Lee's L:
 
 ```{r, eval=FALSE}
@@ -216,6 +234,12 @@ Due to the matrix operation, `listw` can be a sparse or dense adjacency matrix o
 The `reorganize_fun` for bivariate global methods don't have to return a `DataFrame`, because bivariate global results can't be stored in the SFE object. However, `reorganize_fun` for bivariate local methods follow the same rules as that of univariate local methods because the results also go into `localResults(sfe)`.
 
 # Multivariate
+These are the multivariate methods in `Voyager`:
+
+```{r}
+listSFEMethods("multi")
+```
+
 The `SFEMethod` construction for bivariate methods is similar to that of univariate methods, except for two arguments: `joint` to indicate whether it makes sense to run the method for multiple samples jointly just like in non-spatial PCA, and `dest` to indicate whether the results should go into `reducedDims(sfe)` or `colData(sfe)`. This is the code for a multivariate generalization of local Geary's C [@Anselin2019-uv] with permutation testing:
 
 ```{r, eval = FALSE}
@@ -242,6 +266,6 @@ localC_perm_multi <- SFEMethod(
 
 Here the results, as a single vector, goes into `colData(sfe)`, and it does not make sense to run it across multiple samples jointly as each sample has a separate spatial neighborhood graph, so it will be run on each sample separately. 
 
-The function in `reorganize_fun` should return a vector, matrix, or data frame ready to be added to `reducedDims(sfe)` or `colData(sfe)`. If the results go into `colData`, the rules for arguments are the same as those for univariate local methods, because with permutation testing for multivariate local Geary's C, multiple testing correction is performed in the `reorganize_fun`. If the results go into `reducedDims`, then it only needs one argument for the output.
+The function in `reorganize_fun` should return a vector, matrix, or data frame ready to be added to `reducedDims(sfe)` or `colData(sfe)`. If the results can go into `colData`, the rules for arguments are the same as those for univariate local methods, because with permutation testing for multivariate local Geary's C, multiple testing correction is performed in the `reorganize_fun`. If the results go into `reducedDims`, then it only needs one argument for the output.
 
 # References
