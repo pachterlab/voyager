@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.10</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,32 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="nav-item">
@@ -86,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-04-21</h4>
+            <h4 data-toc-skip class="date">2023-04-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/create_sfe.Rmd" class="external-link"><code>vignettes/create_sfe.Rmd</code></a></small>
       <div class="d-none name"><code>create_sfe.Rmd</code></div>
@@ -174,19 +200,18 @@ operations can also find the polygons of the intersections between spots
 and the tissue, but the results can get messy since the intersections
 can have not only polygons but also points and lines.</p>
 <p>Now we read in the toy data that is in the Space Ranger output
-format. The <code>load</code> argument indicates whether the images
-should be loaded into memory. The SFE package does not work with the
-image at present, so <code>load = FALSE</code>.</p>
+format. Since Bioconductor version 3.17 (Voyager version 1.2.0), the
+image is read as a <code>SpatRaster</code> object with the <a href="https://rspatial.github.io/terra/index.html" class="external-link"><code>terra</code></a>
+package, so it is not loaded into memory unless necessary. When plotting
+a large image, it will be downsampled and thus not fully loaded into
+memory. The unit can be set with the <code>unit</code> argument, and can
+be either pixels in full resolution image or microns. The latter is
+calculated from the former based on spacing between spots, which is
+known to be 100 microns.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/read10xVisiumSFE.html" class="external-link">read10xVisiumSFE</a></span><span class="op">(</span><span class="va">samples</span>, <span class="va">sample_ids</span>, type <span class="op">=</span> <span class="st">"sparse"</span>, data <span class="op">=</span> <span class="st">"raw"</span>,</span>
-<span>                         load <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: 'as(&lt;dgTMatrix&gt;, "dgCMatrix")' is deprecated.</span></span>
-<span><span class="co">#&gt; Use 'as(., "CsparseMatrix")' instead.</span></span>
-<span><span class="co">#&gt; See help("Deprecated") and help("Matrix-deprecated").</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning: 'as(&lt;dgTMatrix&gt;, "dgCMatrix")' is deprecated.</span></span>
-<span><span class="co">#&gt; Use 'as(., "CsparseMatrix")' instead.</span></span>
-<span><span class="co">#&gt; See help("Deprecated") and help("Matrix-deprecated").</span></span>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/read10xVisiumSFE.html" class="external-link">read10xVisiumSFE</a></span><span class="op">(</span><span class="va">samples</span>, dirs <span class="op">=</span> <span class="va">samples</span>, sample_id <span class="op">=</span> <span class="va">sample_ids</span>, </span>
+<span>                          type <span class="op">=</span> <span class="st">"sparse"</span>, data <span class="op">=</span> <span class="st">"raw"</span>, images <span class="op">=</span> <span class="st">"lowres"</span>, </span>
+<span>                          unit <span class="op">=</span> <span class="st">"full_res_image_pixel"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
 <span><span class="co">#&gt; dim: 50 99 </span></span>
 <span><span class="co">#&gt; metadata(0):</span></span>
@@ -200,9 +225,10 @@ image at present, so <code>load = FALSE</code>.</p>
 <span><span class="co">#&gt; reducedDimNames(0):</span></span>
 <span><span class="co">#&gt; mainExpName: NULL</span></span>
 <span><span class="co">#&gt; altExpNames(0):</span></span>
-<span><span class="co">#&gt; spatialCoords names(2) : pxl_row_in_fullres pxl_col_in_fullres</span></span>
+<span><span class="co">#&gt; spatialCoords names(2) : pxl_col_in_fullres pxl_row_in_fullres</span></span>
 <span><span class="co">#&gt; imgData names(4): sample_id image_id data scaleFactor</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; unit: full_res_image_pixel</span></span>
 <span><span class="co">#&gt; Geometries:</span></span>
 <span><span class="co">#&gt; colGeometries: spotPoly (POLYGON) </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -214,6 +240,48 @@ and spot diameter. The Space Ranger output does NOT include nuclei
 segmentation or pathologist annotation of histological regions. Extra
 image processing, such as with ImageJ and QuPath, are required for those
 geometries.</p>
+<div class="section level3">
+<h3 id="vizgen-merfish-output">Vizgen MERFISH output<a class="anchor" aria-label="anchor" href="#vizgen-merfish-output"></a>
+</h3>
+<p>The commercialized MERFISH from Vizgen has a standard output format,
+that can be read into SFE with <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/readVizgen.html" class="external-link">readVizgen()</a></code>. Because the
+cell segmentation from each field of view (FOV) has a separate HDF5 file
+and a MERFISH dataset can have hundreds of FOVs, we strongly recommend
+reading the MERFISH output on a server with a large number of CPU cores.
+Alternatively, some but not all MERFISH datasets store cell segmentation
+in a <code>parquet</code> file, which can be more easily read into R.
+Here we read a toy dataset which is the first FOV from a real
+dataset:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dir_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"vizgen"</span><span class="op">)</span>, </span>
+<span>                       package <span class="op">=</span> <span class="st">"SpatialFeatureExperiment"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe_mer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/readVizgen.html" class="external-link">readVizgen</a></span><span class="op">(</span><span class="va">dir_use</span>, z <span class="op">=</span> <span class="fl">0L</span>, image <span class="op">=</span> <span class="st">"PolyT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; class: SpatialFeatureExperiment </span></span>
+<span><span class="co">#&gt; dim: 385 98 </span></span>
+<span><span class="co">#&gt; metadata(0):</span></span>
+<span><span class="co">#&gt; assays(1): counts</span></span>
+<span><span class="co">#&gt; rownames(385): Comt Ldha ... Blank-36 Blank-37</span></span>
+<span><span class="co">#&gt; rowData names(0):</span></span>
+<span><span class="co">#&gt; colnames(98): 103327291694389284070574461648020091166</span></span>
+<span><span class="co">#&gt;   105028411815552368766949841604861213395 ...</span></span>
+<span><span class="co">#&gt;   99103300832376657987379734140330816574</span></span>
+<span><span class="co">#&gt;   99471994882184799235845481075474519252</span></span>
+<span><span class="co">#&gt; colData names(7): fov volume ... max_y sample_id</span></span>
+<span><span class="co">#&gt; reducedDimNames(0):</span></span>
+<span><span class="co">#&gt; mainExpName: NULL</span></span>
+<span><span class="co">#&gt; altExpNames(0):</span></span>
+<span><span class="co">#&gt; spatialCoords names(2) : center_x center_y</span></span>
+<span><span class="co">#&gt; imgData names(4): sample_id image_id data scaleFactor</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; unit: micron</span></span>
+<span><span class="co">#&gt; Geometries:</span></span>
+<span><span class="co">#&gt; colGeometries: centroids (POINT), cellSeg (POLYGON) </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Graphs:</span></span>
+<span><span class="co">#&gt; sample01:</span></span></code></pre></div>
+<p>The unit is always in microns.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="create-sfe-object-from-scratch">Create SFE object from scratch<a class="anchor" aria-label="anchor" href="#create-sfe-object-from-scratch"></a>
@@ -222,7 +290,7 @@ geometries.</p>
 and metadata. In this toy example, <code>dgCMatrix</code> is used, but
 since SFE inherits from SingleCellExperiment (SCE), other types of
 arrays supported by SCE such as delayed arrays should also work.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Visium barcode location from Space Ranger</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"visium_row_col"</span><span class="op">)</span></span>
 <span><span class="va">coords1</span> <span class="op">&lt;-</span> <span class="va">visium_row_col</span><span class="op">[</span><span class="va">visium_row_col</span><span class="op">$</span><span class="va">col</span> <span class="op">&lt;</span> <span class="fl">6</span> <span class="op">&amp;</span> <span class="va">visium_row_col</span><span class="op">$</span><span class="va">row</span> <span class="op">&lt;</span> <span class="fl">6</span>,<span class="op">]</span></span>
@@ -245,14 +313,14 @@ argument, which can also be relevant to other technologies with round
 spots or beads, such as Slide-seq. Spot diameter in pixels in full
 resolution images can be found in the
 <code>scalefactors_json.json</code> file in Space Ranger output.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/SpatialFeatureExperiment.html" class="external-link">SpatialFeatureExperiment</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">mat</span><span class="op">)</span>, colData <span class="op">=</span> <span class="va">coords1</span>,</span>
 <span>                                spatialCoordsNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col"</span>, <span class="st">"row"</span><span class="op">)</span>,</span>
 <span>                                spotDiameter <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span></code></pre></div>
 <p>More geometries and spatial graphs can be added after calling the
 constructor.</p>
 <p>Geometries can also be supplied in the constructor.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Convert regular data frame with coordinates to sf data frame</span></span>
 <span><span class="va">cg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/df2sf.html" class="external-link">df2sf</a></span><span class="op">(</span><span class="va">coords1</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col"</span>, <span class="st">"row"</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col"</span>, <span class="st">"row"</span><span class="op">)</span>, spotDiameter <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">cg</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">mat</span><span class="op">)</span></span>
@@ -260,6 +328,10 @@ constructor.</p>
 <div class="section level3">
 <h3 id="technology-specific-notes">Technology specific notes<a class="anchor" aria-label="anchor" href="#technology-specific-notes"></a>
 </h3>
+<p>Not all commercial technologies have a function to directly read the
+outputs. We may implement more such functions in the next version of
+<code>SpatialFeatureExperiment</code>. For now we show example code to
+read output from CosMX and Xenium.</p>
 <div class="section level4">
 <h4 id="gene-count-matrix-and-cell-metadata">Gene count matrix and cell metadata<a class="anchor" aria-label="anchor" href="#gene-count-matrix-and-cell-metadata"></a>
 </h4>
@@ -273,17 +345,6 @@ transposed so the genes are in rows and cells are in columns. While
 smFISH based data tend to be less sparse than scRNA-seq data, using
 sparse matrix is worthwhile since the matrix is still about 50%
 zero.</p>
-<p>For Vizgen MERFISH, the first column is cell ID but doesn’t have have
-a column name. The cell IDs are numbers over 30 digits long. If it’s
-read as numbers, its values will change as R doesn’t support long
-integers, so it should instead be read as character. An example to do
-so:
-<code>mat &lt;- vroom("Liver1Slice1_cell_by_gene.csv", col_types = cols(...1 = "c"))</code>,
-as <code>...1</code> is the name <code>vroom</code> gives to the first
-column that doesn’t have a column name, and “c” specifies type
-character.</p>
-<p><strong>Note that Xenium is in Beta and this might soon
-change</strong></p>
 <p>For 10x Genomics’ new single cell resolution technology Xenium, the
 gene count matrix is an <code>h5</code> file, which can be read into R
 as an SCE object with <code><a href="https://rdrr.io/pkg/DropletUtils/man/read10xCounts.html" class="external-link">DropletUtils::read10xCounts()</a></code>. This
@@ -295,8 +356,8 @@ operations on this matrix are performed in chunks. The
 <code>dgCMatrix</code> in memory. While the cell metadata is available
 in the CSV format, there’s also the <code>parquet</code> format which is
 more compact on disk, which can be read into R as a data frame with
-<code>arrow::read_parquet()</code>. Example code:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">arrow::read_parquet()</a></code>. Example code:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Download data from https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep1/Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip"</span><span class="op">)</span></span>
@@ -306,12 +367,12 @@ more compact on disk, which can be read into R as a data frame with
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep2/Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"unzip Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"mv outs outs_R2"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">DropletUtils</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span><span class="op">)</span></span>
 <span><span class="va">sce</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DropletUtils/man/read10xCounts.html" class="external-link">read10xCounts</a></span><span class="op">(</span><span class="st">"outs_R1/cell_feature_matrix.h5"</span><span class="op">)</span></span>
-<span><span class="va">cell_info</span> <span class="op">&lt;-</span> <span class="fu">read_parquet</span><span class="op">(</span><span class="st">"outs_R1/cells.parquet"</span><span class="op">)</span></span>
+<span><span class="va">cell_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">read_parquet</a></span><span class="op">(</span><span class="st">"outs_R1/cells.parquet"</span><span class="op">)</span></span>
 <span><span class="co"># Add the centroid coordinates to colData</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sce</span><span class="op">)</span>, <span class="va">cell_info</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-coercion.html" class="external-link">toSpatialExperiment</a></span><span class="op">(</span><span class="va">sce</span>, spatialCoordsNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_centroid"</span>, <span class="st">"y_centroid"</span><span class="op">)</span><span class="op">)</span></span>
@@ -324,8 +385,6 @@ more compact on disk, which can be read into R as a data frame with
 in different technology. The cell polygons should be <a href="https://r-spatial.github.io/sf/" class="external-link"><code>sf</code></a> data frames
 to put into <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometries()</a></code> of the SFE object. This section
 explains how to do that for a number of smFISH-based technologies.</p>
-<p><strong>Note that Xenium is in Beta and this might soon
-change</strong></p>
 <p>In Xenium, the cell polygons come in CSV or parquet files that can be
 directly read into R as a data frame, with 2 columns for x and y
 coordinates, and one indicating which cell the coordinates belong to.
@@ -333,9 +392,9 @@ Change the name of the cell ID column into “ID”, and use
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/df2sf.html" class="external-link">SpatialFeatureExperiment::df2sf()</a></code> to convert the data frame
 into an <code>sf</code> data frame with <code>POLYGON</code> geometry.
 Example code:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span><span class="op">)</span></span>
-<span><span class="va">cell_poly</span> <span class="op">&lt;-</span> <span class="fu">read_parquet</span><span class="op">(</span><span class="st">"outs_R2/cell_boundaries.parquet"</span><span class="op">)</span></span>
+<span><span class="va">cell_poly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">read_parquet</a></span><span class="op">(</span><span class="st">"outs_R2/cell_boundaries.parquet"</span><span class="op">)</span></span>
 <span><span class="co"># Here the first column is cell ID</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cell_poly</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"ID"</span></span>
 <span><span class="co"># "vertex_x" and "vertex_y" are the column names for coordinates here</span></span>
@@ -346,13 +405,13 @@ ID. However, unlike in Xenium, the cell IDs are only unique in each FOV,
 so they should be concatenated to FOV to make them unique. Then
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/df2sf.html" class="external-link">df2sf()</a></code> can also be used to convert the regular data frame
 into <code>sf</code>. Example code:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Download data from https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/</span></span>
 <span><span class="co"># stored here: https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=0</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"wget https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=1"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"mv Lung5_Rep1-polygons.csv?dl=1 Lung5_Rep1-polygons.csv"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://vroom.r-lib.org" class="external-link">vroom</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="va">cell_poly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://vroom.r-lib.org/reference/vroom.html" class="external-link">vroom</a></span><span class="op">(</span><span class="st">"Lung5_Rep1-polygons.csv"</span><span class="op">)</span></span>
@@ -360,38 +419,6 @@ into <code>sf</code>. Example code:</p>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unite.html" class="external-link">unite</a></span><span class="op">(</span><span class="st">"ID"</span>, <span class="va">fov</span><span class="op">:</span><span class="va">cellID</span><span class="op">)</span></span>
 <span><span class="va">cell_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/df2sf.html" class="external-link">df2sf</a></span><span class="op">(</span><span class="va">cell_poly</span>, spatialCoordsNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x_global_px"</span>, <span class="st">"y_global_px"</span><span class="op">)</span>,</span>
 <span>                 geometryType <span class="op">=</span> <span class="st">"POLYGON"</span><span class="op">)</span></span></code></pre></div>
-<p>In Vizgen MERFISH, cell polygons are in HDF5 files, with one HDF5
-file per FOV. The HDF5 file seems to contain 7 z-planes, but at least
-for the mouse liver MERFISH dataset in <code>SFEData</code>, all 7
-z-planes have the same polygons so in effect the cell segmentation is
-only available in one z-plane. Example code to convert this into
-<code>sf</code>:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example code only (data download not shown)</span></span>
-<span><span class="co"># Example data may be found here: https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1;tab=objects?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&amp;prefix=&amp;forceOnObjectsSortingFiltering=false&amp;pli=1</span></span>
-<span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/grimbough/rhdf5" class="external-link">rhdf5</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
-<span><span class="va">h52poly_fov</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fn</span>, <span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">l</span> <span class="op">&lt;-</span> <span class="fu">rhdf5</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rhdf5/man/h5_dump.html" class="external-link">h5dump</a></span><span class="op">(</span><span class="va">fn</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span>    <span class="va">cell_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">l</span><span class="op">)</span></span>
-<span>    <span class="va">geometries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">l</span>, <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
-<span>        <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">m</span><span class="op">[[</span><span class="st">"zIndex_0"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">p_0</span><span class="op">$</span><span class="va">coordinates</span><span class="op">[</span>,,<span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>geometry <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="va">geometries</span><span class="op">)</span>,</span>
-<span>                     ID <span class="op">=</span> <span class="va">cell_ids</span>,</span>
-<span>                     fov <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
-<span>    <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sf.html" class="external-link">st_sf</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co"># Those hdf5 files are in the directory cell_boundaries</span></span>
-<span><span class="va">fns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"cell_boundaries"</span>, <span class="st">"*.hdf5"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co"># Multicore as there are over 1000 FOVs in this dataset</span></span>
-<span><span class="co"># I ran this on a server. </span></span>
-<span><span class="co"># Use parallel::detectCores() to find how many CPU cores you have.</span></span>
-<span><span class="va">cell_sfs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/bpmapply.html" class="external-link">bpmapply</a></span><span class="op">(</span><span class="va">h52poly_fov</span>, fn <span class="op">=</span> <span class="va">fns</span>, i <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">fns</span><span class="op">)</span>, SIMPLIFY <span class="op">=</span> <span class="cn">FALSE</span>, </span>
-<span>                     BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span><span class="fl">20</span>, progressbar <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># dplyr::bind_rows is much faster than base R's rbind</span></span>
-<span><span class="va">cell_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">bind_rows</span>, <span class="va">cell_sfs</span><span class="op">)</span></span></code></pre></div>
 <p>See <a href="https://github.com/pachterlab/SFEData/blob/main/inst/scripts/make-data.R" class="external-link">the
 code used to construct the example datasets in <code>SFEData</code></a>
 for more examples.</p>
@@ -408,82 +435,90 @@ invalid polygons, to find why some polygons are not valid.</p>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.2.3 (2023-03-15)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: macOS Big Sur ... 10.16</span></span>
+<span><span class="co">#&gt; R version 4.3.0 Patched (2023-04-24 r84317)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
+<span><span class="co">#&gt; Running under: macOS Monterey 12.6.5</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib</span></span>
-<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</span></span>
+<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
 <span><span class="co">#&gt; [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; time zone: UTC</span></span>
+<span><span class="co">#&gt; tzcode source: internal</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt; [1] Matrix_1.5-4                   rjson_0.2.21                  </span></span>
-<span><span class="co">#&gt; [3] SpatialFeatureExperiment_1.0.3 Voyager_1.0.10                </span></span>
+<span><span class="co">#&gt; [3] SpatialFeatureExperiment_1.2.0 Voyager_1.2.2                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] bitops_1.0-7                matrixStats_0.63.0         </span></span>
-<span><span class="co">#&gt;   [3] fs_1.6.1                    sf_1.0-12                  </span></span>
-<span><span class="co">#&gt;   [5] rprojroot_2.0.3             GenomeInfoDb_1.34.9        </span></span>
-<span><span class="co">#&gt;   [7] tools_4.2.3                 bslib_0.4.2                </span></span>
-<span><span class="co">#&gt;   [9] utf8_1.2.3                  R6_2.5.1                   </span></span>
-<span><span class="co">#&gt;  [11] KernSmooth_2.23-20          HDF5Array_1.26.0           </span></span>
-<span><span class="co">#&gt;  [13] colorspace_2.1-0            spData_2.2.2               </span></span>
-<span><span class="co">#&gt;  [15] DBI_1.1.3                   BiocGenerics_0.44.0        </span></span>
-<span><span class="co">#&gt;  [17] rhdf5filters_1.10.1         sp_1.6-0                   </span></span>
-<span><span class="co">#&gt;  [19] tidyselect_1.2.0            compiler_4.2.3             </span></span>
-<span><span class="co">#&gt;  [21] textshaping_0.3.6           cli_3.6.1                  </span></span>
-<span><span class="co">#&gt;  [23] Biobase_2.58.0              BiocNeighbors_1.16.0       </span></span>
-<span><span class="co">#&gt;  [25] desc_1.4.2                  DelayedArray_0.24.0        </span></span>
-<span><span class="co">#&gt;  [27] sass_0.4.5                  scales_1.2.1               </span></span>
-<span><span class="co">#&gt;  [29] classInt_0.4-9              proxy_0.4-27               </span></span>
-<span><span class="co">#&gt;  [31] pkgdown_2.0.7               systemfonts_1.0.4          </span></span>
-<span><span class="co">#&gt;  [33] stringr_1.5.0               digest_0.6.31              </span></span>
-<span><span class="co">#&gt;  [35] SpatialExperiment_1.8.1     rmarkdown_2.21             </span></span>
-<span><span class="co">#&gt;  [37] R.utils_2.12.2              XVector_0.38.0             </span></span>
-<span><span class="co">#&gt;  [39] pkgconfig_2.0.3             htmltools_0.5.5            </span></span>
-<span><span class="co">#&gt;  [41] scico_1.3.1                 sparseMatrixStats_1.10.0   </span></span>
-<span><span class="co">#&gt;  [43] MatrixGenerics_1.10.0       fastmap_1.1.1              </span></span>
-<span><span class="co">#&gt;  [45] limma_3.54.2                rlang_1.1.0                </span></span>
-<span><span class="co">#&gt;  [47] DelayedMatrixStats_1.20.0   jquerylib_0.1.4            </span></span>
-<span><span class="co">#&gt;  [49] generics_0.1.3              jsonlite_1.8.4             </span></span>
-<span><span class="co">#&gt;  [51] BiocParallel_1.32.6         spdep_1.2-8                </span></span>
-<span><span class="co">#&gt;  [53] dplyr_1.1.1                 R.oo_1.25.0                </span></span>
-<span><span class="co">#&gt;  [55] RCurl_1.98-1.12             magrittr_2.0.3             </span></span>
-<span><span class="co">#&gt;  [57] GenomeInfoDbData_1.2.9      scuttle_1.8.4              </span></span>
-<span><span class="co">#&gt;  [59] s2_1.1.2                    patchwork_1.1.2            </span></span>
-<span><span class="co">#&gt;  [61] munsell_0.5.0               Rcpp_1.0.10                </span></span>
-<span><span class="co">#&gt;  [63] S4Vectors_0.36.2            Rhdf5lib_1.20.0            </span></span>
-<span><span class="co">#&gt;  [65] fansi_1.0.4                 ggnewscale_0.4.8           </span></span>
-<span><span class="co">#&gt;  [67] lifecycle_1.0.3             R.methodsS3_1.8.2          </span></span>
-<span><span class="co">#&gt;  [69] stringi_1.7.12              yaml_2.3.7                 </span></span>
-<span><span class="co">#&gt;  [71] edgeR_3.40.2                SummarizedExperiment_1.28.0</span></span>
-<span><span class="co">#&gt;  [73] zlibbioc_1.44.0             rhdf5_2.42.1               </span></span>
-<span><span class="co">#&gt;  [75] grid_4.2.3                  parallel_4.2.3             </span></span>
-<span><span class="co">#&gt;  [77] dqrng_0.3.0                 deldir_1.0-6               </span></span>
-<span><span class="co">#&gt;  [79] lattice_0.21-8              beachmat_2.14.2            </span></span>
-<span><span class="co">#&gt;  [81] locfit_1.5-9.7              magick_2.7.4               </span></span>
-<span><span class="co">#&gt;  [83] knitr_1.42                  pillar_1.9.0               </span></span>
-<span><span class="co">#&gt;  [85] igraph_1.4.2                GenomicRanges_1.50.2       </span></span>
-<span><span class="co">#&gt;  [87] boot_1.3-28.1               codetools_0.2-19           </span></span>
-<span><span class="co">#&gt;  [89] stats4_4.2.3                wk_0.7.2                   </span></span>
-<span><span class="co">#&gt;  [91] glue_1.6.2                  evaluate_0.20              </span></span>
-<span><span class="co">#&gt;  [93] vctrs_0.6.2                 gtable_0.3.3               </span></span>
-<span><span class="co">#&gt;  [95] purrr_1.0.1                 ggplot2_3.4.2              </span></span>
-<span><span class="co">#&gt;  [97] cachem_1.0.7                xfun_0.38                  </span></span>
-<span><span class="co">#&gt;  [99] DropletUtils_1.18.1         e1071_1.7-13               </span></span>
-<span><span class="co">#&gt; [101] ragg_1.2.5                  class_7.3-21               </span></span>
-<span><span class="co">#&gt; [103] SingleCellExperiment_1.20.1 tibble_3.2.1               </span></span>
-<span><span class="co">#&gt; [105] memoise_2.0.1               IRanges_2.32.0             </span></span>
-<span><span class="co">#&gt; [107] cluster_2.1.4               units_0.8-1                </span></span>
-<span><span class="co">#&gt; [109] bluster_1.8.0</span></span></code></pre></div>
+<span><span class="co">#&gt;   [1] DBI_1.1.3                   bitops_1.0-7               </span></span>
+<span><span class="co">#&gt;   [3] deldir_1.0-6                s2_1.1.2                   </span></span>
+<span><span class="co">#&gt;   [5] rlang_1.1.0                 magrittr_2.0.3             </span></span>
+<span><span class="co">#&gt;   [7] matrixStats_0.63.0          e1071_1.7-13               </span></span>
+<span><span class="co">#&gt;   [9] compiler_4.3.0              DelayedMatrixStats_1.22.0  </span></span>
+<span><span class="co">#&gt;  [11] systemfonts_1.0.4           vctrs_0.6.2                </span></span>
+<span><span class="co">#&gt;  [13] stringr_1.5.0               crayon_1.5.2               </span></span>
+<span><span class="co">#&gt;  [15] pkgconfig_2.0.3             SpatialExperiment_1.10.0   </span></span>
+<span><span class="co">#&gt;  [17] wk_0.7.2                    fastmap_1.1.1              </span></span>
+<span><span class="co">#&gt;  [19] magick_2.7.4                XVector_0.40.0             </span></span>
+<span><span class="co">#&gt;  [21] scuttle_1.10.0              utf8_1.2.3                 </span></span>
+<span><span class="co">#&gt;  [23] rmarkdown_2.21              tzdb_0.3.0                 </span></span>
+<span><span class="co">#&gt;  [25] ragg_1.2.5                  bit_4.0.5                  </span></span>
+<span><span class="co">#&gt;  [27] purrr_1.0.1                 bluster_1.10.0             </span></span>
+<span><span class="co">#&gt;  [29] xfun_0.39                   zlibbioc_1.46.0            </span></span>
+<span><span class="co">#&gt;  [31] cachem_1.0.7                beachmat_2.16.0            </span></span>
+<span><span class="co">#&gt;  [33] GenomeInfoDb_1.36.0         jsonlite_1.8.4             </span></span>
+<span><span class="co">#&gt;  [35] rhdf5filters_1.11.2         DelayedArray_0.25.0        </span></span>
+<span><span class="co">#&gt;  [37] scico_1.3.1                 Rhdf5lib_1.22.0            </span></span>
+<span><span class="co">#&gt;  [39] BiocParallel_1.33.12        terra_1.7-29               </span></span>
+<span><span class="co">#&gt;  [41] cluster_2.1.4               parallel_4.3.0             </span></span>
+<span><span class="co">#&gt;  [43] R6_2.5.1                    bslib_0.4.2                </span></span>
+<span><span class="co">#&gt;  [45] stringi_1.7.12              limma_3.56.0               </span></span>
+<span><span class="co">#&gt;  [47] boot_1.3-28.1               GenomicRanges_1.52.0       </span></span>
+<span><span class="co">#&gt;  [49] jquerylib_0.1.4             assertthat_0.2.1           </span></span>
+<span><span class="co">#&gt;  [51] Rcpp_1.0.10                 SummarizedExperiment_1.30.0</span></span>
+<span><span class="co">#&gt;  [53] knitr_1.42                  R.utils_2.12.2             </span></span>
+<span><span class="co">#&gt;  [55] IRanges_2.34.0              igraph_1.4.2               </span></span>
+<span><span class="co">#&gt;  [57] tidyselect_1.2.0            yaml_2.3.7                 </span></span>
+<span><span class="co">#&gt;  [59] codetools_0.2-19            lattice_0.21-8             </span></span>
+<span><span class="co">#&gt;  [61] tibble_3.2.1                Biobase_2.60.0             </span></span>
+<span><span class="co">#&gt;  [63] evaluate_0.20               desc_1.4.2                 </span></span>
+<span><span class="co">#&gt;  [65] sf_1.0-12                   units_0.8-1                </span></span>
+<span><span class="co">#&gt;  [67] spData_2.2.2                proxy_0.4-27               </span></span>
+<span><span class="co">#&gt;  [69] pillar_1.9.0                MatrixGenerics_1.12.0      </span></span>
+<span><span class="co">#&gt;  [71] KernSmooth_2.23-20          stats4_4.3.0               </span></span>
+<span><span class="co">#&gt;  [73] generics_0.1.3              vroom_1.6.1                </span></span>
+<span><span class="co">#&gt;  [75] rprojroot_2.0.3             sp_1.6-0                   </span></span>
+<span><span class="co">#&gt;  [77] RCurl_1.98-1.12             ggplot2_3.4.2              </span></span>
+<span><span class="co">#&gt;  [79] S4Vectors_0.38.0            munsell_0.5.0              </span></span>
+<span><span class="co">#&gt;  [81] scales_1.2.1                sparseMatrixStats_1.12.0   </span></span>
+<span><span class="co">#&gt;  [83] class_7.3-21                glue_1.6.2                 </span></span>
+<span><span class="co">#&gt;  [85] tools_4.3.0                 ggnewscale_0.4.8           </span></span>
+<span><span class="co">#&gt;  [87] BiocNeighbors_1.18.0        RSpectra_0.16-1            </span></span>
+<span><span class="co">#&gt;  [89] locfit_1.5-9.7              fs_1.6.1                   </span></span>
+<span><span class="co">#&gt;  [91] rhdf5_2.44.0                grid_4.3.0                 </span></span>
+<span><span class="co">#&gt;  [93] spdep_1.2-8                 sfarrow_0.4.1              </span></span>
+<span><span class="co">#&gt;  [95] colorspace_2.1-0            DropletUtils_1.20.0        </span></span>
+<span><span class="co">#&gt;  [97] edgeR_3.42.0                SingleCellExperiment_1.22.0</span></span>
+<span><span class="co">#&gt;  [99] patchwork_1.1.2             GenomeInfoDbData_1.2.10    </span></span>
+<span><span class="co">#&gt; [101] HDF5Array_1.28.0            cli_3.6.1                  </span></span>
+<span><span class="co">#&gt; [103] textshaping_0.3.6           fansi_1.0.4                </span></span>
+<span><span class="co">#&gt; [105] arrow_11.0.0.3              dplyr_1.1.2                </span></span>
+<span><span class="co">#&gt; [107] gtable_0.3.3                R.methodsS3_1.8.2          </span></span>
+<span><span class="co">#&gt; [109] sass_0.4.5                  digest_0.6.31              </span></span>
+<span><span class="co">#&gt; [111] BiocGenerics_0.46.0         classInt_0.4-9             </span></span>
+<span><span class="co">#&gt; [113] dqrng_0.3.0                 memoise_2.0.1              </span></span>
+<span><span class="co">#&gt; [115] htmltools_0.5.5             pkgdown_2.0.7              </span></span>
+<span><span class="co">#&gt; [117] R.oo_1.25.0                 lifecycle_1.0.3            </span></span>
+<span><span class="co">#&gt; [119] bit64_4.0.5</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
@@ -493,7 +528,7 @@ invalid polygons, to find why some polygons are not valid.</p>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+<p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

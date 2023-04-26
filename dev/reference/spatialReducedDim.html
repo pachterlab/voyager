@@ -16,7 +16,7 @@ deal with GWPCA results."><meta name="robots" content="noindex"><!-- mathjax -->
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.10</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,32 @@ deal with GWPCA results."><meta name="robots" content="noindex"><!-- mathjax -->
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -79,15 +105,19 @@ deal with GWPCA results.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spatialReducedDim</span><span class="op">(</span></span>
 <span>  <span class="va">sfe</span>,</span>
 <span>  <span class="va">dimred</span>,</span>
-<span>  <span class="va">ncomponents</span>,</span>
+<span>  ncomponents <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  components <span class="op">=</span> <span class="va">ncomponents</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol_sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  annot_fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
+<span>  bbox <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  image_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  maxcell <span class="op">=</span> <span class="fl">5e+05</span>,</span>
 <span>  aes_use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fill"</span>, <span class="st">"color"</span>, <span class="st">"shape"</span>, <span class="st">"linetype"</span><span class="op">)</span>,</span>
 <span>  divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -95,12 +125,17 @@ deal with GWPCA results.</p>
 <span>  annot_diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  shape <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  linewidth <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  linetype <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  color <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fill <span class="op">=</span> <span class="st">"gray80"</span>,</span>
 <span>  scattermore <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  pointsize <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  bins <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  summary_fun <span class="op">=</span> <span class="va">sum</span>,</span>
+<span>  hex <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  dark <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -120,6 +155,12 @@ result in <code>reducedDims(sfe)</code> to plot.</p></dd>
 <dd><p>A numeric scalar indicating the number of dimensions to
 plot, starting from the first dimension. Alternatively, a numeric vector
 specifying the dimensions to be plotted.</p></dd>
+
+
+<dt>components</dt>
+<dd><p>A numeric scalar or vector specifying which dimensions to
+be plotted. Use this instead of <code>ncomponents</code> when plotting only one
+dimension.</p></dd>
 
 
 <dt>colGeometryName</dt>
@@ -172,6 +213,32 @@ relevant defaults for this function.</p></dd>
 contains the expression values.</p></dd>
 
 
+<dt>bbox</dt>
+<dd><p>A bounding box to specify a smaller region to plot, useful when
+the dataset is large. Can be a named numeric vector with names "xmin",
+"xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
+should be a matrix with sample IDs as column names and "xmin", "ymin",
+"xmax", and "ymax" as row names. If multiple samples are plotted but
+<code>bbox</code> is a vector rather than a matrix, then the same bounding box
+will be used for all samples. You may see points at the edge of the
+geometries if the intersection between the bounding box and a geometry
+happens to be a point there. If <code>NULL</code>, then the entire tissue is
+plotted.</p></dd>
+
+
+<dt>image_id</dt>
+<dd><p>ID of the image to plot behind the geometries. If
+<code>NULL</code>, then not plotting images. Use <code><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">imgData</a></code> to see
+image IDs present.</p></dd>
+
+
+<dt>maxcell</dt>
+<dd><p>Maximum number of pixels to plot in the image. If the image is
+larger, it will be resampled so it have less than this number of pixels to
+save memory and for faster plotting. We recommend reducing this number when
+plotting multiple facets.</p></dd>
+
+
 <dt>aes_use</dt>
 <dd><p>Aesthetic to use for discrete variables. For continuous
 variables, it's always "fill" for polygons and point shapes 21-25. For
@@ -201,14 +268,18 @@ annotGeometry in case it's different.</p></dd>
 
 
 <dt>size</dt>
-<dd><p>Fixed size of points or width of lines, including outlines of
-polygons. For polygons, this defaults to 0, meaning no outlines. For points
-and lines, this defaults to 0.5. Ignored if <code>size_by</code> is specified.</p></dd>
+<dd><p>Fixed size of points. For points defaults to 0.5. Ignored if
+<code>size_by</code> is specified.</p></dd>
 
 
 <dt>shape</dt>
 <dd><p>Fixed shape of points, ignored if <code>shape_by</code> is specified
 and applicable.</p></dd>
+
+
+<dt>linewidth</dt>
+<dd><p>Width of lines, including outlines of polygons. For
+polygons, this defaults to 0, meaning no outlines.</p></dd>
 
 
 <dt>linetype</dt>
@@ -245,6 +316,34 @@ multiple features.</p></dd>
 0 for single pixels (fastest).</p></dd>
 
 
+<dt>bins</dt>
+<dd><p>If binning the <code>colGeometry</code> in space due to large number of
+cells or spots, the number of bins, passed to <code><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></code> or
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. If <code>NULL</code> (default), then the
+<code>colGeometry</code> is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.</p></dd>
+
+
+<dt>summary_fun</dt>
+<dd><p>Function to summarize the feature value when the
+<code>colGeometry</code> is binned.</p></dd>
+
+
+<dt>hex</dt>
+<dd><p>Logical, whether to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. Note that
+<code>geom_hex</code> is broken in <code>ggplot2</code> version 3.4.0. Please update
+<code>ggplot2</code> if you are getting horizontal stripes when <code>hex =
+TRUE</code>.</p></dd>
+
+
+<dt>dark</dt>
+<dd><p>Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Other arguments passed to <code>wrap_plots</code>.</p></dd>
 
@@ -267,12 +366,11 @@ multiple features.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">spatialReducedDim</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, <span class="fl">2</span>, <span class="st">"spotPoly"</span>,</span></span>
+<span class="r-in"><span><span class="fu">spatialReducedDim</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">2</span>, <span class="st">"spotPoly"</span>,</span></span>
 <span class="r-in"><span>    annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>,</span></span>
 <span class="r-in"><span>    divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
@@ -285,7 +383,7 @@ multiple features.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

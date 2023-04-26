@@ -18,7 +18,7 @@ for now I'm using Tidyverse."><meta name="robots" content="noindex"><!-- mathjax
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.10</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,32 @@ for now I'm using Tidyverse."><meta name="robots" content="noindex"><!-- mathjax
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -83,11 +109,13 @@ for now I'm using Tidyverse.</p>
 <span>  <span class="va">sce</span>,</span>
 <span>  dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,</span>
 <span>  nfeatures <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  symbol_col <span class="op">=</span> <span class="st">"symbol"</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  show_symbol <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  symbol_col <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  reduction <span class="op">=</span> <span class="st">"PCA"</span>,</span>
 <span>  balanced <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ncol <span class="op">=</span> <span class="fl">2</span></span>
+<span>  ncol <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -99,29 +127,36 @@ from <code>SingleCellExperiment</code>.</p></dd>
 
 
 <dt>dims</dt>
-<dd><p>Numeric vector specifying which PCs to plot.</p></dd>
+<dd><p>Numeric vector specifying which PCs to plot. For MULTISPATI, PCs
+with negative eigenvalues are in the right most columns of the embedding and
+loading matrices. See the <code><a href="ElbowPlot.html">ElbowPlot</a></code>.</p></dd>
 
 
 <dt>nfeatures</dt>
 <dd><p>Number of genes to plot.</p></dd>
 
 
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
+
+
 <dt>show_symbol</dt>
-<dd><p>Logical; if the row names of the matrix are Ensembl
-accessions, indicate whether to show more human readable gene symbols in
-the plot instead. Ignored if the column specified in <code>symbol_col</code> is
-absent from rowData.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
 
 
 <dt>symbol_col</dt>
-<dd><p>If the row names of the gene expression matrix are Ensembl
-accessions to avoid ambiguity in analysis. If not found in <code>rowData</code>,
-then rownames of the gene count matrix will be used.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
 
 
 <dt>reduction</dt>
 <dd><p>Name of the dimension reduction to use. It must have an
-attribute called "percentVar". Defaults to "PCA".</p></dd>
+attribute called either "percentVar" or "eig" for eigenvalues. Defaults to
+"PCA".</p></dd>
 
 
 <dt>balanced</dt>
@@ -131,6 +166,12 @@ FALSE, returns the top genes ranked by the scores absolute values.</p></dd>
 
 <dt>ncol</dt>
 <dd><p>Number of columns in the facetted plot.</p></dd>
+
+
+<dt>sample_id</dt>
+<dd><p>Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -146,7 +187,6 @@ FALSE, returns the top genes ranked by the scores absolute values.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">10</span>, exprs_values <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span></span>
@@ -159,7 +199,7 @@ FALSE, returns the top genes ranked by the scores absolute values.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

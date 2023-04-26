@@ -20,7 +20,7 @@ the viridis E option is used."><meta name="robots" content="noindex"><!-- mathja
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.10</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,32 @@ the viridis E option is used."><meta name="robots" content="noindex"><!-- mathja
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -86,7 +112,7 @@ the viridis E option is used.</p>
 <span>  <span class="va">sfe</span>,</span>
 <span>  <span class="va">feature</span>,</span>
 <span>  graphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  contour_color <span class="op">=</span> <span class="st">"cyan"</span>,</span>
 <span>  color_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -96,11 +122,13 @@ the viridis E option is used.</p>
 <span>  filled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  divergent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  diverge_center <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  show_symbol <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  show_symbol <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  bins <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  binwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hex <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_influential <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"moran.plot"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -177,15 +205,25 @@ non-influential points and only plot influential points as points.</p></dd>
 palette should diverge. If <code>NULL</code>, then not centering.</p></dd>
 
 
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
+
+
 <dt>show_symbol</dt>
-<dd><p>Logical, whether to show human readable gene symbol on the
-plot instead of Ensembl IDs when the row names are Ensembl IDs. There must
-be a column in <code>rowData(sfe)</code> called "symbol" for this to work.</p></dd>
+<dd><p>Deprecated. Use argument <code>swap_rownames</code> instead, to
+be consistent with <code>scater</code> plotting functions.</p></dd>
 
 
 <dt>bins</dt>
-<dd><p>Numeric vector giving number of bins in both vertical and
-horizontal directions. Set to 100 by default.</p></dd>
+<dd><p>If binning the <code>colGeometry</code> in space due to large number of
+cells or spots, the number of bins, passed to <code><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></code> or
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. If <code>NULL</code> (default), then the
+<code>colGeometry</code> is plotted without binning. If binning, a point geometry
+is recommended. If the geometry is not point, then the centroids will be
+used.</p></dd>
 
 
 <dt>binwidth</dt>
@@ -194,13 +232,20 @@ horizontal directions. Overrides <code>bins</code> if both set.</p></dd>
 
 
 <dt>hex</dt>
-<dd><p>Logical, whether to use hexagon rather than rectangular bins.
-Requires the <code>hexbin</code> package.</p></dd>
+<dd><p>Logical, whether to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex</a></code>. Note that
+<code>geom_hex</code> is broken in <code>ggplot2</code> version 3.4.0. Please update
+<code>ggplot2</code> if you are getting horizontal stripes when <code>hex =
+TRUE</code>.</p></dd>
 
 
 <dt>plot_influential</dt>
 <dd><p>Logical, whether to plot influential points with
 different palette if <code>binned = TRUE</code>.</p></dd>
+
+
+<dt>name</dt>
+<dd><p>Name under which the Moran plot results are stored. By default
+"moran.plot".</p></dd>
 
 
 <dt>...</dt>
@@ -222,17 +267,17 @@ different palette if <code>binned = TRUE</code>.</p></dd>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"full"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> downloading 1 resources</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> retrieving 1 resource</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"moran.plot"</span>, features <span class="op">=</span> <span class="st">"Myh1"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="clusterMoranPlot.html">clusterMoranPlot</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"Myh1"</span>, BLUSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/KmeansParam-class.html" class="external-link">KmeansParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">moranPlot</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"Myh1"</span>, graphName <span class="op">=</span> <span class="st">"visium"</span>, color_by <span class="op">=</span> <span class="va">clust</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"moran.plot"</span>, features <span class="op">=</span> <span class="st">"Myh1"</span>,</span></span>
+<span class="r-in"><span>                     swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="clusterMoranPlot.html">clusterMoranPlot</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"Myh1"</span>, BLUSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/KmeansParam-class.html" class="external-link">KmeansParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                          swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">moranPlot</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"Myh1"</span>, graphName <span class="op">=</span> <span class="st">"visium"</span>, color_by <span class="op">=</span> <span class="va">clust</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span></span>
+<span class="r-in"><span>          swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="moranPlot-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
@@ -241,7 +286,7 @@ different palette if <code>binned = TRUE</code>.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">

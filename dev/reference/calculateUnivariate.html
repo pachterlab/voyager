@@ -20,7 +20,7 @@ calculateUnivariate and runUnivariate respectively."><meta name="robots" content
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.0.10</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,32 @@ calculateUnivariate and runUnivariate respectively."><meta name="robots" content
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -82,52 +108,77 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S4 method for ANY</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S4 method for ANY,SFEMethod</span></span>
 <span><span class="fu">calculateUnivariate</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  <span class="va">listw</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"moran"</span>, <span class="st">"geary"</span>, <span class="st">"moran.mc"</span>, <span class="st">"geary.mc"</span>, <span class="st">"moran.test"</span>, <span class="st">"geary.test"</span>,</span>
-<span>    <span class="st">"globalG.test"</span>, <span class="st">"sp.correlogram"</span>, <span class="st">"moran.plot"</span>, <span class="st">"localmoran"</span>, <span class="st">"localmoran_perm"</span>,</span>
-<span>    <span class="st">"localC"</span>, <span class="st">"localC_perm"</span>, <span class="st">"localG"</span>, <span class="st">"localG_perm"</span>, <span class="st">"LOSH"</span>, <span class="st">"LOSH.mc"</span>, <span class="st">"LOSH.cs"</span>,</span>
-<span>    <span class="st">"gwss"</span><span class="op">)</span>,</span>
+<span>  <span class="va">type</span>,</span>
+<span>  listw <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  coords_df <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  returnDF <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for SpatialFeatureExperiment</span></span>
+<span><span class="co"># S4 method for ANY,character</span></span>
+<span><span class="fu">calculateUnivariate</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">type</span>,</span>
+<span>  listw <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  coords_df <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  returnDF <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for SpatialFeatureExperiment,ANY</span></span>
 <span><span class="fu">calculateUnivariate</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">type</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  returnDF <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for ANY</span></span>
-<span><span class="fu">calculateMoransI</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>, zero.policy <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu">calculateMoransI</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">...</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"moran"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for SpatialFeatureExperiment</span></span>
 <span><span class="fu">calculateMoransI</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  returnDF <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -136,11 +187,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">type</span>,</span>
 <span>  <span class="va">features</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -148,11 +200,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">features</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -162,11 +215,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">features</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -175,11 +229,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">features</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -189,11 +244,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">features</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  annotGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -202,11 +258,12 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">features</span>,</span>
 <span>  annotGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  annotGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -215,12 +272,16 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">type</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -228,12 +289,44 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 <span>  <span class="va">x</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  sample_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  swap_rownames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">reducedDimUnivariate</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">type</span>,</span>
+<span>  dimred <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  components <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">reducedDimMoransI</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  dimred <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  components <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  colGraphName <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">SerialParam</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  zero.policy <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  include_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  p.adjust.method <span class="op">=</span> <span class="st">"BH"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -246,15 +339,26 @@ and <code>annotGeometries</code>, and the results are stored within the SFE obje
 assay.</p></dd>
 
 
+<dt>type</dt>
+<dd><p>An <code><a href="SFEMethod.html">SFEMethod</a></code> object, or a string matching the name
+of an <code>SFEMethod</code> object. The methods mentioned above correspond to
+<code>SFEMethod</code> objects already implemented in the Voyager package. Use
+<code><a href="listSFEMethods.html">listSFEMethods</a></code> to see which methods are available. You can
+implement new <code>SFEMethod</code> objects to apply Voyager functions to other
+spatial analysis methods. This is in part inspired by the <code>caret</code>,
+<code>parsnip</code>, and <code>BiocSingular</code> packages.</p></dd>
+
+
 <dt>listw</dt>
 <dd><p>Weighted neighborhood graph as a <code>spdep</code> <code>listw</code>
-object.</p></dd>
+object. Not used when the method specified in <code>type</code> does not use a
+spatial neighborhood graph, such as the variogram.</p></dd>
 
 
-<dt>type</dt>
-<dd><p>An integer specifying the index or string specifying the name of
-the *Geometry to query or replace. If missing, then the first item in the
-*Geometries will be returned or replaced.</p></dd>
+<dt>coords_df</dt>
+<dd><p>A <code>sf</code> data frame specifying location of each cell. Not
+used when the method specified in <code>type</code> uses a spatial neighborhood
+graph. Must be specified otherwise.</p></dd>
 
 
 <dt>BPPARAM</dt>
@@ -277,12 +381,20 @@ whether the results should be formatted as a <code>DataFrame</code>.</p></dd>
 <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust.methods</a></code>.</p></dd>
 
 
+<dt>name</dt>
+<dd><p>Name to use to store the results, defaults to the name in the
+<code>SFEMethod</code> object passed to argument <code>type</code>. Can be set to
+distinguish between results from the same method but with different
+parameters.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Other arguments passed to S4 method (for convenience wrappers like
 <code>calculateMoransI</code>) or method used to compute metrics as specified by
 the argument <code>type</code> (as in more general functions like
-<code>calculateUnivariate</code>). See documentation in the <code>spdep</code> package
-for the latter.</p></dd>
+<code>calculateUnivariate</code>). See documentation of functions with the same
+name as specified in <code>type</code> in the <code>spdep</code> package for the method
+specific arguments. For variograms, see <code><a href="variogram-internal.html">.variogram</a></code>.</p></dd>
 
 
 <dt>features</dt>
@@ -293,12 +405,12 @@ numeric columns of <code>colData(x)</code> (<code>colData*</code>) or any
 univariate metric is to be computed. Default to <code>NULL</code>. When
 <code>NULL</code>, then the metric is computed for all genes with the values in
 the assay specified in the argument <code>exprs_values</code>. This can be
-parallelized with the argument <code>BPPARAM</code>. For genes, if the column
-"symbol" is present in <code>rowData</code> and the row names of the SFE object
-are Ensembl IDs, then the gene symbol can be used and converted to IDs
-behind the scene. However, if one symbol matches multiple IDs, a warning
-will be given and the first match will be used. Internally, the results are
-always stored by the Ensembl ID rather than symbol.</p></dd>
+parallelized with the argument <code>BPPARAM</code>. For genes, if the row names
+of the SFE object are Ensembl IDs, then the gene symbol can be used and
+converted to IDs behind the scene with a column in <code>rowData</code> can be
+specified in <code>swap_rownames</code>. However, if one symbol matches multiple
+IDs, a warning will be given and the first match will be used. Internally,
+the results are always stored by the Ensembl ID rather than symbol.</p></dd>
 
 
 <dt>colGraphName</dt>
@@ -307,6 +419,17 @@ corresponds to entities represented by columns of the gene count matrix.
 Use <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraphNames</a></code> to look up names of the available graphs
 for cells/spots. Note that for multiple <code>sample_id</code>s, it is assumed
 that all of them have a graph of this same name.</p></dd>
+
+
+<dt>colGeometryName</dt>
+<dd><p>Name of a <code>colGeometry</code> <code>sf</code> data frame
+whose numeric columns of interest are to be used to compute the metric. Use
+<code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometryNames</a></code> to look up names of the <code>sf</code> data
+frames associated with cells/spots. In the SFE method of
+<code>calculateUnivariate</code>, this is to specify location of cells for
+methods that don't take a spatial neighborhood graph such as the variogram.
+If the geometry is not of type <code>POINT</code>, then <code>spatialCoords(x)</code>
+is used instead.</p></dd>
 
 
 <dt>sample_id</dt>
@@ -326,11 +449,11 @@ include edges from each location to itself. This is for Getis-Ord Gi* as in
 <code>localG</code> and <code>localG_perm</code>, not to be used for any other method.</p></dd>
 
 
-<dt>colGeometryName</dt>
-<dd><p>Name of a <code>colGeometry</code> <code>sf</code> data frame
-whose numeric columns of interest are to be used to compute the metric. Use
-<code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/dimGeometries.html" class="external-link">colGeometryNames</a></code> to look up names of the <code>sf</code> data
-frames associated with cells/spots.</p></dd>
+<dt>swap_rownames</dt>
+<dd><p>Column name of <code>rowData(object)</code> to be used to
+identify features instead of <code>rownames(object)</code> when labeling plot
+elements. If not found in <code>rowData</code>, then rownames of the gene count
+matrix will be used.</p></dd>
 
 
 <dt>annotGeometryName</dt>
@@ -345,6 +468,21 @@ frames associated with annotations.</p></dd>
 corresponds to the <code>annotGeometry</code> of interest. Use
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">annotGraphNames</a></code> to look up names of available annotation
 graphs.</p></dd>
+
+
+<dt>overwrite</dt>
+<dd><p>Logical, whether to overwrite existing results with the same
+name. Defaults to <code>FALSE</code>.</p></dd>
+
+
+<dt>dimred</dt>
+<dd><p>Name of a dimension reduction, can be seen in
+<code><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDimNames</a></code>.</p></dd>
+
+
+<dt>components</dt>
+<dd><p>Numeric vector of which components in the dimension
+reduction to compute spatial statistics on.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -364,7 +502,8 @@ methods are global, meaning returning one result for all spatial locations in
 the dataset: <code><a href="https://r-spatial.github.io/spdep/reference/moran.html" class="external-link">moran</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/geary.html" class="external-link">geary</a></code>,
 <code><a href="https://r-spatial.github.io/spdep/reference/moran.mc.html" class="external-link">moran.mc</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/geary.mc.html" class="external-link">geary.mc</a></code>,
 <code><a href="https://r-spatial.github.io/spdep/reference/moran.test.html" class="external-link">moran.test</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/geary.test.html" class="external-link">geary.test</a></code>,
-<code><a href="https://r-spatial.github.io/spdep/reference/globalG.test.html" class="external-link">globalG.test</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/sp.correlogram.html" class="external-link">sp.correlogram</a></code>.</p>
+<code><a href="https://r-spatial.github.io/spdep/reference/globalG.test.html" class="external-link">globalG.test</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/sp.correlogram.html" class="external-link">sp.correlogram</a></code>. The
+variogram and variogram map from the <code>gstat</code> package are also supported.</p>
 <p>The following methods are local, meaning each location has its own results:
 <code><a href="https://r-spatial.github.io/spdep/reference/moran.plot.html" class="external-link">moran.plot</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/localmoran.html" class="external-link">localmoran</a></code>,
 <code><a href="https://r-spatial.github.io/spdep/reference/localmoran.html" class="external-link">localmoran_perm</a></code>, <code><a href="https://r-spatial.github.io/spdep/reference/localC.html" class="external-link">localC</a></code>,
@@ -375,17 +514,40 @@ the dataset: <code><a href="https://r-spatial.github.io/spdep/reference/moran.ht
 <p>Global results for genes are stored in <code>rowData</code>. For <code>colGeometry</code>
 and <code>annotGeometry</code>, the results are added to an attribute of the data
 frame called <code>featureData</code>, which is a DataFrame analogous to
-<code>rowData</code> for the gene count matrix. New column names in
+<code>rowData</code> for the gene count matrix, and can be accessed with the
+<code><a href="colFeatureData.html">geometryFeatureData</a></code> function. New column names in
 <code>featureData</code> would follow the same rules as in <code>rowData</code>. For
-<code>colData</code>, the results can be accessed with the <code>colFeatureData</code>
-function.</p>
+<code>colData</code>, the results can be accessed with the
+<code><a href="colFeatureData.html">colFeatureData</a></code> function.</p>
 <p>Local results are stored in the field <code>localResults</code> field of the SFE
 object, which can be accessed with
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResults</a></code> or
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResult</a></code>. If the results have
-p-values, then -log10 p and Benjamin-Hochberg corrected -log10 p are added.
-Note that in the multiple testing correction, <code><a href="https://r-spatial.github.io/spdep/reference/p.adjustSP.html" class="external-link">p.adjustSP</a></code>
-is used.</p>
+p-values, then -log10 p and adjusted -log10 p are added. Note that in the
+multiple testing correction, <code><a href="https://r-spatial.github.io/spdep/reference/p.adjustSP.html" class="external-link">p.adjustSP</a></code> is used.</p>
+<p>When the results are stored in the SFE object, parameters used to compute the
+results as well as to construct the spatial neighborhood graph are also
+added. For <code>localResults</code>, the parameters are added to the metadata
+field <code>params</code> of the <code>localResults</code> sorted by <code>name</code>, which
+defaults to the name in the <code>SFEMethod</code> object as specified in the
+<code>type</code> argument. For global methods, parameters for results for genes
+are in the metadata of <code>rowData(x)</code>, organized by <code>name</code>
+(<code>metadata(rowData(x))$params[[name]]</code>). For <code>colData</code>, the global
+method parameters are stored in metadata of <code>colData</code> in the field
+<code>params</code> (<code>metadata(colData(x))$params[[name]]</code>). For geometries,
+the global method parameters are in an attribute named "params" of the
+corresponding <code>sf</code> data frame (<code>attr(df, "params")[[name]]</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.</p>
+<p>Anselin, L. (1995), Local Indicators of Spatial Association-LISA.
+  Geographical Analysis, 27: 93-115. doi:10.1111/j.1538-4632.1995.tb00338.x</p>
+<p>Ord, J. K., &amp; Getis, A. 2012. Local spatial heteroscedasticity (LOSH), The
+  Annals of Regional Science, 48 (2), 529-539.</p>
+<p>Ord, J. K. and Getis, A. 1995 Local spatial autocorrelation statistics:
+  distributional issues and an application. Geographical Analysis, 27,
+  286-306</p>
     </div>
 
     <div class="section level2">
@@ -394,7 +556,6 @@ is used.</p>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/McKellarMuscleData.html" class="external-link">McKellarMuscleData</a></span><span class="op">(</span><span class="st">"small"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> snapshotDate(): 2022-10-31</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> see ?SFEData and browseVignettes('SFEData') for documentation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
@@ -506,13 +667,13 @@ is used.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1041 -0.1700897 0.0002715145 0.0002773569 1.179830e-09 -0.1700897</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1052  0.1547597 0.0002185310 0.0002133753 1.109810e-09  0.1547597</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1058 -0.3688569 0.0002047116 0.0002174315 1.189189e-09 -0.3688569</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      Pr(z != E(Gi))    -log10p -log10p_adj</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1018     0.02097851 1.67822538   0.9000741</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1021     0.41563466 0.38128824   0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1024     0.95948178 0.01796327   0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1041     0.86493956 0.06301424   0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1052     0.87701073 0.05699509   0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1058     0.71223439 0.14737706   0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Pr(z != E(Gi))    -log10p -log10p_adj cluster</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1018     0.02097851 1.67822538   0.9000741    High</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1021     0.41563466 0.38128824   0.0000000    High</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1024     0.95948178 0.01796327   0.0000000    High</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1041     0.86493956 0.06301424   0.0000000    High</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1052     0.87701073 0.05699509   0.0000000     Low</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1058     0.71223439 0.14737706   0.0000000     Low</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -520,7 +681,7 @@ is used.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Lior Pachter.</p>
+  <p></p><p>Developed by Lambda Moses, Kayla Jackson, Laura Luebbert, Lior Pachter.</p>
 </div>
 
 <div class="pkgdown-footer-right">
