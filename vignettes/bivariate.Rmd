@@ -210,7 +210,7 @@ Note that this is not symmetric, i.e. $I_{X_i,Y_i} \neq I_{Y_i,X_i}$.
 
 ```{r}
 sfe_tissue <- runBivariate(sfe_tissue, "localmoran_bv", c("Myh1", "Myh2", "Ftl1"),
-                           swap_rownames = "symbol", nsim = 100)
+                           swap_rownames = "symbol", nsim = 1000)
 ```
 
 ```{r}
@@ -223,14 +223,15 @@ localResultAttrs(sfe_tissue, "localmoran_bv", "Myh1__Myh2")
 ```
 
 First plot the bivariate local Moran's I values
-```{r, fig.width=10, fig.height=4}
-plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1"),
+```{r, fig.width=10, fig.height=7.5}
+plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1",
+                                               "Myh2__Myh1", "Ftl1__Myh2", "Ftl1__Myh1"),
                 colGeometryName = "spotPoly", attribute = "Ibvi",
                 image_id = "lowres", maxcell = 5e4,
                 divergent = TRUE, diverge_center = 0)
 ```
 
-The first row plots XY while the second row plots YX; note that they are not symmetric. What does bivariate local Moran mean? It's kind of like correlation between $x$ and spatially lagged $y$.
+The first row plots XY while the second row plots YX; note that while they are similar, they are not the same. What does bivariate local Moran mean? It's kind of like contribution of each location to the correlation between $x$ and spatially lagged $y$, so $x$ is not smoothed. In contrast, Lee's L is a scaled Pearson correlation between spatially lagged $x$ and spatially lagged $y$. Because permutation testing is performed, we can plot the pseudo-p-value, after correcting for multiple testing based on the spatial neighborhood graph:
 
 ```{r, fig.width=10, fig.height=7.5}
 plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1__Ftl1",
@@ -239,3 +240,12 @@ plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1
                 image_id = "lowres", maxcell = 5e4,
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
+
+Note that the p-values are asymetric, because according to the source code of `localmoran_bv()`, $y$ is permuted, but not $x$.
+
+# Session info
+```{r}
+sessionInfo()
+```
+
+# References
