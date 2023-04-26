@@ -237,6 +237,7 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
                                   p.adjust.method = p.adjust.method, ...
         )
         if (!is.null(swap_rownames)) {
+            if (is.null(feature2)) feature2 <- feature1
             comb <- expand.grid(feature1, feature2)
             feature_use <- paste(comb[,1], comb[,2], sep = "__")
             names(out) <- feature_use
