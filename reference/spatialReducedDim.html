@@ -16,7 +16,7 @@ deal with GWPCA results."><!-- mathjax --><script src="https://cdnjs.cloudflare.
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,35 +43,27 @@ deal with GWPCA results."><!-- mathjax --><script src="https://cdnjs.cloudflare.
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
-        <h6 class="dropdown-header" data-toc-skip>Global</h6>
-        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
-        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
-        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
-        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
-        <h6 class="dropdown-header" data-toc-skip>Local</h6>
-        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
-        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
-        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
-        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
-        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
-        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
-        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
-        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
-      </div>
-    </li>
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -113,7 +105,8 @@ deal with GWPCA results.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spatialReducedDim</span><span class="op">(</span></span>
 <span>  <span class="va">sfe</span>,</span>
 <span>  <span class="va">dimred</span>,</span>
-<span>  <span class="va">ncomponents</span>,</span>
+<span>  ncomponents <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  components <span class="op">=</span> <span class="va">ncomponents</span>,</span>
 <span>  colGeometryName <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  sample_id <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -162,6 +155,12 @@ result in <code>reducedDims(sfe)</code> to plot.</p></dd>
 <dd><p>A numeric scalar indicating the number of dimensions to
 plot, starting from the first dimension. Alternatively, a numeric vector
 specifying the dimensions to be plotted.</p></dd>
+
+
+<dt>components</dt>
+<dd><p>A numeric scalar or vector specifying which dimensions to
+be plotted. Use this instead of <code>ncomponents</code> when plotting only one
+dimension.</p></dd>
 
 
 <dt>colGeometryName</dt>
@@ -371,7 +370,7 @@ fluorescent images.</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> loading from cache</span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">spatialReducedDim</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, <span class="fl">2</span>, <span class="st">"spotPoly"</span>,</span></span>
+<span class="r-in"><span><span class="fu">spatialReducedDim</span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">2</span>, <span class="st">"spotPoly"</span>,</span></span>
 <span class="r-in"><span>    annotGeometryName <span class="op">=</span> <span class="st">"tissueBoundary"</span>,</span></span>
 <span class="r-in"><span>    divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

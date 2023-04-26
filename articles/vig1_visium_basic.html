@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,35 +54,27 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
-        <h6 class="dropdown-header" data-toc-skip>Global</h6>
-        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
-        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
-        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
-        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
-        <h6 class="dropdown-header" data-toc-skip>Local</h6>
-        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
-        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
-        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
-        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
-        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
-        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
-        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
-        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
-      </div>
-    </li>
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="nav-item">
@@ -152,78 +144,8 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
-<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
-<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
-<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
-<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
-<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
-<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
-<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
-<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
-<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
-<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
-<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
-<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
-<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
-<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
-<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
-<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
-<span><span class="co">#&gt; Loading required package: stats4</span></span>
-<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
-<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
-<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
-<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
-<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
-<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
-<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     findMatches</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
-<span><span class="co">#&gt; Loading required package: IRanges</span></span>
-<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
-<span><span class="co">#&gt; Loading required package: Biobase</span></span>
-<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
-<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
-<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rowMedians</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: scuttle</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'ggplot2'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:SpatialFeatureExperiment':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     unit</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
@@ -235,35 +157,6 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/const-ae/sparseMatrixStats" class="external-link">sparseMatrixStats</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:Biobase':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     combine</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:GenomicRanges':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, union</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:GenomeInfoDb':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:IRanges':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     collapse, desc, intersect, setdiff, slice, union</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:S4Vectors':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     first, intersect, rename, setdiff, setequal, union</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:BiocGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     combine, intersect, setdiff, union</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     count</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/concordexR" class="external-link">concordexR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">BiocNeighbors</span><span class="op">)</span></span>
@@ -704,30 +597,30 @@ rank sum test:</p>
 <span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
 <span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
 <span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 5.28233e-10 5.46992e-06    0.686982  0.686982  0.914977</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 7.27238e-10 5.46992e-06    0.685410  0.685410  0.978054</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787 2.37596e-09 1.19139e-05    0.693069  0.706395  0.826358</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730 4.06144e-09 1.52740e-05    0.676723  0.676723  0.907233</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341 5.90896e-07 1.77777e-03    0.648920  0.648920  0.967516</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064358 4.23332e-11 3.15767e-07    0.700365  0.989746  0.700365</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341 5.78798e-11 3.15767e-07    0.698906  0.974966  0.698906</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 6.29729e-11 3.15767e-07    0.698511  0.979221  0.698511</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 1.56569e-10 4.80109e-07    0.694195  0.923891  0.694195</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064354 1.59579e-10 4.80109e-07    0.694103  0.985446  0.694103</span></span>
 <span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095           1           1         0.5  0.500000  0.496429</span></span>
 <span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000  0.500000</span></span>
 <span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000  0.500000</span></span>
 <span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.495050  0.476064</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497525  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.476064  0.492857</span></span>
 <span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
 <span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.971482  0.808830  0.837272</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360  0.994143  0.751129  0.872351</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787  0.914974  0.693069  0.781706</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730  0.976859  0.796210  0.775936</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341  0.989822  0.785362  0.901020</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064358  0.999675  0.824429  0.938608</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341  0.993114  0.788873  0.905061</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360  0.996037  0.726619  0.865296</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.978626  0.811221  0.835117</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064354  0.999383  0.812608  0.924024</span></span>
 <span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095  0.496183  0.496296       0.5</span></span>
 <span><span class="co">#&gt; ENSMUSG00000043969  0.496183  0.500000       0.5</span></span>
 <span><span class="co">#&gt; ENSMUSG00000091378  0.496183  0.500000       0.5</span></span>
 <span><span class="co">#&gt; ENSMUSG00000072437  0.492366  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.473282  0.489933       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000       0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; ENSMUSG00000003228  0.473282  0.488889       0.5</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
 package to perform a gene enrichment analysis. You can choose from
@@ -796,9 +689,9 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ncbi_description</span></span>
-<span><span class="co">#&gt; Ttn                                                                                                              Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Gapdh   This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
+<span><span class="co">#&gt; mt-Co3                                                                                                                                                                                                                Predicted to enable electron transfer activity and oxidoreduction-driven active transmembrane transporter activity. Predicted to be involved in mitochondrial electron transport, cytochrome c to oxygen and respiratory chain complex IV assembly. Located in mitochondrion. Is expressed in several structures, including alimentary system; brain; heart; integumental system; and sensory organ. Human ortholog(s) of this gene implicated in MELAS syndrome. Orthologous to human MT-CO3 (mitochondrially encoded cytochrome c oxidase III). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
 <span><span class="co">#&gt; Angptl7                                                                                                                                                                                                                                             Predicted to enable identical protein binding activity and signaling receptor binding activity. Predicted to be involved in negative regulation of vasculature development involved in avascular cornea development in camera-type eye and regulation of extracellular matrix organization. Predicted to be located in extracellular region. Predicted to be active in collagen-containing extracellular matrix and extracellular space. Is expressed in brain. Orthologous to human ANGPTL7 (angiopoietin like 7). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Gapdh   This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
 <span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                        Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
 <span><span class="co">#&gt; Des                                                                                        This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
@@ -1015,7 +908,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [21] IRanges_2.33.1                 S4Vectors_0.37.7              </span></span>
 <span><span class="co">#&gt; [23] BiocGenerics_0.45.3            MatrixGenerics_1.11.1         </span></span>
 <span><span class="co">#&gt; [25] matrixStats_0.63.0             SpatialFeatureExperiment_1.1.6</span></span>
-<span><span class="co">#&gt; [27] Voyager_1.2.0                 </span></span>
+<span><span class="co">#&gt; [27] Voyager_1.2.2                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] later_1.3.0                   bitops_1.0-7                 </span></span>

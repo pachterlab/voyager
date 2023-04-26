@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,35 +54,27 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-univariate">Univariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-univariate">
-        <h6 class="dropdown-header" data-toc-skip>Global</h6>
-        <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
-        <a class="dropdown-item" href="../articles/geary_danding.html">Geary's C</a>
-        <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
-        <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
-        <h6 class="dropdown-header" data-toc-skip>Local</h6>
-        <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
-        <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
-        <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
-        <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-bivariate">Bivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-bivariate">
-        <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
-        <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
-      </div>
-    </li>
-    <li class="dropdown-item">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-multivariate">Multivariate</a>
-      <div class="dropdown-menu" aria-labelledby="dropdown-multivariate">
-        <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
-        <a class="dropdown-item" href="../articles/multic_landing.html">Multivariate local Geary's C</a>
-      </div>
-    </li>
+    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
+    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
+    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
+    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
+    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
+    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
+    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
+    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
+    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
+    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
+    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
+    <div class="dropdown-divider"></div>
+    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
+    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
+    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
   </div>
 </li>
 <li class="nav-item">
@@ -241,6 +233,11 @@ liver dataset. See the first vignette using this dataset <a href="https://pachte
 <span><span class="co">#&gt; 1        multispati                                   MULTISPATI PCA</span></span>
 <span><span class="co">#&gt; 2      localC_multi                     Multivariate local Geary's C</span></span>
 <span><span class="co">#&gt; 3 localC_perm_multi Multivariate local Geary's C permutation testing</span></span></code></pre></div>
+<p>When calling <code>calculate*variate()</code> or
+<code>run*variate()</code>, the <code>type</code> (2nd) argument takes
+either an <code>SFEMethod</code> object or a string that matches an
+entry in the <code>name</code> column in the data frame returned by
+<code><a href="../reference/listSFEMethods.html">listSFEMethods()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="quality-control">Quality control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
@@ -303,7 +300,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  50.962   0.260  51.226</span></span></code></pre></div>
+<span><span class="co">#&gt;  45.362   0.740  53.279</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -357,11 +354,11 @@ may be mild to moderate negative spatial autocorrelation.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.237   1.759  25.055</span></span>
+<span><span class="co">#&gt;  23.012   1.998  26.369</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  15316858  818.1   24461767 1306.4         NA  24461767 1306.4</span></span>
-<span><span class="co">#&gt; Vcells 237058509 1808.7  500076590 3815.3      16384 495141292 3777.7</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  15317115  818.1   24460282 1306.4         NA  24460282 1306.4</span></span>
+<span><span class="co">#&gt; Vcells 237059050 1808.7  500077239 3815.3      16384 495141833 3777.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -590,7 +587,7 @@ default k = 10.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 825.889   6.716 834.516</span></span></code></pre></div>
+<span><span class="co">#&gt; 857.992  15.985 887.250</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -608,7 +605,7 @@ spatially coherent clusters</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 979.781   7.375 989.119</span></span></code></pre></div>
+<span><span class="co">#&gt; 947.496   7.097 959.532</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -686,7 +683,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [19] S4Vectors_0.37.7               BiocGenerics_0.45.3           </span></span>
 <span><span class="co">#&gt; [21] MatrixGenerics_1.11.1          matrixStats_0.63.0            </span></span>
 <span><span class="co">#&gt; [23] SpatialFeatureExperiment_1.1.6 SFEData_1.1.5                 </span></span>
-<span><span class="co">#&gt; [25] Voyager_1.2.0                 </span></span>
+<span><span class="co">#&gt; [25] Voyager_1.2.2                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] splines_4.3.0                 later_1.3.0                  </span></span>
