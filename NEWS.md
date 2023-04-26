@@ -1,4 +1,8 @@
-# Version 1.2.2 (02/26/2023)
+# Version 1.2.3
+* Fix bug when plotting a feature with illegal name alongside another feature
+with legal name
+
+# Version 1.2.2 (04/26/2023)
 * Some minor bugs: runBivariate gets correct feature names when only feature1 is
 specified and swap_rownames is used to show gene symbol
 * Correct output for cross variogram maps for only one pair of genes

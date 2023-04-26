@@ -459,6 +459,15 @@ test_that("When a gene symbol rowname is not a valid R object name", {
     rownames(sfe_muscle)[1] <- "HLA-foo" # Just toy example
     expect_ggplot("plotSpatialFeature with illegal gene name",
                         plotSpatialFeature(sfe_muscle, "HLA-foo", "spotPoly"))
+    expect_ggplot("plotSpatialFeature with both illegal and legal names", {
+        plotSpatialFeature(sfe_muscle, c("HLA-foo", rownames(sfe_muscle)[3]),
+                           "spotPoly")
+    })
+    rownames(sfe_muscle)[2] <- "HLA-bar"
+    expect_ggplot("plotSpatialFeature with multiple illegal names", {
+        plotSpatialFeature(sfe_muscle, c("HLA-foo", "HLA-bar"),
+                           "spotPoly")
+    })
     sfe_muscle <- runUnivariate(sfe_muscle, "localmoran", "HLA-foo",
                                 colGraphName = "visium")
     expect_ggplot("plotLocalResult with illegal gene name",
