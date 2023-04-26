@@ -188,6 +188,7 @@ runUnivariate(
   include_self = FALSE,
   p.adjust.method = "BH",
   name = NULL,
+  overwrite = FALSE,
   ...
 )
 
@@ -335,6 +336,9 @@ frames associated with annotations.}
 corresponds to the \code{annotGeometry} of interest. Use
 \code{\link{annotGraphNames}} to look up names of available annotation
 graphs.}
+
+\item{overwrite}{Logical, whether to overwrite existing results with the same
+name. Defaults to \code{FALSE}.}
 
 \item{dimred}{Name of a dimension reduction, can be seen in
 \code{\link{reducedDimNames}}.}

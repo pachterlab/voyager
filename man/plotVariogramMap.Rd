@@ -29,7 +29,7 @@ in \code{reducedDim}, or numeric indices of dimension reduction components.}
 for each sample.}
 
 \item{plot_np}{Logical, whether to plot the number of pairs in each distance
-bin instead of the semivariance.}
+bin instead of the variance.}
 
 \item{ncol}{Number of columns if facetting.}
 

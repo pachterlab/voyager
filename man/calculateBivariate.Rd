@@ -53,6 +53,7 @@ runBivariate(
   zero.policy = NULL,
   p.adjust.method = "BH",
   name = NULL,
+  overwrite = FALSE,
   ...
 )
 }
@@ -138,6 +139,9 @@ contains the expression values.}
 identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count
 matrix will be used.}
+
+\item{overwrite}{Logical, whether to overwrite existing results with the same
+name. Defaults to \code{FALSE}.}
 }
 \value{
 The \code{calculateBivariate} function returns a correlation matrix
