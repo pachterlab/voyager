@@ -1,3 +1,15 @@
+# Version 1.2.2 (02/26/2023)
+* Some minor bugs: runBivariate gets correct feature names when only feature1 is
+specified and swap_rownames is used to show gene symbol
+* Correct output for cross variogram maps for only one pair of genes
+* Added default_attr to localmoran_bv's SFEMethod
+* Don't plot attribute when localResult is a vector and there's no default attr
+* When plotting multiple features, the panels follow the same order the features
+are specified
+* Allow illegal characters in names of colData and reducedDims in plots
+* Plot only one component in spatialReducedDim with the components argument
+* Deprecate plotColDataBin2D and plotRowDataBin2D
+
 # Version 1.1.12 (04/22/2023)
 * Plot image behind geometries in all functions that plot geometries
 * Added dark theme support for functions that plot geometries

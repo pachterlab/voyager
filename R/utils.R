@@ -66,8 +66,7 @@
     if (length(features_list[["coldata"]])) {
         values[["coldata"]] <- as.data.frame(colData(sfe)[sample_id_ind,
             features_list[["coldata"]],
-            drop = FALSE
-        ])
+            drop = FALSE], optional = TRUE) # Don't fix illegal names
     }
     if (length(features_list[["colgeom"]])) {
         cg <- colGeometry(sfe, colGeometryName, sample_id)

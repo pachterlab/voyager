@@ -162,6 +162,11 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         annotGeometryName,
         show_symbol = show_symbol, swap_rownames = swap_rownames
     )
+    # When Ensembl IDs are supplied but show gene symbols
+    # colnames of values are gene symbols
+    inds <- !names(values) %in% features
+    if (any(inds))
+        features[inds] <- rowData(sfe)[features[inds], swap_rownames]
     values <- values[,features, drop = FALSE]
     # Somewhat different from plotSpatialFeature
     # Here results for annotGeometries should be able to be plotted on its own
