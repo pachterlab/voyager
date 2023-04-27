@@ -1,6 +1,8 @@
 # Version 1.2.3
 * Fix bug when plotting a feature with illegal name alongside another feature
 with legal name
+* Make sure runBivariate and calculateBivariate use gene symbols in results even
+if Ensembl IDs are specified when swap_rownames is set
 
 # Version 1.2.2 (04/26/2023)
 * Some minor bugs: runBivariate gets correct feature names when only feature1 is
@@ -13,6 +15,8 @@ are specified
 * Allow illegal characters in names of colData and reducedDims in plots
 * Plot only one component in spatialReducedDim with the components argument
 * Deprecate plotColDataBin2D and plotRowDataBin2D
+* Added overwrite argument in runUnivariate and runBivariate to allow overwriting
+results under the same name but different parameters
 
 # Version 1.1.12 (04/22/2023)
 * Plot image behind geometries in all functions that plot geometries

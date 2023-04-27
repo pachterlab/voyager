@@ -202,21 +202,55 @@ test_that("calculateBivariate SFE method, two samples", {
     expect_named(out2[[1]], c("np", "dist", "gamma", "dir.hor", "dir.ver", "id"))
 })
 
+rns_expect <- expand.grid(rownames(mat_x), rownames(mat_y))
+rns_expect <- paste(rns_expect[[1]], rns_expect[[2]], sep = "__")
 test_that("runBivariate", {
     expect_error(runBivariate(sfe, "lee", feature1 = rownames(mat_x)),
                  "Global bivariate results can't be stored in the SFE object.")
     sfe <- runBivariate(sfe, "locallee", feature1 = rownames(mat_x),
                         feature2 = rownames(mat_y), colGraphName = "visium",
                         swap_rownames = "symbol")
-    rns_expect <- expand.grid(rownames(mat_x), rownames(mat_y))
-    rns_expect <- paste(rns_expect[[1]], rns_expect[[2]], sep = "__")
     expect_equal(localResultFeatures(sfe, "locallee"), rns_expect)
 })
 
+rns_expect2 <- expand.grid(rownames(mat_x), rownames(mat_x))
+rns_expect2 <- paste(rns_expect2[[1]], rns_expect2[[2]], sep = "__")
 test_that("runBivariate when only feature1 is specified and with swap_rownames", {
     sfe <- runBivariate(sfe, "locallee", feature1 = rownames(mat_x),
                         swap_rownames = "symbol", colGraphName = "visium")
-    rns_expect <- expand.grid(rownames(mat_x), rownames(mat_x))
-    rns_expect <- paste(rns_expect[[1]], rns_expect[[2]], sep = "__")
-    expect_equal(localResultFeatures(sfe, "locallee"), rns_expect)
+    expect_equal(localResultFeatures(sfe, "locallee"), rns_expect2)
+})
+
+test_that("runBivariate when features are Ensembl IDs but want to show symbols", {
+    sfe <- runBivariate(sfe, "locallee", feature1 = hvgs[1:3],
+                        swap_rownames = "symbol", colGraphName = "visium")
+    expect_equal(localResultFeatures(sfe, "locallee"), rns_expect2)
+})
+
+test_that("runBivariate for one pair of genes", {
+    sfe <- runBivariate(sfe, "locallee", feature1 = hvgs[1], feature2 = hvgs[4],
+                        swap_rownames = "symbol", colGraphName = "visium")
+    rn_expect <- paste(rownames(mat_x)[1], rownames(mat_y)[1], sep = "__")
+    expect_equal(localResultFeatures(sfe, "locallee"), rn_expect)
+})
+
+test_that("calculateBivariate when features are Ensembl IDs but want to show symbols", {
+    out <- calculateBivariate(sfe, "locallee", feature1 = hvgs[1:3], feature2 = hvgs[4:7],
+                              swap_rownames = "symbol", colGraphName = "visium")
+    expect_named(out, rns_expect)
+})
+
+test_that("calculateBivariate SFE method for lee matrix and swap_rownames", {
+    out <- calculateBivariate(sfe, "lee", feature1 = hvgs[1:3], feature2 = hvgs[4:7],
+                              swap_rownames = "symbol", colGraphName = "visium")
+    expect_equal(rownames(out), rownames(mat_x))
+    expect_equal(colnames(out), rownames(mat_y))
+})
+
+test_that("calculateBivariate SFE method for lee matrix and swap_rownames, with symbols", {
+    out <- calculateBivariate(sfe, "lee", feature1 = rownames(mat_x),
+                              feature2 = rownames(mat_y),
+                              swap_rownames = "symbol", colGraphName = "visium")
+    expect_equal(rownames(out), rownames(mat_x))
+    expect_equal(colnames(out), rownames(mat_y))
 })
