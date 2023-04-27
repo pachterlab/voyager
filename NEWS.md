@@ -1,6 +1,8 @@
 # Version 1.2.3
 * Fix bug when plotting a feature with illegal name alongside another feature
 with legal name
+* Make sure runBivariate and calculateBivariate use gene symbols in results even
+if Ensembl IDs are specified when swap_rownames is set
 
 # Version 1.2.2 (04/26/2023)
 * Some minor bugs: runBivariate gets correct feature names when only feature1 is

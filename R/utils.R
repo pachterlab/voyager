@@ -212,7 +212,7 @@
     features_rd <- intersect(features, rownames(sfe))
     if (!length(features_rd) && show_symbol && swap_rownames %in% names(rowData(sfe))) {
         features_symbol <- intersect(features, rowData(sfe)[[swap_rownames]])
-        .warn_symbol_duplicate(sfe, features_rd)
+        .warn_symbol_duplicate(sfe, features_rd, swap_rownames)
         features <- setdiff(features, features_symbol)
         features_rd <- rownames(sfe)[match(features_symbol, rowData(sfe)[[swap_rownames]])]
         if (all(is.na(features_rd))) features_rd <- NULL
@@ -222,7 +222,7 @@
         features <- setdiff(features, names(out_rd))
         if (show_symbol && swap_rownames %in% names(rowData(sfe))) {
             names(out_rd) <- rowData(sfe)[names(out_rd), swap_rownames]
-            .warn_symbol_duplicate(sfe, names(out_rd))
+            .warn_symbol_duplicate(sfe, names(out_rd), swap_rownames)
         }
     }
     features_cd <- intersect(features, names(colData(sfe)))
