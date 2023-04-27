@@ -165,12 +165,28 @@ setMethod("calculateBivariate", "SpatialFeatureExperiment",
               if (is.null(feature2) && length(feature1) == 1L) {
                   stop("feature2 must be specified when feature1 has length 1.")
               }
+              feature1_id <- .check_features(x, feature1, swap_rownames = swap_rownames)[["assay"]]
+              if (!is.null(feature2))
+                  feature2_id <- .check_features(x, feature2, swap_rownames = swap_rownames)[["assay"]]
+              else feature2_id <- NULL
+              # Symbol input, use swap_rownames
+              if (!is.null(swap_rownames)) {
+                  if (is.null(feature2)) feature2 <- feature1
+                  # Ensembl ID input, use swap_rownames to show symbols in results
+                  if (setequal(feature1, feature1_id)) {
+                      feature1 <- rowData(x)[feature1, swap_rownames]
+                      feature2 <- rowData(x)[feature2, swap_rownames]
+                  }
+                  #comb <- expand.grid(feature1, feature2)
+                  #feature_use <- paste(comb[,1], comb[,2], sep = "__")
+                  #swap_name <- length(feature_use) > 1L || is_local(type)
+              } else swap_name <- FALSE
               out <- lapply(sample_id, function(s) {
-                  feature1 <- .check_features(x, feature1, swap_rownames = swap_rownames)[["assay"]]
-                  mat1 <- assay(x, exprs_values)[feature1, colData(x)$sample_id == s, drop = FALSE]
-                  if (!is.null(feature2)) {
-                      feature2 <- .check_features(x, feature2, swap_rownames = swap_rownames)[["assay"]]
-                      mat2 <- assay(x, exprs_values)[feature2, colData(x)$sample_id == s, drop = FALSE]
+                  mat1 <- assay(x, exprs_values)[feature1_id, colData(x)$sample_id == s, drop = FALSE]
+                  rownames(mat1) <- feature1
+                  if (!is.null(feature2_id)) {
+                      mat2 <- assay(x, exprs_values)[feature2_id, colData(x)$sample_id == s, drop = FALSE]
+                      rownames(mat2) <- feature2
                   } else mat2 <- NULL
 
                   if (use_graph(type)) {
@@ -191,8 +207,10 @@ setMethod("calculateBivariate", "SpatialFeatureExperiment",
                                               p.adjust.method = p.adjust.method,
                                               name = name, ...)
                   }
+                  #if (swap_name) names(o) <- feature_use
                   o
               })
+
               names(out) <- sample_id
               if (length(sample_id) == 1L) out <- out[[1]]
               out
@@ -237,16 +255,11 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
                                   colGraphName, colGeometryName, s,
                                   exprs_values, BPPARAM, zero.policy,
                                   returnDF = TRUE,
-                                  p.adjust.method = p.adjust.method, ...
+                                  p.adjust.method = p.adjust.method,
+                                  swap_rownames = swap_rownames, ...
         )
-        if (!is.null(swap_rownames)) {
-            if (is.null(feature2)) feature2 <- feature1
-            comb <- expand.grid(feature1, feature2)
-            feature_use <- paste(comb[,1], comb[,2], sep = "__")
-            names(out) <- feature_use
-        }
         x <- .add_localResults_info(x, sample_id = s,
-                                    name = name, features = feature_use,
+                                    name = name, features = names(out),
                                     res = out, params = params)
     }
     x
