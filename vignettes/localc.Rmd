@@ -53,6 +53,7 @@ system.time(
 packageVersion("Voyager")
 ```
 
+# Introduction
 Local Geary's C [@Anselin1995-cs] is defined as:
 
 $$
@@ -65,7 +66,7 @@ $$
 c_{k,i} = \sum_{v=1}^k c_{v,i},
 $$
 
-where there are $k$ variables. This vignette demonstrates usage of multivariate local Geary's C 
+where there are $k$ variables. This is essentially a spatially weighted sum of squared distances between locations in feature space. This vignette demonstrates usage of multivariate local Geary's C.
 
 Here we load the packages used:
 ```{r, message=FALSE}
@@ -75,6 +76,7 @@ library(SpatialFeatureExperiment)
 library(scater)
 library(scran)
 library(ggplot2)
+library(spdep)
 theme_set(theme_bw())
 ```
 
@@ -104,6 +106,7 @@ sfe_tissue <- logNormCounts(sfe_tissue)
 colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
 ```
 
+# Gene expression
 Here we compute multivariate local C for top highly variagle genes (HVGs) in this dataset:
 ```{r}
 hvgs <- getTopHVGs(sfe_tissue, fdr.threshold = 0.01)
@@ -113,7 +116,7 @@ hvgs <- getTopHVGs(sfe_tissue, fdr.threshold = 0.01)
 sfe_tissue <- runMultivariate(sfe_tissue, "localC_perm_multi", subset_row = hvgs)
 ```
 
-The results are stored in `reducedDim` although it's not really a dimension reduction. It can also go into `colData` if `dest = "colData"`.
+The results are stored in `reducedDim` although it's not really a dimension reduction. It can also go into `colData` if `dest = "colData"`. The test is two sided, but the `alternative` argument can be set to "greater" to only test for positive spatial autocorrelation and "less" for negative spatial autocorrelation.
 ```{r}
 names(reducedDim(sfe_tissue, "localC_perm_multi"))
 ```
@@ -133,7 +136,47 @@ spatialReducedDim(sfe_tissue, "localC_perm_multi", c(11, 12),
                   divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
-Warm colors indicate adjusted p < 0.05. This should be interpreted along with the clusters. In this dataset, there are interestingly homogeneous regions in the myofibers, and an interestingly heterogeneous region in the injury site.
+Warm colors indicate adjusted p < 0.05. This should be interpreted along with the clusters. In this dataset, there are interestingly homogeneous regions in the myofibers, and an interestingly heterogeneous region in the injury site. Most of the significant regions are positive cluster, but the center of the injury site is significant and is negative cluster.
+
+# Top principal components
+Because multivariate local Geary's C is a spatially weighted sum of squared distances between locations in feature space, it's affected by the curse of dimensionality when used on a large number of features, when uniformly distributed data points in higher dimensions become more equidistant to each other with increasing number of dimensions. However, real data is not uniformly distributed and can have a much smaller effective dimension than the number of features, as many genes are co-regulated. Anselin suggested using the main principal components, but the issue of curse of dimensionality remains to be further investigated. Furthermore, as the cosine and Manhattan distances have been suggested to mitigate curse of dimensionality, I wonder what if I use these instead of the Euclidean distance in feature space for multivariate local Geary's C.
+
+So here we perform multivariate local Geary's C on the top PCs:
+
+```{r}
+sfe_tissue <- runPCA(sfe_tissue, ncomponents = 20, scale = TRUE)
+```
+
+```{r}
+ElbowPlot(sfe_tissue)
+```
+
+What percentage of variance is explained by the top 20 PCs?
+```{r}
+sum(attr(reducedDim(sfe_tissue, "PCA"), "percentVar"))
+```
+
+```{r}
+out <- localC_perm(reducedDim(sfe_tissue, "PCA"), 
+                   listw = colGraph(sfe_tissue, "visium"))
+out <- Voyager:::.localCpermmulti2df(out, 
+                                     nb = colGraph(sfe_tissue, "visium")$neighbours,
+                                     p.adjust.method = "BH")
+reducedDim(sfe_tissue, "localC_PCs", withDimnames = FALSE) <- out
+```
+
+```{r}
+spatialReducedDim(sfe_tissue, "localC_PCs", c(1, 12),
+                  image_id = "lowres", maxcell = 5e4)
+```
+
+```{r}
+spatialReducedDim(sfe_tissue, "localC_PCs", c(11, 12),
+                  image_id = "lowres", maxcell = 5e4, 
+                  divergent = TRUE, diverge_center = -log10(0.05))
+```
+
+The area that seem significant from the permutation test is larger than that from the HVGs, and the area considered negative clusters is smaller. The significant regions are pretty much all positive cluster. Do the differences in results have anything to do with curse of dimensionality? Twenty dimensions can still exhibit curse of dimensionality, but over 300 HVGs here would be worse. Or is it that we lose a lot of information, including negative spatial autocorrelation, by only using 20 PCs?
 
 # Session info
 ```{r}
