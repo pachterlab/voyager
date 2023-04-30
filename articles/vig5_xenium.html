@@ -111,7 +111,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-04-26</h4>
+            <h4 data-toc-skip class="date">2023-04-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
@@ -961,7 +961,7 @@ time of spatial autocorrelation metrics.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  10.257   0.047  10.318</span></span></code></pre></div>
+<span><span class="co">#&gt;   9.056   0.044   9.113</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -1025,7 +1025,7 @@ normalize the data.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  40.859   4.132  23.755</span></span></code></pre></div>
+<span><span class="co">#&gt;  21.784   2.160  24.718</span></span></code></pre></div>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="va">is_any_neg</span></span></code></pre></div>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
@@ -1234,7 +1234,7 @@ This may be due to spatial distribution of different cell types.</p>
 </h2>
 <div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.3.0 Patched (2023-04-24 r84317)</span></span>
+<span><span class="co">#&gt; R version 4.3.0 (2023-04-21)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
 <span><span class="co">#&gt; Running under: macOS Monterey 12.6.5</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1253,17 +1253,17 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] patchwork_1.1.2                scran_1.27.3                  </span></span>
-<span><span class="co">#&gt;  [3] bluster_1.9.1                  BiocSingular_1.15.0           </span></span>
-<span><span class="co">#&gt;  [5] BiocParallel_1.33.12           scater_1.27.9                 </span></span>
-<span><span class="co">#&gt;  [7] scuttle_1.9.4                  stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [9] ggplot2_3.4.2                  SpatialFeatureExperiment_1.1.6</span></span>
-<span><span class="co">#&gt; [11] SpatialExperiment_1.9.5        SingleCellExperiment_1.21.1   </span></span>
-<span><span class="co">#&gt; [13] SummarizedExperiment_1.29.1    Biobase_2.59.0                </span></span>
-<span><span class="co">#&gt; [15] GenomicRanges_1.51.4           GenomeInfoDb_1.35.17          </span></span>
-<span><span class="co">#&gt; [17] IRanges_2.33.1                 S4Vectors_0.37.7              </span></span>
-<span><span class="co">#&gt; [19] BiocGenerics_0.45.3            MatrixGenerics_1.11.1         </span></span>
-<span><span class="co">#&gt; [21] matrixStats_0.63.0             SFEData_1.1.5                 </span></span>
+<span><span class="co">#&gt;  [1] patchwork_1.1.2                scran_1.28.0                  </span></span>
+<span><span class="co">#&gt;  [3] bluster_1.10.0                 BiocSingular_1.16.0           </span></span>
+<span><span class="co">#&gt;  [5] BiocParallel_1.33.12           scater_1.28.0                 </span></span>
+<span><span class="co">#&gt;  [7] scuttle_1.10.0                 stringr_1.5.0                 </span></span>
+<span><span class="co">#&gt;  [9] ggplot2_3.4.2                  SpatialFeatureExperiment_1.2.1</span></span>
+<span><span class="co">#&gt; [11] SpatialExperiment_1.10.0       SingleCellExperiment_1.22.0   </span></span>
+<span><span class="co">#&gt; [13] SummarizedExperiment_1.30.0    Biobase_2.60.0                </span></span>
+<span><span class="co">#&gt; [15] GenomicRanges_1.52.0           GenomeInfoDb_1.36.0           </span></span>
+<span><span class="co">#&gt; [17] IRanges_2.34.0                 S4Vectors_0.38.0              </span></span>
+<span><span class="co">#&gt; [19] BiocGenerics_0.46.0            MatrixGenerics_1.12.0         </span></span>
+<span><span class="co">#&gt; [21] matrixStats_0.63.0             SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt; [23] Voyager_1.2.2                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
@@ -1271,33 +1271,33 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;   [3] bitops_1.0-7                  filelock_1.0.2               </span></span>
 <span><span class="co">#&gt;   [5] tibble_3.2.1                  R.oo_1.25.0                  </span></span>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               sf_1.0-12                    </span></span>
-<span><span class="co">#&gt;   [9] edgeR_3.41.9                  rprojroot_2.0.3              </span></span>
+<span><span class="co">#&gt;   [9] edgeR_3.42.0                  rprojroot_2.0.3              </span></span>
 <span><span class="co">#&gt;  [11] lattice_0.21-8                magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [13] limma_3.55.10                 sass_0.4.5                   </span></span>
+<span><span class="co">#&gt;  [13] limma_3.56.0                  sass_0.4.5                   </span></span>
 <span><span class="co">#&gt;  [15] rmarkdown_2.21                jquerylib_0.1.4              </span></span>
-<span><span class="co">#&gt;  [17] yaml_2.3.7                    metapod_1.7.0                </span></span>
+<span><span class="co">#&gt;  [17] yaml_2.3.7                    metapod_1.8.0                </span></span>
 <span><span class="co">#&gt;  [19] httpuv_1.6.9                  sp_1.6-0                     </span></span>
 <span><span class="co">#&gt;  [21] cowplot_1.1.1                 RColorBrewer_1.1-3           </span></span>
-<span><span class="co">#&gt;  [23] DBI_1.1.3                     zlibbioc_1.45.0              </span></span>
+<span><span class="co">#&gt;  [23] DBI_1.1.3                     zlibbioc_1.46.0              </span></span>
 <span><span class="co">#&gt;  [25] purrr_1.0.1                   R.utils_2.12.2               </span></span>
 <span><span class="co">#&gt;  [27] RCurl_1.98-1.12               rappdirs_0.3.3               </span></span>
 <span><span class="co">#&gt;  [29] GenomeInfoDbData_1.2.10       ggrepel_0.9.3                </span></span>
 <span><span class="co">#&gt;  [31] irlba_2.3.5.1                 terra_1.7-29                 </span></span>
 <span><span class="co">#&gt;  [33] pheatmap_1.0.12               units_0.8-1                  </span></span>
 <span><span class="co">#&gt;  [35] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [37] pkgdown_2.0.7                 DelayedMatrixStats_1.21.0    </span></span>
-<span><span class="co">#&gt;  [39] codetools_0.2-19              DropletUtils_1.19.3          </span></span>
+<span><span class="co">#&gt;  [37] pkgdown_2.0.7                 DelayedMatrixStats_1.22.0    </span></span>
+<span><span class="co">#&gt;  [39] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
 <span><span class="co">#&gt;  [41] DelayedArray_0.25.0           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [43] farver_2.1.1                  ScaledMatrix_1.7.1           </span></span>
-<span><span class="co">#&gt;  [45] viridis_0.6.2                 BiocFileCache_2.7.2          </span></span>
-<span><span class="co">#&gt;  [47] jsonlite_1.8.4                BiocNeighbors_1.17.1         </span></span>
+<span><span class="co">#&gt;  [45] viridis_0.6.2                 BiocFileCache_2.8.0          </span></span>
+<span><span class="co">#&gt;  [47] jsonlite_1.8.4                BiocNeighbors_1.18.0         </span></span>
 <span><span class="co">#&gt;  [49] e1071_1.7-13                  ellipsis_0.3.2               </span></span>
 <span><span class="co">#&gt;  [51] systemfonts_1.0.4             tools_4.3.0                  </span></span>
 <span><span class="co">#&gt;  [53] ggnewscale_0.4.8              ragg_1.2.5                   </span></span>
 <span><span class="co">#&gt;  [55] Rcpp_1.0.10                   glue_1.6.2                   </span></span>
 <span><span class="co">#&gt;  [57] gridExtra_2.3                 mgcv_1.8-42                  </span></span>
 <span><span class="co">#&gt;  [59] xfun_0.39                     dplyr_1.1.2                  </span></span>
-<span><span class="co">#&gt;  [61] HDF5Array_1.27.0              withr_2.5.0                  </span></span>
+<span><span class="co">#&gt;  [61] HDF5Array_1.28.0              withr_2.5.0                  </span></span>
 <span><span class="co">#&gt;  [63] BiocManager_1.30.20           fastmap_1.1.1                </span></span>
 <span><span class="co">#&gt;  [65] boot_1.3-28.1                 rhdf5filters_1.11.2          </span></span>
 <span><span class="co">#&gt;  [67] fansi_1.0.4                   spData_2.2.2                 </span></span>
@@ -1311,18 +1311,18 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [83] httr_1.4.5                    spdep_1.2-8                  </span></span>
 <span><span class="co">#&gt;  [85] pkgconfig_2.0.3               scico_1.3.1                  </span></span>
 <span><span class="co">#&gt;  [87] gtable_0.3.3                  blob_1.2.4                   </span></span>
-<span><span class="co">#&gt;  [89] XVector_0.39.0                htmltools_0.5.5              </span></span>
+<span><span class="co">#&gt;  [89] XVector_0.40.0                htmltools_0.5.5              </span></span>
 <span><span class="co">#&gt;  [91] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [93] knitr_1.42                    rjson_0.2.21                 </span></span>
 <span><span class="co">#&gt;  [95] nlme_3.1-162                  curl_5.0.0                   </span></span>
 <span><span class="co">#&gt;  [97] proxy_0.4-27                  cachem_1.0.7                 </span></span>
-<span><span class="co">#&gt;  [99] rhdf5_2.43.5                  BiocVersion_3.17.1           </span></span>
+<span><span class="co">#&gt;  [99] rhdf5_2.44.0                  BiocVersion_3.17.1           </span></span>
 <span><span class="co">#&gt; [101] KernSmooth_2.23-20            parallel_4.3.0               </span></span>
-<span><span class="co">#&gt; [103] vipor_0.4.5                   AnnotationDbi_1.61.2         </span></span>
+<span><span class="co">#&gt; [103] vipor_0.4.5                   AnnotationDbi_1.62.0         </span></span>
 <span><span class="co">#&gt; [105] desc_1.4.2                    s2_1.1.2                     </span></span>
 <span><span class="co">#&gt; [107] pillar_1.9.0                  grid_4.3.0                   </span></span>
 <span><span class="co">#&gt; [109] vctrs_0.6.2                   promises_1.2.0.1             </span></span>
-<span><span class="co">#&gt; [111] dbplyr_2.3.2                  beachmat_2.15.2              </span></span>
+<span><span class="co">#&gt; [111] dbplyr_2.3.2                  beachmat_2.16.0              </span></span>
 <span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
 <span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.20                </span></span>
 <span><span class="co">#&gt; [117] magick_2.7.4                  cli_3.6.1                    </span></span>
@@ -1332,12 +1332,12 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [125] fs_1.6.1                      ggbeeswarm_0.7.1             </span></span>
 <span><span class="co">#&gt; [127] stringi_1.7.12                viridisLite_0.4.1            </span></span>
 <span><span class="co">#&gt; [129] deldir_1.0-6                  munsell_0.5.0                </span></span>
-<span><span class="co">#&gt; [131] Biostrings_2.67.2             Matrix_1.5-4                 </span></span>
-<span><span class="co">#&gt; [133] ExperimentHub_2.7.1           sparseMatrixStats_1.11.1     </span></span>
-<span><span class="co">#&gt; [135] bit64_4.0.5                   Rhdf5lib_1.21.1              </span></span>
-<span><span class="co">#&gt; [137] statmod_1.5.0                 KEGGREST_1.39.0              </span></span>
+<span><span class="co">#&gt; [131] Biostrings_2.68.0             Matrix_1.5-4                 </span></span>
+<span><span class="co">#&gt; [133] ExperimentHub_2.8.0           sparseMatrixStats_1.12.0     </span></span>
+<span><span class="co">#&gt; [135] bit64_4.0.5                   Rhdf5lib_1.22.0              </span></span>
+<span><span class="co">#&gt; [137] statmod_1.5.0                 KEGGREST_1.40.0              </span></span>
 <span><span class="co">#&gt; [139] shiny_1.7.4                   highr_0.10                   </span></span>
-<span><span class="co">#&gt; [141] interactiveDisplayBase_1.37.0 AnnotationHub_3.7.4          </span></span>
+<span><span class="co">#&gt; [141] interactiveDisplayBase_1.38.0 AnnotationHub_3.8.0          </span></span>
 <span><span class="co">#&gt; [143] igraph_1.4.2                  memoise_2.0.1                </span></span>
 <span><span class="co">#&gt; [145] bslib_0.4.2                   bit_4.0.5</span></span></code></pre></div>
 </div>
