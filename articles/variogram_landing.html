@@ -52,8 +52,8 @@
   </div>
 </li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-spatial-methods">Spatial methods</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-spatial-methods">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-methods">Methods</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-methods">
     <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
     <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
     <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
@@ -136,9 +136,9 @@ positive spatial autocorrelation, the variance would be smaller among
 nearby values, so the variogram would increase with distance, eventually
 leveling off when the distance is beyond the length scale of spatial
 autocorrelation. The “semi” comes from the 1/2, which comes from the
-assumption that the Gaussian process is intrinsically stationary,
-i.e. the covariance between two locations only depends on the spatial
-lag between them:</p>
+assumption that the Gaussian process is weakly stationary, i.e. the
+covariance between two locations only depends on the spatial lag between
+them:</p>
 <p><span class="math display">\[\begin{align}
 \mathrm{Var}(X_{t_2} - X_{t_1}) &amp;= \mathrm{Var}(X_{t_2}) +
 \mathrm{Var}(X_{t_1}) - 2\mathrm{Cov}(X_{t_2}, X_{t_1}) \\
@@ -146,7 +146,10 @@ lag between them:</p>
 \end{align}\]</span></p>
 <p>where <span class="math inline">\(\rho\)</span> is a covariance
 function and <span class="math inline">\(t_1\)</span> and <span class="math inline">\(t_2\)</span> are spatial locations. A model can be
-fitted to the empirical semivariogram, to model this <span class="math inline">\(\rho\)</span>.</p>
+fitted to the empirical semivariogram, to model this <span class="math inline">\(\rho\)</span>. That the variance of differences
+between the value across locations only depends on the spatial lag means
+intrinsically stationary, which is even weaker and more generalizable
+than weakly stationary. The weaker assumption is used in kriging.</p>
 <p>Below is a list of vignettes that use the variogram. The links point
 to the sections that use the variogram. The corresponding Google Colab
 notebooks are also linked to. The list is sorted by technology.</p>
