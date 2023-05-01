@@ -59,14 +59,14 @@ $$
 \gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
 $$
 
-where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2, which comes from the assumption that the Gaussian process is intrinsically stationary, i.e. the covariance between two locations only depends on the spatial lag between them:
+where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2, which comes from the assumption that the Gaussian process is weakly stationary, i.e. the covariance between two locations only depends on the spatial lag between them:
 
 $$\begin{align}
 \mathrm{Var}(X_{t_2} - X_{t_1}) &= \mathrm{Var}(X_{t_2}) + \mathrm{Var}(X_{t_1}) - 2\mathrm{Cov}(X_{t_2}, X_{t_1}) \\
 &= 2\rho(0) - 2\rho(t_2 - t_1),
 \end{align}$$
 
-where $\rho$ is a covariance function and $t_1$ and $t_2$ are spatial locations. A model can be fitted to the empirical semivariogram, to model this $\rho$.
+where $\rho$ is a covariance function and $t_1$ and $t_2$ are spatial locations. A model can be fitted to the empirical semivariogram, to model this $\rho$. That the variance of differences between the value across locations only depends on the spatial lag means intrinsically stationary, which is even weaker and more generalizable than weakly stationary. The weaker assumption is used in kriging.
 
 This vignette demonstrates the variogram as an ESDA tool, including interpretation of the univariate variogram, anisotropic variograms (variograms in different directions), variogram maps, and bivariate cross variograms.
 
