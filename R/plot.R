@@ -122,7 +122,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 )
                 .pal <- switch(option,
                                "Blues",
-                               "PuRd"
+                               "YlOrRd"
                 )
                 pal <- pal_fun(na.value = "gray", palette = .pal, direction = 1,
                                name = name)
