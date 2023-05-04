@@ -201,7 +201,7 @@ nuuk palette from \code{scico} is used if \code{divergent = FALSE}, and the
 berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
 discrete variables, the \code{dittoSeq} palette is used.
 
-For annotation, the PuRd colorbrewer palette is used for continuous variables
+For annotation, the YlOrRd colorbrewer palette is used for continuous variables
 in the light theme. In the dark theme, the acton palette from \code{scico} is
 used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
 is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
