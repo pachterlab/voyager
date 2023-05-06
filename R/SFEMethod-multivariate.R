@@ -87,15 +87,6 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     out
 }
 
-.reorg_multispati <- function(out, x) {
-    loadings <- out$vectors
-    o <- x %*% loadings
-    colnames(o) <- paste0("CS", seq_len(ncol(o)))
-    attr(o, "rotation") <- loadings
-    attr(o, "eig") <- out$values
-    o
-}
-
 multispati <- SFEMethod(
     name = "multispati", title = "MULTISPATI PCA", package = "Voyager",
     variate = "multi", scope = "global", default_attr = NA,
