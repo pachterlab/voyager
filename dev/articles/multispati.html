@@ -112,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-07</h4>
+            <h4 data-toc-skip class="date">2023-05-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -148,9 +148,9 @@ embeddings of the cells, such as <code>conST</code> <span class="citation">(Zong
 projection of spatial neighborhood augmented data.</p>
 <p>Spatially informed dimension reduction is actually not new, and dates
 back to at least 1985, with Wartenberg’s crossover of Moran’s I and PCA
-<span class="citation">(Wartenberg 1985)</span>, which was generalized
-and further developed as MULTISPATI PCA <span class="citation">(Dray,
-Saı̈d, and Débias 2008)</span>, implemented in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+<span class="citation">(<strong>Wartenberg1985-fk?</strong>)</span>,
+which was generalized and further developed as MULTISPATI PCA <span class="citation">(Dray, Saı̈d, and Débias 2008)</span>, implemented in
+the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package on CRAN. In short, while PCA tries to maximize the variance
 explained by each PC, MULTISPATI maximizes the product of Moran’s I and
 variance explained. Also, while all the eigenvalues from PCA are
@@ -299,7 +299,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  43.043   0.533  49.895</span></span></code></pre></div>
+<span><span class="co">#&gt;  47.295   0.346  47.778</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -353,7 +353,7 @@ may be mild to moderate negative spatial autocorrelation.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  21.897   1.663  23.584</span></span>
+<span><span class="co">#&gt;  22.321   2.233  25.132</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
 <span><span class="co">#&gt; Ncells  15409920  823.0   26866265 1434.9         NA  26866265 1434.9</span></span>
@@ -586,7 +586,7 @@ default k = 10.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 788.010   6.544 795.449</span></span></code></pre></div>
+<span><span class="co">#&gt; 783.447   6.366 793.250</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -603,8 +603,8 @@ spatially coherent clusters</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 906.709   6.382 914.597</span></span></code></pre></div>
+<span><span class="co">#&gt;     user   system  elapsed </span></span>
+<span><span class="co">#&gt; 1015.860    7.832 1027.333</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -690,7 +690,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;   [5] R.oo_1.25.0                   lifecycle_1.0.3              </span></span>
 <span><span class="co">#&gt;   [7] edgeR_3.42.2                  rprojroot_2.0.3              </span></span>
 <span><span class="co">#&gt;   [9] lattice_0.21-8                magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [11] limma_3.56.0                  sass_0.4.6                   </span></span>
+<span><span class="co">#&gt;  [11] limma_3.56.1                  sass_0.4.6                   </span></span>
 <span><span class="co">#&gt;  [13] rmarkdown_2.21                jquerylib_0.1.4              </span></span>
 <span><span class="co">#&gt;  [15] yaml_2.3.7                    metapod_1.8.0                </span></span>
 <span><span class="co">#&gt;  [17] httpuv_1.6.9                  sp_1.6-0                     </span></span>
@@ -781,7 +781,7 @@ with <span>SpaceFlow</span>.”</span> <em>Nat. Commun.</em> 13 (1): 4076.
 <div id="ref-Shang2022-qy" class="csl-entry">
 Shang, Lulu, and Xiang Zhou. 2022. <span>“Spatially Aware Dimension
 Reduction for Spatial Transcriptomics.”</span> <em>Nat. Commun.</em> 13
-(1): 1–22.
+(1): 7203.
 </div>
 <div id="ref-Townes2023-bi" class="csl-entry">
 Townes, F William, and Barbara E Engelhardt. 2023. <span>“Nonnegative
@@ -795,16 +795,11 @@ Wirbel, Danila Bredikhin, Georg Zeller, and Oliver Stegle. 2022.
 Multimodal Data Using <span>MEFISTO</span>.”</span> <em>Nat.
 Methods</em> 19 (2): 179–86.
 </div>
-<div id="ref-Wartenberg1985-fk" class="csl-entry">
-Wartenberg, Daniel. 1985. <span>“Multivariate Spatial Correlation: A
-Method for Exploratory Geographical Analysis.”</span> <em>Geogr.
-Anal.</em> 17 (4): 263–83.
-</div>
 <div id="ref-Zhang2023-kf" class="csl-entry">
 Zhang, Chuanchao, Xinxing Li, Wendong Huang, Lequn Wang, and Qianqian
 Shi. 2023. <span>“Spatially Aware Self-Representation Learning for
 Tissue Structure Characterization and Spatial Functional Genes
-Identification.”</span> <em>bioRxiv</em>, March.
+Identification.”</span> <em>bioRxiv</em>.
 </div>
 <div id="ref-Zong2022-tb" class="csl-entry">
 Zong, Yongshuo, Tingyang Yu, Xuesong Wang, Yixuan Wang, Zhihang Hu, and

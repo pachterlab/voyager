@@ -112,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-07</h4>
+            <h4 data-toc-skip class="date">2023-05-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -304,7 +304,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.339   1.079  25.463</span></span></code></pre>
+<span><span class="co">#&gt;  24.972   1.302  26.350</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -316,7 +316,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.677   0.224   1.903</span></span></code></pre>
+<span><span class="co">#&gt;   1.861   0.291   2.164</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -340,8 +340,9 @@ cell size; larger cells seem to have more total counts.</p>
 <code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
 <span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
-<span class="citation">(Pielawski et al. 2022)</span>, and <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
-<span class="citation">(Warchol et al. 2022)</span>.</p>
+<span class="citation">(<strong>Pielawski2022-wk?</strong>)</span>, and
+<a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(<strong>Warchol2022-zw?</strong>)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be displayed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -682,7 +683,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  41.869   0.162  42.076</span></span></code></pre></div>
+<span><span class="co">#&gt;  41.731   0.188  42.006</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -726,7 +727,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  67.255   9.865  81.640</span></span></code></pre></div>
+<span><span class="co">#&gt;  65.213   6.840  75.214</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -981,11 +982,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  21.887   1.578  23.506</span></span>
+<span><span class="co">#&gt;  20.444   1.607  22.092</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16132653  861.6   25161110 1343.8         NA  25161110 1343.8</span></span>
-<span><span class="co">#&gt; Vcells 249378463 1902.7  489148354 3732.0      16384 489148354 3732.0</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16132639  861.6   25161195 1343.8         NA  25161195 1343.8</span></span>
+<span><span class="co">#&gt; Vcells 249378463 1902.7  489148356 3732.0      16384 489148356 3732.0</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1149,7 +1150,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;   [5] R.oo_1.25.0                   xts_0.13.1                   </span></span>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               edgeR_3.42.2                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.0                 </span></span>
+<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.1                 </span></span>
 <span><span class="co">#&gt;  [13] sass_0.4.6                    rmarkdown_2.21               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
 <span><span class="co">#&gt;  [17] httpuv_1.6.9                  sp_1.6-0                     </span></span>
@@ -1250,13 +1251,6 @@ Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
 Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
 628.
 </div>
-<div id="ref-Pielawski2022-wk" class="csl-entry">
-Pielawski, Nicolas, Axel Andersson, Christophe Avenel, Andrea Behanova,
-Eduard Chelebian, Anna Klemm, Fredrik Nysjö, Leslie Solorzano, and
-Carolina Wählby. 2022. <span>“<span>TissUUmaps</span> 3: Interactive
-Visualization and Quality Assessment of Large-Scale Spatial Omics
-Data.”</span> <em>bioRxiv</em>.
-</div>
 <div id="ref-Wang2020-sv" class="csl-entry">
 Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
 Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
@@ -1273,13 +1267,6 @@ Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
 Tim Wang, Konrad Rokicki, et al. 2021. <span>“<span>EASI-FISH</span> for
 Thick Tissue Defines Lateral Hypothalamus Spatio-Molecular
 Organization.”</span> <em>Cell</em> 184 (26): 6361–6377.e24.
-</div>
-<div id="ref-Warchol2022-zw" class="csl-entry">
-Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
-Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2022. <span>“Visinity:
-Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
-Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> PP (September):
-1–11.
 </div>
 </div>
 </div>
