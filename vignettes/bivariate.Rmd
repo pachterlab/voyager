@@ -84,6 +84,13 @@ QC was performed in [another vignette](https://pachterlab.github.io/voyager/arti
 
 The image can be added to the SFE object and plotted behind the geometries, and needs to be flipped to align to the spots because the origin is at the top left for the image but bottom left for geometries.
 ```{r}
+if (!file.exists("tissue_lowres_5a.jpeg")) {
+    download.file("https://raw.githubusercontent.com/pachterlab/voyager/main/vignettes/tissue_lowres_5a.jpeg",
+                  destfile = "tissue_lowres_5a.jpeg")
+}
+```
+
+```{r}
 sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
               image_id = "lowres", 
               scale_fct = 1024/22208)
