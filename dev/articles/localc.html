@@ -112,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-15</h4>
+            <h4 data-toc-skip class="date">2023-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/localc.Rmd" class="external-link"><code>vignettes/localc.Rmd</code></a></small>
       <div class="d-none name"><code>localc.Rmd</code></div>
@@ -188,16 +188,21 @@ geometries, and needs to be flipped to align to the spots because the
 origin is at the top left for the image but bottom left for
 geometries.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="st">"tissue_lowres_5a.jpeg"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="st">"https://raw.githubusercontent.com/pachterlab/voyager/main/vignettes/tissue_lowres_5a.jpeg"</span>,</span>
+<span>                  destfile <span class="op">=</span> <span class="st">"tissue_lowres_5a.jpeg"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/imgData-methods.html" class="external-link">addImg</a></span><span class="op">(</span><span class="va">sfe</span>, file <span class="op">=</span> <span class="st">"tissue_lowres_5a.jpeg"</span>, sample_id <span class="op">=</span> <span class="st">"Vis5A"</span>, </span>
 <span>              image_id <span class="op">=</span> <span class="st">"lowres"</span>, </span>
 <span>              scale_fct <span class="op">=</span> <span class="fl">1024</span><span class="op">/</span><span class="fl">22208</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialImage-class.html" class="external-link">mirrorImg</a></span><span class="op">(</span><span class="va">sfe</span>, sample_id <span class="op">=</span> <span class="st">"Vis5A"</span>, image_id <span class="op">=</span> <span class="st">"lowres"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -205,9 +210,9 @@ geometries.</p>
 </h2>
 <p>Here we compute multivariate local C for top highly variagle genes
 (HVGs) in this dataset:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hvgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, fdr.threshold <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hvgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/getTopHVGs.html" class="external-link">getTopHVGs</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, fdr.threshold <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateMultivariate.html">runMultivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_perm_multi"</span>, subset_row <span class="op">=</span> <span class="va">hvgs</span><span class="op">)</span></span></code></pre></div>
 <p>The results are stored in <code>reducedDim</code> although it’s not
 really a dimension reduction. It can also go into <code>colData</code>
@@ -215,16 +220,16 @@ if <code>dest = "colData"</code>. The test is two sided, but the
 <code>alternative</code> argument can be set to “greater” to only test
 for positive spatial autocorrelation and “less” for negative spatial
 autocorrelation.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_perm_multi"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "localC_perm_multi"  "E.Ci"               "Var.Ci"            </span></span>
 <span><span class="co">#&gt;  [4] "Z.Ci"               "Pr(z != E(Ci))"     "Pr(z != E(Ci)) Sim"</span></span>
 <span><span class="co">#&gt;  [7] "Pr(folded) Sim"     "Skewness"           "Kurtosis"          </span></span>
 <span><span class="co">#&gt; [10] "-log10p Sim"        "-log10p_adj Sim"    "cluster"</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_perm_multi"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>                  image_id <span class="op">=</span> <span class="st">"lowres"</span>, maxcell <span class="op">=</span> <span class="fl">5e4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="localc_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="localc_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>In Geary’s C, a value below 1 indicates positive spatial
 autocorrelation and a value above 1 indicates negative spatial
 autocorrelation. Local Geary’s C is not scaled, but from the square
@@ -236,11 +241,11 @@ site are more heterogeneous, which is detected as negative cluster.</p>
 pseudo-p-values should only be taken as indicative of
 <em>interesting</em> regions and should not be interpreted in a strict
 sense.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_perm_multi"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>                  image_id <span class="op">=</span> <span class="st">"lowres"</span>, maxcell <span class="op">=</span> <span class="fl">5e4</span>, </span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="localc_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="localc_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>Warm colors indicate adjusted p &lt; 0.05. This should be interpreted
 along with the clusters. In this dataset, there are interestingly
 homogeneous regions in the myofibers, and an interestingly heterogeneous
@@ -265,31 +270,31 @@ to mitigate curse of dimensionality, I wonder what if I use these
 instead of the Euclidean distance in feature space for multivariate
 local Geary’s C.</p>
 <p>So here we perform multivariate local Geary’s C on the top PCs:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ncomponents <span class="op">=</span> <span class="fl">20</span>, scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
-<p><img src="localc_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
-<p>What percentage of variance is explained by the top 20 PCs?</p>
+<code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, ncomponents <span class="op">=</span> <span class="fl">20</span>, scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
+<p><img src="localc_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p>What percentage of variance is explained by the top 20 PCs?</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"PCA"</span><span class="op">)</span>, <span class="st">"percentVar"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 38.8627</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/localC.html" class="external-link">localC_perm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"PCA"</span><span class="op">)</span>, </span>
 <span>                   listw <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">Voyager</span><span class="fu">:::</span><span class="fu">.localCpermmulti2df</span><span class="op">(</span><span class="va">out</span>, </span>
 <span>                                     nb <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span><span class="op">$</span><span class="va">neighbours</span>,</span>
 <span>                                     p.adjust.method <span class="op">=</span> <span class="st">"BH"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_PCs"</span>, withDimnames <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">out</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_PCs"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>                  image_id <span class="op">=</span> <span class="st">"lowres"</span>, maxcell <span class="op">=</span> <span class="fl">5e4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="localc_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<p><img src="localc_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"localC_PCs"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>                  image_id <span class="op">=</span> <span class="st">"lowres"</span>, maxcell <span class="op">=</span> <span class="fl">5e4</span>, </span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="localc_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="localc_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>The area that seem significant from the permutation test is larger
 than that from the HVGs, and the area considered negative clusters is
 smaller. The significant regions are pretty much all positive cluster.
@@ -302,7 +307,7 @@ by only using 20 PCs?</p>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.3.0 (2023-04-21)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
