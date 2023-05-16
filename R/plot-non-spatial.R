@@ -325,8 +325,8 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
             warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
             sce <- args$sfe
         }
-        df <- as.data.frame(fun(sce))[, c(feature, fill_by, facet_by, subset),
-                                      drop = FALSE]
+        df <- as.data.frame(fun(sce)[, c(feature, fill_by, facet_by, subset),
+                                     drop = FALSE], optional = TRUE)
         if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {
             warning(facet_by, " is not a categorical variable. Not facetting.")
             facet_by <- NULL
@@ -404,7 +404,8 @@ plotRowDataHistogram <- .plot_dimdata_hist(rowData)
     function(sce, feature, color_by = NULL, subset = NULL, bins = 100,
              binwidth = NULL, linewidth = 1.2,
              scales = "free", ncol = 1, position = "identity") {
-        df <- as.data.frame(fun(sce))[, c(feature, color_by, subset), drop = FALSE]
+        df <- as.data.frame(fun(sce)[, c(feature, color_by, subset), drop = FALSE],
+                            optional = TRUE)
         if (!is.null(subset)) df <- df[df[[subset]],]
         p <- ggplot()
         if (length(feature) > 1L) {
