@@ -111,7 +111,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-05</h4>
+            <h4 data-toc-skip class="date">2023-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig4_cosmx.Rmd" class="external-link"><code>vignettes/vig4_cosmx.Rmd</code></a></small>
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -125,14 +125,14 @@ Moses</h4>
 <p>Nanostring GeoMX DSP is a popular spatial transcriptomics technology
 for formalin fixed paraffin embedded (FFPE) tissues, but it doesn’t have
 single cell resolution. The CosMX FISH based technology for FFPE tissue
-<span class="citation">(He et al. 2021)</span> does have single cell
-resolution, and this vignette provides an example of how to analyze
-CosMX data with voyager. Note that FFPE is a common way to preserve and
-archive tissue, and in some cases, the only samples available may be
-FFPE.</p>
+<span class="citation">(<strong>He2021-oy?</strong>)</span> does have
+single cell resolution, and this vignette provides an example of how to
+analyze CosMX data with voyager. Note that FFPE is a common way to
+preserve and archive tissue, and in some cases, the only samples
+available may be FFPE.</p>
 <p>The CosMX dataset for non-small cell lung cancer that we used is
-described in <span class="citation">(He et al. 2021)</span>. The
-processed data is available for download from the <a href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/" class="external-link">Nanostring
+described in <span class="citation">(<strong>He2021-oy?</strong>)</span>. The processed
+data is available for download from the <a href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/" class="external-link">Nanostring
 website</a>. The gene count matrix, cell metadata, and cell segmentation
 polygon coordinates were downloaded from the Nanostring website as CSV
 files and read into R as data frames. The gene count matrix was then
@@ -144,6 +144,10 @@ used to construct an SFE object. Cell segmentation is only available in
 one z-plane.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'SummarizedExperiment'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'HDF5Array'</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -669,7 +673,7 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.504   0.044   8.585</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.482   0.045   8.535</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -679,10 +683,10 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; DataFrame with 4 rows and 2 columns</span></span>
 <span><span class="co">#&gt;             moran_sample01 K_sample01</span></span>
 <span><span class="co">#&gt;                  &lt;numeric&gt;  &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; nCounts           0.386677    6.80818</span></span>
-<span><span class="co">#&gt; nGenes            0.434667    3.19599</span></span>
-<span><span class="co">#&gt; Area              0.198188    8.96966</span></span>
-<span><span class="co">#&gt; AspectRatio       0.256195   43.05666</span></span></code></pre></div>
+<span><span class="co">#&gt; nCounts           0.386652    6.80818</span></span>
+<span><span class="co">#&gt; nGenes            0.434640    3.19599</span></span>
+<span><span class="co">#&gt; Area              0.198149    8.96966</span></span>
+<span><span class="co">#&gt; AspectRatio       0.256215   43.05666</span></span></code></pre></div>
 <p>Positive spatial autocorrelation is suggested, which is stronger in
 nCounts and nGenes.</p>
 <p>What are the length scales of spatial autocorrelation for these QC
@@ -707,7 +711,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 625.920  13.285 326.263</span></span></code></pre></div>
+<span><span class="co">#&gt; 629.367  13.611 328.613</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -916,16 +920,16 @@ due to overplotting and make this plot really slow.</p>
 <span><span class="co">#&gt; DataFrame with 10 rows and 1 column</span></span>
 <span><span class="co">#&gt;          moran_sample01</span></span>
 <span><span class="co">#&gt;               &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; MZT2A          0.199125</span></span>
-<span><span class="co">#&gt; COL1A1         0.394785</span></span>
-<span><span class="co">#&gt; IGHM           0.293300</span></span>
-<span><span class="co">#&gt; HLA-DPA1       0.242415</span></span>
-<span><span class="co">#&gt; PECAM1         0.119166</span></span>
-<span><span class="co">#&gt; IGKC           0.425198</span></span>
-<span><span class="co">#&gt; SERPINA1       0.254078</span></span>
-<span><span class="co">#&gt; IL7R           0.177634</span></span>
-<span><span class="co">#&gt; TPSB2          0.206135</span></span>
-<span><span class="co">#&gt; KRT19          0.770441</span></span></code></pre></div>
+<span><span class="co">#&gt; MZT2A          0.199123</span></span>
+<span><span class="co">#&gt; COL1A1         0.394772</span></span>
+<span><span class="co">#&gt; IGHM           0.293260</span></span>
+<span><span class="co">#&gt; HLA-DPA1       0.242438</span></span>
+<span><span class="co">#&gt; PECAM1         0.119167</span></span>
+<span><span class="co">#&gt; IGKC           0.425204</span></span>
+<span><span class="co">#&gt; SERPINA1       0.254084</span></span>
+<span><span class="co">#&gt; IL7R           0.177640</span></span>
+<span><span class="co">#&gt; TPSB2          0.206117</span></span>
+<span><span class="co">#&gt; KRT19          0.770429</span></span></code></pre></div>
 <p>Local Moran’s I of these marker genes</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>,</span>
@@ -984,7 +988,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.2.1 BiocSingular_1.16.0           </span></span>
-<span><span class="co">#&gt;  [3] BiocParallel_1.33.12           spdep_1.2-8                   </span></span>
+<span><span class="co">#&gt;  [3] BiocParallel_1.34.1            spdep_1.2-8                   </span></span>
 <span><span class="co">#&gt;  [5] sf_1.0-12                      spData_2.2.2                  </span></span>
 <span><span class="co">#&gt;  [7] stringr_1.5.0                  patchwork_1.1.2               </span></span>
 <span><span class="co">#&gt;  [9] bluster_1.10.0                 scran_1.28.1                  </span></span>
@@ -1003,10 +1007,10 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;   [5] tibble_3.2.1                  R.oo_1.25.0                  </span></span>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               edgeR_3.42.2                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.0                 </span></span>
+<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.1                 </span></span>
 <span><span class="co">#&gt;  [13] sass_0.4.6                    rmarkdown_2.21               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
-<span><span class="co">#&gt;  [17] metapod_1.8.0                 httpuv_1.6.9                 </span></span>
+<span><span class="co">#&gt;  [17] metapod_1.8.0                 httpuv_1.6.11                </span></span>
 <span><span class="co">#&gt;  [19] sp_1.6-0                      cowplot_1.1.1                </span></span>
 <span><span class="co">#&gt;  [21] RColorBrewer_1.1-3            DBI_1.1.3                    </span></span>
 <span><span class="co">#&gt;  [23] zlibbioc_1.46.0               purrr_1.0.1                  </span></span>
@@ -1017,7 +1021,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [33] units_0.8-2                   RSpectra_0.16-1              </span></span>
 <span><span class="co">#&gt;  [35] dqrng_0.3.0                   pkgdown_2.0.7                </span></span>
 <span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.0     codetools_0.2-19             </span></span>
-<span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.1          </span></span>
+<span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.2          </span></span>
 <span><span class="co">#&gt;  [41] tidyselect_1.2.0              farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [43] ScaledMatrix_1.8.1            viridis_0.6.3                </span></span>
 <span><span class="co">#&gt;  [45] BiocFileCache_2.8.0           jsonlite_1.8.4               </span></span>
@@ -1034,11 +1038,11 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [67] digest_0.6.31                 rsvd_1.0.5                   </span></span>
 <span><span class="co">#&gt;  [69] R6_2.5.1                      mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [71] textshaping_0.3.6             colorspace_2.1-0             </span></span>
-<span><span class="co">#&gt;  [73] wk_0.7.2                      scattermore_1.0              </span></span>
+<span><span class="co">#&gt;  [73] wk_0.7.3                      scattermore_1.0              </span></span>
 <span><span class="co">#&gt;  [75] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [77] hexbin_1.28.3                 utf8_1.2.3                   </span></span>
 <span><span class="co">#&gt;  [79] generics_0.1.3                class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.5                    S4Arrays_1.0.1               </span></span>
+<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.4               </span></span>
 <span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.3.1                  </span></span>
 <span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.5              </span></span>
@@ -1054,7 +1058,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt; [107] vctrs_0.6.2                   promises_1.2.0.1             </span></span>
 <span><span class="co">#&gt; [109] dbplyr_2.3.2                  beachmat_2.16.0              </span></span>
 <span><span class="co">#&gt; [111] xtable_1.8-4                  cluster_2.1.4                </span></span>
-<span><span class="co">#&gt; [113] beeswarm_0.4.0                evaluate_0.20                </span></span>
+<span><span class="co">#&gt; [113] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [115] magick_2.7.4                  cli_3.6.1                    </span></span>
 <span><span class="co">#&gt; [117] locfit_1.5-9.7                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [119] rlang_1.1.1                   crayon_1.5.2                 </span></span>
@@ -1079,17 +1083,11 @@ genes, and how this differs in cell types and gene functions.</p>
 Canete, Nicolas P, Sourish S Iyengar, John T Ormerod, Heeva Baharlou,
 Andrew N Harman, and Ellis Patrick. 2022. <span>“spicyR: Spatial
 Analysis of in Situ Cytometry Data in <span>R</span>.”</span>
-<em>Bioinformatics</em>, April.
+<em>Bioinformatics</em> 38 (11): 3099–3105.
 </div>
 <div id="ref-Getis2009-iw" class="csl-entry">
 Getis, Arthur. 2009. <span>“Spatial Weights Matrices.”</span> <em>Geogr.
 Anal.</em> 41 (4): 404–10.
-</div>
-<div id="ref-He2021-oy" class="csl-entry">
-He, Shanshan, Ruchir Bhatt, Carl Brown, Emily A Brown, Derek L Buhr, Kan
-Chantranuvatana, Patrick Danaher, et al. 2021. <span>“High-Plex
-Multiomic Analysis in <span>FFPE</span> at Subcellular Level by Spatial
-Molecular Imaging.”</span> <em>bioRxiv</em>.
 </div>
 </div>
 </div>

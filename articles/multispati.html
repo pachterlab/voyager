@@ -111,7 +111,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-05</h4>
+            <h4 data-toc-skip class="date">2023-05-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -147,9 +147,9 @@ embeddings of the cells, such as <code>conST</code> <span class="citation">(Zong
 projection of spatial neighborhood augmented data.</p>
 <p>Spatially informed dimension reduction is actually not new, and dates
 back to at least 1985, with Wartenberg’s crossover of Moran’s I and PCA
-<span class="citation">(Wartenberg 1985)</span>, which was generalized
-and further developed as MULTISPATI PCA <span class="citation">(Dray,
-Saı̈d, and Débias 2008)</span>, implemented in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+<span class="citation">(<strong>Wartenberg1985-fk?</strong>)</span>,
+which was generalized and further developed as MULTISPATI PCA <span class="citation">(Dray, Saı̈d, and Débias 2008)</span>, implemented in
+the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package on CRAN. In short, while PCA tries to maximize the variance
 explained by each PC, MULTISPATI maximizes the product of Moran’s I and
 variance explained. Also, while all the eigenvalues from PCA are
@@ -178,6 +178,10 @@ liver dataset. See the first vignette using this dataset <a href="https://pachte
 <p>Here we load the packages used:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'SummarizedExperiment'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'HDF5Array'</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
@@ -298,7 +302,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  54.972   0.901  69.190</span></span></code></pre></div>
+<span><span class="co">#&gt;  54.912   0.781  58.699</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -352,11 +356,11 @@ may be mild to moderate negative spatial autocorrelation.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.187   2.145  32.967</span></span>
+<span><span class="co">#&gt;  24.800   2.209  27.394</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  15409648  823.0   26865905 1434.8         NA  26865905 1434.8</span></span>
-<span><span class="co">#&gt; Vcells 237266767 1810.3  500326499 3817.2      16384 495349550 3779.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  15414472  823.3   24561402 1311.8         NA  24561402 1311.8</span></span>
+<span><span class="co">#&gt; Vcells 237277748 1810.3  500339676 3817.3      16384 495360531 3779.4</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -584,8 +588,8 @@ default k = 10.</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt;  936.126   16.737 1039.165</span></span></code></pre></div>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt; 777.396   8.370 790.936</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
@@ -602,8 +606,8 @@ spatially coherent clusters</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt; 1091.783   14.940 1115.985</span></span></code></pre></div>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt; 903.864   5.940 912.893</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -670,7 +674,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] patchwork_1.1.2                sf_1.0-12                     </span></span>
-<span><span class="co">#&gt;  [3] BiocParallel_1.33.12           BiocSingular_1.16.0           </span></span>
+<span><span class="co">#&gt;  [3] BiocParallel_1.34.1            BiocSingular_1.16.0           </span></span>
 <span><span class="co">#&gt;  [5] bluster_1.10.0                 tibble_3.2.1                  </span></span>
 <span><span class="co">#&gt;  [7] tidyr_1.3.0                    stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt;  [9] scran_1.28.1                   scater_1.28.0                 </span></span>
@@ -689,10 +693,10 @@ spatial clustering.</p>
 <span><span class="co">#&gt;   [5] R.oo_1.25.0                   lifecycle_1.0.3              </span></span>
 <span><span class="co">#&gt;   [7] edgeR_3.42.2                  rprojroot_2.0.3              </span></span>
 <span><span class="co">#&gt;   [9] lattice_0.21-8                magrittr_2.0.3               </span></span>
-<span><span class="co">#&gt;  [11] limma_3.56.0                  sass_0.4.6                   </span></span>
+<span><span class="co">#&gt;  [11] limma_3.56.1                  sass_0.4.6                   </span></span>
 <span><span class="co">#&gt;  [13] rmarkdown_2.21                jquerylib_0.1.4              </span></span>
 <span><span class="co">#&gt;  [15] yaml_2.3.7                    metapod_1.8.0                </span></span>
-<span><span class="co">#&gt;  [17] httpuv_1.6.9                  sp_1.6-0                     </span></span>
+<span><span class="co">#&gt;  [17] httpuv_1.6.11                 sp_1.6-0                     </span></span>
 <span><span class="co">#&gt;  [19] RColorBrewer_1.1-3            DBI_1.1.3                    </span></span>
 <span><span class="co">#&gt;  [21] zlibbioc_1.46.0               purrr_1.0.1                  </span></span>
 <span><span class="co">#&gt;  [23] R.utils_2.12.2                RCurl_1.98-1.12              </span></span>
@@ -702,7 +706,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [31] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
 <span><span class="co">#&gt;  [33] pkgdown_2.0.7                 DelayedMatrixStats_1.22.0    </span></span>
 <span><span class="co">#&gt;  [35] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
-<span><span class="co">#&gt;  [37] DelayedArray_0.26.1           tidyselect_1.2.0             </span></span>
+<span><span class="co">#&gt;  [37] DelayedArray_0.26.2           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [39] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
 <span><span class="co">#&gt;  [41] viridis_0.6.3                 BiocFileCache_2.8.0          </span></span>
 <span><span class="co">#&gt;  [43] jsonlite_1.8.4                BiocNeighbors_1.18.0         </span></span>
@@ -719,11 +723,11 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [65] digest_0.6.31                 rsvd_1.0.5                   </span></span>
 <span><span class="co">#&gt;  [67] R6_2.5.1                      mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [69] textshaping_0.3.6             colorspace_2.1-0             </span></span>
-<span><span class="co">#&gt;  [71] wk_0.7.2                      scattermore_1.0              </span></span>
+<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.0              </span></span>
 <span><span class="co">#&gt;  [73] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 utf8_1.2.3                   </span></span>
 <span><span class="co">#&gt;  [77] generics_0.1.3                class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [79] httr_1.4.5                    S4Arrays_1.0.1               </span></span>
+<span><span class="co">#&gt;  [79] httr_1.4.6                    S4Arrays_1.0.4               </span></span>
 <span><span class="co">#&gt;  [81] spdep_1.2-8                   pkgconfig_2.0.3              </span></span>
 <span><span class="co">#&gt;  [83] scico_1.3.1                   gtable_0.3.3                 </span></span>
 <span><span class="co">#&gt;  [85] blob_1.2.4                    XVector_0.40.0               </span></span>
@@ -740,7 +744,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [107] vctrs_0.6.2                   promises_1.2.0.1             </span></span>
 <span><span class="co">#&gt; [109] dbplyr_2.3.2                  beachmat_2.16.0              </span></span>
 <span><span class="co">#&gt; [111] xtable_1.8-4                  cluster_2.1.4                </span></span>
-<span><span class="co">#&gt; [113] beeswarm_0.4.0                evaluate_0.20                </span></span>
+<span><span class="co">#&gt; [113] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [115] magick_2.7.4                  cli_3.6.1                    </span></span>
 <span><span class="co">#&gt; [117] locfit_1.5-9.7                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [119] rlang_1.1.1                   crayon_1.5.2                 </span></span>
@@ -780,7 +784,7 @@ with <span>SpaceFlow</span>.”</span> <em>Nat. Commun.</em> 13 (1): 4076.
 <div id="ref-Shang2022-qy" class="csl-entry">
 Shang, Lulu, and Xiang Zhou. 2022. <span>“Spatially Aware Dimension
 Reduction for Spatial Transcriptomics.”</span> <em>Nat. Commun.</em> 13
-(1): 1–22.
+(1): 7203.
 </div>
 <div id="ref-Townes2023-bi" class="csl-entry">
 Townes, F William, and Barbara E Engelhardt. 2023. <span>“Nonnegative
@@ -794,16 +798,11 @@ Wirbel, Danila Bredikhin, Georg Zeller, and Oliver Stegle. 2022.
 Multimodal Data Using <span>MEFISTO</span>.”</span> <em>Nat.
 Methods</em> 19 (2): 179–86.
 </div>
-<div id="ref-Wartenberg1985-fk" class="csl-entry">
-Wartenberg, Daniel. 1985. <span>“Multivariate Spatial Correlation: A
-Method for Exploratory Geographical Analysis.”</span> <em>Geogr.
-Anal.</em> 17 (4): 263–83.
-</div>
 <div id="ref-Zhang2023-kf" class="csl-entry">
 Zhang, Chuanchao, Xinxing Li, Wendong Huang, Lequn Wang, and Qianqian
 Shi. 2023. <span>“Spatially Aware Self-Representation Learning for
 Tissue Structure Characterization and Spatial Functional Genes
-Identification.”</span> <em>bioRxiv</em>, March.
+Identification.”</span> <em>bioRxiv</em>.
 </div>
 <div id="ref-Zong2022-tb" class="csl-entry">
 Zong, Yongshuo, Tingyang Yu, Xuesong Wang, Yixuan Wang, Zhihang Hu, and

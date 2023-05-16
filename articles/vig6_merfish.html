@@ -111,7 +111,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-05</h4>
+            <h4 data-toc-skip class="date">2023-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -157,6 +157,10 @@ available, we cannot yet work with such a large point dataset.</p>
 <p>Here we load the packages used.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'SummarizedExperiment'</span></span>
+<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
+<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'HDF5Array'</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
@@ -303,7 +307,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.481   1.196  25.766</span></span></code></pre>
+<span><span class="co">#&gt;  24.360   1.181  25.632</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -315,7 +319,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.770   0.265   2.035</span></span></code></pre>
+<span><span class="co">#&gt;   1.735   0.270   2.017</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -339,8 +343,9 @@ cell size; larger cells seem to have more total counts.</p>
 <code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
 <span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
-<span class="citation">(Pielawski et al. 2022)</span>, and <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
-<span class="citation">(Warchol et al. 2022)</span>.</p>
+<span class="citation">(<strong>Pielawski2022-wk?</strong>)</span>, and
+<a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(<strong>Warchol2022-zw?</strong>)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be displayed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -681,7 +686,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  41.399   0.342  41.867</span></span></code></pre></div>
+<span><span class="co">#&gt;  45.486   0.170  45.880</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -725,7 +730,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 135.756  23.351  89.215</span></span></code></pre></div>
+<span><span class="co">#&gt;  67.861  10.487  84.714</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -980,11 +985,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.621   1.755  25.449</span></span>
+<span><span class="co">#&gt;  21.957   1.656  23.696</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16132407  861.6   35215651 1880.8         NA  35215651 1880.8</span></span>
-<span><span class="co">#&gt; Vcells 249378089 1902.7  651278250 4968.9      16384 519990147 3967.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16137027  861.9   25167092 1344.1         NA  25167092 1344.1</span></span>
+<span><span class="co">#&gt; Vcells 249388696 1902.7  489158590 3732.0      16384 489158590 3732.0</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1129,7 +1134,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.2.1 automap_1.1-9                 </span></span>
 <span><span class="co">#&gt;  [3] BiocNeighbors_1.18.0           gstat_2.1-1                   </span></span>
-<span><span class="co">#&gt;  [5] BiocSingular_1.16.0            BiocParallel_1.33.12          </span></span>
+<span><span class="co">#&gt;  [5] BiocSingular_1.16.0            BiocParallel_1.34.1           </span></span>
 <span><span class="co">#&gt;  [7] spdep_1.2-8                    sf_1.0-12                     </span></span>
 <span><span class="co">#&gt;  [9] spData_2.2.2                   stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt; [11] patchwork_1.1.2                scater_1.28.0                 </span></span>
@@ -1148,10 +1153,10 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;   [5] R.oo_1.25.0                   xts_0.13.1                   </span></span>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               edgeR_3.42.2                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.0                 </span></span>
+<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.1                 </span></span>
 <span><span class="co">#&gt;  [13] sass_0.4.6                    rmarkdown_2.21               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
-<span><span class="co">#&gt;  [17] httpuv_1.6.9                  sp_1.6-0                     </span></span>
+<span><span class="co">#&gt;  [17] httpuv_1.6.11                 sp_1.6-0                     </span></span>
 <span><span class="co">#&gt;  [19] cowplot_1.1.1                 RColorBrewer_1.1-3           </span></span>
 <span><span class="co">#&gt;  [21] DBI_1.1.3                     abind_1.4-5                  </span></span>
 <span><span class="co">#&gt;  [23] zlibbioc_1.46.0               purrr_1.0.1                  </span></span>
@@ -1162,7 +1167,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
 <span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.0    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
-<span><span class="co">#&gt;  [39] DelayedArray_0.26.1           tidyselect_1.2.0             </span></span>
+<span><span class="co">#&gt;  [39] DelayedArray_0.26.2           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [41] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
 <span><span class="co">#&gt;  [43] viridis_0.6.3                 BiocFileCache_2.8.0          </span></span>
 <span><span class="co">#&gt;  [45] jsonlite_1.8.4                e1071_1.7-13                 </span></span>
@@ -1178,12 +1183,12 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [65] digest_0.6.31                 rsvd_1.0.5                   </span></span>
 <span><span class="co">#&gt;  [67] R6_2.5.1                      mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [69] textshaping_0.3.6             colorspace_2.1-0             </span></span>
-<span><span class="co">#&gt;  [71] wk_0.7.2                      scattermore_1.0              </span></span>
+<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.0              </span></span>
 <span><span class="co">#&gt;  [73] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 intervals_0.15.3             </span></span>
 <span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [79] FNN_1.1.3.2                   class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.5                    S4Arrays_1.0.1               </span></span>
+<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.4               </span></span>
 <span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.3.1                  </span></span>
 <span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.5              </span></span>
@@ -1200,7 +1205,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [109] vctrs_0.6.2                   promises_1.2.0.1             </span></span>
 <span><span class="co">#&gt; [111] dbplyr_2.3.2                  beachmat_2.16.0              </span></span>
 <span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
-<span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.20                </span></span>
+<span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [117] magick_2.7.4                  cli_3.6.1                    </span></span>
 <span><span class="co">#&gt; [119] locfit_1.5-9.7                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
@@ -1249,13 +1254,6 @@ Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
 Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
 628.
 </div>
-<div id="ref-Pielawski2022-wk" class="csl-entry">
-Pielawski, Nicolas, Axel Andersson, Christophe Avenel, Andrea Behanova,
-Eduard Chelebian, Anna Klemm, Fredrik Nysjö, Leslie Solorzano, and
-Carolina Wählby. 2022. <span>“<span>TissUUmaps</span> 3: Interactive
-Visualization and Quality Assessment of Large-Scale Spatial Omics
-Data.”</span> <em>bioRxiv</em>.
-</div>
 <div id="ref-Wang2020-sv" class="csl-entry">
 Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
 Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
@@ -1272,13 +1270,6 @@ Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
 Tim Wang, Konrad Rokicki, et al. 2021. <span>“<span>EASI-FISH</span> for
 Thick Tissue Defines Lateral Hypothalamus Spatio-Molecular
 Organization.”</span> <em>Cell</em> 184 (26): 6361–6377.e24.
-</div>
-<div id="ref-Warchol2022-zw" class="csl-entry">
-Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
-Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2022. <span>“Visinity:
-Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
-Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> PP (September):
-1–11.
 </div>
 </div>
 </div>
