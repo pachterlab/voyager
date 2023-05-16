@@ -585,7 +585,7 @@ test_that("colData and rowData bin2d", {
     expect_warning(plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes",
                                     facet_by = "nCounts"),
                    "Not facetting")
-    expect_warning(plotColDataBin2D(sfe = sfe_cosmx, x = "nCounts",
+    expect_warning(plotColDataBin2D(sce = sfe_cosmx, x = "nCounts",
                                     y = "nGenes"),
                    "deprecated")
 })
@@ -615,6 +615,10 @@ test_that("colData and rowData histograms", {
         plotColDataHistogram(sfe_cosmx2, c("nCounts", "nGenes"),
                              facet_by = "sample_id")
     })
+    expect_doppelganger("Illegal symbol", {
+        sfe_cosmx$`n-counts` <- sfe_cosmx$nCounts
+        plotColDataHistogram(sfe_cosmx, "n-counts")
+    })
     expect_warning(plotColDataHistogram(sfe = sfe_cosmx, feature = "nCounts"),
                    "deprecated")
 })
@@ -634,6 +638,10 @@ test_that("colData and rowData freqpoly", {
     })
     expect_doppelganger("with subset, freqpoly", {
         plotRowDataFreqpoly(sfe_cosmx, "means", subset = "is_neg")
+    })
+    expect_doppelganger("Illegal symbol freqpoly", {
+        sfe_cosmx$`n-counts` <- sfe_cosmx$nCounts
+        plotColDataFreqpoly(sfe_cosmx, "n-counts")
     })
 })
 
