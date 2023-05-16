@@ -285,16 +285,6 @@
     out
 }
 
-.deprecate_show_symbol <- function(fun_name, show_symbol, swap_rownames) {
-    if (is_present(show_symbol)) {
-        deprecate_warn("1.2.0", paste0(fun_name, "(show_symbol = )"),
-                       paste0(fun_name, "(swap_rownames = )"))
-        # The old behavior
-        if (show_symbol) swap_rownames <- "symbol"
-    } else show_symbol <- !is.null(swap_rownames)
-    list(show_symbol, swap_rownames)
-}
-
 #' @importFrom SingleCellExperiment reducedDim reducedDim<-
 .add_reddim_colnames <- function(sfe, dimred) {
     rd <- reducedDim(sfe, dimred)

@@ -30,7 +30,6 @@ plotSpatialFeature(
   alpha = 1,
   color = "black",
   fill = "gray80",
-  show_symbol = deprecated(),
   swap_rownames = NULL,
   scattermore = FALSE,
   pointsize = 0,
@@ -138,9 +137,6 @@ specified or not applicable, or for \code{annotGeometry} if
 \code{annot_color_by} is not specified or not applicable.}
 
 \item{fill}{Similar to \code{color}, but for fill.}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot

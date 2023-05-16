@@ -695,20 +695,17 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
                                color = "black", fill = "gray80",
-                               show_symbol = deprecated(), swap_rownames = NULL,
+                               swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
                                dark = FALSE, ...) {
-    l <- .deprecate_show_symbol("plotSpatialFeature", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
         colGeometryName = colGeometryName,
         exprs_values = exprs_values,
         swap_rownames = swap_rownames,
-        show_symbol = show_symbol
+        show_symbol = !is.null(swap_rownames)
     )
 
     inds <- !names(values) %in% features
@@ -887,8 +884,12 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' This function plots cell density in histological space as 2D histograms,
 #' especially helpful for larger smFISH-based datasets.
 #'
-#' @inheritParams plotColDataBin2D
 #' @inheritParams plotSpatialFeature
+#' @param bins Number of bins. Can be a vector of length 2 to specify for x and
+#'   y axes separately.
+#' @param binwidth Width of bins, passed to \code{\link{geom_bin2d}} or
+#'   \code{\link{geom_hex}}.
+#' @param hex Logical, whether to use hexagonal bins.
 #' @return A ggplot object.
 #' @export
 #' @examples

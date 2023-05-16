@@ -9,8 +9,6 @@ plotDimLoadings(
   dims = 1:4,
   nfeatures = 10,
   swap_rownames = NULL,
-  show_symbol = deprecated(),
-  symbol_col = deprecated(),
   reduction = "PCA",
   balanced = TRUE,
   ncol = 2,
@@ -31,12 +29,6 @@ loading matrices. See the \code{\link{ElbowPlot}}.}
 identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count
 matrix will be used.}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
-
-\item{symbol_col}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{reduction}{Name of the dimension reduction to use. It must have an
 attribute called either "percentVar" or "eig" for eigenvalues. Defaults to

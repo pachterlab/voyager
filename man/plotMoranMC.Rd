@@ -14,7 +14,6 @@ plotMoranMC(
   annotGeometryName = NULL,
   reducedDimName = NULL,
   ptype = c("density", "histogram", "freqpoly"),
-  show_symbol = deprecated(),
   swap_rownames = NULL,
   name = "moran.mc",
   ...
@@ -51,9 +50,6 @@ annotate the gene expression plot.}
 \code{annotGeometryName} have precedence over \code{reducedDimName}.}
 
 \item{ptype}{Plot type, one of "density", "histogram", or "freqpoly".}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot

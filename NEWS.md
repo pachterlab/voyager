@@ -1,3 +1,6 @@
+# Version 1.3.1 (05/15/2023)
+* Removed functions and arguments deprecated in 1.2.0
+
 # Version 1.2.3 (05/04/2023)
 * Fix bug when plotting a feature with illegal name alongside another feature
 with legal name

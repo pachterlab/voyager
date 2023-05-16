@@ -19,7 +19,6 @@ plotCorrelogram(
   p_adj_method = "BH",
   divergent = FALSE,
   diverge_center = NULL,
-  show_symbol = deprecated(),
   swap_rownames = NULL,
   name = "sp.correlogram"
 )
@@ -79,9 +78,6 @@ TRUE}.}
 
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
 palette should diverge. If \code{NULL}, then not centering.}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot

@@ -21,17 +21,17 @@ plotCellBin2D(
 "all" to compute metric for all samples; the metric is computed separately
 for each sample.}
 
-\item{bins}{Numeric vector giving number of bins in both vertical and
-horizontal directions. Set to 100 by default.}
+\item{bins}{Number of bins. Can be a vector of length 2 to specify for x and
+y axes separately.}
 
-\item{binwidth}{Numeric vector giving bin width in both vertical and
-horizontal directions. Overrides \code{bins} if both set.}
+\item{binwidth}{Width of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}.}
 
-\item{hex}{Logical, whether to use hexagon rather than rectangular bins.
-Requires the \code{hexbin} package.}
+\item{hex}{Logical, whether to use hexagonal bins.}
 
-\item{ncol}{If facetting, the number of columns of facets, passed to
-\code{\link{facet_wrap}}.}
+\item{ncol}{Number of columns if plotting multiple features. Defaults to
+\code{NULL}, which means using the same logic as \code{facet_wrap}, which
+is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.}
 
 \item{bbox}{A bounding box to specify a smaller region to plot, useful when
 the dataset is large. Can be a named numeric vector with names "xmin",
