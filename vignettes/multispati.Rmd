@@ -180,12 +180,75 @@ setNames(colFeatureData(sfe)[c("nCounts", "nGenes", "volume"),
 
 whose magnitudes seem more substantial for `nCounts` and `nGenes` if it's positive spatial autocorrelation. So there may be mild to moderate negative spatial autocorrelation.
 
-# Non-spatial PCA
-First we run non-spatial PCA, to compare to MULTISPATI.
-
 ```{r}
+# Normalize data
 sfe <- logNormCounts(sfe)
 ```
+
+# Hepatic zonation
+
+This dataset comes from a relatively large piece of tissue and we need to zoom into a smaller region to better see the local structures. Here we specify a bounding box.
+
+```{r}
+bbox_use <- c(xmin = 6100, xmax = 7100, ymin = 7500, ymax = 8500)
+```
+
+A portal triad is shown near the top right of this bounding box. The two large vessels on the left and bottom right are central veins. The portal triad consists of the hepatic artery, portal vein which brings blood from the intestine, and bile duct, so it's more oxygenated. The regions around the central vein is more deoxygenated. The different oxygen and nutrient contents mean that hepatocytes play different metabolic roles in the zones between the portal triad and the central vein. Here we plot some zonation marker genes from [@Halpern2017-lq]. 
+
+```{r}
+markers <- c("Axin2", "Cyp1a2", "Gstm3", "Psmd4", # Pericentral
+             "Cyp2e1", "Asl", "Alb", "Ass1", # Monotonic but has intermediate
+             "Hamp", "Igfbp2", "Cyp8b1", "Mup3", # Non-monotonic
+             "Arg1", "Pck1", "C2", "Sdhd") # Periportal
+```
+
+```{r}
+(inds <- which(markers %in% rownames(sfe)))
+```
+
+Only 3 of these marker genes are present in this dataset. The first two are pericentral (near the central vein), and the last one is periportal (near the portal triad).
+```{r, fig.width=9, fig.height=3}
+plotSpatialFeature(sfe, markers[inds], colGeometryName = "cellSeg",
+                   ncol = 3, bbox = bbox_use)
+```
+
+Besides hepatocytes, the liver also has many endothelial cells and Kupffer cells (macrophages). Marker genes of these cells from [@Bonnardel2019-le] are plotted to visualize these cell types in space:
+
+```{r}
+# Kuppfer cells
+kc_genes <- c("Timd4", "Vsig4", "Clec4f", "Clec1b", "Il18bp", "C6", "Irf7",
+              "Slc40a1", "Cdh5", "Nr1h3", "Dmpk", "Paqr9", "Pcolce2", "Kcna2",
+              "Gbp8", "Iigp1", "Helz2", "Cd207", "Icos", "Adcy4", "Slc1a2",
+              "Rsad2", "Slc16a9", "Cd209f", "Oasl1", "Fam167a")
+which(kc_genes %in% rownames(sfe))
+```
+
+Only one of the Kupffer cell markers is available in this dataset.
+```{r}
+plotSpatialFeature(sfe, kc_genes[9], colGeometryName = "cellSeg",
+                   bbox = bbox_use)
+```
+
+Expression of this gene does not seem very spatially coherent.
+
+```{r}
+# Endothelial cells
+lec_genes <- c("Rspo3", "Wnt2", "Wnt9b", "Pcdhgc5", "Ecm1", "Ltbp4", "Efnb2")
+(inds_lec <- which(lec_genes %in% rownames(sfe)))
+```
+
+Only 3 of these endothelial cell marker genes are available in this dataset.
+```{r, fig.width=9, fig.height=3}
+plotSpatialFeature(sfe, lec_genes[inds_lec], colGeometryName = "cellSeg",
+                   bbox = bbox_use, ncol = 3)
+```
+
+Wnt2 seems to be more pericentral, while Ltbp4 and Efnb2 seem more periportal.
+
+Some of these marker genes will show up in the top PC loadings non-spatial and spatial PCA.
+
+# Non-spatial PCA
+First we run non-spatial PCA, to compare to MULTISPATI.
 
 ```{r}
 set.seed(29)
@@ -208,7 +271,7 @@ Plot top gene loadings in each PC
 plotDimLoadings(sfe)
 ```
 
-Many of these genes seem to be related to the endothelium.
+Many of these genes seem to be related to the endothelium. PC1 and PC4 concern the Kupffer cells as well, as the Kupffer cell marker gene Cdh5 has high loading.
 
 Plot the first 4 PCs in space
 ```{r, fig.width=9, fig.height=7}
@@ -218,11 +281,7 @@ spatialReducedDim(sfe, "PCA", 4, colGeometryName = "centroids", scattermore = TR
 
 PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. 
 
-While PC2 and PC3 don't seem to have large scale spatial structure, they may have more local spatial structure not obvious from plotting the entire section, so we zoom into a bounding box:
-
-```{r}
-bbox_use <- c(xmin = 3000, xmax = 3500, ymin = 2500, ymax = 3000)
-```
+While PC2 and PC3 don't seem to have large scale spatial structure, they may have more local spatial structure not obvious from plotting the entire section, so we zoom into a bounding box which shows hepatic zonation.
 
 ```{r, fig.width=9, fig.height=7}
 spatialReducedDim(sfe, "PCA", ncomponents = 4, colGeometryName = "cellSeg",
@@ -234,11 +293,13 @@ There's some spatial structure at a smaller scale, perhaps some negative spatial
 # MULTISPATI PCA
 
 ```{r}
-sfe <- runMultivariate(sfe, "multispati", colGraphName = "knn5", nfposi = 20,
+system.time({
+    sfe <- runMultivariate(sfe, "multispati", colGraphName = "knn5", nfposi = 20,
                        nfnega = 20)
+})
 ```
 
-Then plot the most positive and most negative eigenvalues. Note that the eigenvalues here are not variance explained. Instead, they are the product of variance explained and Moran's I. So the most positive eigenvalues correspond to eigenvectors that simultaneously explain more variance and have large positive Moran's I. The most negative eigenvalues correspond to eigenvectors that simultaneously explain more variance and have large negative Moran's I.
+Then plot the most positive and most negative eigenvalues. Note that the eigenvalues here are not variance explained. Instead, they are the product of variance explained and Moran's I. So the most positive eigenvalues correspond to eigenvectors that simultaneously explain more variance and have large positive Moran's I. The most negative eigenvalues correspond to eigenvectors that simultaneously explain more variance and have negative Moran's I.
 ```{r}
 ElbowPlot(sfe, nfnega = 20, reduction = "multispati")
 ```
@@ -251,27 +312,17 @@ What do these components mean? Each component is a linear combination of genes t
 plotDimLoadings(sfe, dims = c(1:3, 40), reduction = "multispati")
 ```
 
-From gene loadings, PC40 seems to separate blood vessels from hepatocytes.
+From gene loadings, PC40 seems to separate endothelial cells and Kupffer cells from hepatocytes.
 
-Plot the first 4 MULTISPATI PCs
+Plot the these PCs:
 ```{r, fig.width=9, fig.height=7}
-spatialReducedDim(sfe, "multispati", 4, colGeometryName = "centroids", scattermore = TRUE,
+spatialReducedDim(sfe, "multispati", components = c(1:3, 40), 
+                  colGeometryName = "cellSeg", bbox = bbox_use,
                   divergent = TRUE, diverge_center = 0)
 ```
 
 
-The first two PCs pick up zoning. PC3 and PC4 seem to have smaller scale spatial structure, so we zoom in here:
-
-```{r, fig.width=9, fig.height=7}
-spatialReducedDim(sfe, "multispati", ncomponents = 4, colGeometryName = "cellSeg",
-                  bbox = bbox_use, divergent = TRUE, diverge_center = 0)
-```
-
-What about the negative eigenvalue?
-```{r}
-spatialReducedDim(sfe, "multispati", 39:40, colGeometryName = "cellSeg", 
-                  divergent = TRUE, diverge_center = 0, bbox = bbox_use)
-```
+The first two PCs pick up zoning. PC3 seems to have smaller scale spatial structure. PC"40" (should really be 300 something) is an example of negative spatial autocorrelation in biology. That Kupffer cells and endothelial cells are scattered among hepatocytes may play a functional role. This does not mean that non-spatial PCA is bad. While MULTISPATI tends not to lose too much variance explained in per PC with positive eigenvalues, it identifies co-expressed genes with spatially structured expression patterns. MULTISPATI tells a different story from non-spatial PCA. PCA cell embeddings are often used for downstream analysis. Whether to use MULTISPATI embeddings instead and which or how many PCs to use depend on the questions asked in the further downstream analyses.
 
 # Spatial autocorrelation of principal components
 ## Moran's I
@@ -306,29 +357,35 @@ df_moran |>
     ggplot(aes(index, value, color = name)) +
     geom_line() +
     scale_color_manual(values = ditto_colors) +
-    geom_hline(yintercept = 0) +
-    geom_hline(yintercept = mb, linetype = 2) +
+    geom_hline(yintercept = 0, color = "gray") +
+    geom_hline(yintercept = mb, linetype = 2, color = "gray") +
     scale_y_continuous(breaks = scales::breaks_pretty()) +
     scale_x_continuous(breaks = scales::breaks_width(5)) +
     labs(y = "Moran's I", color = "Type", x = "Component")
 ```
 
-In MULTISPATI, Moran's I is high in PC1 and PC2, but then sharply drops. Moran's I for the PC with the most negative eigenvalues is not very negative, which means the large magnitude of that eigenvalue comes from explaining more variance. Non-spatial PCs are not sorted by Moran's I; PC5 has surprising large Moran's I. 
+In MULTISPATI, Moran's I is high in PC1 and PC2, but then sharply drops. Moran's I for the PC with the most negative eigenvalues is not very negative, which means the large magnitude of that eigenvalue comes from explaining more variance. However, considering the lower bound of Moran's I that is around -0.6 instead of -1, the magnitude of Moran's I for the PC with the most negative eigenvalue is not trivial.
 
-```{r, fig.width=9, fig.height=4}
-spatialReducedDim(sfe, "PCA", 5:6, colGeometryName = "centroids", scattermore = TRUE,
-                  divergent = TRUE, diverge_center = 0)
+```{r}
+min(df_moran$MULTISPATI_neg) / mb[1]
 ```
 
-PC5 must be about zonation. Also show a smaller scale:
+Non-spatial PCs are not sorted by Moran's I; PC5 has surprising large Moran's I. 
 
-```{r, fig.width=9, fig.height=4}
-spatialReducedDim(sfe, "PCA", 5:6, colGeometryName = "cellSeg", 
+```{r}
+spatialReducedDim(sfe, "PCA", component = 5, colGeometryName = "cellSeg", 
                   divergent = TRUE, diverge_center = 0, bbox = bbox_use)
 ```
 
+PC5 must be about zonation. Also show a larger scale:
+
+```{r}
+spatialReducedDim(sfe, "PCA", components = 5, colGeometryName = "centroids", 
+                  divergent = TRUE, diverge_center = 0, scattermore = TRUE)
+```
+
 ## Moran scatter plot
-Local positive and negative spatial autocorrelation can average out in global Moran's I. From the zoomed in plots above, PCs 1, 3, 4, and 6 pick up something about the blood vessel. The Moran scatter plot can help discovering more local heterogeneity.
+Local positive and negative spatial autocorrelation can average out in global Moran's I. From the zoomed in plots and gene loadings above, some PCs are about endothelial cells. The Moran scatter plot can help discovering more local heterogeneity.
 ```{r}
 sfe <- reducedDimUnivariate(sfe, "moran.plot", dimred = "PCA", components = 1:6)
 ```
