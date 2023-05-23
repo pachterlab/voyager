@@ -112,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-05-22</h4>
+            <h4 data-toc-skip class="date">2023-05-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -143,10 +143,6 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <p>Here we load the packages used in this vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
-<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'SummarizedExperiment'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'S4Arrays::read_block' by</span></span>
-<span><span class="co">#&gt; 'DelayedArray::read_block' when loading 'HDF5Array'</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
@@ -602,33 +598,33 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 9 columns</span></span>
-<span><span class="co">#&gt;                        p.value       FDR summary.AUC     AUC.2     AUC.3</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341 8.71727e-07 0.0131134    0.647195  0.647195  0.971553</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 2.36836e-06 0.0178137    0.780237  0.683835  0.926343</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354 3.55933e-06 0.0178477    0.638238  0.638238  0.986502</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787 5.69011e-06 0.0195567    0.768505  0.705228  0.865239</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064358 6.50027e-06 0.0195567    0.634235  0.634235  0.990614</span></span>
-<span><span class="co">#&gt; ...                        ...       ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1         1         0.5  0.494949  0.476923</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1         1         0.5  0.497475  0.500000</span></span>
-<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6     AUC.7</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341  0.780901  0.989822  0.926201  0.883285</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.805331  0.971482  0.872675  0.780237</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354  0.796945  0.999088  0.952585  0.865264</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787  0.694797  0.914974  0.763103  0.768505</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064358  0.799555  0.999520  0.961327  0.912917</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.500000  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.500000  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.500000  0.492366  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.489796  0.473282  0.489362       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000  0.500000       0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
+<span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 1.60201e-10 1.22379e-06    0.689960  0.689960  0.979061</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 1.62706e-10 1.22379e-06    0.689888  0.689888  0.909634</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730 7.89876e-10 3.96070e-06    0.682332  0.682332  0.899296</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787 2.38600e-08 8.97316e-05    0.685159  0.709251  0.816386</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341 1.28180e-07 3.85644e-04    0.655660  0.655660  0.969646</span></span>
+<span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095           1           1         0.5  0.497685       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497685       0.5</span></span>
+<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360  0.884333  0.993854  0.753356</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.854687  0.971508  0.818361</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730  0.810078  0.976749  0.797287</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787  0.804321  0.913713  0.685159</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341  0.904139  0.989804  0.792124</span></span>
+<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095       0.5  0.496212  0.496269</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969       0.5  0.496212  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378       0.5  0.496212  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437       0.5  0.492424  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649       0.5  0.500000  0.500000</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
 package to perform a gene enrichment analysis. You can choose from
@@ -696,13 +692,12 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ncbi_description</span></span>
-<span><span class="co">#&gt; Mtnd1                                                                       Predicted to enable NADH dehydrogenase (ubiquinone) activity. Predicted to contribute to NADH dehydrogenase activity. Predicted to be involved in mitochondrial electron transport, NADH to ubiquinone; mitochondrial respiratory chain complex I assembly; and response to hydroperoxide. Located in mitochondrion. Human ortholog(s) of this gene implicated in several diseases, including MELAS syndrome; neurodegenerative disease (multiple); optic nerve disease (multiple); toxic shock syndrome; and type 2 diabetes mellitus. Orthologous to human MT-ND1 (mitochondrially encoded NADH:ubiquinone oxidoreductase core subunit 1). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Cox6a2                                                                                                                                                                                                                                                                                        Predicted to enable enzyme regulator activity. Predicted to be involved in mitochondrial electron transport, cytochrome c to oxygen. Located in mitochondrion. Is expressed in several structures, including alimentary system; brain; heart; limb; and musculature. Human ortholog(s) of this gene implicated in cytochrome-c oxidase deficiency disease. Orthologous to human COX6A2 (cytochrome c oxidase subunit 6A2). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Abi3bp                                   Enables collagen binding activity and heparin binding activity. Involved in negative regulation of cell population proliferation; negative regulation of connective tissue replacement involved in inflammatory response wound healing; and positive regulation of cardiocyte differentiation. Acts upstream of or within extracellular matrix organization and positive regulation of cell-substrate adhesion. Located in interstitial matrix. Is expressed in several structures, including connective tissue; gut; male reproductive gland or organ; olfactory epithelium; and quadriceps femoris muscle. Orthologous to human ABI3BP (ABI family member 3 binding protein). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Flnc                                                                                                                                                          Predicted to enable ankyrin binding activity and identical protein binding activity. Involved in muscle cell development. Predicted to be located in cytosol; sarcolemma; and sarcoplasm. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; skeletal musculature; and spinal cord ventricular layer. Used to study myofibrillar myopathy 5. Human ortholog(s) of this gene implicated in distal muscular dystrophy 4; hypertrophic cardiomyopathy 26; and myofibrillar myopathy 5. Orthologous to human FLNC (filamin C). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Gpnmb  Enables heparin binding activity and integrin binding activity. Involved in several processes, including negative regulation of tumor necrosis factor production; positive regulation of ERK1 and ERK2 cascade; and positive regulation of protein phosphorylation. Acts upstream of or within cell adhesion. Located in cytoplasmic vesicle. Is integral component of plasma membrane. Is expressed in several structures, including alimentary system; brain; eye; heart ventricle; and mesenchyme derived from neural crest. Used to study pigment dispersion syndrome. Human ortholog(s) of this gene implicated in primary localized cutaneous amyloidosis 3. Orthologous to human GPNMB (glycoprotein nmb). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; NaN                                                                                                                                                                                                                                                                                                                                                                        This gene produces a long non-coding RNA that is cleaved into a mature, functional transcript as well as a small cytoplasmic RNA (mascRNA). The mature transcript is stabilized by a 3' triple helical structure and is retained in the nucleus. This transcript functions in the regulation of gene expression and proliferation and may be upregulated in tumors. [provided by RefSeq, Nov 2016]</span></span></code></pre></div>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ncbi_description</span></span>
+<span><span class="co">#&gt; mt-Nd3                                                                                                                                                                                                             Predicted to enable NADH dehydrogenase (ubiquinone) activity. Predicted to be involved in cellular response to glucocorticoid stimulus; mitochondrial electron transport, NADH to ubiquinone; and response to oxidative stress. Located in mitochondrion. Is expressed in several structures, including alimentary system; brain; genitourinary system; hemolymphoid system gland; and liver and biliary system. Human ortholog(s) of this gene implicated in Leber hereditary optic neuropathy; Leigh disease; and Parkinson's disease. Orthologous to human MT-ND3 (mitochondrially encoded NADH:ubiquinone oxidoreductase core subunit 3). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Gapdh                                                                                            This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
+<span><span class="co">#&gt; Hsp90ab1 Enables protein folding chaperone; protein kinase binding activity; and tau protein binding activity. Contributes to protein kinase regulator activity. Involved in several processes, including axonogenesis; positive regulation of protein kinase B signaling; and regulation of cellular protein metabolic process. Acts upstream of or within cellular response to interleukin-4; negative regulation of apoptotic process; and placenta development. Located in growth cone; neuronal cell body; and perinuclear region of cytoplasm. Part of HSP90-CDC37 chaperone complex. Is expressed in several structures, including branchial arch; central nervous system; eye; limb; and placenta. Human ortholog(s) of this gene implicated in multiple sclerosis. Orthologous to human HSP90AB1 (heat shock protein 90 alpha family class B member 1). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Des                                                                                                                                                                                 This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, ncol <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -907,7 +902,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [1] BiocNeighbors_1.18.0           concordexR_1.0.0              </span></span>
 <span><span class="co">#&gt;  [3] reticulate_1.28                dplyr_1.1.2                   </span></span>
 <span><span class="co">#&gt;  [5] sparseMatrixStats_1.12.0       stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [7] BiocParallel_1.34.1            SFEData_1.2.0                 </span></span>
+<span><span class="co">#&gt;  [7] BiocParallel_1.34.2            SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt;  [9] bluster_1.10.0                 patchwork_1.1.2               </span></span>
 <span><span class="co">#&gt; [11] scran_1.28.1                   scater_1.28.0                 </span></span>
 <span><span class="co">#&gt; [13] ggplot2_3.4.2                  scuttle_1.10.1                </span></span>
@@ -939,7 +934,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [33] units_0.8-2                   RSpectra_0.16-1              </span></span>
 <span><span class="co">#&gt;  [35] dqrng_0.3.0                   pkgdown_2.0.7                </span></span>
 <span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.0     codetools_0.2-19             </span></span>
-<span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.2          </span></span>
+<span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.3          </span></span>
 <span><span class="co">#&gt;  [41] tidyselect_1.2.0              farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [43] ScaledMatrix_1.8.1            viridis_0.6.3                </span></span>
 <span><span class="co">#&gt;  [45] BiocFileCache_2.8.0           jsonlite_1.8.4               </span></span>
