@@ -112,7 +112,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-06</h4>
+            <h4 data-toc-skip class="date">2023-06-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig4_cosmx.Rmd" class="external-link"><code>vignettes/vig4_cosmx.Rmd</code></a></small>
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -674,7 +674,7 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.599   0.040   8.650</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.674   0.045   8.736</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -684,10 +684,10 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; DataFrame with 4 rows and 2 columns</span></span>
 <span><span class="co">#&gt;             moran_sample01 K_sample01</span></span>
 <span><span class="co">#&gt;                  &lt;numeric&gt;  &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; nCounts           0.386671    6.80818</span></span>
-<span><span class="co">#&gt; nGenes            0.434657    3.19599</span></span>
-<span><span class="co">#&gt; Area              0.198198    8.96966</span></span>
-<span><span class="co">#&gt; AspectRatio       0.256207   43.05666</span></span></code></pre></div>
+<span><span class="co">#&gt; nCounts           0.386656    6.80818</span></span>
+<span><span class="co">#&gt; nGenes            0.434642    3.19599</span></span>
+<span><span class="co">#&gt; Area              0.198156    8.96966</span></span>
+<span><span class="co">#&gt; AspectRatio       0.256206   43.05666</span></span></code></pre></div>
 <p>Positive spatial autocorrelation is suggested, which is stronger in
 nCounts and nGenes.</p>
 <p>What are the length scales of spatial autocorrelation for these QC
@@ -712,7 +712,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 638.641  15.442 330.983</span></span></code></pre></div>
+<span><span class="co">#&gt; 662.597  18.263 349.833</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -921,16 +921,16 @@ due to overplotting and make this plot really slow.</p>
 <span><span class="co">#&gt; DataFrame with 10 rows and 1 column</span></span>
 <span><span class="co">#&gt;          moran_sample01</span></span>
 <span><span class="co">#&gt;               &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; MZT2A          0.199116</span></span>
-<span><span class="co">#&gt; COL1A1         0.394773</span></span>
-<span><span class="co">#&gt; IGHM           0.293256</span></span>
-<span><span class="co">#&gt; HLA-DPA1       0.242445</span></span>
-<span><span class="co">#&gt; PECAM1         0.119165</span></span>
-<span><span class="co">#&gt; IGKC           0.425190</span></span>
-<span><span class="co">#&gt; SERPINA1       0.254088</span></span>
-<span><span class="co">#&gt; IL7R           0.177640</span></span>
+<span><span class="co">#&gt; MZT2A          0.199131</span></span>
+<span><span class="co">#&gt; COL1A1         0.394788</span></span>
+<span><span class="co">#&gt; IGHM           0.293260</span></span>
+<span><span class="co">#&gt; HLA-DPA1       0.242435</span></span>
+<span><span class="co">#&gt; PECAM1         0.119167</span></span>
+<span><span class="co">#&gt; IGKC           0.425196</span></span>
+<span><span class="co">#&gt; SERPINA1       0.254086</span></span>
+<span><span class="co">#&gt; IL7R           0.177658</span></span>
 <span><span class="co">#&gt; TPSB2          0.206129</span></span>
-<span><span class="co">#&gt; KRT19          0.770418</span></span></code></pre></div>
+<span><span class="co">#&gt; KRT19          0.770435</span></span></code></pre></div>
 <p>Local Moran’s I of these marker genes</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>,</span>
@@ -995,7 +995,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;  [9] bluster_1.10.0                 scran_1.28.1                  </span></span>
 <span><span class="co">#&gt; [11] scater_1.28.0                  ggplot2_3.4.2                 </span></span>
 <span><span class="co">#&gt; [13] scuttle_1.10.1                 SpatialExperiment_1.10.0      </span></span>
-<span><span class="co">#&gt; [15] SingleCellExperiment_1.22.0    SummarizedExperiment_1.30.1   </span></span>
+<span><span class="co">#&gt; [15] SingleCellExperiment_1.22.0    SummarizedExperiment_1.30.2   </span></span>
 <span><span class="co">#&gt; [17] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
 <span><span class="co">#&gt; [19] GenomeInfoDb_1.36.0            IRanges_2.34.0                </span></span>
 <span><span class="co">#&gt; [21] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
@@ -1008,7 +1008,7 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt;   [5] tibble_3.2.1                  R.oo_1.25.0                  </span></span>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               edgeR_3.42.4                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.1                 </span></span>
+<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.2                 </span></span>
 <span><span class="co">#&gt;  [13] sass_0.4.6                    rmarkdown_2.22               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
 <span><span class="co">#&gt;  [17] metapod_1.8.0                 httpuv_1.6.11                </span></span>
