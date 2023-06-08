@@ -23,8 +23,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -35,12 +34,10 @@ knitr::opts_chunk$set(
 # First install `sf`, `ragg` and `textshaping` and their system dependencies:
 system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
 
-install.packages("fs")
 install.packages("stringr")
 ```
 
 ```{r setup}
-library(fs)
 library(stringr)
 ```
 
@@ -57,7 +54,7 @@ In this notebook we demonstrate how single-cell genomics data can be preprocesse
 
 # Install Packages
 The vignette makes use of two non-standard command line tools, [`jq`](https://jqlang.github.io/jq/) and [`tree`](https://mama.indstate.edu/users/ice/tree/). The code cell below installs these tools on a Linux operating system and should be updated for Mac and Windows users.
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 # Install `tree` to view files
 system("wget --quiet --show-progress ftp://mama.indstate.edu/linux/tree/tree-2.1.0.tgz")
 
@@ -66,7 +63,7 @@ system("wget --quiet --show-progress https://github.com/stedolan/jq/releases/dow
 system("chmod +x jq-linux64 && mv jq-linux64 /usr/local/bin/jq")
 ```
 We will continue with other dependencies that can be installed on any operating system. 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 # Clone the cellatlas repo and install the package
 system("git clone https://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@github.com/cellatlas/cellatlas.git")
 system("cd cellatlas && pip install .")
@@ -151,16 +148,16 @@ system("mv cellatlas/examples/rna-splitseq/* .")
 system("gunzip barcode*")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files. Note that the names of the nodes in the `seqspec` must match the names of the FASTQ files. The `seqspec` for SPLiT-seq contains the specification for multiple split-pool rounds. 
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf mus_musculus")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.mus_musculus.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -170,7 +167,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -183,7 +180,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we simply extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_extract(cmds, "kb.*(txt|gz)")
@@ -192,11 +189,11 @@ lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -207,16 +204,16 @@ system("mv cellatlas/examples/tag-clicktag/* .")
 system("gunzip 737K-august-2016.txt.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf homo_sapiens")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.homo_sapiens.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -226,7 +223,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -240,7 +237,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we simply extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_extract(cmds, "kb.*(txt|gz)")
@@ -249,11 +246,11 @@ lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -264,16 +261,16 @@ system("mv cellatlas/examples/rna-10xv3/* .")
 system("gunzip 3M-february-2018.txt.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf homo_sapiens")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.homo_sapiens.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -283,7 +280,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -297,7 +294,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we simply extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_extract(cmds, "kb.*(txt|gz)")
@@ -306,11 +303,11 @@ lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -321,16 +318,16 @@ system("mv cellatlas/examples/atac-10xatac/* .")
 system("gunzip *.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf homo_sapiens")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.homo_sapiens.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -340,7 +337,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -353,7 +350,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_trim(cmds)
@@ -364,16 +361,16 @@ cmds <- str_replace_all(cmds, fixed("\\t"), "\t")
 cmds
 ```
 
-```{r}
+```{r, eval = FALSE}
 lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -384,16 +381,16 @@ system("mv cellatlas/examples/atac-10xmultiome/* .")
 system("gunzip *.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf mus_musculus")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.mus_musculus.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -403,7 +400,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -416,7 +413,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_trim(cmds)
@@ -427,16 +424,16 @@ cmds <- str_replace_all(cmds, fixed("\\t"), "\t")
 cmds
 ```
 
-```{r}
+```{r, eval = FALSE}
 lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -447,16 +444,16 @@ system("mv cellatlas/examples/crispr-10xcrispr/* .")
 system("gunzip *.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf homo_sapiens")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.homo_sapiens.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -466,7 +463,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -480,7 +477,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_extract(cmds, "kb.*(txt|gz)")
@@ -488,16 +485,16 @@ cmds <- str_extract(cmds, "kb.*(txt|gz)")
 cmds
 ```
 
-```{r}
+```{r, eval = FALSE}
 lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
@@ -508,16 +505,16 @@ system("mv cellatlas/examples/rna-10xv3-nuclei/* .")
 system("gunzip *.gz")
 ```
 The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files.
-```{r}
+```{r, eval = FALSE}
 system("seqspec print spec.yaml")
 ```
 ### Fetch the references
 This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
-```{r}
+```{r, eval = FALSE}
 system("gget ref -o ref.json -w dna,gtf homo_sapiens")
 ```
 ### Build the pipeline
-```{r}
+```{r, eval = FALSE}
 FA <- system2("jq",
   args = c("-r", "'.homo_sapiens.genome_dna.ftp'", "ref.json"),
   stdout = TRUE)
@@ -527,7 +524,7 @@ GTF <- system2("jq",
   stdout = TRUE)
 ```
 
-```{r}
+```{r, eval = FALSE}
 args <- c(
   "-o out", 
   "-s spec.yaml",
@@ -541,7 +538,7 @@ system2(command = "cellatlas", args = c("build", args))
 ```
 ### Run the pipeline
 To run the pipeline we extract the commands from `out/cellatlas_info.json` and run them on the command line. 
-```{r}
+```{r, eval = FALSE}
 cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
 cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
 cmds <- str_extract(cmds, "kb.*(txt|gz)")
@@ -549,16 +546,16 @@ cmds <- str_extract(cmds, "kb.*(txt|gz)")
 cmds
 ```
 
-```{r}
+```{r, eval = FALSE}
 lapply(cmds, function(cmd) system(cmd))
 ```
 ### Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r}
+```{r, eval = FALSE}
 system("tree out")
 ```
 
-```{r}
+```{r, eval = FALSE}
 system("cat out/run_info.json")
 # system("cat out/kb_info.json")
 ```
