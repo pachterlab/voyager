@@ -40,8 +40,6 @@ install.packages("ragg")
 # Install system dependencies of some other R packages that Voyager either imports or suggests:
 system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
-system("git clone https://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@github.com/cellatlas/cellatlas.git")
-
 # Install anndata for cellatlas examples
 install.packages("reticulate")
 reticulate::install_miniconda()
@@ -78,10 +76,14 @@ library(scuttle)
 library(Voyager)
 ```
 
-```{r}
+```{r dwnld}
+system("git clone https://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@github.com/cellatlas/cellatlas.git")
+
 system("gunzip cellatlas/examples/rna-splitseq/cellatlas_out/*gz")
 ad <- read_h5ad("cellatlas/examples/rna-splitseq/cellatlas_out/adata.h5ad")
+```
 
+```{r make-sce}
 # Transpose X so that genes are on the rows
 mat <- as(t(ad$X), "CsparseMatrix")
 sce <- SingleCellExperiment(assays = list(counts=mat))
@@ -112,7 +114,7 @@ plotColDataBin2D(sce, x = "sum", y = "detected")
 plotColDataBin2D(sce, x = "sum", y = "subsets_mito_detected")
 ```
 
-```{r}
+```{r subset-qc}
 sce <- sce[, which(sce$subsets_mito_percent < 20)]
 sce <- sce[rowSums(counts(sce)) > 0,]
 
