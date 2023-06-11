@@ -1,5 +1,5 @@
 ---
-title: "Chromium nuclei isolation basic quality control"
+title: "Basic quality control on scRNA-seq data with ClickTag barcodes"
 author: "Kayla Jackson and A. Sina Booeshaghi"
 date: "`r Sys.Date()`"
 output: 
@@ -15,7 +15,7 @@ jupyter:
     name: ir
 bibliography: ref.bib
 vignette: >
-  %\VignetteIndexEntry{10x_nuclei_qc}
+  %\VignetteIndexEntry{clicktag_qc}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -79,8 +79,8 @@ library(Voyager)
 ```{r dwnld}
 # system("git clone https://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@github.com/cellatlas/cellatlas.git")
 
-system("gunzip cellatlas/examples/rna-10xv3-nuclei/cellatlas_out/*gz")
-ad <- read_h5ad("cellatlas/examples/rna-10xv3-nuclei/cellatlas_out/adata.h5ad")
+system("gunzip cellatlas/examples/tag-clicktag/cellatlas_out/*gz")
+ad <- read_h5ad("cellatlas/examples/tag-clicktag/cellatlas_out/adata.h5ad")
 ```
 
 ```{r make-sce}
@@ -88,6 +88,10 @@ ad <- read_h5ad("cellatlas/examples/rna-10xv3-nuclei/cellatlas_out/adata.h5ad")
 mat <- as(t(ad$X), "CsparseMatrix")
 sce <- SingleCellExperiment(assays = list(counts=mat))
 rowData(sce) <- ad$var
+```
+
+```{r}
+head(rowData(sce))
 ```
 
 ```{r}
