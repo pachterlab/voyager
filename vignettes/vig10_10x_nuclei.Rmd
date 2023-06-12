@@ -40,11 +40,6 @@ install.packages("ragg")
 # Install system dependencies of some other R packages that Voyager either imports or suggests:
 system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
-# Install anndata for cellatlas examples
-install.packages("reticulate")
-reticulate::install_miniconda()
-install.packages("anndata")
-
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
 BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
@@ -57,6 +52,12 @@ system.time(
 packageVersion("Voyager")
 ```
 
+```{r retic, include=FALSE}
+# Install anndata for cellatlas examples
+install.packages("reticulate")
+reticulate::install_miniconda()
+install.packages("anndata")
+```
 # Introduction
 The data in this vignette is shipped with the `cellatlas` repository. The count matrix and metadata are provided in the `cellatlas/examples` folder as an [`AnnData`](https://anndata-tutorials.readthedocs.io/en/latest/getting-started.html) object. We will begin by loading the object and converting it to a `SingleCellExperiment` object. 
 
