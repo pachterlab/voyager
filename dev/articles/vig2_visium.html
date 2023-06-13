@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig2_visium.Rmd" class="external-link"><code>vignettes/vig2_visium.Rmd</code></a></small>
       <div class="d-none name"><code>vig2_visium.Rmd</code></div>
@@ -442,13 +444,12 @@ have aliases. However, gene symbols are shorter and more human readable
 than Ensembl IDs, and are better suited to display on plots. In the
 <code><a href="../reference/plotSpatialFeature.html">plotSpatialFeature()</a></code> function and other functions in
 <code>Voyager</code>, even when the row names are recorded as Ensembl
-IDs, the <code>features</code> argument can take gene symbols if there
-is a column called “symbols” in <code>rowData(sfe)</code>, where the
-function converts the gene symbols to Ensembl IDs. By default, gene
-symbols are shown on the plot, but the <code>show_symbol</code> argument
-can be set to <code>FALSE</code> to show Ensembl IDs instead. If one
-gene symbol matches multiple Ensembl IDs in the dataset, then a warning
-will be given.</p>
+IDs, the <code>features</code> argument can take gene symbols with the
+<code>swap_rownames</code> argument indicating a column in
+<code>rowData(sfe)</code> that stores the gene symbols. Gene symbols is
+then also shown in plots instead of Ensembl IDs. If one gene symbol
+matches multiple Ensembl IDs in the dataset, then a warning will be
+given.</p>
 <p>The <code>exprs_values</code> argument specifies the assay to use,
 which is by default “logcounts”, i.e. the log normalized data. This
 default may or may not be suitable in practice given that total UMI
@@ -459,13 +460,13 @@ both the raw counts and the log normalized counts:</p>
 <span><span class="va">plot_counts_logcounts</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span>, <span class="st">"spotPoly"</span>,</span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, </span>
-<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span>, </span>
 <span>                   exprs_values <span class="op">=</span> <span class="st">"counts"</span>, aes_use <span class="op">=</span> <span class="st">"color"</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>                   fill <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Raw counts"</span><span class="op">)</span></span>
 <span>  <span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">feature</span>, <span class="st">"spotPoly"</span>,</span>
 <span>                   annotGeometryName <span class="op">=</span> <span class="st">"myofiber_simplified"</span>, </span>
-<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                   annot_aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span>, </span>
 <span>                   exprs_values <span class="op">=</span> <span class="st">"logcounts"</span>, aes_use <span class="op">=</span> <span class="st">"color"</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>                   fill <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Log normalized counts"</span><span class="op">)</span></span>
@@ -473,15 +474,7 @@ both the raw counts and the log normalized counts:</p>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>title <span class="op">=</span> <span class="va">feature</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">plot_counts_logcounts</span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">markers</span><span class="op">[</span><span class="st">"I"</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The `show_symbol` argument of `plotSpatialFeature()` is deprecated as of</span></span>
-<span><span class="co">#&gt; Voyager 1.2.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use the `swap_rownames` argument instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">Voyager</span> package.</span></span>
-<span><span class="co">#&gt;   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/pachterlab/voyager/issues&gt;</span>.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">plot_counts_logcounts</span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">markers</span><span class="op">[</span><span class="st">"I"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig2_visium_files/figure-html/unnamed-chunk-22-1.png" alt="Raw and log normalized counts of Myh7, marker gene of type I myofiber, plotted side by side on Visium spots in space, with myofiber polygons colored by myofiber cross section area plotted in the background. Visium spots expressing Myh7 concentrate in the lower left part of the tissue where the myofibers tend to be smaller." width="700" style="display: block; margin: auto;"></p>
 <p>A marker gene for type IIa myofibers is shown above. It is
 straightforward to modify the plotting to display markers for type IIb
@@ -1253,7 +1246,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] reticulate_1.29                dplyr_1.1.2                   </span></span>
+<span><span class="co">#&gt;  [1] reticulate_1.30                dplyr_1.1.2                   </span></span>
 <span><span class="co">#&gt;  [3] bluster_1.10.0                 BiocParallel_1.34.2           </span></span>
 <span><span class="co">#&gt;  [5] patchwork_1.1.2                scales_1.2.1                  </span></span>
 <span><span class="co">#&gt;  [7] sf_1.0-13                      SFEData_1.2.0                 </span></span>
@@ -1263,7 +1256,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [15] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
 <span><span class="co">#&gt; [17] GenomeInfoDb_1.36.0            IRanges_2.34.0                </span></span>
 <span><span class="co">#&gt; [19] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
-<span><span class="co">#&gt; [21] MatrixGenerics_1.12.0          matrixStats_1.0.0             </span></span>
+<span><span class="co">#&gt; [21] MatrixGenerics_1.12.2          matrixStats_1.0.0             </span></span>
 <span><span class="co">#&gt; [23] SpatialFeatureExperiment_1.2.1 Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
@@ -1285,7 +1278,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt;  [31] irlba_2.3.5.1                 terra_1.7-29                 </span></span>
 <span><span class="co">#&gt;  [33] units_0.8-2                   RSpectra_0.16-1              </span></span>
 <span><span class="co">#&gt;  [35] dqrng_0.3.0                   pkgdown_2.0.7                </span></span>
-<span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.0     codetools_0.2-19             </span></span>
+<span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.1     codetools_0.2-19             </span></span>
 <span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.3          </span></span>
 <span><span class="co">#&gt;  [41] tidyselect_1.2.0              farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [43] ScaledMatrix_1.8.1            viridis_0.6.3                </span></span>
@@ -1298,7 +1291,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt;  [57] gridExtra_2.3                 mgcv_1.8-42                  </span></span>
 <span><span class="co">#&gt;  [59] here_1.0.1                    xfun_0.39                    </span></span>
 <span><span class="co">#&gt;  [61] HDF5Array_1.28.1              withr_2.5.0                  </span></span>
-<span><span class="co">#&gt;  [63] BiocManager_1.30.20           fastmap_1.1.1                </span></span>
+<span><span class="co">#&gt;  [63] BiocManager_1.30.21           fastmap_1.1.1                </span></span>
 <span><span class="co">#&gt;  [65] boot_1.3-28.1                 rhdf5filters_1.12.1          </span></span>
 <span><span class="co">#&gt;  [67] fansi_1.0.4                   spData_2.2.2                 </span></span>
 <span><span class="co">#&gt;  [69] digest_0.6.31                 rsvd_1.0.5                   </span></span>
@@ -1314,7 +1307,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt;  [89] htmltools_0.5.5               png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [91] SpatialExperiment_1.10.0      knitr_1.43                   </span></span>
 <span><span class="co">#&gt;  [93] rjson_0.2.21                  nlme_3.1-162                 </span></span>
-<span><span class="co">#&gt;  [95] curl_5.0.0                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [95] curl_5.0.1                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] stringr_1.5.0                 BiocVersion_3.17.1           </span></span>
 <span><span class="co">#&gt; [101] KernSmooth_2.23-21            parallel_4.3.0               </span></span>
@@ -1327,7 +1320,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [115] cluster_2.1.4                 beeswarm_0.4.0               </span></span>
 <span><span class="co">#&gt; [117] evaluate_0.21                 isoband_0.2.7                </span></span>
 <span><span class="co">#&gt; [119] magick_2.7.4                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [121] locfit_1.5-9.7                compiler_4.3.0               </span></span>
+<span><span class="co">#&gt; [121] locfit_1.5-9.8                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [123] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [125] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [127] fs_1.6.2                      ggbeeswarm_0.7.2             </span></span>
@@ -1340,7 +1333,7 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [141] shiny_1.7.4                   highr_0.10                   </span></span>
 <span><span class="co">#&gt; [143] interactiveDisplayBase_1.38.0 AnnotationHub_3.8.0          </span></span>
 <span><span class="co">#&gt; [145] igraph_1.4.3                  memoise_2.0.1                </span></span>
-<span><span class="co">#&gt; [147] bslib_0.4.2                   bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; [147] bslib_0.5.0                   bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

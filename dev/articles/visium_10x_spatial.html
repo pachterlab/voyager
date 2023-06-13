@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/visium_10x_spatial.Rmd" class="external-link"><code>vignettes/visium_10x_spatial.Rmd</code></a></small>
       <div class="d-none name"><code>visium_10x_spatial.Rmd</code></div>
@@ -832,7 +834,7 @@ vignette</a>.</p>
 <span><span class="va">foo_nb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/asplit.html" class="external-link">asplit</a></span><span class="op">(</span><span class="va">foo</span><span class="op">$</span><span class="va">index</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">dmat</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">/</span><span class="va">foo</span><span class="op">$</span><span class="va">distance</span></span>
 <span><span class="co"># Row normalize the weights</span></span>
-<span><span class="va">dmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">dmat</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/pkg/MatrixGenerics/man/rowSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">dmat</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span>
+<span><span class="va">dmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">dmat</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">dmat</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span>
 <span><span class="va">glist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/asplit.html" class="external-link">asplit</a></span><span class="op">(</span><span class="va">dmat</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co"># Sort based on index</span></span>
 <span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">foo_nb</span>, <span class="va">order</span><span class="op">)</span></span>
@@ -907,7 +909,7 @@ regions.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] reticulate_1.29                BiocNeighbors_1.18.0          </span></span>
+<span><span class="co">#&gt;  [1] reticulate_1.30                BiocNeighbors_1.18.0          </span></span>
 <span><span class="co">#&gt;  [3] BiocParallel_1.34.2            dplyr_1.1.2                   </span></span>
 <span><span class="co">#&gt;  [5] rmapshaper_0.5.0               sf_1.0-13                     </span></span>
 <span><span class="co">#&gt;  [7] rlang_1.1.1                    terra_1.7-29                  </span></span>
@@ -919,7 +921,7 @@ regions.</p>
 <span><span class="co">#&gt; [19] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
 <span><span class="co">#&gt; [21] GenomicRanges_1.52.0           GenomeInfoDb_1.36.0           </span></span>
 <span><span class="co">#&gt; [23] IRanges_2.34.0                 S4Vectors_0.38.1              </span></span>
-<span><span class="co">#&gt; [25] BiocGenerics_0.46.0            MatrixGenerics_1.12.0         </span></span>
+<span><span class="co">#&gt; [25] BiocGenerics_0.46.0            MatrixGenerics_1.12.2         </span></span>
 <span><span class="co">#&gt; [27] matrixStats_1.0.0              SpatialFeatureExperiment_1.2.1</span></span>
 <span><span class="co">#&gt; [29] Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -931,12 +933,12 @@ regions.</p>
 <span><span class="co">#&gt;   [9] fs_1.6.2                  zlibbioc_1.46.0          </span></span>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                vctrs_0.6.2              </span></span>
 <span><span class="co">#&gt;  [13] spdep_1.2-8               memoise_2.0.1            </span></span>
-<span><span class="co">#&gt;  [15] DelayedMatrixStats_1.22.0 RCurl_1.98-1.12          </span></span>
+<span><span class="co">#&gt;  [15] DelayedMatrixStats_1.22.1 RCurl_1.98-1.12          </span></span>
 <span><span class="co">#&gt;  [17] htmltools_0.5.5           S4Arrays_1.0.4           </span></span>
-<span><span class="co">#&gt;  [19] curl_5.0.0                Rhdf5lib_1.22.0          </span></span>
+<span><span class="co">#&gt;  [19] curl_5.0.1                Rhdf5lib_1.22.0          </span></span>
 <span><span class="co">#&gt;  [21] s2_1.1.4                  rhdf5_2.44.0             </span></span>
 <span><span class="co">#&gt;  [23] sass_0.4.6                spData_2.2.2             </span></span>
-<span><span class="co">#&gt;  [25] KernSmooth_2.23-21        bslib_0.4.2              </span></span>
+<span><span class="co">#&gt;  [25] KernSmooth_2.23-21        bslib_0.5.0              </span></span>
 <span><span class="co">#&gt;  [27] htmlwidgets_1.6.2         desc_1.4.2               </span></span>
 <span><span class="co">#&gt;  [29] cachem_1.0.8              igraph_1.4.3             </span></span>
 <span><span class="co">#&gt;  [31] lifecycle_1.0.3           pkgconfig_2.0.3          </span></span>
@@ -970,7 +972,7 @@ regions.</p>
 <span><span class="co">#&gt;  [87] pillar_1.9.0              limma_3.56.2             </span></span>
 <span><span class="co">#&gt;  [89] splines_4.3.0             lattice_0.21-8           </span></span>
 <span><span class="co">#&gt;  [91] deldir_1.0-9              tidyselect_1.2.0         </span></span>
-<span><span class="co">#&gt;  [93] locfit_1.5-9.7            knitr_1.43               </span></span>
+<span><span class="co">#&gt;  [93] locfit_1.5-9.8            knitr_1.43               </span></span>
 <span><span class="co">#&gt;  [95] gridExtra_2.3             V8_4.3.0                 </span></span>
 <span><span class="co">#&gt;  [97] edgeR_3.42.4              xfun_0.39                </span></span>
 <span><span class="co">#&gt;  [99] statmod_1.5.0             DropletUtils_1.20.0      </span></span>

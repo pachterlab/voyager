@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -308,7 +310,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  25.391   1.239  26.800</span></span></code></pre>
+<span><span class="co">#&gt;  23.357   1.187  24.578</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -320,7 +322,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.916   0.262   2.186</span></span></code></pre>
+<span><span class="co">#&gt;   1.797   0.239   2.041</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -687,7 +689,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  54.067   0.213  54.488</span></span></code></pre></div>
+<span><span class="co">#&gt;  39.308   0.166  39.568</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -731,7 +733,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 141.083  23.995  91.986</span></span></code></pre></div>
+<span><span class="co">#&gt;  67.207  11.031  88.303</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -986,11 +988,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.587   2.428  26.092</span></span>
+<span><span class="co">#&gt;  22.377   1.793  24.373</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16145254  862.3   25176847 1344.6         NA  25176847 1344.6</span></span>
-<span><span class="co">#&gt; Vcells 249382488 1902.7  488965865 3730.6      16384 488934375 3730.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16142649  862.2   35792280 1911.6         NA  35792280 1911.6</span></span>
+<span><span class="co">#&gt; Vcells 249375723 1902.6  488956131 3730.5      16384 488927612 3730.3</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1144,7 +1146,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [17] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
 <span><span class="co">#&gt; [19] GenomicRanges_1.52.0           GenomeInfoDb_1.36.0           </span></span>
 <span><span class="co">#&gt; [21] IRanges_2.34.0                 S4Vectors_0.38.1              </span></span>
-<span><span class="co">#&gt; [23] BiocGenerics_0.46.0            MatrixGenerics_1.12.0         </span></span>
+<span><span class="co">#&gt; [23] BiocGenerics_0.46.0            MatrixGenerics_1.12.2         </span></span>
 <span><span class="co">#&gt; [25] matrixStats_1.0.0              SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt; [27] Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1166,7 +1168,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [29] ggrepel_0.9.3                 irlba_2.3.5.1                </span></span>
 <span><span class="co">#&gt;  [31] terra_1.7-29                  units_0.8-2                  </span></span>
 <span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.0    </span></span>
+<span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.1    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
 <span><span class="co">#&gt;  [39] DelayedArray_0.26.3           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [41] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
@@ -1178,13 +1180,13 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [53] glue_1.6.2                    gridExtra_2.3                </span></span>
 <span><span class="co">#&gt;  [55] xfun_0.39                     dplyr_1.1.2                  </span></span>
 <span><span class="co">#&gt;  [57] HDF5Array_1.28.1              withr_2.5.0                  </span></span>
-<span><span class="co">#&gt;  [59] BiocManager_1.30.20           fastmap_1.1.1                </span></span>
+<span><span class="co">#&gt;  [59] BiocManager_1.30.21           fastmap_1.1.1                </span></span>
 <span><span class="co">#&gt;  [61] boot_1.3-28.1                 rhdf5filters_1.12.1          </span></span>
 <span><span class="co">#&gt;  [63] bluster_1.10.0                fansi_1.0.4                  </span></span>
 <span><span class="co">#&gt;  [65] digest_0.6.31                 rsvd_1.0.5                   </span></span>
 <span><span class="co">#&gt;  [67] R6_2.5.1                      mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [69] textshaping_0.3.6             colorspace_2.1-0             </span></span>
-<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.1              </span></span>
+<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.2              </span></span>
 <span><span class="co">#&gt;  [73] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 intervals_0.15.3             </span></span>
 <span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
@@ -1195,7 +1197,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.5              </span></span>
 <span><span class="co">#&gt;  [89] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [91] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [93] spacetime_1.3-0               curl_5.0.0                   </span></span>
+<span><span class="co">#&gt;  [93] spacetime_1.3-0               curl_5.0.1                   </span></span>
 <span><span class="co">#&gt;  [95] zoo_1.8-12                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-21           </span></span>
@@ -1208,7 +1210,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
 <span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [117] magick_2.7.4                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [119] locfit_1.5-9.7                compiler_4.3.0               </span></span>
+<span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [125] plyr_1.8.8                    fs_1.6.2                     </span></span>
@@ -1221,7 +1223,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [139] KEGGREST_1.40.0               shiny_1.7.4                  </span></span>
 <span><span class="co">#&gt; [141] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [143] AnnotationHub_3.8.0           igraph_1.4.3                 </span></span>
-<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.4.2                  </span></span>
+<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.0                  </span></span>
 <span><span class="co">#&gt; [147] lwgeom_0.2-13                 bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">

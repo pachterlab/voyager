@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -299,7 +301,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  58.677   0.961  76.361</span></span></code></pre></div>
+<span><span class="co">#&gt;  42.053   0.345  42.522</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -419,11 +421,11 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  25.146   2.757  36.635</span></span>
+<span><span class="co">#&gt;  22.843   1.772  24.703</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  15531117  829.5   24574997 1312.5         NA  24574997 1312.5</span></span>
-<span><span class="co">#&gt; Vcells 238647555 1820.8  501983421 3829.9      16384 496730315 3789.8</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  15528492  829.4   26882897 1435.8         NA  26882897 1435.8</span></span>
+<span><span class="co">#&gt; Vcells 238640790 1820.7  501975303 3829.8      16384 496723550 3789.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -470,10 +472,8 @@ negative spatial autocorrelation.</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in asMethod(object): sparse-&gt;dense coercion: allocating vector of size</span></span>
 <span><span class="co">#&gt; 1.1 GiB</span></span>
-<span><span class="co">#&gt; Warning: useNames = NA is deprecated. Instead, specify either useNames = TRUE</span></span>
-<span><span class="co">#&gt; or useNames = TRUE.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  91.580  20.494 126.768</span></span></code></pre></div>
+<span><span class="co">#&gt;  85.308  17.456 111.662</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -666,8 +666,8 @@ default k = 10.</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt;  973.304   16.855 1070.549</span></span></code></pre></div>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt; 831.239   6.780 841.095</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
@@ -684,8 +684,8 @@ spatially coherent clusters</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt; 1195.151   22.968 1235.188</span></span></code></pre></div>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt; 933.154   6.033 939.943</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -761,7 +761,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [15] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
 <span><span class="co">#&gt; [17] GenomeInfoDb_1.36.0            IRanges_2.34.0                </span></span>
 <span><span class="co">#&gt; [19] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
-<span><span class="co">#&gt; [21] MatrixGenerics_1.12.0          matrixStats_1.0.0             </span></span>
+<span><span class="co">#&gt; [21] MatrixGenerics_1.12.2          matrixStats_1.0.0             </span></span>
 <span><span class="co">#&gt; [23] SpatialFeatureExperiment_1.2.1 SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt; [25] Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -782,7 +782,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [27] ggrepel_0.9.3                 irlba_2.3.5.1                </span></span>
 <span><span class="co">#&gt;  [29] terra_1.7-29                  units_0.8-2                  </span></span>
 <span><span class="co">#&gt;  [31] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [33] pkgdown_2.0.7                 DelayedMatrixStats_1.22.0    </span></span>
+<span><span class="co">#&gt;  [33] pkgdown_2.0.7                 DelayedMatrixStats_1.22.1    </span></span>
 <span><span class="co">#&gt;  [35] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
 <span><span class="co">#&gt;  [37] DelayedArray_0.26.3           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [39] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
@@ -795,13 +795,13 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [53] gridExtra_2.3                 mgcv_1.8-42                  </span></span>
 <span><span class="co">#&gt;  [55] xfun_0.39                     dplyr_1.1.2                  </span></span>
 <span><span class="co">#&gt;  [57] HDF5Array_1.28.1              withr_2.5.0                  </span></span>
-<span><span class="co">#&gt;  [59] BiocManager_1.30.20           fastmap_1.1.1                </span></span>
+<span><span class="co">#&gt;  [59] BiocManager_1.30.21           fastmap_1.1.1                </span></span>
 <span><span class="co">#&gt;  [61] boot_1.3-28.1                 rhdf5filters_1.12.1          </span></span>
 <span><span class="co">#&gt;  [63] fansi_1.0.4                   spData_2.2.2                 </span></span>
 <span><span class="co">#&gt;  [65] digest_0.6.31                 rsvd_1.0.5                   </span></span>
 <span><span class="co">#&gt;  [67] R6_2.5.1                      mime_0.12                    </span></span>
 <span><span class="co">#&gt;  [69] textshaping_0.3.6             colorspace_2.1-0             </span></span>
-<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.1              </span></span>
+<span><span class="co">#&gt;  [71] wk_0.7.3                      scattermore_1.2              </span></span>
 <span><span class="co">#&gt;  [73] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 utf8_1.2.3                   </span></span>
 <span><span class="co">#&gt;  [77] generics_0.1.3                class_7.3-22                 </span></span>
@@ -812,7 +812,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [87] htmltools_0.5.5               scales_1.2.1                 </span></span>
 <span><span class="co">#&gt;  [89] png_0.1-8                     SpatialExperiment_1.10.0     </span></span>
 <span><span class="co">#&gt;  [91] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [93] nlme_3.1-162                  curl_5.0.0                   </span></span>
+<span><span class="co">#&gt;  [93] nlme_3.1-162                  curl_5.0.1                   </span></span>
 <span><span class="co">#&gt;  [95] proxy_0.4-27                  cachem_1.0.8                 </span></span>
 <span><span class="co">#&gt;  [97] rhdf5_2.44.0                  BiocVersion_3.17.1           </span></span>
 <span><span class="co">#&gt;  [99] KernSmooth_2.23-21            parallel_4.3.0               </span></span>
@@ -824,7 +824,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [111] xtable_1.8-4                  cluster_2.1.4                </span></span>
 <span><span class="co">#&gt; [113] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [115] magick_2.7.4                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [117] locfit_1.5-9.7                compiler_4.3.0               </span></span>
+<span><span class="co">#&gt; [117] locfit_1.5-9.8                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [119] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [121] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [123] fs_1.6.2                      ggbeeswarm_0.7.2             </span></span>
@@ -837,7 +837,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [137] shiny_1.7.4                   highr_0.10                   </span></span>
 <span><span class="co">#&gt; [139] interactiveDisplayBase_1.38.0 AnnotationHub_3.8.0          </span></span>
 <span><span class="co">#&gt; [141] igraph_1.4.3                  memoise_2.0.1                </span></span>
-<span><span class="co">#&gt; [143] bslib_0.4.2                   bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; [143] bslib_0.5.0                   bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

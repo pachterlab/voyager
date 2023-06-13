@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -598,33 +600,33 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 1.29387e-11 1.94637e-07    0.703150  0.703150  0.920924</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 1.03168e-09 7.75977e-06    0.682570  0.682570  0.979064</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730 7.45786e-09 3.73962e-05    0.672511  0.672511  0.902866</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787 1.87213e-08 7.04060e-05    0.678067  0.689615  0.826066</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341 8.55333e-08 2.57336e-04    0.659284  0.659284  0.970108</span></span>
-<span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.494709  0.477273</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497354  0.500000</span></span>
-<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.973416  0.815280  0.829801</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360  0.994585  0.745591  0.857308</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730  0.976922  0.790346  0.759096</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787  0.912214  0.678067  0.754751</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341  0.990591  0.787459  0.893911</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.492366  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.473282  0.489933       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000       0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 9 columns</span></span>
+<span><span class="co">#&gt;                        p.value        FDR summary.AUC     AUC.2     AUC.3</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt;  &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787 9.49336e-08 0.00142809    0.710917  0.710917  0.835085</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730 5.37089e-07 0.00403972    0.697500  0.697500  0.906692</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716 5.57324e-05 0.27946091    0.629330  0.668833  0.860101</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 1.76814e-04 0.66495438    0.644667  0.644667  0.916667</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 7.17449e-04 1.00000000    0.629083  0.629083  0.979009</span></span>
+<span><span class="co">#&gt; ...                        ...        ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228           1          1         0.5  0.500000  0.477273</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1          1         0.5  0.493333  0.500000</span></span>
+<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6     AUC.7</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787  0.714263  0.915506  0.688611  0.760820</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730  0.676942  0.977004  0.800185  0.764751</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716  0.629330  0.947448  0.752269  0.766163</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.720379  0.971660  0.817963  0.827117</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360  0.726875  0.994179  0.751667  0.859442</span></span>
+<span><span class="co">#&gt; ...                      ...       ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.500000  0.496183  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.500000  0.496183  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.500000  0.492366  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228  0.492857  0.473282  0.488889       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000  0.500000       0.5</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
 package to perform a gene enrichment analysis. You can choose from
@@ -693,9 +695,10 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ncbi_description</span></span>
-<span><span class="co">#&gt; Ttn                                                                                                                                                                                                       Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Gapdh                                                                                            This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
+<span><span class="co">#&gt; Trdn                                                                                                                                             Predicted to enable transmembrane transporter binding activity. Involved in heart contraction. Acts upstream of or within release of sequestered calcium ion into cytosol by sarcoplasmic reticulum and response to bacterium. Predicted to be located in cytosol and sarcoplasmic reticulum. Predicted to be part of calcium channel complex and junctional membrane complex. Predicted to be active in junctional sarcoplasmic reticulum membrane and plasma membrane. Is expressed in embryo and heart. Human ortholog(s) of this gene implicated in catecholaminergic polymorphic ventricular tachycardia and catecholaminergic polymorphic ventricular tachycardia 5. Orthologous to human TRDN (triadin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Ckmt2                                                                                                                                                                                                                                                                                                                                                                                                                                               Predicted to enable cardiolipin binding activity and creatine kinase activity. Predicted to be involved in phosphocreatine biosynthetic process. Predicted to act upstream of or within phosphocreatine metabolic process. Located in mitochondrion. Is expressed in several structures, including gut; heart; lung; metanephros; and thymus. Orthologous to human CKMT2 (creatine kinase, mitochondrial 2). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
 <span><span class="co">#&gt; Hsp90ab1 Enables protein folding chaperone; protein kinase binding activity; and tau protein binding activity. Contributes to protein kinase regulator activity. Involved in several processes, including axonogenesis; positive regulation of protein kinase B signaling; and regulation of cellular protein metabolic process. Acts upstream of or within cellular response to interleukin-4; negative regulation of apoptotic process; and placenta development. Located in growth cone; neuronal cell body; and perinuclear region of cytoplasm. Part of HSP90-CDC37 chaperone complex. Is expressed in several structures, including branchial arch; central nervous system; eye; limb; and placenta. Human ortholog(s) of this gene implicated in multiple sclerosis. Orthologous to human HSP90AB1 (heat shock protein 90 alpha family class B member 1). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Mypn                                                                                                                                                                                                                              Predicted to enable SH3 domain binding activity; cell-cell adhesion mediator activity; and muscle alpha-actinin binding activity. Predicted to be involved in homophilic cell adhesion via plasma membrane adhesion molecules; neuron development; and sarcomere organization. Located in I band. Colocalizes with Z disc. Is expressed in diaphragm; eye; heart; tongue muscle; and vertebral axis musculature. Used to study nemaline myopathy 11 and restrictive cardiomyopathy. Human ortholog(s) of this gene implicated in dilated cardiomyopathy 1KK and nemaline myopathy 11. Orthologous to human MYPN (myopalladin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
 <span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
 <span><span class="co">#&gt; Des                                                                                                                                                                                 This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
@@ -900,7 +903,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] BiocNeighbors_1.18.0           concordexR_1.0.0              </span></span>
-<span><span class="co">#&gt;  [3] reticulate_1.29                dplyr_1.1.2                   </span></span>
+<span><span class="co">#&gt;  [3] reticulate_1.30                dplyr_1.1.2                   </span></span>
 <span><span class="co">#&gt;  [5] sparseMatrixStats_1.12.0       stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt;  [7] BiocParallel_1.34.2            SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt;  [9] bluster_1.10.0                 patchwork_1.1.2               </span></span>
@@ -910,7 +913,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [17] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
 <span><span class="co">#&gt; [19] GenomicRanges_1.52.0           GenomeInfoDb_1.36.0           </span></span>
 <span><span class="co">#&gt; [21] IRanges_2.34.0                 S4Vectors_0.38.1              </span></span>
-<span><span class="co">#&gt; [23] BiocGenerics_0.46.0            MatrixGenerics_1.12.0         </span></span>
+<span><span class="co">#&gt; [23] BiocGenerics_0.46.0            MatrixGenerics_1.12.2         </span></span>
 <span><span class="co">#&gt; [25] matrixStats_1.0.0              SpatialFeatureExperiment_1.2.1</span></span>
 <span><span class="co">#&gt; [27] Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -933,7 +936,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [31] terra_1.7-29                  pheatmap_1.0.12              </span></span>
 <span><span class="co">#&gt;  [33] units_0.8-2                   RSpectra_0.16-1              </span></span>
 <span><span class="co">#&gt;  [35] dqrng_0.3.0                   pkgdown_2.0.7                </span></span>
-<span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.0     codetools_0.2-19             </span></span>
+<span><span class="co">#&gt;  [37] DelayedMatrixStats_1.22.1     codetools_0.2-19             </span></span>
 <span><span class="co">#&gt;  [39] DropletUtils_1.20.0           DelayedArray_0.26.3          </span></span>
 <span><span class="co">#&gt;  [41] tidyselect_1.2.0              farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [43] ScaledMatrix_1.8.1            viridis_0.6.3                </span></span>
@@ -945,7 +948,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [55] Rcpp_1.0.10                   glue_1.6.2                   </span></span>
 <span><span class="co">#&gt;  [57] gridExtra_2.3                 here_1.0.1                   </span></span>
 <span><span class="co">#&gt;  [59] xfun_0.39                     HDF5Array_1.28.1             </span></span>
-<span><span class="co">#&gt;  [61] withr_2.5.0                   BiocManager_1.30.20          </span></span>
+<span><span class="co">#&gt;  [61] withr_2.5.0                   BiocManager_1.30.21          </span></span>
 <span><span class="co">#&gt;  [63] fastmap_1.1.1                 boot_1.3-28.1                </span></span>
 <span><span class="co">#&gt;  [65] rhdf5filters_1.12.1           fansi_1.0.4                  </span></span>
 <span><span class="co">#&gt;  [67] spData_2.2.2                  digest_0.6.31                </span></span>
@@ -962,7 +965,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [89] XVector_0.40.0                htmltools_0.5.5              </span></span>
 <span><span class="co">#&gt;  [91] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [93] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [95] curl_5.0.0                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [95] curl_5.0.1                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-21           </span></span>
 <span><span class="co">#&gt; [101] parallel_4.3.0                vipor_0.4.5                  </span></span>
@@ -974,7 +977,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
 <span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [117] magick_2.7.4                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [119] locfit_1.5-9.7                compiler_4.3.0               </span></span>
+<span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.0               </span></span>
 <span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [125] fs_1.6.2                      ggbeeswarm_0.7.2             </span></span>
@@ -986,7 +989,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [137] statmod_1.5.0                 shiny_1.7.4                  </span></span>
 <span><span class="co">#&gt; [139] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [141] AnnotationHub_3.8.0           igraph_1.4.3                 </span></span>
-<span><span class="co">#&gt; [143] memoise_2.0.1                 bslib_0.4.2                  </span></span>
+<span><span class="co">#&gt; [143] memoise_2.0.1                 bslib_0.5.0                  </span></span>
 <span><span class="co">#&gt; [145] bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">

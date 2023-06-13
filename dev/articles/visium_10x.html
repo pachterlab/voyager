@@ -50,6 +50,8 @@
     <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
     <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
     <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
+    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
+    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
   </div>
 </li>
 <li class="nav-item dropdown">
@@ -112,7 +114,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-07</h4>
+            <h4 data-toc-skip class="date">2023-06-13</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/visium_10x.Rmd" class="external-link"><code>vignettes/visium_10x.Rmd</code></a></small>
       <div class="d-none name"><code>visium_10x.Rmd</code></div>
@@ -452,14 +454,7 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt; [7] "Median.Normalized.Average.Counts_sample01"    </span></span>
 <span><span class="co">#&gt; [8] "Barcodes.Detected.per.Feature_sample01"</span></span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, show_symbol <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>                swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: The `show_symbol` argument of `plotDimLoadings()` is deprecated as of Voyager</span></span>
-<span><span class="co">#&gt; 1.2.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use the `swap_rownames` argument instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="visium_10x_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
 <p>Do the clustering to show on the dimension reduction plots</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
@@ -533,7 +528,7 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt; [13] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
 <span><span class="co">#&gt; [15] GenomeInfoDb_1.36.0            IRanges_2.34.0                </span></span>
 <span><span class="co">#&gt; [17] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
-<span><span class="co">#&gt; [19] MatrixGenerics_1.12.0          matrixStats_1.0.0             </span></span>
+<span><span class="co">#&gt; [19] MatrixGenerics_1.12.2          matrixStats_1.0.0             </span></span>
 <span><span class="co">#&gt; [21] Voyager_1.2.3                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
@@ -544,13 +539,13 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt;   [9] fs_1.6.2                  zlibbioc_1.46.0          </span></span>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                vctrs_0.6.2              </span></span>
 <span><span class="co">#&gt;  [13] spdep_1.2-8               memoise_2.0.1            </span></span>
-<span><span class="co">#&gt;  [15] DelayedMatrixStats_1.22.0 RCurl_1.98-1.12          </span></span>
+<span><span class="co">#&gt;  [15] DelayedMatrixStats_1.22.1 RCurl_1.98-1.12          </span></span>
 <span><span class="co">#&gt;  [17] terra_1.7-29              htmltools_0.5.5          </span></span>
 <span><span class="co">#&gt;  [19] S4Arrays_1.0.4            BiocNeighbors_1.18.0     </span></span>
 <span><span class="co">#&gt;  [21] Rhdf5lib_1.22.0           s2_1.1.4                 </span></span>
 <span><span class="co">#&gt;  [23] rhdf5_2.44.0              sass_0.4.6               </span></span>
 <span><span class="co">#&gt;  [25] spData_2.2.2              KernSmooth_2.23-21       </span></span>
-<span><span class="co">#&gt;  [27] bslib_0.4.2               desc_1.4.2               </span></span>
+<span><span class="co">#&gt;  [27] bslib_0.5.0               desc_1.4.2               </span></span>
 <span><span class="co">#&gt;  [29] cachem_1.0.8              igraph_1.4.3             </span></span>
 <span><span class="co">#&gt;  [31] lifecycle_1.0.3           pkgconfig_2.0.3          </span></span>
 <span><span class="co">#&gt;  [33] rsvd_1.0.5                Matrix_1.5-4.1           </span></span>
@@ -581,7 +576,7 @@ plot, seemingly related to histological regions.</p>
 <span><span class="co">#&gt;  [83] pillar_1.9.0              limma_3.56.2             </span></span>
 <span><span class="co">#&gt;  [85] dplyr_1.1.2               lattice_0.21-8           </span></span>
 <span><span class="co">#&gt;  [87] deldir_1.0-9              tidyselect_1.2.0         </span></span>
-<span><span class="co">#&gt;  [89] locfit_1.5-9.7            knitr_1.43               </span></span>
+<span><span class="co">#&gt;  [89] locfit_1.5-9.8            knitr_1.43               </span></span>
 <span><span class="co">#&gt;  [91] gridExtra_2.3             edgeR_3.42.4             </span></span>
 <span><span class="co">#&gt;  [93] xfun_0.39                 statmod_1.5.0            </span></span>
 <span><span class="co">#&gt;  [95] DropletUtils_1.20.0       stringi_1.7.12           </span></span>
