@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-16</h4>
+            <h4 data-toc-skip class="date">2023-06-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -170,11 +170,11 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <span><span class="va">PY_PATH</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.which.html" class="external-link">Sys.which</a></span><span class="op">(</span><span class="st">"python"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_python</a></span><span class="op">(</span><span class="va">PY_PATH</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_config.html" class="external-link">py_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.8.17/x64/bin/python</span></span>
-<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.8.17/x64/lib/libpython3.8.dylib</span></span>
-<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.8.17/x64:/Users/runner/hostedtoolcache/Python/3.8.17/x64</span></span>
-<span><span class="co">#&gt; version:        3.8.17 (default, Jun  7 2023, 12:31:35)  [Clang 13.0.0 (clang-1300.0.29.30)]</span></span>
-<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/numpy</span></span>
+<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.8.16/x64/bin/python</span></span>
+<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.8.16/x64/lib/libpython3.8.dylib</span></span>
+<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.8.16/x64:/Users/runner/hostedtoolcache/Python/3.8.16/x64</span></span>
+<span><span class="co">#&gt; version:        3.8.16 (default, Jan 11 2023, 00:27:57)  [Clang 12.0.0 (clang-1200.0.32.29)]</span></span>
+<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.8.16/x64/lib/python3.8/site-packages/numpy</span></span>
 <span><span class="co">#&gt; numpy_version:  1.24.3</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; NOTE: Python version was forced by use_python function</span></span></code></pre></div>
@@ -603,33 +603,33 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 3.32010e-10 4.99443e-06    0.689646  0.689646  0.913529</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 1.36517e-09 1.02681e-05    0.682662  0.682662  0.965706</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730 4.33034e-09 2.17138e-05    0.676766  0.676766  0.894704</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787 7.70683e-09 2.89835e-05    0.695477  0.708831  0.814003</span></span>
-<span><span class="co">#&gt; ENSMUSG00000005716 7.83909e-07 2.35847e-03    0.647508  0.647508  0.851800</span></span>
-<span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.494924  0.476303</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497462  0.500000</span></span>
-<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.969411  0.792727  0.840912</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360  0.994209  0.724354  0.871118</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730  0.976930  0.791425  0.777482</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787  0.909494  0.695477  0.781964</span></span>
-<span><span class="co">#&gt; ENSMUSG00000005716  0.947719  0.743138  0.782667</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.496241  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.496241  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.492481  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.473684  0.491935       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000       0.5</span></span></code></pre></div>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 9 columns</span></span>
+<span><span class="co">#&gt;                        p.value        FDR summary.AUC     AUC.2     AUC.3</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt;  &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787 1.17335e-07 0.00176506    0.686741  0.710917  0.813759</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730 5.37089e-07 0.00403972    0.697500  0.697500  0.894876</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716 5.57324e-05 0.27946091    0.629330  0.668833  0.847971</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 1.76814e-04 0.66495438    0.644667  0.644667  0.913018</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 7.17449e-04 1.00000000    0.629083  0.629083  0.965936</span></span>
+<span><span class="co">#&gt; ...                        ...        ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1          1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228           1          1         0.5  0.500000  0.476303</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1          1         0.5  0.493333  0.500000</span></span>
+<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6     AUC.7</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000019787  0.714263  0.908976  0.686741  0.782252</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730  0.676942  0.976786  0.798715  0.777978</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716  0.629330  0.946828  0.745619  0.779186</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.720379  0.969220  0.798949  0.840507</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360  0.726875  0.994173  0.720093  0.871669</span></span>
+<span><span class="co">#&gt; ...                      ...       ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.500000  0.496241  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.500000  0.496241  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.500000  0.492481  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228  0.492857  0.473684  0.490654       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000  0.500000       0.5</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
 package to perform a gene enrichment analysis. You can choose from
@@ -697,12 +697,13 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ncbi_description</span></span>
-<span><span class="co">#&gt; Ttn                                                                                                                                                                                                                                                                                                                                      Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Acta1                                                                                                                                                                                                                                                                                                                                                                       Predicted to enable ATP binding activity. Involved in skeletal muscle fiber development. Predicted to be located in actin cytoskeleton and sarcomere. Predicted to be part of dynactin complex. Predicted to be active in actin filament; stress fiber; and striated muscle thin filament. Is expressed in several structures, including alimentary system; brain; genitourinary system; heart; and limb. Used to study nemaline myopathy 3. Human ortholog(s) of this gene implicated in congenital fiber-type disproportion and nemaline myopathy 3. Orthologous to human ACTA1 (actin alpha 1, skeletal muscle). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Cryab  This gene encodes a member of the small heat-shock protein (HSP20) family. The encoded protein is a molecular chaperone that protects proteins against thermal denaturation and other stresses. This protein is a component of the eye lens, regulates lens differentiation and functions as a refractive element in the lens. This protein is a negative regulator of inflammation, has anti-apoptotic properties and also plays a role in the formation of muscular tissue. Mice lacking this gene exhibit worse experimental autoimmune encephalomyelitis and inflammation of the central nervous system compared to the wild type. In mouse models, this gene has a critical role in alleviating the pathology of the neurodegenerative Alexander disease. Mutations in the human gene are associated with myofibrillar myopathy 2, fatal infantile hypertonic myofibrillar myopathy, multiple types of cataract and dilated cardiomyopathy. Alternative splicing results in multiple transcript variants. [provided by RefSeq, Jan 2014]</span></span>
-<span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Des                                                                                                                                                                                                                                                                                                                This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ncbi_description</span></span>
+<span><span class="co">#&gt; Trdn                                                                                                                                             Predicted to enable transmembrane transporter binding activity. Involved in heart contraction. Acts upstream of or within release of sequestered calcium ion into cytosol by sarcoplasmic reticulum and response to bacterium. Predicted to be located in cytosol and sarcoplasmic reticulum. Predicted to be part of calcium channel complex and junctional membrane complex. Predicted to be active in junctional sarcoplasmic reticulum membrane and plasma membrane. Is expressed in embryo and heart. Human ortholog(s) of this gene implicated in catecholaminergic polymorphic ventricular tachycardia and catecholaminergic polymorphic ventricular tachycardia 5. Orthologous to human TRDN (triadin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Ckmt2                                                                                                                                                                                                                                                                                                                                                                                                                                               Predicted to enable cardiolipin binding activity and creatine kinase activity. Predicted to be involved in phosphocreatine biosynthetic process. Predicted to act upstream of or within phosphocreatine metabolic process. Located in mitochondrion. Is expressed in several structures, including gut; heart; lung; metanephros; and thymus. Orthologous to human CKMT2 (creatine kinase, mitochondrial 2). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Hsp90ab1 Enables protein folding chaperone; protein kinase binding activity; and tau protein binding activity. Contributes to protein kinase regulator activity. Involved in several processes, including axonogenesis; positive regulation of protein kinase B signaling; and regulation of cellular protein metabolic process. Acts upstream of or within cellular response to interleukin-4; negative regulation of apoptotic process; and placenta development. Located in growth cone; neuronal cell body; and perinuclear region of cytoplasm. Part of HSP90-CDC37 chaperone complex. Is expressed in several structures, including branchial arch; central nervous system; eye; limb; and placenta. Human ortholog(s) of this gene implicated in multiple sclerosis. Orthologous to human HSP90AB1 (heat shock protein 90 alpha family class B member 1). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Mypn                                                                                                                                                                                                                              Predicted to enable SH3 domain binding activity; cell-cell adhesion mediator activity; and muscle alpha-actinin binding activity. Predicted to be involved in homophilic cell adhesion via plasma membrane adhesion molecules; neuron development; and sarcomere organization. Located in I band. Colocalizes with Z disc. Is expressed in diaphragm; eye; heart; tongue muscle; and vertebral axis musculature. Used to study nemaline myopathy 11 and restrictive cardiomyopathy. Human ortholog(s) of this gene implicated in dilated cardiomyopathy 1KK and nemaline myopathy 11. Orthologous to human MYPN (myopalladin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Des                                                                                                                                                                                 This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, ncol <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -885,9 +886,9 @@ Visium vignette</a>.</p>
 </h2>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.3.0 (2023-04-21)</span></span>
+<span><span class="co">#&gt; R version 4.3.1 (2023-06-16)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: macOS Monterey 12.6.6</span></span>
+<span><span class="co">#&gt; Running under: macOS Monterey 12.6.5</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
 <span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib </span></span>
@@ -945,7 +946,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [45] BiocFileCache_2.8.0           jsonlite_1.8.5               </span></span>
 <span><span class="co">#&gt;  [47] e1071_1.7-13                  ellipsis_0.3.2               </span></span>
 <span><span class="co">#&gt;  [49] systemfonts_1.0.4             dbscan_1.1-11                </span></span>
-<span><span class="co">#&gt;  [51] tools_4.3.0                   ggnewscale_0.4.9             </span></span>
+<span><span class="co">#&gt;  [51] tools_4.3.1                   ggnewscale_0.4.9             </span></span>
 <span><span class="co">#&gt;  [53] ragg_1.2.5                    snow_0.4-4                   </span></span>
 <span><span class="co">#&gt;  [55] Rcpp_1.0.10                   glue_1.6.2                   </span></span>
 <span><span class="co">#&gt;  [57] gridExtra_2.3                 here_1.0.1                   </span></span>
@@ -970,16 +971,16 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [95] curl_5.0.1                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-21           </span></span>
-<span><span class="co">#&gt; [101] parallel_4.3.0                vipor_0.4.5                  </span></span>
+<span><span class="co">#&gt; [101] parallel_4.3.1                vipor_0.4.5                  </span></span>
 <span><span class="co">#&gt; [103] AnnotationDbi_1.62.1          desc_1.4.2                   </span></span>
 <span><span class="co">#&gt; [105] s2_1.1.4                      pillar_1.9.0                 </span></span>
-<span><span class="co">#&gt; [107] grid_4.3.0                    vctrs_0.6.3                  </span></span>
+<span><span class="co">#&gt; [107] grid_4.3.1                    vctrs_0.6.3                  </span></span>
 <span><span class="co">#&gt; [109] promises_1.2.0.1              BiocSingular_1.16.0          </span></span>
 <span><span class="co">#&gt; [111] dbplyr_2.3.2                  beachmat_2.16.0              </span></span>
 <span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
 <span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.21                </span></span>
 <span><span class="co">#&gt; [117] magick_2.7.4                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.0               </span></span>
+<span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.1               </span></span>
 <span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [125] fs_1.6.2                      ggbeeswarm_0.7.2             </span></span>
