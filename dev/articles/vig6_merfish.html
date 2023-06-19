@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-06-18</h4>
+            <h4 data-toc-skip class="date">2023-06-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -313,7 +313,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.979   1.381  25.395</span></span></code></pre>
+<span><span class="co">#&gt;  23.553   1.217  24.799</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -325,7 +325,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.778   0.262   2.041</span></span></code></pre>
+<span><span class="co">#&gt;   1.792   0.251   2.044</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -692,7 +692,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  41.431   0.206  41.733</span></span></code></pre></div>
+<span><span class="co">#&gt;  51.590   0.226  51.938</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -736,7 +736,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  67.627  11.133  88.337</span></span></code></pre></div>
+<span><span class="co">#&gt;  67.539   9.800  85.617</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -991,11 +991,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  21.883   1.720  23.641</span></span>
+<span><span class="co">#&gt;  21.764   1.667  23.549</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16143135  862.2   35793525 1911.6         NA  35793525 1911.6</span></span>
-<span><span class="co">#&gt; Vcells 249376616 1902.6  488957417 3730.5      16384 488928505 3730.3</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16147147  862.4   35822901 1913.2         NA  35822901 1913.2</span></span>
+<span><span class="co">#&gt; Vcells 249382111 1902.7  570475096 4352.4      16384 564346442 4305.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1121,7 +1121,7 @@ those are beyond the scope of this package.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.3.1 (2023-06-16)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: macOS Monterey 12.6.5</span></span>
+<span><span class="co">#&gt; Running under: macOS Monterey 12.6.6</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
 <span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib </span></span>
@@ -1169,7 +1169,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [25] R.utils_2.12.2                RCurl_1.98-1.12              </span></span>
 <span><span class="co">#&gt;  [27] rappdirs_0.3.3                GenomeInfoDbData_1.2.10      </span></span>
 <span><span class="co">#&gt;  [29] ggrepel_0.9.3                 irlba_2.3.5.1                </span></span>
-<span><span class="co">#&gt;  [31] terra_1.7-29                  units_0.8-2                  </span></span>
+<span><span class="co">#&gt;  [31] terra_1.7-37                  units_0.8-2                  </span></span>
 <span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
 <span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.1    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
