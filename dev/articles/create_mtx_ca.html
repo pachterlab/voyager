@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Kayla Jackson
 and A. Sina Booeshaghi</h4>
             
-            <h4 data-toc-skip class="date">2023-06-22</h4>
+            <h4 data-toc-skip class="date">2023-06-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/create_mtx_ca.Rmd" class="external-link"><code>vignettes/create_mtx_ca.Rmd</code></a></small>
       <div class="d-none name"><code>create_mtx_ca.Rmd</code></div>
@@ -225,15 +225,10 @@ uses a transcriptome reference-based alignment.</p>
 <code class="sourceCode R"><span><span class="va">FA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system2.html" class="external-link">system2</a></span><span class="op">(</span><span class="st">"jq"</span>,</span>
 <span>  args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"-r"</span>, <span class="st">"'.mus_musculus.genome_dna.ftp'"</span>, <span class="st">"ref.json"</span><span class="op">)</span>,</span>
 <span>  stdout <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in system2("jq", args = c("-r", "'.mus_musculus.genome_dna.ftp'", :</span></span>
-<span><span class="co">#&gt; running command ''jq' -r '.mus_musculus.genome_dna.ftp' ref.json' had status 2</span></span>
 <span></span>
 <span><span class="va">GTF</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system2.html" class="external-link">system2</a></span><span class="op">(</span><span class="st">"jq"</span>,</span>
 <span>  args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"-r"</span>, <span class="st">"'.mus_musculus.annotation_gtf.ftp'"</span>, <span class="st">"ref.json"</span><span class="op">)</span>,</span>
-<span>  stdout <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in system2("jq", args = c("-r", "'.mus_musculus.annotation_gtf.ftp'", :</span></span>
-<span><span class="co">#&gt; running command ''jq' -r '.mus_musculus.annotation_gtf.ftp' ref.json' had</span></span>
-<span><span class="co">#&gt; status 2</span></span></code></pre></div>
+<span>  stdout <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>We now supply all of the relevant objects to
 <code>cellatlas build</code> to produce the appropriate commands to be
 run to build the pipeline. This includes a reference building step and a
@@ -258,19 +253,21 @@ read counting and quantification step both of which are performed with
 <code>jq</code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system2.html" class="external-link">system2</a></span><span class="op">(</span><span class="st">"jq"</span>, <span class="st">"-r '.commands[] | values[]' out/cellatlas_info.json"</span>, stdout<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json",</span></span>
-<span><span class="co">#&gt; : running command ''jq' -r '.commands[] | values[]' out/cellatlas_info.json'</span></span>
-<span><span class="co">#&gt; had status 2</span></span>
 <span><span class="va">cmds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_subset.html" class="external-link">str_subset</a></span><span class="op">(</span><span class="va">cmds</span>, <span class="st">"[\\[\\]]"</span>, negate<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">cmds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html" class="external-link">str_extract</a></span><span class="op">(</span><span class="va">cmds</span>, <span class="st">"kb.*(txt|gz)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cmds</span></span>
-<span><span class="co">#&gt; character(0)</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "kb ref -i out/index.idx -g out/t2g.txt -f1 out/transcriptome.fa http://ftp.ensembl.org/pub/release-109/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz http://ftp.ensembl.org/pub/release-109/gtf/mus_musculus/Mus_musculus.GRCm39.109.gtf.gz"</span></span>
+<span><span class="co">#&gt; [2] "kb count -i out/index.idx -g out/t2g.txt -x 0,0,16:0,16,28:1,0,90 -w visium_onlist.txt -o out --h5ad -t 2 fastqs/R1.fastq.gz fastqs/R2.fastq.gz"</span></span></code></pre></div>
 <p>Now we can run the commands from <code>out/cellatlas_info.json</code>
 on the command line.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cmds</span>, <span class="kw">function</span><span class="op">(</span><span class="va">cmd</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="va">cmd</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; list()</span></span></code></pre></div>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="inspect-the-output">Inspect the output<a class="anchor" aria-label="anchor" href="#inspect-the-output"></a>
