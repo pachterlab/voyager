@@ -58,6 +58,7 @@ The data in this vignette is shipped with the `cellatlas` repository. The count 
 
 ```{r, message=FALSE}
 library(stringr)
+library(DropletUtils)
 library(Matrix)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
@@ -72,25 +73,19 @@ theme_set(theme_bw())
 ```{r dwnld, message=FALSE, results='hide'}
 download.file("https://github.com/cellatlas/cellatlas/raw/main/examples/atac-10xatac/cellatlas_out/adata.h5ad.gz", 
                   "adata.h5ad.gz", quiet = TRUE)
-system("gunzip -f adata.h5ad.gz")
+system("gunzip adata.h5ad.gz")
 sce <- readH5AD("adata.h5ad")
 assayNames(sce) <- "counts"
 ```
 
 ```{r}
-is_mito <- str_detect(rowData(sce)$gene_name, regex("^mt-", ignore_case=TRUE))
-sum(is_mito)
-```
-
-```{r}
-sce <- addPerCellQCMetrics(sce, subsets = list(mito = is_mito))
+sce <- addPerCellQCMetrics(sce)
 names(colData(sce))
 ```
 
 ```{r}
 plotColData(sce, "sum") +
-    plotColData(sce, "detected") +
-    plotColData(sce, "subsets_mito_percent")
+    plotColData(sce, "detected") 
 ```
 
 ```{r}
@@ -98,13 +93,8 @@ plotColData(sce, x = "sum", y = "detected", bins = 100) +
     scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
-```{r}
-plotColData(sce, x = "sum", y = "subsets_mito_detected", bins = 100) +
-    scale_fill_distiller(palette = "Blues", direction = 1)
-```
-
 ```{r subset-qc}
-sce <- sce[, which(sce$subsets_mito_percent < 20)]
+sce <- sce[, which(sce$total > 0)]
 sce <- sce[rowSums(counts(sce)) > 0,]
 
 sce
