@@ -58,6 +58,7 @@ The data in this vignette is shipped with the `cellatlas` repository. The count 
 ```{r, message=FALSE}
 library(stringr)
 library(Matrix)
+library(DropletUtils)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
 library(scater)
@@ -88,8 +89,7 @@ names(colData(sce))
 
 ```{r}
 plotColData(sce, "sum") +
-    plotColData(sce, "detected") +
-    plotColData(sce, "subsets_mito_percent")
+    plotColData(sce, "detected")
 ```
 
 ```{r}
@@ -102,8 +102,21 @@ plotColData(sce, x = "sum", y = "subsets_mito_detected", bins = 100) +
     scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
+```{r knee-plot}
+bcrank <- barcodeRanks(counts(sce))
+
+knee <- metadata(bcrank)$knee
+inflection <- metadata(bcrank)$inflection
+
+plot(bcrank$rank, bcrank$total, log="xy",
+      xlab="Rank", ylab="Total ClickTags count", cex.lab=1.2)
+
+abline(h=inflection, col="darkgreen", lty=2)
+abline(h=knee, col="dodgerblue", lty=2)
+```
+
 ```{r subset-qc}
-sce <- sce[, which(sce$subsets_mito_percent < 20)]
+sce <- sce[, which(sce$total > inflection)]
 sce <- sce[rowSums(counts(sce)) > 0,]
 
 sce

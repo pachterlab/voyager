@@ -57,6 +57,7 @@ The data in this vignette is shipped with the `cellatlas` repository. The count 
 
 ```{r, message=FALSE}
 library(stringr)
+library(DropletUtils)
 library(Matrix)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
@@ -77,34 +78,34 @@ assayNames(sce) <- "counts"
 ```
 
 ```{r}
-is_mito <- str_detect(rowData(sce)$gene_name, regex("^mt-", ignore_case=TRUE))
-sum(is_mito)
-```
-
-```{r}
-sce <- addPerCellQCMetrics(sce, subsets = list(mito = is_mito))
+sce <- addPerCellQCMetrics(sce)
 names(colData(sce))
 ```
 
 ```{r}
 plotColData(sce, "sum") +
-    plotColData(sce, "detected") +
-    plotColData(sce, "subsets_mito_percent")
+    plotColData(sce, "detected") 
 ```
 
 ```{r}
 plotColData(sce, x = "sum", y = "detected", bins = 100) +
     scale_fill_distiller(palette = "Blues", direction = 1)
 ```
+```{r knee-plot}
+bcrank <- barcodeRanks(counts(sce))
 
-```{r}
-plotColData(sce, x = "sum", y = "subsets_mito_detected", bins = 100) +
-    scale_fill_distiller(palette = "Blues", direction = 1)
+knee <- metadata(bcrank)$knee
+inflection <- metadata(bcrank)$inflection
+
+plot(bcrank$rank, bcrank$total, log="xy",
+      xlab="Rank", ylab="Total ClickTags count", cex.lab=1.2)
+
+abline(h=inflection, col="darkgreen", lty=2)
+abline(h=knee, col="dodgerblue", lty=2)
 ```
 
 ```{r subset-qc}
-sce <- sce[, which(sce$subsets_mito_percent < 20)]
-sce <- sce[rowSums(counts(sce)) > 0,]
+sce <- sce[, colSums(counts(sce)) > inflection]
 
 sce
 ```
