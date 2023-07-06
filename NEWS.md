@@ -1,6 +1,13 @@
 # Version 1.3.1 (05/15/2023)
 * Removed functions and arguments deprecated in 1.2.0
 
+# Version 1.2.4 (07/04/2023)
+* Remove useNames = NA warning when calling MULTISPATI; the warning comes from
+generic of colVars.
+* Use algebraic eigenvalues for MULTISPATI when either nfposi or nfnega is 0
+* Added bins_contour argument to moranPlot to change the number of bins in cell
+density contours
+
 # Version 1.2.3 (05/04/2023)
 * Fix bug when plotting a feature with illegal name alongside another feature
 with legal name
@@ -20,8 +27,6 @@ are specified
 * Allow illegal characters in names of colData and reducedDims in plots
 * Plot only one component in spatialReducedDim with the components argument
 * Deprecate plotColDataBin2D and plotRowDataBin2D
-* Added overwrite argument in runUnivariate and runBivariate to allow overwriting
-results under the same name but different parameters
 
 # Version 1.1.12 (04/22/2023)
 * Plot image behind geometries in all functions that plot geometries

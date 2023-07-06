@@ -30,6 +30,37 @@ test_that("Correct output structure of multispati_rsp", {
     expect_true(all(eigs[11:20] < 0))
 })
 
+test_that("Correct output structure of multispati_rsp, only positive", {
+    out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 0)
+    expect_equal(colnames(out), paste0("PC", 1:10))
+    expect_equal(rownames(out), colnames(sfe))
+    expect_true(is.numeric(out))
+    loadings <- attr(out, "rotation")
+    expect_equal(colnames(loadings), paste0("PC", 1:10))
+    expect_equal(rownames(loadings), rownames(mat))
+    expect_true(is.numeric(loadings))
+    eigs <- attr(out, "eig")
+    expect_equal(length(eigs), 10)
+    expect_true(is.numeric(eigs))
+    expect_true(all(eigs > 0))
+})
+
+test_that("Correct output structure of multispati_rsp, only negative", {
+    out <- multispati_rsp(t(mat), listw = g, nfposi = 0, nfnega = 10)
+    expect_equal(colnames(out), paste0("PC", 1:10))
+    expect_equal(rownames(out), colnames(sfe))
+    expect_true(is.numeric(out))
+    loadings <- attr(out, "rotation")
+    expect_equal(colnames(loadings), paste0("PC", 1:10))
+    expect_equal(rownames(loadings), rownames(mat))
+    expect_true(is.numeric(loadings))
+    eigs <- attr(out, "eig")
+    expect_equal(length(eigs), 10)
+    expect_true(is.numeric(eigs))
+    expect_true(all(diff(eigs) < 0))
+    expect_true(all(eigs < 0))
+})
+
 ref <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
 test_that("CalculateMultivariate for matrix", {
     out <- calculateMultivariate(mat, "multispati", listw = g,

@@ -1,6 +1,6 @@
 .moran_ggplot <- function(mp, feature, is_singleton, contour_color = "cyan",
                           color_by = NULL, plot_singletons = TRUE,
-                          divergent = FALSE, diverge_center = NULL, ...) {
+                          divergent = FALSE, diverge_center = NULL, bins = NULL, ...) {
     if (!plot_singletons) {
         mp <- mp[!is_singleton, ]
     }
@@ -30,7 +30,7 @@
     # stat_density2d doesn't work when there're too few points
     # Unlikely in real data, but just in case
     # The error doesn't show up until the plot is built.
-    p_test <- tryCatch(ggplot_build(p + stat_density2d(...)),
+    p_test <- tryCatch(ggplot_build(p + stat_density2d(bins = bins, ...)),
         error = function(e) {
             warning("Too few points for stat_density2d, not plotting contours.")
         },
@@ -39,7 +39,7 @@
         }
     )
     if (is(p_test, "ggplot_built")) {
-        p <- p + geom_density2d(color = contour_color, ...)
+        p <- p + geom_density2d(color = contour_color, bins = bins, ...)
     }
     p <- p +
         geom_smooth(formula = y ~ x, method = "lm") +
@@ -102,13 +102,13 @@
 
 .moran_ggplot_filled <- function(mp, feature, is_singleton, color_by = NULL,
                                  plot_singletons = TRUE, divergent = FALSE,
-                                 diverge_center = NULL, ...) {
+                                 diverge_center = NULL, bins = NULL, ...) {
     if (!plot_singletons) {
         mp <- mp[!is_singleton, ]
     }
     x <- wx <- is_inf <- NULL
     p <- ggplot(mp, aes(x = x, y = wx)) +
-        geom_density2d_filled(show.legend = FALSE, ...)
+        geom_density2d_filled(show.legend = FALSE, bins = bins, ...)
     if (plot_singletons) {
         p <- p +
             geom_point(
@@ -143,7 +143,9 @@
             x = feature,
             y = paste("Spatially lagged", feature),
             shape = "Influential"
-        )
+        ) +
+        theme(panel.background = element_rect(fill = scales::viridis_pal(option = "E")(255)[1]),
+              panel.grid = element_blank())
 }
 
 #' Use ggplot to plot the moran.plot results
@@ -185,6 +187,8 @@
 #'   different palette if \code{binned = TRUE}.
 #' @param name Name under which the Moran plot results are stored. By default
 #'   "moran.plot".
+#' @param bins_contour Number of bins in the point density contour. Use a
+#'   smaller number to make sparser contours.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
@@ -216,7 +220,11 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
                       swap_rownames = NULL,
                       bins = 100, binwidth = NULL, hex = FALSE,
-                      plot_influential = TRUE, name = "moran.plot", ...) {
+                      plot_influential = TRUE, bins_contour = NULL,
+                      name = "moran.plot", ...) {
+    l <- .deprecate_show_symbol("moranPlot", show_symbol, swap_rownames)
+    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
+
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
@@ -277,12 +285,12 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
     } else if (filled) {
         .moran_ggplot_filled(
             mp, feature, is_singleton, color_by, plot_singletons,
-            divergent, diverge_center, ...
+            divergent, diverge_center, bins = bins_contour, ...
         )
     } else {
         .moran_ggplot(
             mp, feature, is_singleton, contour_color, color_by, plot_singletons,
-            divergent, diverge_center, ...
+            divergent, diverge_center, bins = bins_contour, ...
         )
     }
 }
