@@ -222,9 +222,6 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       bins = 100, binwidth = NULL, hex = FALSE,
                       plot_influential = TRUE, bins_contour = NULL,
                       name = "moran.plot", ...) {
-    l <- .deprecate_show_symbol("moranPlot", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
