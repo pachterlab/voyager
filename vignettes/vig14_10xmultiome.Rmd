@@ -56,6 +56,20 @@ packageVersion("Voyager")
 The data in this vignette is shipped with the `cellatlas` repository. The count matrix and metadata are provided in the `cellatlas/examples` folder as an [`AnnData`](https://anndata-tutorials.readthedocs.io/en/latest/getting-started.html) object. We will begin by loading the object and converting it to a `SingleCellExperiment` object. 
 
 
+```{r, message=FALSE}
+library(stringr)
+library(DropletUtils)
+library(Matrix)
+library(SpatialExperiment)
+library(SpatialFeatureExperiment)
+library(scater)
+library(scuttle)
+library(Voyager)
+library(zellkonverter)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
 ```{r dwnld, message=FALSE, results='hide'}
 download.file("https://github.com/cellatlas/cellatlas/raw/main/examples/atac-10xmultiome/cellatlas_out/adata.h5ad.gz", 
                   "adata.h5ad.gz", quiet = TRUE)
