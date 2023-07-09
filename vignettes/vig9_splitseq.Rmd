@@ -62,12 +62,7 @@ install.packages("anndata")
 The data in this vignette is shipped with the `cellatlas` repository. The count matrix and metadata are provided in the `cellatlas/examples` folder as an [`AnnData`](https://anndata-tutorials.readthedocs.io/en/latest/getting-started.html) object. We will begin by loading the object and converting it to a `SpatialFeatureExperiment` object. 
 
 ```{r setup}
-library(reticulate)
-use_condaenv("r-reticulate")
-
-library(anndata)
-install_anndata()
-
+library(zellkonverter)
 library(stringr)
 library(Matrix)
 library(SpatialExperiment)
@@ -78,17 +73,11 @@ library(Voyager)
 ```
 
 ```{r dwnld}
-system("git clone https://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@github.com/cellatlas/cellatlas.git")
-
-system("gunzip cellatlas/examples/rna-splitseq/cellatlas_out/*gz")
-ad <- read_h5ad("cellatlas/examples/rna-splitseq/cellatlas_out/adata.h5ad")
-```
-
-```{r make-sce}
-# Transpose X so that genes are on the rows
-mat <- as(t(ad$X), "CsparseMatrix")
-sce <- SingleCellExperiment(assays = list(counts=mat))
-rowData(sce) <- ad$var
+download.file("https://github.com/cellatlas/cellatlas/blob/main/examples/rna-splitseq/cellatlas_out/adata.h5ad.gz", 
+              "adata.h5ad.gz", quiet = TRUE)
+system("gunzip -f adata.h5ad.gz")
+sce <- readH5AD("adata.h5ad")
+assayNames(sce) <- "counts"
 ```
 
 ```{r}
@@ -108,11 +97,13 @@ plotColData(sce, "sum") +
 ```
 
 ```{r}
-plotColDataBin2D(sce, x = "sum", y = "detected")
+plotColData(sce, x = "sum", y = "detected", bins = 100) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
 ```{r}
-plotColDataBin2D(sce, x = "sum", y = "subsets_mito_detected")
+plotColData(sce, x = "sum", y = "subsets_mito_detected", bins = 100) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
 ```{r subset-qc}
@@ -120,4 +111,8 @@ sce <- sce[, which(sce$subsets_mito_percent < 20)]
 sce <- sce[rowSums(counts(sce)) > 0,]
 
 sce
+```
+
+```{r}
+sessionInfo()
 ```
