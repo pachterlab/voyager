@@ -150,7 +150,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .dark_theme <- function() {
     # From Seurat but no axes
     black.background <- element_rect(fill = 'black')
-    black.background.no.border <- element_rect(fill = 'black', size = 0)
+    black.background.no.border <- element_rect(fill = 'black', linewidth = 0)
     font.margin <- 4
     white.text <- element_text(
         colour = 'white',
