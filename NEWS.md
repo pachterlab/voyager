@@ -1,3 +1,10 @@
+# Version 1.2.4 (07/04/2023)
+* Remove useNames = NA warning when calling MULTISPATI; the warning comes from
+generic of colVars.
+* Use algebraic eigenvalues for MULTISPATI when either nfposi or nfnega is 0
+* Added bins_contour argument to moranPlot to change the number of bins in cell
+density contours
+
 # Version 1.2.3 (05/04/2023)
 * Fix bug when plotting a feature with illegal name alongside another feature
 with legal name
