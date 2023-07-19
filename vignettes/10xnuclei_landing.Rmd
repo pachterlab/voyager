@@ -1,0 +1,37 @@
+---
+title: "10X Chromium Nuclei Isolation Processing Workflows with Voyager"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{10xnuclei_landing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+The [nuclei isolation solution](https://www.10xgenomics.com/products/nuclei-isolation) from 10X genomics is a protocol for isolating nuclei from frozen samples for single nuclei sequencing. The sample prep workflow has the advantage of avoiding long enzymatic incubations and being accessible without specialized equipment. The workflow includes cell lysis, nuclei isolation in a spin column, and debris removal. Importantly, isolated nuclei are compatible with Chromium Single Cell ATAC, Single Cell Multiome ATAC + Gene Expression, and Single Cell Gene Expression assays without modifications to the single cell workflows. Nuclei suspension concentration, viability, and quality can be assessed with a nucleic acid fluorescent dye and follow-up with an fluorescent automated counter or microscope. 
+
+## Getting Started
+
+The vignettes below provide examples of processing raw data using a workflow that includes [`seqspec`](https://github.com/IGVF/seqspec), [`gget`](https://github.com/pachterlab/gget), and [`kallisto`/`bustools`](https://www.kallistobus.tools) to generate a count matrix. We process the output of various transcriptomics technologies into a [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html)(SFE) object for use with `Voyager`. 
+
+
+| Vignette | Colab Notebook | Description |
+|--------------------|:---------------:|---------------------------------|
+| [Preprocess raw data](https://pachterlab.github.io/voyager/dev/articles/create_mtx_ca.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/create_mtx_ca.ipynb) | Fetch reference data with `gget`, process raw data with `seqspec`, generate a count matrix with `kallisto-bustools`|
+| [Create a `SFE` object](https://pachterlab.github.io/voyager/dev/articles/create_sfe.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/create_sfe.ipynb) | Download data, create `SFE` object |
+
+## Analysis Workflows
+
+The analysis tasks include basic quality control, spatial exploratory data analysis, identification of spatially variable genes, and computation of global and local spatial statistics. Accompanying Colab notebooks are linked.
+
+| Vignette          |   Colab Notebook   | Description                   |
+  |-------------------|:------------------:|-------------------------------|
+  | [Nuclei Basic QC](https://pachterlab.github.io/voyager/dev/articles/vig10_10x_nuclei.html) | [Colab Notebook](https://colab.research.google.com/github/pachterlab/voyager/blob/documentation-devel/vignettes/vig10_10x_nuclei.ipynb) | Basic qc and preprocessing |
+  
