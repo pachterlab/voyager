@@ -682,7 +682,7 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.267   0.035   8.321</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.313   0.034   8.351</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -692,10 +692,10 @@ approximate for contiguity.</p>
 <span><span class="co">#&gt; DataFrame with 4 rows and 2 columns</span></span>
 <span><span class="co">#&gt;             moran_sample01 K_sample01</span></span>
 <span><span class="co">#&gt;                  &lt;numeric&gt;  &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; nCounts           0.386666    6.80818</span></span>
-<span><span class="co">#&gt; nGenes            0.434652    3.19599</span></span>
-<span><span class="co">#&gt; Area              0.198153    8.96966</span></span>
-<span><span class="co">#&gt; AspectRatio       0.256208   43.05666</span></span></code></pre></div>
+<span><span class="co">#&gt; nCounts           0.386661    6.80818</span></span>
+<span><span class="co">#&gt; nGenes            0.434647    3.19599</span></span>
+<span><span class="co">#&gt; Area              0.198167    8.96966</span></span>
+<span><span class="co">#&gt; AspectRatio       0.256236   43.05666</span></span></code></pre></div>
 <p>Positive spatial autocorrelation is suggested, which is stronger in
 nCounts and nGenes.</p>
 <p>What are the length scales of spatial autocorrelation for these QC
@@ -720,7 +720,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 612.617  12.092 314.366</span></span></code></pre></div>
+<span><span class="co">#&gt; 625.116  12.526 320.296</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -929,16 +929,16 @@ due to overplotting and make this plot really slow.</p>
 <span><span class="co">#&gt; DataFrame with 10 rows and 1 column</span></span>
 <span><span class="co">#&gt;          moran_sample01</span></span>
 <span><span class="co">#&gt;               &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; MZT2A          0.199138</span></span>
-<span><span class="co">#&gt; COL1A1         0.394796</span></span>
-<span><span class="co">#&gt; IGHM           0.293272</span></span>
-<span><span class="co">#&gt; HLA-DPA1       0.242436</span></span>
-<span><span class="co">#&gt; PECAM1         0.119165</span></span>
-<span><span class="co">#&gt; IGKC           0.425201</span></span>
-<span><span class="co">#&gt; SERPINA1       0.254076</span></span>
-<span><span class="co">#&gt; IL7R           0.177657</span></span>
-<span><span class="co">#&gt; TPSB2          0.206091</span></span>
-<span><span class="co">#&gt; KRT19          0.770429</span></span></code></pre></div>
+<span><span class="co">#&gt; MZT2A          0.199116</span></span>
+<span><span class="co">#&gt; COL1A1         0.394790</span></span>
+<span><span class="co">#&gt; IGHM           0.293276</span></span>
+<span><span class="co">#&gt; HLA-DPA1       0.242435</span></span>
+<span><span class="co">#&gt; PECAM1         0.119176</span></span>
+<span><span class="co">#&gt; IGKC           0.425191</span></span>
+<span><span class="co">#&gt; SERPINA1       0.254089</span></span>
+<span><span class="co">#&gt; IL7R           0.177644</span></span>
+<span><span class="co">#&gt; TPSB2          0.206112</span></span>
+<span><span class="co">#&gt; KRT19          0.770417</span></span></code></pre></div>
 <p>Local Moran’s I of these marker genes</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>,</span>
