@@ -18,6 +18,8 @@ This package brings the tradition of geospatial statistics to spatial omics by w
 
 Thus, `Voyager` : `SpatialFeatureExperiment` is as `scater` / `scran` / `scuttle` : `SingleCellExperiment`. `Voyager` also builds on the geospatial tradition, especially the [`spdep`](https://r-spatial.github.io/spdep/) package, which is one of the main R packages for spatial dependence analyses. Specifically, `Voyager` focuses on spatial autocorrelation, which measures the extent of similarity or dissimilarity of spatially proximal regions, and that can be quantified in terms of length scale, and variation in space.
 
+This is the `Voyager` R documentation website. Documentation for the Python implementation is available [here](https://voyagerpy.readthedocs.io/).
+
 Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
 
 # Installation

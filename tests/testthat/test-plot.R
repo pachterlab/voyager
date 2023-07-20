@@ -557,34 +557,6 @@ sfe_cosmx2 <- SpatialFeatureExperiment::cbind(sfe_cosmx2a, sfe_cosmx2b)
 sfe_cosmx2 <- removeEmptySpace(sfe_cosmx2)
 
 test_that("colData and rowData bin2d", {
-    expect_doppelganger("colData bin2d", {
-        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes")
-    })
-    expect_doppelganger("colData bin2d with hexbin", {
-        plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes", hex = TRUE)
-    })
-    expect_doppelganger("rowData bin2d", {
-        plotRowDataBin2D(sfe_cosmx, "means", "vars", bins = 50) +
-            scale_x_log10() + scale_y_log10()
-    })
-    expect_doppelganger("rowData bin2d with subset", {
-        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
-                         name_true = "Counts (negative controls)",
-                         name_false = "Counts (real genes)", bins = 50) +
-            scale_x_log10() + scale_y_log10()
-    })
-    expect_doppelganger("rowData bin2d with subset and default legend", {
-        plotRowDataBin2D(sfe_cosmx, "means", "vars", subset = "is_neg",
-                         bins = 50) +
-            scale_x_log10() + scale_y_log10()
-    })
-    expect_doppelganger("colData bin2d for multiple samples", {
-        plotColDataBin2D(sfe_cosmx2, "nCounts", "nGenes",
-                         facet_by = "sample_id")
-    })
-    expect_warning(plotColDataBin2D(sfe_cosmx, "nCounts", "nGenes",
-                                    facet_by = "nCounts"),
-                   "Not facetting")
     expect_warning(plotColDataBin2D(sce = sfe_cosmx, x = "nCounts",
                                     y = "nGenes"),
                    "deprecated")

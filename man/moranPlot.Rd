@@ -24,6 +24,7 @@ moranPlot(
   binwidth = NULL,
   hex = FALSE,
   plot_influential = TRUE,
+  bins_contour = NULL,
   name = "moran.plot",
   ...
 )
@@ -98,6 +99,9 @@ TRUE}.}
 
 \item{plot_influential}{Logical, whether to plot influential points with
 different palette if \code{binned = TRUE}.}
+
+\item{bins_contour}{Number of bins in the point density contour. Use a
+smaller number to make sparser contours.}
 
 \item{name}{Name under which the Moran plot results are stored. By default
 "moran.plot".}

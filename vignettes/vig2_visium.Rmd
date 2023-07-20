@@ -219,7 +219,7 @@ rownames(gget_info) <- gget_info$primary_gene_name
 select(gget_info, ncbi_description)
 ```
 
-We first examine the Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs in order to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases. However, gene symbols are shorter and more human readable than Ensembl IDs, and are better suited to display on plots.  In the `plotSpatialFeature()` function and other functions in `Voyager`, even when the row names are recorded as Ensembl IDs, the `features` argument can take gene symbols if there is a column called "symbols" in `rowData(sfe)`, where the function converts the gene symbols to Ensembl IDs. By default, gene symbols are shown on the plot, but the `show_symbol` argument can be set to `FALSE` to show Ensembl IDs instead. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
+We first examine the Type I myofibers. This is a fast twitch muscle, so we don't expect many slow twitch Type I myofibers. Row names in `sfe_tissue` are Ensembl IDs in order to avoid ambiguity as sometimes multiple Ensembl IDs have the same gene symbol and some genes have aliases. However, gene symbols are shorter and more human readable than Ensembl IDs, and are better suited to display on plots.  In the `plotSpatialFeature()` function and other functions in `Voyager`, even when the row names are recorded as Ensembl IDs, the `features` argument can take gene symbols with the `swap_rownames` argument indicating a column in `rowData(sfe)` that stores the gene symbols. Gene symbols is then also shown in plots instead of Ensembl IDs. If one gene symbol matches multiple Ensembl IDs in the dataset, then a warning will be given.
 
 The `exprs_values` argument specifies the assay to use, which is by default "logcounts", i.e. the log normalized data. This default may or may not be suitable in practice given that total UMI counts may have biological relevance in spatial data. Therefore, we plot both the raw counts and the log normalized counts:
 ```{r}
@@ -227,13 +227,13 @@ The `exprs_values` argument specifies the assay to use, which is by default "log
 plot_counts_logcounts <- function(sfe, feature) {
   p1 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), show_symbol = TRUE, 
+                   annot_aes = list(fill = "area"), swap_rownames = "symbol", 
                    exprs_values = "counts", aes_use = "color", linewidth = 0.5,
                    fill = NA) +
     ggtitle("Raw counts")
   p2 <- plotSpatialFeature(sfe, feature, "spotPoly",
                    annotGeometryName = "myofiber_simplified", 
-                   annot_aes = list(fill = "area"), show_symbol = TRUE, 
+                   annot_aes = list(fill = "area"), swap_rownames = "symbol", 
                    exprs_values = "logcounts", aes_use = "color", linewidth = 0.5,
                    fill = NA) +
     ggtitle("Log normalized counts")
@@ -553,7 +553,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
                 linewidth = 0.1)
 ```
 
-In this plot and all following plots of p-values, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the bluish spots are significant while a dark brown means _really_ not significant.
+In this plot and all following plots of p-values, a divergent palette is used to show locations that are significant after adjusting for multiple testing and those that are not significant in different colors. The center of the divergent palette is p = 0.05, so the brown spots are significant while a dark blue means _really_ not significant.
 
 The "pysal" column displays the quadrants relative to the means in the Moran plot. The result is similar to that from k-means clustering shown above.
 ```{r}

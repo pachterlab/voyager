@@ -30,7 +30,7 @@
 #' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45-56.
 #' @export
 #' @importFrom Matrix colMeans
-#' @importFrom sparseMatrixStats colVars
+#' @importFrom matrixStats colVars
 #' @importFrom utils head tail
 #' @examples
 #' library(SFEData)
@@ -55,7 +55,7 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     if (scale) {
         # Note that dudi.pca divides by n instead of n-1 when scaling data
         n <- nrow(x)
-        x <- sweep(x, 2, sqrt(colVars(x)*(n-1)/n), FUN = "/")
+        x <- sweep(x, 2, sqrt(matrixStats::colVars(x)*(n-1)/n), FUN = "/")
     }
     if (inherits(listw, "Matrix") || is.matrix(listw))
         W <- listw
@@ -65,9 +65,9 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
         stop("listw must be either a listw object or an adjacency matrix.")
     covar <- t(x) %*% (W + t(W)) %*% x / (2*nrow(x))
     if (nfnega == 0L) {
-        res <- eigs_sym(covar, k = nfposi, which = "LR")
+        res <- eigs_sym(covar, k = nfposi, which = "LA")
     } else if (nfposi == 0L) {
-        res <- eigs_sym(covar, k = nfnega, which = "SR")
+        res <- eigs_sym(covar, k = nfnega, which = "SA")
     } else {
         nf <- max(nfposi, nfnega)
         res <- eigs_sym(covar, k = 2*nf, which = "BE")
