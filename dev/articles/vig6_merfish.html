@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-07-19</h4>
+            <h4 data-toc-skip class="date">2023-07-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -317,7 +317,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.337   1.639  25.988</span></span></code></pre>
+<span><span class="co">#&gt;  23.504   1.240  24.756</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -329,7 +329,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.873   0.287   2.161</span></span></code></pre>
+<span><span class="co">#&gt;   1.783   0.244   2.027</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -696,7 +696,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  52.373   0.183  53.230</span></span></code></pre></div>
+<span><span class="co">#&gt;  41.352   0.143  42.128</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -740,7 +740,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 123.693  23.492  80.248</span></span></code></pre></div>
+<span><span class="co">#&gt;  60.331  10.366  76.480</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -995,11 +995,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  19.635   1.062  20.710</span></span>
+<span><span class="co">#&gt;  19.424   1.041  20.475</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16168464  863.5   35894255 1917.0         NA  35894255 1917.0</span></span>
-<span><span class="co">#&gt; Vcells 249408479 1902.9  489004906 3730.9      16384 488865714 3729.8</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16168465  863.5   35894791 1917.0         NA  35894791 1917.0</span></span>
+<span><span class="co">#&gt; Vcells 249408481 1902.9  489004910 3730.9      16384 488865718 3729.8</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1187,7 +1187,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [53] glue_1.6.2                    gridExtra_2.3                </span></span>
 <span><span class="co">#&gt;  [55] xfun_0.39                     dplyr_1.1.2                  </span></span>
 <span><span class="co">#&gt;  [57] HDF5Array_1.28.1              withr_2.5.0                  </span></span>
-<span><span class="co">#&gt;  [59] BiocManager_1.30.21           fastmap_1.1.1                </span></span>
+<span><span class="co">#&gt;  [59] BiocManager_1.30.21.1         fastmap_1.1.1                </span></span>
 <span><span class="co">#&gt;  [61] boot_1.3-28.1                 rhdf5filters_1.12.1          </span></span>
 <span><span class="co">#&gt;  [63] bluster_1.10.0                fansi_1.0.4                  </span></span>
 <span><span class="co">#&gt;  [65] digest_0.6.33                 rsvd_1.0.5                   </span></span>
@@ -1220,7 +1220,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.1               </span></span>
 <span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
 <span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
-<span><span class="co">#&gt; [125] plyr_1.8.8                    fs_1.6.2                     </span></span>
+<span><span class="co">#&gt; [125] plyr_1.8.8                    fs_1.6.3                     </span></span>
 <span><span class="co">#&gt; [127] ggbeeswarm_0.7.2              stringi_1.7.12               </span></span>
 <span><span class="co">#&gt; [129] stars_0.6-2                   viridisLite_0.4.2            </span></span>
 <span><span class="co">#&gt; [131] deldir_1.0-9                  munsell_0.5.0                </span></span>
