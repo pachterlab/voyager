@@ -116,7 +116,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-07-25</h4>
+            <h4 data-toc-skip class="date">2023-07-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -316,7 +316,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.826   1.302  25.137</span></span></code></pre>
+<span><span class="co">#&gt;  23.406   1.188  24.605</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -328,7 +328,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.866   0.246   2.114</span></span></code></pre>
+<span><span class="co">#&gt;   1.737   0.235   1.973</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -695,7 +695,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  41.987   0.163  42.839</span></span></code></pre></div>
+<span><span class="co">#&gt;  40.884   0.150  41.665</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -739,7 +739,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  62.135   6.920  72.010</span></span></code></pre></div>
+<span><span class="co">#&gt;  59.947  10.200  76.075</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -994,11 +994,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  21.626   1.283  22.925</span></span>
+<span><span class="co">#&gt;  18.668   1.030  19.708</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             used   (Mb) gc trigger (Mb) limit (Mb)  max used (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16162509  863.2   35875440 1916         NA  35875440 1916</span></span>
-<span><span class="co">#&gt; Vcells 249392447 1902.8  456649443 3484      16384 456649443 3484</span></span></code></pre></div>
+<span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
+<span><span class="co">#&gt; Ncells  16163834  863.3   35888324 1916.7         NA  35888324 1916.7</span></span>
+<span><span class="co">#&gt; Vcells 249394748 1902.8  488985140 3730.7      16384 488851986 3729.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1197,7 +1197,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 intervals_0.15.4             </span></span>
 <span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [79] FNN_1.1.3.2                   class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.4               </span></span>
+<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.5               </span></span>
 <span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.4.0                  </span></span>
 <span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.5              </span></span>
@@ -1228,7 +1228,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [137] bit64_4.0.5                   Rhdf5lib_1.22.0              </span></span>
 <span><span class="co">#&gt; [139] KEGGREST_1.40.0               shiny_1.7.4.1                </span></span>
 <span><span class="co">#&gt; [141] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
-<span><span class="co">#&gt; [143] AnnotationHub_3.8.0           igraph_1.5.0                 </span></span>
+<span><span class="co">#&gt; [143] AnnotationHub_3.8.0           igraph_1.5.0.1               </span></span>
 <span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.0                  </span></span>
 <span><span class="co">#&gt; [147] lwgeom_0.2-13                 bit_4.0.5</span></span></code></pre></div>
 </div>
