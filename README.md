@@ -18,7 +18,8 @@ This package brings the tradition of geospatial statistics to spatial omics by w
 
 Thus, `Voyager` : `SpatialFeatureExperiment` is as `scater` / `scran` / `scuttle` : `SingleCellExperiment`. `Voyager` also builds on the geospatial tradition, especially the [`spdep`](https://r-spatial.github.io/spdep/) package, which is one of the main R packages for spatial dependence analyses. Specifically, `Voyager` focuses on spatial autocorrelation, which measures the extent of similarity or dissimilarity of spatially proximal regions, and that can be quantified in terms of length scale, and variation in space.
 
-# Installation
+## Installation
+
 `SpatialFeatureExperiment` and `Voyager` can be installed from Bioconductor version 3.16 or higher:
 
 ```r
@@ -27,7 +28,7 @@ BiocManager::install(version = "3.17") # Or a higher version in the future
 BiocManager::install("Voyager")
 ```
 
-# Citation
+## Citation
 Voyager: exploratory single-cell genomics data analysis with geospatial statistics
 Lambda Moses, Pétur Helgi Einarsson, Kayla Jackson, Laura Luebbert, A. Sina Booeshaghi, Sindri Antonsson, Páll Melsted, Lior Pachter
 bioRxiv 2023.07.20.549945; doi: https://doi.org/10.1101/2023.07.20.549945
