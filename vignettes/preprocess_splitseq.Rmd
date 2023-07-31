@@ -30,16 +30,12 @@ knitr::opts_chunk$set(
 
 ```{r, include = FALSE, eval = FALSE}
 # Install Google Colab dependencies
-# Note: this can take 30+ minutes (many of the dependencies include C++ code, which needs to be compiled)
-
-# First install `sf`, `ragg` and `textshaping` and their system dependencies:
-system("apt-get -y update && apt-get install -y  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libharfbuzz-dev libfribidi-dev")
-
-install.packages("stringr")
+install.packages(c("stringr", "rjson"))
 ```
 
 ```{r setup}
 library(stringr)
+library(rjson)
 ```
 
 # Building Count Matrices with `cellatlas`
@@ -56,9 +52,6 @@ In this notebook we demonstrate how single-cell genomics data can be preprocesse
 # Install Packages
 The vignette makes use of two non-standard command line tools, [`jq`](https://jqlang.github.io/jq/) and [`tree`](https://mama.indstate.edu/users/ice/tree/). The code cell below installs these tools on a Linux operating system and should be updated for Mac and Windows users.
 ```{r}
-# Install `tree` to view files
-system("wget --quiet --show-progress ftp://mama.indstate.edu/linux/tree/tree-2.1.0.tgz")
-
 # Install `jq`, a command-line tool for extracting key value pairs from JSON files 
 system("wget --quiet --show-progress https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64")
 system("chmod +x jq-linux64 && mv jq-linux64 /usr/local/bin/jq")
@@ -123,11 +116,10 @@ lapply(cmds, function(cmd) system(cmd))
 ```
 ## Inspect the output 
 We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
-```{r, eval = FALSE}
-system("tree out")
+```{r}
+list.files("out")
 ```
 
-```{r, eval = FALSE}
-system("cat out/run_info.json")
-# system("cat out/kb_info.json")
+```{r}
+rjson::fromJSON(file = "out/run_info.json")
 ```
