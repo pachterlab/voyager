@@ -10,7 +10,7 @@
 
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
 
-This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the `SpatialFeatureExperiment` class, which extends SpatialExperiment with sf. This is the `Voyager` R documentation website. Documentation for the Python implementation is available [here](https://voyagerpy.readthedocs.io/). Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the `SpatialFeatureExperiment` class, which extends SpatialExperiment with sf. This is the `Voyager` R documentation website. Documentation for the Python implementation is available [here](https://pmelsted.github.io/voyagerpy). Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
 
 [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) is a package that facilitates exploratory spatial data analysis and visualization for spatial genomics data represented by [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) objects. 
 
@@ -26,6 +26,11 @@ if (!requireNamespace("BiocManager")) install.packages("BiocManager")
 BiocManager::install(version = "3.17") # Or a higher version in the future
 BiocManager::install("Voyager")
 ```
+
+# Citation
+Voyager: exploratory single-cell genomics data analysis with geospatial statistics
+Lambda Moses, Pétur Helgi Einarsson, Kayla Jackson, Laura Luebbert, A. Sina Booeshaghi, Sindri Antonsson, Páll Melsted, Lior Pachter
+bioRxiv 2023.07.20.549945; doi: https://doi.org/10.1101/2023.07.20.549945
 
 <img src="https://github.com/pachterlab/voyager/raw/documentation/vignettes/voyager_schematics.png" width="1024"/>
 

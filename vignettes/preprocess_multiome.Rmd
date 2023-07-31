@@ -1,0 +1,131 @@
+---
+title: "10X Multiome ATAC preprocessing with cellatlas"
+author: "Kayla Jackson and A. Sina Booeshaghi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  toc: true
+  toc_float:
+    collapsed: false
+  toc_depth: 3
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+bibliography: ref.bib
+vignette: >
+  %\VignetteIndexEntry{multiome_ca}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r, include = FALSE, eval = FALSE}
+install.packages(c("stringr", "rjson"))
+```
+
+```{r setup}
+library(stringr)
+library(rjson)
+```
+
+# Building Count Matrices with `cellatlas`
+A major challenge in uniformly preprocessing large amounts of single-cell genomics data from a variety of different assays is identifying and handling sequenced elements in a coherent and consistent fashion. Cell barcodes in reads from RNAseq data from 10x Multiome, for example, must be extracted and error corrected in the manner as cell barcodes in reads from ATACseq data from 10x Multiome so that barcode-barcode registration can occur. Uniform processing in this way minimzes computational variability and enables cross-assay comparisons.
+
+In this notebook we demonstrate how single-cell genomics data can be preprocessed to generate a cell by feature count matrix. This requires:
+
+1. FASTQ files
+2. `seqspec` specification for the FASTQ files
+3. Genome Sequence FASTA
+4. Genome Annotation GTF
+5. (optional) Feature barcode list
+
+# Install Packages
+The vignette makes use of two non-standard command line tools, [`jq`](https://jqlang.github.io/jq/) and [`tree`](https://mama.indstate.edu/users/ice/tree/). The code cell below installs these tools on a Linux operating system and should be updated for Mac and Windows users.
+```{r}
+# Install `jq`, a command-line tool for extracting key value pairs from JSON files 
+system("wget --quiet --show-progress https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64")
+system("chmod +x jq-linux64 && mv jq-linux64 /usr/local/bin/jq")
+```
+We will continue with other dependencies that can be installed on any operating system. 
+```{r}
+# Clone the cellatlas repo and install the package
+system("git clone https://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@github.com/cellatlas/cellatlas.git")
+system("cd cellatlas && pip install .")
+
+# Install dependencies
+system("yes | pip uninstall --quiet seqspec")
+system("pip install --quiet git+https://github.com/IGVF/seqspec.git")
+system("pip install --quiet gget kb-python")
+```
+
+# Preprocessing for Chromium Single Cell ATAC Multiome ATAC
+The data for this example are located in the `cellatlas/examples/atac-10xmultiome/` directory. 
+```{r, eval = FALSE}
+system("mv cellatlas/examples/atac-10xmultiome/* .")
+system("gunzip *.gz")
+```
+The `seqspec print` command prints out an ordered tree representation of the sequenced elements contained in the FASTQ files. Note that on Google Colab, go to Runtime -> View runtime logs to see the output from `system`.
+```{r, eval = FALSE}
+system("seqspec print spec.yaml")
+```
+## Fetch the references
+This step is only necessary if the modality that we are processing uses a transcriptome reference-based alignment. 
+```{r, eval = FALSE}
+system("gget ref -o ref.json -w dna,gtf mus_musculus")
+```
+## Build the pipeline
+```{r, eval = FALSE}
+FA <- system2("jq",
+  args = c("-r", "'.mus_musculus.genome_dna.ftp'", "ref.json"),
+  stdout = TRUE)
+
+GTF <- system2("jq",
+  args = c("-r", "'.mus_musculus.annotation_gtf.ftp'", "ref.json"),
+  stdout = TRUE)
+```
+
+```{r, eval = FALSE}
+args <- c(
+  "-o out", 
+  "-s spec.yaml",
+  "-m atac",  
+  "-fa", FA,
+  "-g", GTF,
+  "fastqs/atac_R1.fastq.gz fastqs/atac_R2.fastq.gz fastqs/atac_I2.fastq.gz")
+
+system2(command = "cellatlas", args = c("build", args))
+```
+## Run the pipeline
+To run the pipeline we extract the commands from `out/cellatlas_info.json` and run them on the command line. 
+```{r, eval = FALSE}
+cmds <- system2("jq", "-r '.commands[] | values[]' out/cellatlas_info.json", stdout=TRUE)
+cmds <- str_subset(cmds, "[\\[\\]]", negate=TRUE)
+cmds <- str_trim(cmds)
+cmds <- str_remove_all(cmds, '\\\",$|\\\"$|^\\\"')
+cmds <- str_replace_all(cmds, fixed("\\\""), "\"")
+cmds <- str_replace_all(cmds, fixed("\\t"), "\t")
+
+cmds
+```
+
+```{r, eval = FALSE}
+lapply(cmds, function(cmd) system(cmd))
+```
+## Inspect the output 
+We inspect the `out/run_info.json` and `out/kb_info.json` as a simple QC on the pipeline.
+```{r}
+list.files("out")
+```
+
+```{r}
+rjson::fromJSON(file = "out/run_info.json")
+```
