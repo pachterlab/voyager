@@ -41,6 +41,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
+    <a class="dropdown-item" href="../articles/pros_cons_landing.html">Pros and cons</a>
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
     <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
@@ -116,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-07-27</h4>
+            <h4 data-toc-skip class="date">2023-08-01</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -316,7 +317,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.406   1.188  24.605</span></span></code></pre>
+<span><span class="co">#&gt;  23.594   1.220  24.828</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -328,7 +329,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.737   0.235   1.973</span></span></code></pre>
+<span><span class="co">#&gt;   1.772   0.244   2.017</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -695,7 +696,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  40.884   0.150  41.665</span></span></code></pre></div>
+<span><span class="co">#&gt;  40.712   0.164  41.557</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -739,7 +740,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  59.947  10.200  76.075</span></span></code></pre></div>
+<span><span class="co">#&gt;  60.742  10.458  77.133</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -994,11 +995,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  18.668   1.030  19.708</span></span>
+<span><span class="co">#&gt;  18.242   1.004  19.255</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16163834  863.3   35888324 1916.7         NA  35888324 1916.7</span></span>
-<span><span class="co">#&gt; Vcells 249394748 1902.8  488985140 3730.7      16384 488851986 3729.7</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16160057  863.1   35839074 1914.1         NA  35839074 1914.1</span></span>
+<span><span class="co">#&gt; Vcells 249384272 1902.7  488970054 3730.6      16384 488841510 3729.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1176,7 +1177,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
 <span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.1    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
-<span><span class="co">#&gt;  [39] DelayedArray_0.26.6           tidyselect_1.2.0             </span></span>
+<span><span class="co">#&gt;  [39] DelayedArray_0.26.7           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [41] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
 <span><span class="co">#&gt;  [43] viridis_0.6.4                 BiocFileCache_2.8.0          </span></span>
 <span><span class="co">#&gt;  [45] jsonlite_1.8.7                e1071_1.7-13                 </span></span>
