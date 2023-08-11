@@ -17,6 +17,16 @@ knitr::opts_chunk$set(
 
 The [nuclei isolation solution](https://www.10xgenomics.com/products/nuclei-isolation) from 10X genomics is a protocol for isolating nuclei from frozen samples for single nuclei sequencing. The sample prep workflow has the advantage of avoiding long enzymatic incubations and being accessible without specialized equipment. The workflow includes cell lysis, nuclei isolation in a spin column, and debris removal. Importantly, isolated nuclei are compatible with Chromium Single Cell ATAC, Single Cell Multiome ATAC + Gene Expression, and Single Cell Gene Expression assays without modifications to the single cell workflows. Nuclei suspension concentration, viability, and quality can be assessed with a nucleic acid fluorescent dye and follow-up with an fluorescent automated counter or microscope. 
 
+## Pros and cons
+Pros:
+* Applicable to frozen samples
+* Capture more nascent transcripts
+* Sensible to tissues with multiple nuclei in one cell
+
+Cons:
+* Lose spatial information
+* More expensive and less flexible than open source technologies
+
 ## Getting Started
 
 The vignettes below provide examples of processing raw data using a workflow that includes [`seqspec`](https://github.com/IGVF/seqspec), [`gget`](https://github.com/pachterlab/gget), and [`kallisto`/`bustools`](https://www.kallistobus.tools) to generate a count matrix. We process the output of various transcriptomics technologies into a [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html)(SFE) object for use with `Voyager`. 
