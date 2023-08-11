@@ -17,6 +17,19 @@ knitr::opts_chunk$set(
 
 The 10X Genomics Chromium Single Cell 3' v3 solution is a droplet-based single cell sequencing technology that enables gene expression profiling in hundreds to tens of thousands of cells. In a typical protocol, cells are dissociated and captured in Gel Beads-in-emulsion (GEMs). All cDNA from a single cell share a cellular barcode. Additional 10X barcodes help associate individual reads from a cDNA library back to the originating GEMs. The gel beads in the v3 chemistry are also modified to enable feature barcoding, so that orthogonal molecules can be profiled alongside RNA. This, in addition to greater detection of RNA molecules, represents major advancements over the 10X Chromium v2 chemistry.
 
+## Pros and cons
+Pros:
+
+* Widely used, tested on many cell types and tissues
+* Many existing datasets, including many on the 10X website
+* High throughput, applied to atlases with millions of cells
+
+Cons:
+* Lose spatial information
+* More expensive than open source technologies
+* Less flexible
+* Some tissues such as skeletal muscles are challenging to dissociate
+
 ## Getting Started
 
 The vignettes below provide examples of processing raw data using a workflow that includes [`seqspec`](https://github.com/IGVF/seqspec), [`gget`](https://github.com/pachterlab/gget), and [`kallisto`/`bustools`](https://www.kallistobus.tools) to generate a count matrix. We process the output of various transcriptomics technologies into a [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html)(SFE) object for use with `Voyager`. 
