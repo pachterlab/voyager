@@ -42,7 +42,6 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
-    <a class="dropdown-item" href="../articles/pros_cons_landing.html">Pros and cons</a>
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
     <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
@@ -118,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-11</h4>
+            <h4 data-toc-skip class="date">2023-08-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -318,7 +317,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.227   1.166  24.408</span></span></code></pre>
+<span><span class="co">#&gt;  23.906   1.309  25.231</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -330,7 +329,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.774   0.237   2.012</span></span></code></pre>
+<span><span class="co">#&gt;   1.943   0.292   2.236</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -697,7 +696,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  49.786   0.146  50.611</span></span></code></pre></div>
+<span><span class="co">#&gt;  41.632   0.162  42.500</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -741,7 +740,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 117.848  20.253  76.877</span></span></code></pre></div>
+<span><span class="co">#&gt;  61.932  11.324  79.948</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -996,11 +995,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  19.314   1.076  20.401</span></span>
+<span><span class="co">#&gt;  20.642   1.137  21.791</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16159932  863.1   35835525 1913.9         NA  35835525 1913.9</span></span>
-<span><span class="co">#&gt; Vcells 249384036 1902.7  488969716 3730.6      16384 488841256 3729.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16160498  863.1   35838687 1914.0         NA  35838687 1914.0</span></span>
+<span><span class="co">#&gt; Vcells 249384502 1902.7  488970322 3730.6      16384 488841722 3729.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1231,7 +1230,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [139] KEGGREST_1.40.0               shiny_1.7.4.1                </span></span>
 <span><span class="co">#&gt; [141] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [143] AnnotationHub_3.8.0           igraph_1.5.1                 </span></span>
-<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.0                  </span></span>
+<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.1                  </span></span>
 <span><span class="co">#&gt; [147] lwgeom_0.2-13                 bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
