@@ -41,7 +41,6 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
-    <a class="dropdown-item" href="../articles/pros_cons_landing.html">Pros and cons</a>
     <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
     <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
     <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
@@ -117,7 +116,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-11</h4>
+            <h4 data-toc-skip class="date">2023-08-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -317,7 +316,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.417   1.230  24.659</span></span></code></pre>
+<span><span class="co">#&gt;  23.376   1.197  24.581</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -329,7 +328,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.677   0.240   1.918</span></span></code></pre>
+<span><span class="co">#&gt;   1.703   0.224   1.927</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -696,7 +695,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  43.518   0.162  44.383</span></span></code></pre></div>
+<span><span class="co">#&gt;  50.823   0.152  51.600</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -740,7 +739,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 126.189  21.808  80.826</span></span></code></pre></div>
+<span><span class="co">#&gt;  60.584  11.105  78.305</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -995,11 +994,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  20.363   1.119  21.492</span></span>
+<span><span class="co">#&gt;  19.459   1.093  20.562</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16160201  863.1   35838635 1914.0         NA  35838635 1914.0</span></span>
-<span><span class="co">#&gt; Vcells 249384413 1902.7  488970258 3730.6      16384 488841650 3729.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16159957  863.1   35835480 1913.9         NA  35835480 1913.9</span></span>
+<span><span class="co">#&gt; Vcells 249384004 1902.7  488969673 3730.6      16384 488841225 3729.6</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1173,9 +1172,9 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [25] R.utils_2.12.2                RCurl_1.98-1.12              </span></span>
 <span><span class="co">#&gt;  [27] rappdirs_0.3.3                GenomeInfoDbData_1.2.10      </span></span>
 <span><span class="co">#&gt;  [29] ggrepel_0.9.3                 irlba_2.3.5.1                </span></span>
-<span><span class="co">#&gt;  [31] terra_1.7-39                  units_0.8-2                  </span></span>
+<span><span class="co">#&gt;  [31] terra_1.7-39                  units_0.8-3                  </span></span>
 <span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.1    </span></span>
+<span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.22.5    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
 <span><span class="co">#&gt;  [39] DelayedArray_0.26.7           tidyselect_1.2.0             </span></span>
 <span><span class="co">#&gt;  [41] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
@@ -1201,7 +1200,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.5               </span></span>
 <span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.4.0                  </span></span>
 <span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
-<span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.5              </span></span>
+<span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.6              </span></span>
 <span><span class="co">#&gt;  [89] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [91] knitr_1.43                    rjson_0.2.21                 </span></span>
 <span><span class="co">#&gt;  [93] spacetime_1.3-0               curl_5.0.1                   </span></span>
@@ -1222,7 +1221,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
 <span><span class="co">#&gt; [125] plyr_1.8.8                    fs_1.6.3                     </span></span>
 <span><span class="co">#&gt; [127] ggbeeswarm_0.7.2              stringi_1.7.12               </span></span>
-<span><span class="co">#&gt; [129] stars_0.6-2                   viridisLite_0.4.2            </span></span>
+<span><span class="co">#&gt; [129] stars_0.6-3                   viridisLite_0.4.2            </span></span>
 <span><span class="co">#&gt; [131] deldir_1.0-9                  munsell_0.5.0                </span></span>
 <span><span class="co">#&gt; [133] Biostrings_2.68.1             Matrix_1.6-0                 </span></span>
 <span><span class="co">#&gt; [135] ExperimentHub_2.8.1           sparseMatrixStats_1.12.2     </span></span>
