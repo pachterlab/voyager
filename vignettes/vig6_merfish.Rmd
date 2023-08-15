@@ -61,7 +61,7 @@ In anticipation of large datasets, this vignette was produced using limited GitH
 The dataset we use in this vignette is a MERFISH mouse liver dataset downloaded from the [Vizgen website](https://console.cloud.google.com/storage/browser/vz-liver-showcase/Liver1Slice1). We will use it to discuss some issues with large datasets and some upcoming features in the next release of `Voyager`. The gene count matrix and cell metadata (including centroid coordinates) were downloaded as CSV files and read into R. While 7 z-planes were imaged, cell segmentation is only available in one z-plane. The cell polygons are in HDF5 files, with one HDF5 file per field of view (FOV), and there are over 1000 FOVs in this dataset. Converting these HDF5 files into an `sf` data frame is not trivial. See the [vignette on creating a `SpatialFeatureExperiment` (SFE) object](https://pachterlab.github.io/voyager/articles/create_sfe.html#technology-specific-notes) for code used to do the conversion, and the polygons are included in the SFE object. The cell metadata already has cell volume. If the polygons are not used in the analyses, and the polygons can't be seen on a static plot with hundreds of thousands of cells anyway, then doing the conversion is optional. While the transcript spot locations are available, we cannot yet work with such a large point dataset.
 
 Here we load the packages used. 
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
 library(SFEData)
 library(SingleCellExperiment)
@@ -133,7 +133,7 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg", bbox = bbox_use)
 
 Much of the time making this plot is spent subsetting the `sf` data frame with the bounding box. Here, spatial autocorrelation is evident in the upper right region with smaller cells, but less so in the rest of this patch. nCounts seems to be related to cell size; larger cells seem to have more total counts.
 
-Interactive data visualization is currently beyond the scope of `Voyager` or this vignette. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Pielawski2022-wk], and [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2022-zw].
+Interactive data visualization is currently beyond the scope of `Voyager` or this vignette. There are existing tools for interactive visualization of highly multiplexed imaging data, such as [`MERmaid`](https://github.com/JEFworks-Lab/MERmaid) [@Wang2020-sv] for MERFISH data, [`TissUUmaps`](https://github.com/TissUUmaps/TissUUmapsCore) [@Behanova2023-gl], [`Visinity`](https://github.com/labsyspharm/visinity) [@Warchol2023-zw], and the [samui broswer](https://github.com/chaichontat/samui) [@Sriworarat2023-jl].
 
 Since there aren't too many genes, all genes and negative control probes can be displayed:
 ```{r}
@@ -172,21 +172,21 @@ plotSpatialFeature(sfe, "volume", colGeometryName = "centroids", scattermore = T
 
 Next, we explore how nCounts relates to nGenes:
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "nGenes")
+plotColData(sfe, x="nCounts", y="nGenes", bins = 100)
 ```
 
 There are two branches in this plot. 
 
 How does cell size relate to nCounts?
 ```{r}
-plotColDataBin2D(sfe, "volume", "nCounts")
+plotColData(sfe, x="volume", y="nCounts", bins = 100)
 ```
 
 The lower branch has the larger cells that don't tend to have more total counts, and the upper branch has larger cells that tend to have more total counts.
 
 We also examine how cell size relates to number of genes detected:
 ```{r}
-plotColDataBin2D(sfe, "volume", "nGenes")
+plotColData(sfe, x="volume", y="nGenes", bins = 100)
 ```
 
 There seem to be clusters that are possibly related to cell type. 
@@ -245,8 +245,7 @@ plotColDataHistogram(sfe, "subsets_blank_percent") +
 A small percentage of blank counts is acceptable. So we will remove the outlier based on the distribution of the percentage when it's greater than zero. How does the blank percentage relate to total counts?
 
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "subsets_blank_percent") +
-    scale_fill_viridis_c()
+plotColData(sfe, x="nCounts", y="subsets_blank_percent", bins = 100)
 ```
 
 The outliers in percentage of blank counts have low total counts. But there are some seemingly real cells with sizable nCounts which have a relatively high percentage of blank counts. Since the distribution of this percentage has a very long tail, we log transform it when finding outliers.
@@ -458,7 +457,7 @@ At a larger length scale, Moran's I becomes positive. Comparing Moran's I across
 2. Which function to use to aggregate the values when binning
 3. When using a rectangular grid, whether to use rook or queen neighbors. Rook means two cells are neighbors if they share an edge, while queen means they are neighbors even if they merely share a vertex. 
 
-While binning can greatly speed up computation of spatial autocorrelation metrics for larger datasets, and is in fact used for Moran's I in Seurat, it can be used for smaller datasets to find length scales of spatial autocorrelation. On the other hand, as seen here, Moran's I can flip signs at different length scales, so for larger datasets, exploring spatial autocorrelation at the cell level would still be interesting.
+While binning can greatly speed up computation of spatial autocorrelation metrics for larger datasets, it can be used for smaller datasets to find length scales of spatial autocorrelation. On the other hand, as seen here, Moran's I can flip signs at different length scales, so for larger datasets, exploring spatial autocorrelation at the cell level would still be interesting.
 
 ## Semivariogram
 In geostatistical data, an underlying spatial process is sampled at known locations. Kriging uses a Gaussian process to interpolate the values between the sample locations, and the semivariogram is used to model the spatial dependency between the locations as the covariance of the Gaussian process. When not kriging, the semivariogram can be used as an exploratory data analysis tool to find the length scale and anisotropy of spatial autocorrelation. One of the classic R packages in the geostatistical tradition is [`gstat`](https://cran.r-project.org/web/packages/gstat/index.html), which we use here to find semivariograms, defined as
@@ -469,11 +468,11 @@ $$
 
 where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2.
 
-In the next release of Voyager, this will be part of `runUnivariate()` so the learning curve for users will be minimal.
+The variogram is in Voyager v1.2.0 or higher (Bioconductor 3.17 or later) and can be computed with the same `runUnivariate()` function. See [vignette for variograms and variogram maps](https://pachterlab.github.io/voyager/articles/variogram.html).
 
 First we find an empirical variogram assuming that it's the same in all directions. Here the data is binned at distance intervals, so this is much faster than the correlogram at the cell level. The `width` argument controlls the bin size. The `cutoff` argument is the maximum distance to consider. Here we use the defaults. The first argument is a formula; covariates can be specified, but is not done here.
 
-With different widths and cutoffs, the variogram can be estimated at different length scales. The `gstat` package can also fit a model to the empirical variogram. See `vgm()` for the different types of models. The [`automap`](https://cran.r-project.org/web/packages/automap/) package can choose a model for the user, and is used here. 
+With different widths and cutoffs, the variogram can be estimated at different length scales. The `gstat` package can also fit a model to the empirical variogram. See `vgm()` for the different types of models. The [`automap`](https://cran.r-project.org/web/packages/automap/) package can choose a model for the user, and is used here and in Voyager. 
 
 Unfortunately, `gstat` doesn't scale to 400,000 cells, although it worked for 100,000 cells in the other smFISH-based datasets on this website. But since the variogram is used to explore larger length scales here anyway, we use the binned data here, but the problems with binning will apply.
 
@@ -502,7 +501,7 @@ plot(v3, v3_model)
 
 The variogram rises when going beyond 2000 at 30 and 90 degrees and drops at 150 degrees. This is consistent with the variogram map. These differences are averaged out in the omni-directional variogram. `gstat` does not fit anisotropy parameters, so the fitted curve is omni-directional. It fits pretty well below 2000. This is only for nCounts, and may differ for other QC metrics and genes. What if anisotropy varies in space? A problem with the variogram is that it's global, giving one result for the entire dataset, albeit more nuanced than just a number as in Moran's I, because kriging assumes that the data is intrinsically stationary, meaning that the same variogram model applies everywhere, and that spatial dependence only depends on lag between two observations.
 
-Voyager 1.2.0 implements `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms for SFE objects. However, the binned data is not in an SFE object. We are considering writing a method to spatially bin all cell level data in an SFE object. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
+Voyager 1.2.0 and above implements `ggplot2` based plotting functions to make better looking and more customizable plots of the variograms for SFE objects. However, the binned data is not in an SFE object. We are considering writing a method to spatially bin all cell level data in an SFE object for Bioconductor 3.18. Here `gstat` is using `lattice`, a predecessor of `ggplot2` to make facetted plots and has been superseded by `ggplot2`. `gstat` is one of the oldest R packages still on CRAN, dating back to the days of S (prequel of R), although its oldest archive on CRAN is from 2003. `spdep` is also really old; its oldest archive on CRAN is from 2002, but it's still in active development. In using these time honored packages and methods (Moran's I and Geary's C themselves date back to the 1950s and their modern form date back to 1969 [@Cliff1969-wp; @Bivand2013-jx]) on the cool new spatial transcriptomics dataset, we are participating in a glorious tradition, which we will further develop as a spatial analysis tradition forms around spatial -omics data analysis.
 
 # PCA for larger datasets
 There are many ways to do PCA in R, and the [`BiocSingular`](https://bioconductor.org/packages/release/bioc/html/BiocSingular.html) package makes a number of different methods available with a consistent user interface, and it supports out of memory data in `DelayedArray`. According to [this benchmark](https://slowkow.com/notes/pca-benchmark/), `stats::prcomp()` shipped with R is rather slow for larger datasets. The fastest methods are `irlba::irlba()` and `RSpectra::svds()`, and the former is supported by `BiocSingular`. So here we use IRLBA and see how long it takes. Many PCA algorithms involve repeated matrix multiplications. R does not come with optimized BLAS and LAPACK, for portability reasons. However, the BLAS and LAPACK used by R can be changed to an optimized one (here's [how to do it](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Shared-BLAS)), which will speed up matrix multiplication. 

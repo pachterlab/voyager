@@ -57,7 +57,7 @@ Nanostring GeoMX DSP is a popular spatial transcriptomics technology for formali
 
 The CosMX dataset for non-small cell lung cancer that we used is described in [@He2021-oy]. The processed data is available for download from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/). The gene count matrix, cell metadata, and cell segmentation polygon coordinates were downloaded from the Nanostring website as CSV files and read into R as data frames. The gene count matrix was then converted to a sparse matrix. The cell metadata contains centroid coordinates of the cells. The cell polygon data frames were converted into an `sf` data frame with the `df2sf()` function in `SpatialFeatureExperiment` (SFE). These were then used to construct an SFE object. Cell segmentation is only available in one z-plane.
 
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
 library(SFEData)
 library(SingleCellExperiment)
@@ -150,7 +150,7 @@ Based on the spatial plot, it seems that nCounts and nGenes are biologically rel
 
 How nCounts relates to nGenes
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "nGenes")
+plotColData(sfe, x = "nCounts", y = "nGenes", bins = 100)
 ```
 
 What's the nature of the cells without transcripts?
@@ -178,7 +178,7 @@ Larger cells are more likely to be found in certain areas of the tissue. It coul
 
 How does area relate to total counts?
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "Area") + theme_bw()
+plotColData(sfe, x = "nCounts", y = "Area", bins = 100) + theme_bw()
 ```
 
 While there may vaguely seem that cells with more total counts tend to be larger (at least in this z-plane), there are some cells that are large but have low total counts.
@@ -198,8 +198,7 @@ plot_violin_spatial(sfe, "prop_neg")
 The NA's are empty cells, and the proportion is very low except for a few outliers. How does prop_neg relate to nCounts?
 
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "prop_neg") +
-    scale_fill_viridis_c()
+plotColData(sfe, x = "nCounts",y = "prop_neg", bins = 100)
 ```
 
 This looks kind of like the proportion of mitochondrial counts vs. nCounts plot for scRNA-seq, where cells with fewer total counts tend to have higher proportion of mitochondrial counts.
@@ -239,7 +238,7 @@ rowData(sfe)$is_neg <- neg_inds
 ```
 
 ```{r}
-plotRowDataBin2D(sfe, "means", "vars", subset = "is_neg", bins = 50) +
+plotRowData(sfe, x = "means", y = "vars", subset = "is_neg", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
     annotation_logticks() +

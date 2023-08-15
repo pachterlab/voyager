@@ -61,7 +61,7 @@ The cell metadata (including centroid coordinates) and cell segmentation polygon
 
 Here we load the packages used in this vignette.
 
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
 library(SFEData) 
 library(SingleCellExperiment)
@@ -137,7 +137,7 @@ plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
 
 A standard examination is to look at the relationship between nCounts and nGenes:
 ```{r}
-plotColDataBin2D(sfe, "nCounts", "nGenes")
+plotColData(sfe, x="nCounts", y="nGenes", bins = 100)
 ```
 
 There appear to be two branches. 
@@ -165,8 +165,7 @@ There's an outlier near the right edge of the section, throwing off the dynamic 
 
 These observations motivate an examination of the relationship between cell area and nuclei area:
 ```{r}
-plotColDataBin2D(sfe, "cell_area", "nucleus_area") + 
-    scale_fill_viridis_c()
+plotColData(sfe, x="cell_area", y="nucleus_area", bins = 100)
 ```
 
 Again, there are two branches, probably related to cell density and cell type. The nucleus outlier also has large cell area, though it is not as much an outlier in cell area. However, it is a spatial outlier as it's unusually large compared to its neighbors (scroll up two plots back). 
@@ -198,16 +197,14 @@ Cells in some histological regions have larger proportions occupied by the nucle
 
 Below we plot a 2D histogram to better show the density of points on this plot:
 ```{r}
-plotColDataBin2D(sfe, "cell_area", "prop_nuc") + 
-    scale_fill_viridis_c()
+plotColData(sfe, x="cell_area", y="prop_nuc")
 ```
 
 Smaller cells tend to have higher proportion occupied by the nucleus. This can be related to cell type, or it could be a limitation in how small the nuclei can be in this tissue.
 
 We also examine the relationship between nucleus area and the proportion of cell occupied by the nucleus:
 ```{r}
-plotColDataBin2D(sfe, "nucleus_area", "prop_nuc") + 
-    scale_fill_viridis_c()
+plotColData(sfe, x="nucleus_area", y="prop_nuc", bins = 100)
 ```
 
 The outlier is obvious. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
@@ -374,7 +371,7 @@ plotRowData(sfe, x = "means", y = "is_neg") +
 
 Here the real genes and negative controls are plotted in different colors
 ```{r}
-plotRowDataBin2D(sfe, "means", "vars", subset = "is_neg", 
+plotRowData(sfe, x="means", y="vars", subset = "is_neg", 
                  name_true = "Counts (negative controls)", 
                  name_false = "Counts (real genes)", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +

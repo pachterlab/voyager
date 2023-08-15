@@ -62,7 +62,7 @@ packageVersion("Voyager")
 In a [more introductory vignette](https://pachterlab.github.io/voyager/articles/visium_10x.html), we performed basic non-spatial analyses on a mouse olfactory bulb Visium dataset from the 10X website. In this vignette, we perform spatial analyses in histological space as well as in gene expression space. 
 
 Here we load the packages used in this vignette:
-```{r}
+```{r, message=FALSE}
 library(Voyager)
 library(SpatialFeatureExperiment)
 library(SingleCellExperiment)
@@ -354,7 +354,7 @@ sfe_tissue <- sfe[,sfe$int_tissue]
 ```
 
 ```{r}
-plotColDataBin2D(sfe_tissue, x = "pct_tissue", y = "sum", subset = "diff_int_cov",
+plotColData(sfe_tissue, x = "pct_tissue", y = "sum", subset = "diff_int_cov",
                 name_true = "Not covered", name_false = "Covered", bins = 50)
 ```
 

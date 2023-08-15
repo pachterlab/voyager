@@ -219,9 +219,10 @@ rowData(sfe_tissue)$cv2 <- rowData(sfe_tissue)$vars/rowData(sfe_tissue)$means^2
 
 To avoid overplotting and better show point density on the plot, we use a 2D histogram. The color of each bin indicates the number of points in that bin.
 ```{r}
-plotRowDataBin2D(sfe, "means", "vars", bins = 50) +
+plotRowData(sfe, x = "means", y = "vars", bins = 50) +
     geom_abline(slope = 1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
     annotation_logticks() +
     coord_equal()
 ```
@@ -229,9 +230,10 @@ plotRowDataBin2D(sfe, "means", "vars", bins = 50) +
 The red line, $y = x$ is what is expected for Poisson distributed data, but we find that the variance is higher for more highly expressed genes than expected from Poisson distributed counts. The coefficient of variation shows the same.
 
 ```{r}
-plotRowDataBin2D(sfe, "means", "cv2", bins = 50) +
+plotRowData(sfe, x = "means", y = "cv2", bins = 50) +
     geom_abline(slope = -1, intercept = 0, color = "red") +
     scale_x_log10() + scale_y_log10() +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
     annotation_logticks() +
     coord_equal()
 ```
