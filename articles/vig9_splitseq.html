@@ -116,7 +116,7 @@
                         <h4 data-toc-skip class="author">Kayla Jackson
 and A. Sina Booeshaghi</h4>
             
-            <h4 data-toc-skip class="date">2023-08-12</h4>
+            <h4 data-toc-skip class="date">2023-08-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig9_splitseq.Rmd" class="external-link"><code>vignettes/vig9_splitseq.Rmd</code></a></small>
       <div class="d-none name"><code>vig9_splitseq.Rmd</code></div>
@@ -134,97 +134,11 @@ object. We will begin by loading the object and converting it to a
 <code>SpatialFeatureExperiment</code> object.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/theislab/zellkonverter" class="external-link">zellkonverter</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Registered S3 methods overwritten by 'zellkonverter':</span></span>
-<span><span class="co">#&gt;   method                                             from      </span></span>
-<span><span class="co">#&gt;   py_to_r.numpy.ndarray                              reticulate</span></span>
-<span><span class="co">#&gt;   py_to_r.pandas.core.arrays.categorical.Categorical reticulate</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org" class="external-link">Matrix</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: SingleCellExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
-<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
-<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
-<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
-<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
-<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
-<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
-<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
-<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
-<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
-<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
-<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
-<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
-<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
-<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
-<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
-<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
-<span><span class="co">#&gt; Loading required package: stats4</span></span>
-<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
-<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
-<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
-<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
-<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
-<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
-<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:Matrix':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand, unname</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     findMatches</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
-<span><span class="co">#&gt; Loading required package: IRanges</span></span>
-<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
-<span><span class="co">#&gt; Loading required package: Biobase</span></span>
-<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
-<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
-<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rowMedians</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
-<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
-<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
-<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
-<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
-<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
-<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
-<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: scuttle</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'ggplot2'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:SpatialFeatureExperiment':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     unit</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scuttle</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -303,21 +217,21 @@ object. We will begin by loading the object and converting it to a
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] Voyager_1.2.4                  scater_1.28.0                 </span></span>
-<span><span class="co">#&gt;  [3] ggplot2_3.4.2                  scuttle_1.10.2                </span></span>
+<span><span class="co">#&gt;  [3] ggplot2_3.4.3                  scuttle_1.10.2                </span></span>
 <span><span class="co">#&gt;  [5] SpatialFeatureExperiment_1.2.2 SpatialExperiment_1.10.0      </span></span>
 <span><span class="co">#&gt;  [7] SingleCellExperiment_1.22.0    SummarizedExperiment_1.30.2   </span></span>
 <span><span class="co">#&gt;  [9] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
 <span><span class="co">#&gt; [11] GenomeInfoDb_1.36.1            IRanges_2.34.1                </span></span>
 <span><span class="co">#&gt; [13] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
 <span><span class="co">#&gt; [15] MatrixGenerics_1.12.3          matrixStats_1.0.0             </span></span>
-<span><span class="co">#&gt; [17] Matrix_1.6-0                   stringr_1.5.0                 </span></span>
+<span><span class="co">#&gt; [17] Matrix_1.6-1                   stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt; [19] zellkonverter_1.10.1          </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] RColorBrewer_1.1-3        jsonlite_1.8.7           </span></span>
 <span><span class="co">#&gt;   [3] wk_0.7.3                  magrittr_2.0.3           </span></span>
 <span><span class="co">#&gt;   [5] ggbeeswarm_0.7.2          magick_2.7.5             </span></span>
-<span><span class="co">#&gt;   [7] farver_2.1.1              rmarkdown_2.23           </span></span>
+<span><span class="co">#&gt;   [7] farver_2.1.1              rmarkdown_2.24           </span></span>
 <span><span class="co">#&gt;   [9] fs_1.6.3                  zlibbioc_1.46.0          </span></span>
 <span><span class="co">#&gt;  [11] ragg_1.2.5                vctrs_0.6.3              </span></span>
 <span><span class="co">#&gt;  [13] spdep_1.2-8               memoise_2.0.1            </span></span>
@@ -327,14 +241,14 @@ object. We will begin by loading the object and converting it to a
 <span><span class="co">#&gt;  [21] Rhdf5lib_1.22.0           s2_1.1.4                 </span></span>
 <span><span class="co">#&gt;  [23] rhdf5_2.44.0              sass_0.4.7               </span></span>
 <span><span class="co">#&gt;  [25] spData_2.3.0              KernSmooth_2.23-22       </span></span>
-<span><span class="co">#&gt;  [27] bslib_0.5.0               basilisk_1.12.1          </span></span>
+<span><span class="co">#&gt;  [27] bslib_0.5.1               basilisk_1.12.1          </span></span>
 <span><span class="co">#&gt;  [29] desc_1.4.2                cachem_1.0.8             </span></span>
 <span><span class="co">#&gt;  [31] igraph_1.5.1              lifecycle_1.0.3          </span></span>
 <span><span class="co">#&gt;  [33] pkgconfig_2.0.3           rsvd_1.0.5               </span></span>
 <span><span class="co">#&gt;  [35] R6_2.5.1                  fastmap_1.1.1            </span></span>
 <span><span class="co">#&gt;  [37] GenomeInfoDbData_1.2.10   digest_0.6.33            </span></span>
 <span><span class="co">#&gt;  [39] ggnewscale_0.4.9          colorspace_2.1-0         </span></span>
-<span><span class="co">#&gt;  [41] patchwork_1.1.2           rprojroot_2.0.3          </span></span>
+<span><span class="co">#&gt;  [41] patchwork_1.1.3           rprojroot_2.0.3          </span></span>
 <span><span class="co">#&gt;  [43] dqrng_0.3.0               RSpectra_0.16-1          </span></span>
 <span><span class="co">#&gt;  [45] irlba_2.3.5.1             textshaping_0.3.6        </span></span>
 <span><span class="co">#&gt;  [47] beachmat_2.16.0           labeling_0.4.2           </span></span>
@@ -374,7 +288,7 @@ object. We will begin by loading the object and converting it to a
 <span><span class="co">#&gt; [115] bitops_1.0-7              viridisLite_0.4.2        </span></span>
 <span><span class="co">#&gt; [117] scales_1.2.1              e1071_1.7-13             </span></span>
 <span><span class="co">#&gt; [119] purrr_1.0.2               crayon_1.5.2             </span></span>
-<span><span class="co">#&gt; [121] scico_1.4.0               rlang_1.1.1              </span></span>
+<span><span class="co">#&gt; [121] scico_1.5.0               rlang_1.1.1              </span></span>
 <span><span class="co">#&gt; [123] cowplot_1.1.1</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

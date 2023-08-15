@@ -116,7 +116,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-12</h4>
+            <h4 data-toc-skip class="date">2023-08-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -162,93 +162,14 @@ available, we cannot yet work with such a large point dataset.</p>
 <p>Here we load the packages used.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
-<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
-<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
-<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
-<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
-<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
-<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
-<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
-<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
-<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
-<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
-<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
-<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
-<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
-<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
-<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
-<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
-<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
-<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
-<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
-<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
-<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
-<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
-<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
-<span><span class="co">#&gt; Loading required package: stats4</span></span>
-<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
-<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
-<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
-<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
-<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
-<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
-<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     findMatches</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
-<span><span class="co">#&gt; Loading required package: IRanges</span></span>
-<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
-<span><span class="co">#&gt; Loading required package: Biobase</span></span>
-<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
-<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
-<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rowMedians</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span> </span>
-<span><span class="co">#&gt; Loading required package: scuttle</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: spData</span></span>
-<span><span class="co">#&gt; To access larger datasets in this package, install the spDataLarge</span></span>
-<span><span class="co">#&gt; package with: `install.packages('spDataLarge',</span></span>
-<span><span class="co">#&gt; repos='https://nowosad.github.io/drat/', type='source')`</span></span>
-<span><span class="co">#&gt; Loading required package: sf</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/LTLA/BiocSingular" class="external-link">BiocSingular</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/gstat/" class="external-link">gstat</a></span><span class="op">)</span></span>
@@ -316,7 +237,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  23.376   1.197  24.581</span></span></code></pre>
+<span><span class="co">#&gt;  23.857   1.295  25.161</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -328,7 +249,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.703   0.224   1.927</span></span></code></pre>
+<span><span class="co">#&gt;   1.784   0.244   2.029</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -352,9 +273,8 @@ cell size; larger cells seem to have more total counts.</p>
 <code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
 <span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
-<span class="citation">(<strong>Pielawski2022-wk?</strong>)</span>, and
-<a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
-<span class="citation">(<strong>Warchol2022-zw?</strong>)</span>.</p>
+<span class="citation">(Behanova et al. 2023)</span>, <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(Warchol et al. 2023)</span>, and the <a href="https://github.com/chaichontat/samui" class="external-link">samui broswer</a> <span class="citation">(Sriworarat et al. 2023)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be displayed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -483,18 +403,12 @@ the number of genes detected.</p>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 <p>Next, we explore how nCounts relates to nGenes:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: plotCol/RowDataBin2D() was deprecated in Voyager 1.2.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use scater::plotCol/RowData() instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Set `bins` argument to enable binning.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"nCounts"</span>, y<span class="op">=</span><span class="st">"nGenes"</span>, bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>There are two branches in this plot.</p>
 <p>How does cell size relate to nCounts?</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span>, <span class="st">"nCounts"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"volume"</span>, y<span class="op">=</span><span class="st">"nCounts"</span>, bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>The lower branch has the larger cells that don’t tend to have more
 total counts, and the upper branch has larger cells that tend to have
@@ -502,7 +416,7 @@ more total counts.</p>
 <p>We also examine how cell size relates to number of genes
 detected:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"volume"</span>, <span class="st">"nGenes"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"volume"</span>, y<span class="op">=</span><span class="st">"nGenes"</span>, bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>There seem to be clusters that are possibly related to cell type.</p>
 <div class="section level4">
@@ -563,10 +477,7 @@ the outlier based on the distribution of the percentage when it’s
 greater than zero. How does the blank percentage relate to total
 counts?</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotColDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, <span class="st">"subsets_blank_percent"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
-<span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"nCounts"</span>, y<span class="op">=</span><span class="st">"subsets_blank_percent"</span>, bins <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 1332 rows containing non-finite values</span></span>
 <span><span class="co">#&gt; (`stat_bin2d()`).</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
@@ -695,7 +606,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  50.823   0.152  51.600</span></span></code></pre></div>
+<span><span class="co">#&gt;  50.673   0.138  51.451</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -739,7 +650,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  60.584  11.105  78.305</span></span></code></pre></div>
+<span><span class="co">#&gt; 115.303  11.921  65.988</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -857,12 +768,11 @@ while queen means they are neighbors even if they merely share a
 vertex.</li>
 </ol>
 <p>While binning can greatly speed up computation of spatial
-autocorrelation metrics for larger datasets, and is in fact used for
-Moran’s I in Seurat, it can be used for smaller datasets to find length
-scales of spatial autocorrelation. On the other hand, as seen here,
-Moran’s I can flip signs at different length scales, so for larger
-datasets, exploring spatial autocorrelation at the cell level would
-still be interesting.</p>
+autocorrelation metrics for larger datasets, it can be used for smaller
+datasets to find length scales of spatial autocorrelation. On the other
+hand, as seen here, Moran’s I can flip signs at different length scales,
+so for larger datasets, exploring spatial autocorrelation at the cell
+level would still be interesting.</p>
 </div>
 <div class="section level3">
 <h3 id="semivariogram">Semivariogram<a class="anchor" aria-label="anchor" href="#semivariogram"></a>
@@ -888,9 +798,10 @@ positive spatial autocorrelation, the variance would be smaller among
 nearby values, so the variogram would increase with distance, eventually
 leveling off when the distance is beyond the length scale of spatial
 autocorrelation. The “semi” comes from the 1/2.</p>
-<p>In the next release of Voyager, this will be part of
-<code><a href="../reference/calculateUnivariate.html">runUnivariate()</a></code> so the learning curve for users will be
-minimal.</p>
+<p>The variogram is in Voyager v1.2.0 or higher (Bioconductor 3.17 or
+later) and can be computed with the same <code><a href="../reference/calculateUnivariate.html">runUnivariate()</a></code>
+function. See <a href="https://pachterlab.github.io/voyager/articles/variogram.html">vignette
+for variograms and variogram maps</a>.</p>
 <p>First we find an empirical variogram assuming that it’s the same in
 all directions. Here the data is binned at distance intervals, so this
 is much faster than the correlogram at the cell level. The
@@ -902,7 +813,8 @@ specified, but is not done here.</p>
 different length scales. The <code>gstat</code> package can also fit a
 model to the empirical variogram. See <code><a href="https://rdrr.io/pkg/gstat/man/vgm.html" class="external-link">vgm()</a></code> for the
 different types of models. The <a href="https://cran.r-project.org/web/packages/automap/" class="external-link"><code>automap</code></a>
-package can choose a model for the user, and is used here.</p>
+package can choose a model for the user, and is used here and in
+Voyager.</p>
 <p>Unfortunately, <code>gstat</code> doesn’t scale to 400,000 cells,
 although it worked for 100,000 cells in the other smFISH-based datasets
 on this website. But since the variogram is used to explore larger
@@ -951,23 +863,24 @@ than just a number as in Moran’s I, because kriging assumes that the
 data is intrinsically stationary, meaning that the same variogram model
 applies everywhere, and that spatial dependence only depends on lag
 between two observations.</p>
-<p>Voyager 1.2.0 implements <code>ggplot2</code> based plotting
-functions to make better looking and more customizable plots of the
-variograms for SFE objects. However, the binned data is not in an SFE
-object. We are considering writing a method to spatially bin all cell
-level data in an SFE object. Here <code>gstat</code> is using
-<code>lattice</code>, a predecessor of <code>ggplot2</code> to make
-facetted plots and has been superseded by <code>ggplot2</code>.
-<code>gstat</code> is one of the oldest R packages still on CRAN, dating
-back to the days of S (prequel of R), although its oldest archive on
-CRAN is from 2003. <code>spdep</code> is also really old; its oldest
-archive on CRAN is from 2002, but it’s still in active development. In
-using these time honored packages and methods (Moran’s I and Geary’s C
-themselves date back to the 1950s and their modern form date back to
-1969 <span class="citation">(Cliff and Ord 1969; Bivand 2013)</span>) on
-the cool new spatial transcriptomics dataset, we are participating in a
-glorious tradition, which we will further develop as a spatial analysis
-tradition forms around spatial -omics data analysis.</p>
+<p>Voyager 1.2.0 and above implements <code>ggplot2</code> based
+plotting functions to make better looking and more customizable plots of
+the variograms for SFE objects. However, the binned data is not in an
+SFE object. We are considering writing a method to spatially bin all
+cell level data in an SFE object for Bioconductor 3.18. Here
+<code>gstat</code> is using <code>lattice</code>, a predecessor of
+<code>ggplot2</code> to make facetted plots and has been superseded by
+<code>ggplot2</code>. <code>gstat</code> is one of the oldest R packages
+still on CRAN, dating back to the days of S (prequel of R), although its
+oldest archive on CRAN is from 2003. <code>spdep</code> is also really
+old; its oldest archive on CRAN is from 2002, but it’s still in active
+development. In using these time honored packages and methods (Moran’s I
+and Geary’s C themselves date back to the 1950s and their modern form
+date back to 1969 <span class="citation">(Cliff and Ord 1969; Bivand
+2013)</span>) on the cool new spatial transcriptomics dataset, we are
+participating in a glorious tradition, which we will further develop as
+a spatial analysis tradition forms around spatial -omics data
+analysis.</p>
 </div>
 </div>
 <div class="section level2">
@@ -994,11 +907,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  19.459   1.093  20.562</span></span>
+<span><span class="co">#&gt;  19.330   1.191  20.530</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16159957  863.1   35835480 1913.9         NA  35835480 1913.9</span></span>
-<span><span class="co">#&gt; Vcells 249384004 1902.7  488969673 3730.6      16384 488841225 3729.6</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16159729  863.1   36734214 1961.9         NA  36734214 1961.9</span></span>
+<span><span class="co">#&gt; Vcells 249400501 1902.8  488993187 3730.8      16384 488857689 3729.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -1146,8 +1059,8 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [5] BiocSingular_1.16.0            BiocParallel_1.34.2           </span></span>
 <span><span class="co">#&gt;  [7] spdep_1.2-8                    sf_1.0-14                     </span></span>
 <span><span class="co">#&gt;  [9] spData_2.3.0                   stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt; [11] patchwork_1.1.2                scater_1.28.0                 </span></span>
-<span><span class="co">#&gt; [13] ggplot2_3.4.2                  scuttle_1.10.2                </span></span>
+<span><span class="co">#&gt; [11] patchwork_1.1.3                scater_1.28.0                 </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.4.3                  scuttle_1.10.2                </span></span>
 <span><span class="co">#&gt; [15] SpatialExperiment_1.10.0       SingleCellExperiment_1.22.0   </span></span>
 <span><span class="co">#&gt; [17] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
 <span><span class="co">#&gt; [19] GenomicRanges_1.52.0           GenomeInfoDb_1.36.1           </span></span>
@@ -1163,7 +1076,7 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;   [7] lifecycle_1.0.3               edgeR_3.42.4                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
 <span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.2                 </span></span>
-<span><span class="co">#&gt;  [13] sass_0.4.7                    rmarkdown_2.23               </span></span>
+<span><span class="co">#&gt;  [13] sass_0.4.7                    rmarkdown_2.24               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
 <span><span class="co">#&gt;  [17] httpuv_1.6.11                 sp_2.0-0                     </span></span>
 <span><span class="co">#&gt;  [19] cowplot_1.1.1                 RColorBrewer_1.1-3           </span></span>
@@ -1197,13 +1110,13 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 intervals_0.15.4             </span></span>
 <span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [79] FNN_1.1.3.2                   class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.5               </span></span>
-<span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.4.0                  </span></span>
+<span><span class="co">#&gt;  [81] httr_1.4.7                    S4Arrays_1.0.5               </span></span>
+<span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
 <span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.6              </span></span>
 <span><span class="co">#&gt;  [89] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [91] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [93] spacetime_1.3-0               curl_5.0.1                   </span></span>
+<span><span class="co">#&gt;  [93] spacetime_1.3-0               curl_5.0.2                   </span></span>
 <span><span class="co">#&gt;  [95] zoo_1.8-12                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-22           </span></span>
@@ -1223,19 +1136,26 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [127] ggbeeswarm_0.7.2              stringi_1.7.12               </span></span>
 <span><span class="co">#&gt; [129] stars_0.6-3                   viridisLite_0.4.2            </span></span>
 <span><span class="co">#&gt; [131] deldir_1.0-9                  munsell_0.5.0                </span></span>
-<span><span class="co">#&gt; [133] Biostrings_2.68.1             Matrix_1.6-0                 </span></span>
+<span><span class="co">#&gt; [133] Biostrings_2.68.1             Matrix_1.6-1                 </span></span>
 <span><span class="co">#&gt; [135] ExperimentHub_2.8.1           sparseMatrixStats_1.12.2     </span></span>
 <span><span class="co">#&gt; [137] bit64_4.0.5                   Rhdf5lib_1.22.0              </span></span>
-<span><span class="co">#&gt; [139] KEGGREST_1.40.0               shiny_1.7.4.1                </span></span>
+<span><span class="co">#&gt; [139] KEGGREST_1.40.0               shiny_1.7.5                  </span></span>
 <span><span class="co">#&gt; [141] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [143] AnnotationHub_3.8.0           igraph_1.5.1                 </span></span>
-<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.0                  </span></span>
+<span><span class="co">#&gt; [145] memoise_2.0.1                 bslib_0.5.1                  </span></span>
 <span><span class="co">#&gt; [147] lwgeom_0.2-13                 bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Behanova2023-gl" class="csl-entry">
+Behanova, Andrea, Christophe Avenel, Axel Andersson, Eduard Chelebian,
+Anna Klemm, Lina Wik, Arne Östman, and Carolina Wählby. 2023.
+<span>“Visualization and Quality Control Tools for Large-Scale Multiplex
+Tissue Analysis in <span>TissUUmaps3</span>.”</span> <em>Biological
+Imaging</em> 3: e6.
+</div>
 <div id="ref-Bivand2013-jx" class="csl-entry">
 Bivand, Roger. 2013. <span>“<span>‘The Problem of Spatial
 Autocorrelation:’</span> Forty Years On.”</span> <a href="http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf" class="external-link uri">http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf</a>.
@@ -1263,6 +1183,13 @@ Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
 Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
 628.
 </div>
+<div id="ref-Sriworarat2023-jl" class="csl-entry">
+Sriworarat, Chaichontat, Annie Nguyen, Nicholas J Eagles, Leonardo
+Collado-Torres, Keri Martinowich, Kristen R Maynard, and Stephanie C
+Hicks. 2023. <span>“Performant Web-Based Interactive Visualization Tool
+for Spatially-Resolved Transcriptomics Experiments.”</span>
+<em>Biological Imaging</em> 3 (January): e15.
+</div>
 <div id="ref-Wang2020-sv" class="csl-entry">
 Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
 Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
@@ -1279,6 +1206,12 @@ Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
 Tim Wang, Konrad Rokicki, et al. 2021. <span>“<span>EASI-FISH</span> for
 Thick Tissue Defines Lateral Hypothalamus Spatio-Molecular
 Organization.”</span> <em>Cell</em> 184 (26): 6361–6377.e24.
+</div>
+<div id="ref-Warchol2023-zw" class="csl-entry">
+Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
+Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2023. <span>“Visinity:
+Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
+Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> 29 (1): 106–16.
 </div>
 </div>
 </div>

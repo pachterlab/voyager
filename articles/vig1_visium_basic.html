@@ -116,7 +116,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-12</h4>
+            <h4 data-toc-skip class="date">2023-08-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -169,12 +169,12 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <span><span class="va">PY_PATH</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.which.html" class="external-link">Sys.which</a></span><span class="op">(</span><span class="st">"python"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_python</a></span><span class="op">(</span><span class="va">PY_PATH</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_config.html" class="external-link">py_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.8.17/x64/bin/python</span></span>
-<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.8.17/x64/lib/libpython3.8.dylib</span></span>
-<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.8.17/x64:/Users/runner/hostedtoolcache/Python/3.8.17/x64</span></span>
-<span><span class="co">#&gt; version:        3.8.17 (default, Jun  7 2023, 12:31:35)  [Clang 13.0.0 (clang-1300.0.29.30)]</span></span>
-<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/numpy</span></span>
-<span><span class="co">#&gt; numpy_version:  1.24.4</span></span>
+<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.10.12/x64/bin/python</span></span>
+<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.10.12/x64/lib/libpython3.10.dylib</span></span>
+<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.10.12/x64:/Users/runner/hostedtoolcache/Python/3.10.12/x64</span></span>
+<span><span class="co">#&gt; version:        3.10.12 (main, Jun  7 2023, 13:40:41) [Clang 13.0.0 (clang-1300.0.29.30)]</span></span>
+<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/numpy</span></span>
+<span><span class="co">#&gt; numpy_version:  1.25.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; NOTE: Python version was forced by use_python() function</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -373,28 +373,28 @@ tissue:</p>
 use a 2D histogram. The color of each bin indicates the number of points
 in that bin.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotRowDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"means"</span>, <span class="st">"vars"</span>, bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"vars"</span>, bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>slope <span class="op">=</span> <span class="fl">1</span>, intercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: plotCol/RowDataBin2D() was deprecated in Voyager 1.2.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use scater::plotCol/RowData() instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Set `bins` argument to enable binning.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
+<span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span></code></pre></div>
 <p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-17-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>The red line, <span class="math inline">\(y = x\)</span> is what is
 expected for Poisson distributed data, but we find that the variance is
 higher for more highly expressed genes than expected from Poisson
 distributed counts. The coefficient of variation shows the same.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataBin2D.html">plotRowDataBin2D</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"means"</span>, <span class="st">"cv2"</span>, bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span> <span class="op">+</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"cv2"</span>, bins <span class="op">=</span> <span class="fl">50</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>slope <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, intercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
+<span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span></code></pre></div>
 <p><img src="vig1_visium_basic_files/figure-html/unnamed-chunk-18-1.png" width="700" style="display: block; margin: auto;"></p>
 </div>
 </div>
@@ -603,31 +603,31 @@ rank sum test:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
-<span><span class="co">#&gt;                        p.value       FDR summary.AUC     AUC.2     AUC.3</span></span>
-<span><span class="co">#&gt;                      &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 2.44776e-06 0.0368216    0.779198  0.653119  0.898810</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787 9.10975e-06 0.0685190    0.761492  0.671906  0.787155</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 1.40484e-05 0.0704434    0.755980  0.658042  0.938771</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341 9.21552e-05 0.3465725    0.622610  0.622610  0.935068</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354 3.06942e-04 0.8916714    0.612310  0.612310  0.963647</span></span>
-<span><span class="co">#&gt; ...                        ...       ...         ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437           1         1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1         1         0.5  0.496622  0.482699</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1         1         0.5  0.496622  0.500000</span></span>
+<span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
+<span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 3.43824e-12 5.17214e-08    0.705522  0.705522  0.919795</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360 2.03670e-10 1.53190e-06    0.687278  0.687278  0.978198</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730 1.27923e-09 6.41448e-06    0.678486  0.678486  0.903761</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341 1.56376e-08 5.88089e-05    0.665798  0.665798  0.969446</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064354 4.89703e-08 1.42223e-04    0.659698  0.659698  0.982496</span></span>
+<span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.495074  0.476064</span></span>
+<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497537  0.500000</span></span>
 <span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
 <span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.779395  0.971960  0.779198</span></span>
-<span><span class="co">#&gt; ENSMUSG00000019787  0.700973  0.898004  0.761492</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360  0.717503  0.981523  0.755980</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341  0.743268  0.981707  0.875586</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354  0.733998  0.999030  0.860694</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.973416  0.823342  0.840709</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064360  0.994585  0.745047  0.870710</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730  0.976922  0.793583  0.771421</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341  0.990591  0.790956  0.902517</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064354  0.999157  0.813394  0.922499</span></span>
 <span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.500000  0.496212       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.500000  0.496212       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.500000  0.492424       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.491329  0.473485       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.496183  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.496183  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.492366  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000003228  0.473282  0.488889       0.5</span></span>
 <span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000       0.5</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
@@ -696,12 +696,12 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ncbi_description</span></span>
-<span><span class="co">#&gt; Ttn                                                                                              Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Chchd10                                                                                                                                                                    Involved in several processes, including mitochondria-nucleus signaling pathway; positive regulation of mitochondrial transcription; and stabilization of membrane potential. Located in mitochondrion. Is expressed in several structures, including brain ventricle and choroid plexus; early embryo; hypothalamus mantle layer; renal calyx; and ventral grey horn. Human ortholog(s) of this gene implicated in frontotemporal dementia and/or amyotrophic lateral sclerosis-2. Orthologous to human CHCHD10 (coiled-coil-helix-coiled-coil-helix domain containing 10). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Hspb8   Predicted to enable protein homodimerization activity. Predicted to be involved in cellular response to unfolded protein and positive regulation of aggrephagy. Predicted to be located in cytosol and nuclear body. Predicted to be part of chaperone complex. Predicted to be active in cytoplasm and nucleus. Is expressed in several structures, including alimentary system; genitourinary system; nervous system; respiratory system; and sensory organ. Used to study distal hereditary motor neuronopathy type 2A. Human ortholog(s) of this gene implicated in Charcot-Marie-Tooth disease axonal type 2L and distal hereditary motor neuronopathy type 2A. Orthologous to human HSPB8 (heat shock protein family B (small) member 8). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Flnc                                                                                                                                                                                         Predicted to enable ankyrin binding activity and identical protein binding activity. Involved in muscle cell development. Predicted to be located in cytosol; sarcolemma; and sarcoplasm. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; skeletal musculature; and spinal cord ventricular layer. Used to study myofibrillar myopathy 5. Human ortholog(s) of this gene implicated in distal muscular dystrophy 4; hypertrophic cardiomyopathy 26; and myofibrillar myopathy 5. Orthologous to human FLNC (filamin C). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Laptm5                                                                                                                                                                                                     Enables enzyme binding activity and protein sequestering activity. Involved in several processes, including lysosomal transport; positive regulation of macromolecule metabolic process; and regulation of signal transduction. Acts upstream of or within cellular response to leukemia inhibitory factor. Located in lysosome. Is expressed in several structures, including alimentary system; brain; genitourinary system; immune system; and liver and biliary system. Orthologous to human LAPTM5 (lysosomal protein transmembrane 5). [provided by Alliance of Genome Resources, Apr 2022]</span></span></code></pre></div>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ncbi_description</span></span>
+<span><span class="co">#&gt; Ttn                                                                                                              Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Gapdh   This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
+<span><span class="co">#&gt; Angptl7                                                                                                                                                                                                                                             Predicted to enable identical protein binding activity and signaling receptor binding activity. Predicted to be involved in negative regulation of vasculature development involved in avascular cornea development in camera-type eye and regulation of extracellular matrix organization. Predicted to be located in extracellular region. Predicted to be active in collagen-containing extracellular matrix and extracellular space. Is expressed in brain. Orthologous to human ANGPTL7 (angiopoietin like 7). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                        Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Des                                                                                        This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, ncol <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -908,9 +908,9 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [3] reticulate_1.31                dplyr_1.1.2                   </span></span>
 <span><span class="co">#&gt;  [5] sparseMatrixStats_1.12.2       stringr_1.5.0                 </span></span>
 <span><span class="co">#&gt;  [7] BiocParallel_1.34.2            SFEData_1.2.0                 </span></span>
-<span><span class="co">#&gt;  [9] bluster_1.10.0                 patchwork_1.1.2               </span></span>
+<span><span class="co">#&gt;  [9] bluster_1.10.0                 patchwork_1.1.3               </span></span>
 <span><span class="co">#&gt; [11] scran_1.28.2                   scater_1.28.0                 </span></span>
-<span><span class="co">#&gt; [13] ggplot2_3.4.2                  scuttle_1.10.2                </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.4.3                  scuttle_1.10.2                </span></span>
 <span><span class="co">#&gt; [15] SpatialExperiment_1.10.0       SingleCellExperiment_1.22.0   </span></span>
 <span><span class="co">#&gt; [17] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
 <span><span class="co">#&gt; [19] GenomicRanges_1.52.0           GenomeInfoDb_1.36.1           </span></span>
@@ -926,7 +926,7 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;   [7] sf_1.0-14                     edgeR_3.42.4                 </span></span>
 <span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
 <span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.2                 </span></span>
-<span><span class="co">#&gt;  [13] sass_0.4.7                    rmarkdown_2.23               </span></span>
+<span><span class="co">#&gt;  [13] sass_0.4.7                    rmarkdown_2.24               </span></span>
 <span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
 <span><span class="co">#&gt;  [17] metapod_1.8.0                 httpuv_1.6.11                </span></span>
 <span><span class="co">#&gt;  [19] sp_2.0-0                      cowplot_1.1.1                </span></span>
@@ -960,14 +960,14 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt;  [75] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
 <span><span class="co">#&gt;  [79] FNN_1.1.3.2                   class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.6                    S4Arrays_1.0.5               </span></span>
+<span><span class="co">#&gt;  [81] httr_1.4.7                    S4Arrays_1.0.5               </span></span>
 <span><span class="co">#&gt;  [83] spdep_1.2-8                   uwot_0.1.16                  </span></span>
-<span><span class="co">#&gt;  [85] pkgconfig_2.0.3               scico_1.4.0                  </span></span>
+<span><span class="co">#&gt;  [85] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
 <span><span class="co">#&gt;  [87] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [89] XVector_0.40.0                htmltools_0.5.6              </span></span>
 <span><span class="co">#&gt;  [91] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [93] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [95] curl_5.0.1                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [95] curl_5.0.2                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-22           </span></span>
 <span><span class="co">#&gt; [101] parallel_4.3.1                vipor_0.4.5                  </span></span>
@@ -985,13 +985,13 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [125] fs_1.6.3                      ggbeeswarm_0.7.2             </span></span>
 <span><span class="co">#&gt; [127] stringi_1.7.12                viridisLite_0.4.2            </span></span>
 <span><span class="co">#&gt; [129] deldir_1.0-9                  munsell_0.5.0                </span></span>
-<span><span class="co">#&gt; [131] Biostrings_2.68.1             Matrix_1.6-0                 </span></span>
+<span><span class="co">#&gt; [131] Biostrings_2.68.1             Matrix_1.6-1                 </span></span>
 <span><span class="co">#&gt; [133] ExperimentHub_2.8.1           bit64_4.0.5                  </span></span>
 <span><span class="co">#&gt; [135] Rhdf5lib_1.22.0               KEGGREST_1.40.0              </span></span>
-<span><span class="co">#&gt; [137] statmod_1.5.0                 shiny_1.7.4.1                </span></span>
+<span><span class="co">#&gt; [137] statmod_1.5.0                 shiny_1.7.5                  </span></span>
 <span><span class="co">#&gt; [139] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [141] AnnotationHub_3.8.0           igraph_1.5.1                 </span></span>
-<span><span class="co">#&gt; [143] memoise_2.0.1                 bslib_0.5.0                  </span></span>
+<span><span class="co">#&gt; [143] memoise_2.0.1                 bslib_0.5.1                  </span></span>
 <span><span class="co">#&gt; [145] bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
