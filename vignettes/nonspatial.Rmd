@@ -59,7 +59,7 @@ packageVersion("Voyager")
 For areal spatial data, the spatial neighborhood graph is used to indicate proximity, and is required for all spatial analysis methods in the package `spdep`. One of the methods to find the spatial neighborhood graph is k nearest neighbors, which is also commonly used in gene expression PCA space for graph-based clustering of cells in non-spatial scRNA-seq data. Then what if we use the k nearest neighbors graph in PCA space rather than histological space for "spatial" analyses for non-spatial scRNA-seq data?
 
 Here we try such an analysis on a human peripheral blood mononuclear cells (PBMC) scRNA-seq dataset, which doesn't originally have histological spatial organization. These are the packages loaded for the analysis:
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
 library(SpatialFeatureExperiment)
 library(SpatialExperiment)
@@ -129,11 +129,11 @@ plotColData(sce, "sum") +
 
 Here a 2D histogram is plotted to better show point density on the plot.
 ```{r}
-plotColDataBin2D(sce, x = "sum", y = "detected")
+plotColData(sce, x = "sum", y = "detected", bins = 100)
 ```
 
 ```{r}
-plotColDataBin2D(sce, x = "sum", y = "subsets_mito_percent")
+plotColData(sce, x = "sum", y = "subsets_mito_percent", bins = 100)
 ```
 
 Remove cells with >20% mitochondrial counts

@@ -60,7 +60,7 @@ This vignette showcases the packages with a Visium spatial gene expression syste
 While Voyager was developed with the goal of facilitating the use of geospatial methods in spatial genomics, this introductory vignette is restricted to non-spatial scRNA-seq EDA with the Visium dataset. There is [another Visium introductory vignette](https://pachterlab.github.io/voyager/articles/vig1_visium_basic.html) using a dataset in the [`SFEData`](https://bioconductor.org/packages/release/data/experiment/html/SFEData.html) package but not from the 10X website.
 
 Here we load the packages used in this vignette.
-```{r setup}
+```{r setup, message=FALSE}
 library(Voyager)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
@@ -189,7 +189,7 @@ sfe_tissue <- sfe[,sfe$in_tissue]
 ```
 
 ```{r}
-plotColDataBin2D(sfe_tissue, x = "sum", y = "detected", bins = 75)
+plotColData(sfe_tissue, x = "sum", y = "detected", bins = 75)
 ```
 
 ```{r}
