@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Kayla
 Jackson</h4>
             
-            <h4 data-toc-skip class="date">2023-08-12</h4>
+            <h4 data-toc-skip class="date">2023-08-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig3_slideseq_v2.Rmd" class="external-link"><code>vignettes/vig3_slideseq_v2.Rmd</code></a></small>
       <div class="d-none name"><code>vig3_slideseq_v2.Rmd</code></div>
@@ -147,94 +147,15 @@ detected per barcode, and centroid coordinates for each barcode as a
 <code>sf</code> POINT geometry.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/voyager" class="external-link">Voyager</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
-<span><span class="co">#&gt; which was just loaded, will retire in October 2023.</span></span>
-<span><span class="co">#&gt; Please refer to R-spatial evolution reports for details, especially</span></span>
-<span><span class="co">#&gt; https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
-<span><span class="co">#&gt; It may be desirable to make the sf package available;</span></span>
-<span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
-<span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
-<span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SingleCellExperiment</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
-<span><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
-<span><span class="co">#&gt; Loading required package: matrixStats</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'MatrixGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
-<span><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
-<span><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
-<span><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
-<span><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
-<span><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
-<span><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
-<span><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
-<span><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
-<span><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
-<span><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
-<span><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
-<span><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
-<span><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
-<span><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
-<span><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
-<span><span class="co">#&gt; Loading required package: stats4</span></span>
-<span><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'BiocGenerics'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyDuplicated, aperm, append, as.data.frame, basename, cbind,</span></span>
-<span><span class="co">#&gt;     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,</span></span>
-<span><span class="co">#&gt;     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,</span></span>
-<span><span class="co">#&gt;     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,</span></span>
-<span><span class="co">#&gt;     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,</span></span>
-<span><span class="co">#&gt;     table, tapply, union, unique, unsplit, which.max, which.min</span></span>
-<span><span class="co">#&gt; Loading required package: S4Vectors</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'S4Vectors'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:utils':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     findMatches</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     expand.grid, I, unname</span></span>
-<span><span class="co">#&gt; Loading required package: IRanges</span></span>
-<span><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
-<span><span class="co">#&gt; Loading required package: Biobase</span></span>
-<span><span class="co">#&gt; Welcome to Bioconductor</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
-<span><span class="co">#&gt;     'browseVignettes()'. To cite Bioconductor, see</span></span>
-<span><span class="co">#&gt;     'citation("Biobase")', and for packages 'citation("pkgname")'.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'Biobase'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:MatrixGenerics':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rowMedians</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:matrixStats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     anyMissing, rowMedians</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drighelli/SpatialExperiment" class="external-link">SpatialExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: scuttle</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">bluster</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: spData</span></span>
-<span><span class="co">#&gt; To access larger datasets in this package, install the spDataLarge</span></span>
-<span><span class="co">#&gt; package with: `install.packages('spDataLarge',</span></span>
-<span><span class="co">#&gt; repos='https://nowosad.github.io/drat/', type='source')`</span></span>
-<span><span class="co">#&gt; Loading required package: sf</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -570,9 +491,9 @@ neighborhoods of melanoma cells?</li>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] SpatialFeatureExperiment_1.2.2 BiocParallel_1.34.2           </span></span>
 <span><span class="co">#&gt;  [3] spdep_1.2-8                    sf_1.0-14                     </span></span>
-<span><span class="co">#&gt;  [5] spData_2.3.0                   patchwork_1.1.2               </span></span>
+<span><span class="co">#&gt;  [5] spData_2.3.0                   patchwork_1.1.3               </span></span>
 <span><span class="co">#&gt;  [7] bluster_1.10.0                 scran_1.28.2                  </span></span>
-<span><span class="co">#&gt;  [9] scater_1.28.0                  ggplot2_3.4.2                 </span></span>
+<span><span class="co">#&gt;  [9] scater_1.28.0                  ggplot2_3.4.3                 </span></span>
 <span><span class="co">#&gt; [11] scuttle_1.10.2                 SpatialExperiment_1.10.0      </span></span>
 <span><span class="co">#&gt; [13] SingleCellExperiment_1.22.0    SummarizedExperiment_1.30.2   </span></span>
 <span><span class="co">#&gt; [15] Biobase_2.60.0                 GenomicRanges_1.52.0          </span></span>
@@ -588,7 +509,7 @@ neighborhoods of melanoma cells?</li>
 <span><span class="co">#&gt;   [7] edgeR_3.42.4                  rprojroot_2.0.3              </span></span>
 <span><span class="co">#&gt;   [9] lattice_0.21-8                magrittr_2.0.3               </span></span>
 <span><span class="co">#&gt;  [11] limma_3.56.2                  sass_0.4.7                   </span></span>
-<span><span class="co">#&gt;  [13] rmarkdown_2.23                jquerylib_0.1.4              </span></span>
+<span><span class="co">#&gt;  [13] rmarkdown_2.24                jquerylib_0.1.4              </span></span>
 <span><span class="co">#&gt;  [15] yaml_2.3.7                    metapod_1.8.0                </span></span>
 <span><span class="co">#&gt;  [17] httpuv_1.6.11                 sp_2.0-0                     </span></span>
 <span><span class="co">#&gt;  [19] RColorBrewer_1.1-3            cowplot_1.1.1                </span></span>
@@ -621,13 +542,13 @@ neighborhoods of melanoma cells?</li>
 <span><span class="co">#&gt;  [73] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
 <span><span class="co">#&gt;  [75] hexbin_1.28.3                 utf8_1.2.3                   </span></span>
 <span><span class="co">#&gt;  [77] generics_0.1.3                class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [79] httr_1.4.6                    S4Arrays_1.0.5               </span></span>
-<span><span class="co">#&gt;  [81] pkgconfig_2.0.3               scico_1.4.0                  </span></span>
+<span><span class="co">#&gt;  [79] httr_1.4.7                    S4Arrays_1.0.5               </span></span>
+<span><span class="co">#&gt;  [81] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
 <span><span class="co">#&gt;  [83] gtable_0.3.3                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [85] XVector_0.40.0                htmltools_0.5.6              </span></span>
 <span><span class="co">#&gt;  [87] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [89] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [91] curl_5.0.1                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [91] curl_5.0.2                    proxy_0.4-27                 </span></span>
 <span><span class="co">#&gt;  [93] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
 <span><span class="co">#&gt;  [95] stringr_1.5.0                 BiocVersion_3.17.1           </span></span>
 <span><span class="co">#&gt;  [97] KernSmooth_2.23-22            parallel_4.3.1               </span></span>
@@ -646,10 +567,10 @@ neighborhoods of melanoma cells?</li>
 <span><span class="co">#&gt; [123] ggbeeswarm_0.7.2              stringi_1.7.12               </span></span>
 <span><span class="co">#&gt; [125] viridisLite_0.4.2             deldir_1.0-9                 </span></span>
 <span><span class="co">#&gt; [127] munsell_0.5.0                 Biostrings_2.68.1            </span></span>
-<span><span class="co">#&gt; [129] Matrix_1.6-0                  ExperimentHub_2.8.1          </span></span>
+<span><span class="co">#&gt; [129] Matrix_1.6-1                  ExperimentHub_2.8.1          </span></span>
 <span><span class="co">#&gt; [131] sparseMatrixStats_1.12.2      bit64_4.0.5                  </span></span>
 <span><span class="co">#&gt; [133] Rhdf5lib_1.22.0               statmod_1.5.0                </span></span>
-<span><span class="co">#&gt; [135] KEGGREST_1.40.0               shiny_1.7.4.1                </span></span>
+<span><span class="co">#&gt; [135] KEGGREST_1.40.0               shiny_1.7.5                  </span></span>
 <span><span class="co">#&gt; [137] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
 <span><span class="co">#&gt; [139] AnnotationHub_3.8.0           igraph_1.5.1                 </span></span>
 <span><span class="co">#&gt; [141] memoise_2.0.1                 bslib_0.5.1                  </span></span>
