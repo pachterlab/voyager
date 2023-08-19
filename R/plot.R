@@ -443,7 +443,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
             bb <- as.vector(bbox_use)
             lapply(img_data, function(img) {
-                img_cropped <- terra::crop(img@image, bbox_use, snap = "out")
+                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
                 img_cropped <- terra::shift(img_cropped,
                                             dx = -bb["xmin"],
                                             dy = -bb["ymin"])
