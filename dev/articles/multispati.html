@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-20</h4>
+            <h4 data-toc-skip class="date">2023-08-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -304,7 +304,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  45.521   0.297  45.882</span></span></code></pre></div>
+<span><span class="co">#&gt;  58.977   0.980  73.217</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -424,11 +424,11 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  20.733   1.052  21.797</span></span>
+<span><span class="co">#&gt;  27.348   1.846  33.065</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  15555060  830.8   24968548 1333.5         NA  24968548 1333.5</span></span>
-<span><span class="co">#&gt; Vcells 238293748 1818.1  473519162 3612.7      16384 473010415 3608.8</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  15544486  830.2   24949492 1332.5         NA  24949492 1332.5</span></span>
+<span><span class="co">#&gt; Vcells 238279212 1818.0  473501718 3612.6      16384 472995879 3608.7</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -476,7 +476,7 @@ negative spatial autocorrelation.</p>
 <span><span class="co">#&gt; Warning in asMethod(object): sparse-&gt;dense coercion: allocating vector of size</span></span>
 <span><span class="co">#&gt; 1.1 GiB</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  92.216  18.275 119.669</span></span></code></pre></div>
+<span><span class="co">#&gt; 103.253  19.316 139.410</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -669,8 +669,8 @@ default k = 10.</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 812.042   5.578 818.440</span></span></code></pre></div>
+<span><span class="co">#&gt;     user   system  elapsed </span></span>
+<span><span class="co">#&gt; 1011.675   16.851 1070.200</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
@@ -687,8 +687,8 @@ spatially coherent clusters</p>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 962.012   7.432 971.306</span></span></code></pre></div>
+<span><span class="co">#&gt;     user   system  elapsed </span></span>
+<span><span class="co">#&gt; 1057.561   15.022 1076.889</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -765,7 +765,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [17] GenomeInfoDb_1.36.1            IRanges_2.34.1                </span></span>
 <span><span class="co">#&gt; [19] S4Vectors_0.38.1               BiocGenerics_0.46.0           </span></span>
 <span><span class="co">#&gt; [21] MatrixGenerics_1.12.3          matrixStats_1.0.0             </span></span>
-<span><span class="co">#&gt; [23] SpatialFeatureExperiment_1.2.2 SFEData_1.2.0                 </span></span>
+<span><span class="co">#&gt; [23] SpatialFeatureExperiment_1.2.3 SFEData_1.2.0                 </span></span>
 <span><span class="co">#&gt; [25] Voyager_1.2.4                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
@@ -811,7 +811,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [79] class_7.3-22                  httr_1.4.7                   </span></span>
 <span><span class="co">#&gt;  [81] S4Arrays_1.0.5                spdep_1.2-8                  </span></span>
 <span><span class="co">#&gt;  [83] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
-<span><span class="co">#&gt;  [85] gtable_0.3.3                  blob_1.2.4                   </span></span>
+<span><span class="co">#&gt;  [85] gtable_0.3.4                  blob_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [87] XVector_0.40.0                htmltools_0.5.6              </span></span>
 <span><span class="co">#&gt;  [89] scales_1.2.1                  png_0.1-8                    </span></span>
 <span><span class="co">#&gt;  [91] SpatialExperiment_1.10.0      knitr_1.43                   </span></span>
