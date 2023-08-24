@@ -202,3 +202,4 @@ fun = function(x, listw, zero.policy = NULL)
 reorganize_fun = Voyager:::.moran2df
 )
 }
+\concept{Extensibility}

@@ -67,6 +67,7 @@
 #'   arguments for aesthetics as if it's for \code{colGeometry}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 ggtitle
 #' @importFrom patchwork plot_annotation
 #' @export

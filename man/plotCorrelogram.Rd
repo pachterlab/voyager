@@ -129,3 +129,4 @@ plotCorrelogram(sfe, features, color_by = clust$cluster)
 # Facet by features
 plotCorrelogram(sfe, features, facet_by = "features")
 }
+\concept{Plot spatial analysis results}

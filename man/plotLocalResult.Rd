@@ -294,3 +294,4 @@ plotLocalResult(sfe, "localmoran", "area", "Z.Ii",
 )
 # don't use annot_* arguments when annotGeometry is plotted without colGeometry
 }
+\concept{Plot spatial analysis results}

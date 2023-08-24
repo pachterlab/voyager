@@ -103,3 +103,4 @@ plotAnnotGraph(sfe,
     weights = TRUE
 )
 }
+\concept{Spatial plotting}

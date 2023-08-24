@@ -191,6 +191,7 @@
 #'   smaller number to make sparser contours.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
 #'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
 #'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
@@ -437,6 +438,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' @param name Name under which the correlogram results are stored, which is by
 #' default "sp.correlogram".
 #' @return A ggplot object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
 #' @importFrom stats p.adjust pnorm symnum
 #' @export
@@ -691,6 +693,7 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
 #'   \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on
 #'   \code{ptype}.
 #' @return A \code{ggplot2} object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 geom_density geom_histogram geom_freqpoly
 #' @export
 #' @examples

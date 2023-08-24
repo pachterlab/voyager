@@ -80,3 +80,4 @@ clust <- clusterCorrelograms(sfe,
     BLUSPARAM = KmeansParam(2)
 )
 }
+\concept{Downstream analyses of univariate spatial results}

@@ -95,6 +95,7 @@ multi_listw2sparse <- function(listws) {
 #' @export
 #' @importFrom RSpectra eigs_sym
 #' @importFrom spdep listw2mat
+#' @concept Spatial statistics
 #' @references de Jong, P., Sprenger, C., & van Veen, F. (1984). On extreme values of Moran's I and Geary's C. Geographical Analysis, 16(1), 17-24.
 #' @examples
 #' # example code

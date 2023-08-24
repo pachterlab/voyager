@@ -154,6 +154,7 @@
 #'   286-306
 #'
 #' @name calculateUnivariate
+#' @concept Spatial statistics
 #' @aliases calculateMoransI
 #' @importFrom BiocParallel SerialParam bplapply
 #' @importFrom S4Vectors DataFrame
