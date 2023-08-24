@@ -69,3 +69,4 @@ sfe <- McKellarMuscleData("small")
 sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 plotDimLoadings(sfe, dims = 1:2)
 }
+\concept{Non-spatial plotting}

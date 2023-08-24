@@ -55,6 +55,7 @@
 #'   to the SFE object with \code{reducedDim} setter. For \code{run*}, a
 #'   \code{SpatialFeatureExperiment} object with the results added. See Details
 #'   for where the results are stored.
+#' @concept Spatial statistics
 #' @references Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of
 #' vegetation data using a generalization of Wartenberg's multivariate spatial
 #' correlation. Journal of vegetation science, 19, 45-56.

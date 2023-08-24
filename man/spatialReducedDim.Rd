@@ -206,3 +206,4 @@ spatialReducedDim(sfe, "PCA", ncomponents = 2, "spotPoly",
 \seealso{
 scater::plotReducedDim
 }
+\concept{Spatial plotting}

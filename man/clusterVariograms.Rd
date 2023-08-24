@@ -78,3 +78,4 @@ plotVariogram(sfe, genes, color_by = clusts, group = "feature",
 use_lty = FALSE, swap_rownames = "symbol", show_np = FALSE)
 
 }
+\concept{Downstream analyses of univariate spatial results}

@@ -88,3 +88,4 @@ sfe <- McKellarMuscleData()
 sfe <- sfe[, sfe$in_tissue]
 plotColDataBin2D(sfe, "nCounts", "nGenes")
 }
+\concept{Non-spatial plotting}

@@ -443,7 +443,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
             bb <- as.vector(bbox_use)
             lapply(img_data, function(img) {
-                img_cropped <- terra::crop(img@image, bbox_use, snap = "out")
+                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
                 img_cropped <- terra::shift(img_cropped,
                                             dx = -bb["xmin"],
                                             dy = -bb["ymin"])
@@ -648,6 +648,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom SpatialExperiment imgData getImg imgRaster
 #' @importMethodsFrom Matrix t
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(sf)
@@ -835,6 +836,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
@@ -891,6 +893,7 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' @inheritParams plotSpatialFeature
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
@@ -925,6 +928,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe1 <- McKellarMuscleData("small")

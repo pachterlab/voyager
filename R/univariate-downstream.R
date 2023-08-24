@@ -15,6 +15,7 @@
 #' @return A data frame with 3 columns: \code{feature} for the features,
 #'   \code{cluster} a factor for cluster membership of the features within each
 #'   sample, and \code{sample_id} for the sample.
+#' @concept Downstream analyses of univariate spatial results
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
@@ -93,6 +94,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' @importFrom methods as
 #' @importFrom SpatialFeatureExperiment localResults
 #' @export
+#' @concept Downstream analyses of univariate spatial results
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SingleCellExperiment)
@@ -181,6 +183,7 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #'   \code{cluster} a factor for cluster membership of the features within each
 #'   sample, and \code{sample_id} for the sample.
 #' @export
+#' @concept Downstream analyses of univariate spatial results
 #' @examples
 #' library(SFEData)
 #' library(scater)

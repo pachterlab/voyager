@@ -254,3 +254,4 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
                   annotGeometry = "myofiber_simplified",
                   bbox = bbox, annot_fixed = list(linewidth = 0.3))
 }
+\concept{Spatial plotting}

@@ -136,3 +136,4 @@ clust <- clusterMoranPlot(sfe, "Myh1", BLUSPARAM = KmeansParam(2),
 moranPlot(sfe, "Myh1", graphName = "visium", color_by = clust[, 1],
           swap_rownames = "symbol")
 }
+\concept{Plot spatial analysis results}

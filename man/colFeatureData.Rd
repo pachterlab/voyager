@@ -48,3 +48,4 @@ colFeatureData(sfe)
 \seealso{
 getParams
 }
+\concept{Spatial analysis results}

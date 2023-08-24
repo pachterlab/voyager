@@ -152,3 +152,4 @@ correlation. Journal of vegetation science, 19, 45-56.
 Anselin, L. (2019), A Local Indicator of Multivariate Spatial Association:
 Extending Geary's c. Geogr Anal, 51: 133-150. doi:10.1111/gean.12164
 }
+\concept{Spatial statistics}

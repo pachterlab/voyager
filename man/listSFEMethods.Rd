@@ -27,3 +27,4 @@ interface of this package to other spatial methods by creating new
 \examples{
 listSFEMethods("uni", "local")
 }
+\concept{Spatial statistics}

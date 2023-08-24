@@ -56,3 +56,4 @@ library(SFEData)
 sfe <- HeNSCLCData()
 plotCellBin2D(sfe)
 }
+\concept{Spatial plotting}

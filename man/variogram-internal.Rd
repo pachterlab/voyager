@@ -65,3 +65,4 @@ called internally. These functions are not exported, but the documentation is
 written to show users the extra arguments to use when alling
 \code{calculateUnivariate} or \code{runUnivariate}.
 }
+\concept{Internal spatial statistics functions}

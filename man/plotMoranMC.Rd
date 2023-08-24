@@ -86,3 +86,4 @@ colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 sfe <- colDataUnivariate(sfe, type = "moran.mc", "nCounts", nsim = 100)
 plotMoranMC(sfe, "nCounts")
 }
+\concept{Plot spatial analysis results}

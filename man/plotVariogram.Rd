@@ -108,3 +108,4 @@ plotVariogram(sfe, "nCounts", group = "angles", name = "variogram_anis")
 \seealso{
 plotVariogramMap
 }
+\concept{Plot spatial analysis results}
