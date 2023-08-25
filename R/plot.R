@@ -13,6 +13,7 @@
 #' @param diverge_center Value to center on, defaults to 0.
 #' @return A numeric vector of length 2, the first element is for beginning, and
 #' the second for end. The values are between 0 and 1.
+#' @concept Spatial plotting
 #' @export
 #' @examples
 #' v <- rnorm(10)

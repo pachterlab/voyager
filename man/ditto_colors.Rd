@@ -17,4 +17,5 @@ ditto_colors
 Just to get the palette without having to install all those dependencies of
 dittoSeq.
 }
+\concept{Spatial plotting}
 \keyword{datasets}

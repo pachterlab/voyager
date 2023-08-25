@@ -26,3 +26,4 @@ adjacency matrix can be used in MULTISPATI PCA.
 # example code
 
 }
+\concept{Utilities}

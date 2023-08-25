@@ -24,7 +24,7 @@
 #'   will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 #'   empirical anisotropic variograms and comparing them to the variogram fitted
 #'   to the entire dataset can be a useful EDA tool.
-#' @concept Internal spatial statistics functions
+#' @concept Spatial statistics
 #' @return An \code{autofitVariogram} object.
 #' @name variogram-internal
 .variogram <- function(x, coords_df, formula = x ~ 1, scale = TRUE, ...) {

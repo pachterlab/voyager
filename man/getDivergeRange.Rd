@@ -25,3 +25,4 @@ not midpoint, to override the default palette.
 v <- rnorm(10)
 getDivergeRange(v, diverge_center = 0)
 }
+\concept{Spatial plotting}
