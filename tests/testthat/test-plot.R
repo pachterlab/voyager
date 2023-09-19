@@ -399,6 +399,17 @@ sfe3 <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
 colGraphs(sfe3, sample_id = "all", name = "visium") <-
     findVisiumGraph(sfe3, "all")
 
+test_that("plotColGraph with multiple samples", {
+    expect_ggplot("plotColGraph subset samples", {
+        plotColGraph(sfe3, colGraphName = "visium", colGeometryName = "spotPoly",
+                     sample_id = "Vis5A")
+    })
+    expect_ggplot("plotColGraph multiple samples", {
+        plotColGraph(sfe3, colGraphName = "visium", colGeometryName = "spotPoly",
+                     sample_id = "all")
+    })
+})
+
 sfe3 <- runMultivariate(sfe3, "multispati", colGraphName = "visium",
                         subset_row = inds, sample_action = "separate",
                         nfposi = 10, nfnega = 10)

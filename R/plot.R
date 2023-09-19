@@ -783,7 +783,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
             annotGeometry
         )
         geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
-        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id
+        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id[sfe$sample_id %in% sample_id]
     } else {
         geometry <- NULL
     }
@@ -860,7 +860,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'     annotGeometryName = "myofiber_simplified",
 #'     weights = TRUE
 #' )
-plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
+plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = 1L,
                          sample_id = "all", weights = FALSE, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
