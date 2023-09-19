@@ -962,8 +962,26 @@ test_that("plotSpatialFeature with RGB image in the background", {
         plotSpatialFeature(sfe_ob3, c("in_tissue", "array_col"),
                            image_id = "lowres", maxcell = 5e+4)
     })
+})
+
+# Test 16 bit images
+img16 <- getImg(sfe_mer) |> imgRaster()
+img16 <- img16 * 256
+DF <- DataFrame(
+    sample_id = "sample01",
+    image_id = "16bit",
+    data=I(list(new("SpatRasterImage", image = img16))),
+    scaleFactor=1)
+imgData(sfe_mer) <- rbind(imgData(sfe_mer), DF)
+
+test_that("plotSpatialFeature with grayscale image", {
     expect_ggplot("One sample, one feature, grayscale", {
         plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT",
+                           colGeometryName = "cellSeg", alpha = 0.5,
+                           dark = TRUE)
+    })
+    expect_ggplot("16 bit image", {
+        plotSpatialFeature(sfe_mer, "volume", image_id = "16bit",
                            colGeometryName = "cellSeg", alpha = 0.5,
                            dark = TRUE)
     })

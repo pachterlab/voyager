@@ -215,6 +215,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     p <- ggplot()
     data <- NULL
     if (!is.null(img_df)) {
+        # Check if it's RGB
+        img <- img_df$data[[1]]
+        img_dim <- dim(imgRaster(img))
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
                               maxcell = maxcell)
     }
