@@ -48,7 +48,7 @@ system.time(
 )
 
 # Additional dependencies for this notebook
-install.packages("arrow")
+#install.packages("arrow")
 
 packageVersion("Voyager")
 ```
@@ -163,7 +163,7 @@ Not all commercial technologies have a function to directly read the outputs. We
 ### Gene count matrix and cell metadata
 The gene count matrix and cell metadata (including cell centroid coordinates) from example datasets for technologies such as CosMX and Vizgen are CSV files. We recommend the [`vroom`](https://vroom.r-lib.org/) package to quickly read in large CSV files. The CSV files are read in as data frames. For the gene count matrix, this can be converted to a matrix and then a sparse `dgCMatrix`. The matrix may need to be transposed so the genes are in rows and cells are in columns. While smFISH based data tend to be less sparse than scRNA-seq data, using sparse matrix is worthwhile since the matrix is still about 50% zero.
 
-For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. The gene count matrix is a `DelayedArray`, so the data is not all loaded into memory and operations on this matrix are performed in chunks. The `DelayedArray` has been converted into a `dgCMatrix` in memory. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with `arrow::read_parquet()`. Example code:
+For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. The gene count matrix is a `DelayedArray`, so the data is not all loaded into memory and operations on this matrix are performed in chunks. The `DelayedArray` has been converted into a `dgCMatrix` in memory. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with the arrow package. Example code:
 ```{r, eval=FALSE}
 # Download data from https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast
 
@@ -179,7 +179,7 @@ system("mv outs outs_R2")
 ```{r, eval=FALSE}
 library(SpatialExperiment)
 library(DropletUtils)
-library(arrow)
+#library(arrow)
 sce <- read10xCounts("outs_R1/cell_feature_matrix.h5")
 cell_info <- read_parquet("outs_R1/cells.parquet")
 # Add the centroid coordinates to colData
@@ -194,7 +194,7 @@ File format of cell polygons (if available) is in different formats in different
 In Xenium, the cell polygons come in CSV or parquet files that can be directly read into R as a data frame, with 2 columns for x and y coordinates, and one indicating which cell the coordinates belong to. Change the name of the cell ID column into "ID", and use `SpatialFeatureExperiment::df2sf()` to convert the data frame into an `sf` data frame with `POLYGON` geometry. Example code:
 
 ```{r, eval=FALSE}
-library(arrow)
+#library(arrow)
 cell_poly <- read_parquet("outs_R2/cell_boundaries.parquet")
 # Here the first column is cell ID
 names(cell_poly)[1] <- "ID"
