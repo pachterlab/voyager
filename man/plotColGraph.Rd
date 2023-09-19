@@ -8,7 +8,7 @@
 plotColGraph(
   sfe,
   colGraphName = 1L,
-  colGeometryName = NULL,
+  colGeometryName = 1L,
   sample_id = "all",
   weights = FALSE,
   segment_size = 0.5,
