@@ -79,73 +79,20 @@ GeomSpiRGB <- ggplot2::ggproto(
     ggplot2::GeomCustomAnn,
     required_aes = c("spi"),
     draw_panel = function(self, data, panel_params, coord, interpolate = FALSE) {
-        bbox <- as.vector(ext(data$spi[[1]]))
-        if (length(names(data$spi[[1]])) == 3L)
-            raster <- terra::as.array(data$spi[[1]]) |> as.raster(max = 255)
+        img <- data$spi[[1]]
+        bbox <- as.vector(ext(img))
+        # Check if 8 bit or 16 bit
+        mm <- terra::minmax(img, compute = TRUE)
+        if (mm[2] < 256) max_use <- 256 else max_use <- 2^16
+        if (length(names(img)) == 3L)
+            raster <- terra::as.array(img) |> as.raster(max = max_use)
         else
-            raster <- terra::as.array(data$spi[[1]])[,,1] |> as.raster(max = 255)
+            raster <- terra::as.array(img)[,,1] |> as.raster(max = max_use)
         ggplot2::ggproto_parent(ggplot2::GeomCustomAnn, self)$draw_panel(
             panel_params = panel_params, coord = coord,
             xmin = bbox["xmin"], xmax = bbox["xmax"],
             ymin = bbox["ymin"], ymax = bbox["ymax"],
             grob = rasterGrob(raster, interpolate = interpolate)
         )
-    }
-)
-
-geom_spi <- function(mapping = NULL,
-                     data = NULL,
-                     na.rm = TRUE,
-                     show.legend = NA,
-                     inherit.aes = FALSE,
-                     interpolate = FALSE,
-                     maxcell = 500000,
-                     ...) {
-
-    # Create layer
-    ggplot2::layer(
-        data = data,
-        mapping = modifyList(mapping, aes(fill = ggplot2::after_stat(.data$value))),
-        stat = StatSpi,
-        geom = ggplot2::GeomRaster,
-        position = "identity",
-        inherit.aes = inherit.aes,
-        show.legend = show.legend,
-        params = list(
-            na.rm = na.rm,
-            # Extra params
-            maxcell = maxcell,
-            interpolate = interpolate,
-            ...
-        )
-    )
-}
-
-
-StatSpi <- ggplot2::ggproto(
-    "StatSpi",
-    ggplot2::Stat,
-    required_aes = "spi",
-    extra_params = c("maxcell", "na.rm"),
-    compute_layer = function(self, data, params, layout) {
-        ggplot2::ggproto_parent(ggplot2::Stat, self)$compute_layer(
-            data,
-            params, layout
-        )
-    },
-    compute_group = function(data, scales, coord, params, maxcell = 5e+5) {
-        # Can only plot one image per facet
-        data <- data[1,]
-        # Extract raster from group
-        rast <- imgRaster(data$spi[[1]])
-        if (length(names(rast)) > 1L) {
-            warning("Only the first layer of the image is plotted.")
-            rast <- rast[[1]]
-        }
-        rast <- resample_spat(rast, maxcell)
-        out <- terra::as.data.frame(rast, xy = TRUE)
-        names(out)[3] <- "value"
-        out$sample_id <- data$sample_id
-        out
     }
 )

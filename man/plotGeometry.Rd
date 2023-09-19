@@ -68,3 +68,4 @@ sfe <- removeEmptySpace(sfe)
 plotGeometry(sfe, "spotPoly")
 plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
 }
+\concept{Spatial plotting}

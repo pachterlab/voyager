@@ -13,6 +13,7 @@
 #' @return A data frame with a column for the name and another for a brief
 #'   description.
 #' @export
+#' @concept Spatial statistics
 #' @examples
 #' listSFEMethods("uni", "local")
 listSFEMethods <- function(variate = c("uni", "bi", "multi"),

@@ -23,6 +23,7 @@
 #' @return A matrix for the cell embeddings in each spatial PC, with attribute
 #'   \code{loading} for the eigenvectors or gene loadings, and attribute
 #'   \code{eig} for the eigenvalues.
+#' @concept Internal spatial statistics functions
 #' @note
 #' Eigen decomposition will fail if any feature has variance zero leading to NaN
 #' in the scaled matrix.

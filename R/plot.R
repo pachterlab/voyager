@@ -215,6 +215,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     p <- ggplot()
     data <- NULL
     if (!is.null(img_df)) {
+        # Check if it's RGB
+        img <- img_df$data[[1]]
+        img_dim <- dim(imgRaster(img))
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
                               maxcell = maxcell)
     }
@@ -443,7 +446,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
             bb <- as.vector(bbox_use)
             lapply(img_data, function(img) {
-                img_cropped <- terra::crop(img@image, bbox_use, snap = "out")
+                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
                 img_cropped <- terra::shift(img_cropped,
                                             dx = -bb["xmin"],
                                             dy = -bb["ymin"])
@@ -648,6 +651,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom SpatialExperiment imgData getImg imgRaster
 #' @importMethodsFrom Matrix t
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(sf)
@@ -778,7 +782,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
             annotGeometry
         )
         geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
-        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id
+        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id[sfe$sample_id %in% sample_id]
     } else {
         geometry <- NULL
     }
@@ -832,6 +836,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
@@ -854,7 +859,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'     annotGeometryName = "myofiber_simplified",
 #'     weights = TRUE
 #' )
-plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
+plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = 1L,
                          sample_id = "all", weights = FALSE, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
@@ -892,6 +897,7 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' @param hex Logical, whether to use hexagonal bins.
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
@@ -926,6 +932,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe1 <- McKellarMuscleData("small")

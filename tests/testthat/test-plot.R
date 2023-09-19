@@ -399,6 +399,17 @@ sfe3 <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
 colGraphs(sfe3, sample_id = "all", name = "visium") <-
     findVisiumGraph(sfe3, "all")
 
+test_that("plotColGraph with multiple samples", {
+    expect_ggplot("plotColGraph subset samples", {
+        plotColGraph(sfe3, colGraphName = "visium", colGeometryName = "spotPoly",
+                     sample_id = "Vis5A")
+    })
+    expect_ggplot("plotColGraph multiple samples", {
+        plotColGraph(sfe3, colGraphName = "visium", colGeometryName = "spotPoly",
+                     sample_id = "all")
+    })
+})
+
 sfe3 <- runMultivariate(sfe3, "multispati", colGraphName = "visium",
                         subset_row = inds, sample_action = "separate",
                         nfposi = 10, nfnega = 10)
@@ -945,8 +956,26 @@ test_that("plotSpatialFeature with RGB image in the background", {
         plotSpatialFeature(sfe_ob3, c("in_tissue", "array_col"),
                            image_id = "lowres", maxcell = 5e+4)
     })
+})
+
+# Test 16 bit images
+img16 <- getImg(sfe_mer) |> imgRaster()
+img16 <- img16 * 256
+DF <- DataFrame(
+    sample_id = "sample01",
+    image_id = "16bit",
+    data=I(list(new("SpatRasterImage", image = img16))),
+    scaleFactor=1)
+imgData(sfe_mer) <- rbind(imgData(sfe_mer), DF)
+
+test_that("plotSpatialFeature with grayscale image", {
     expect_ggplot("One sample, one feature, grayscale", {
         plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT",
+                           colGeometryName = "cellSeg", alpha = 0.5,
+                           dark = TRUE)
+    })
+    expect_ggplot("16 bit image", {
+        plotSpatialFeature(sfe_mer, "volume", image_id = "16bit",
                            colGeometryName = "cellSeg", alpha = 0.5,
                            dark = TRUE)
     })

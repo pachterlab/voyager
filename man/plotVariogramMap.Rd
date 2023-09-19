@@ -71,3 +71,4 @@ plotVariogramMap(sfe, "nCounts")
 \seealso{
 plotVariogram
 }
+\concept{Plot spatial analysis results}

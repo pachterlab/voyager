@@ -19,6 +19,7 @@
 #'   components.
 #' @export
 #' @seealso scater::plotReducedDim
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(scater)

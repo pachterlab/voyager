@@ -36,3 +36,4 @@ plotCrossVariogram(res)
 \seealso{
 plotCrossVariogramMap
 }
+\concept{Plot spatial analysis results}

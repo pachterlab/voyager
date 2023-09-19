@@ -191,3 +191,4 @@ feature2 = "Myh2", swap_rownames = "symbol")
 sfe <- runBivariate(sfe, type = "locallee", feature1 = "Myh1",
 feature2 = "Myh2", swap_rownames = "symbol")
 }
+\concept{Spatial statistics}
