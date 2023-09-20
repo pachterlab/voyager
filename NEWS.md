@@ -1,3 +1,6 @@
+# Version 1.2.7 (09/19/2023)
+* Polygon boundaries will show despite linewidth = 0 for Windows users. Set color = NA for polygons if linewidth = 0 so default will work for Windows.
+
 # Version 1.2.6 (09/19/2023)
 * Fixed bug in plotColGraph when one out of multiple samples is plotted.
 * Allow 16 bit images in spatial plotting functions.
