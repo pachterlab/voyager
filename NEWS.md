@@ -1,3 +1,8 @@
+# Version 1.2.6 (09/19/2023)
+* Fixed bug in plotColGraph when one out of multiple samples is plotted.
+* Allow 16 bit images in spatial plotting functions.
+* Removed `adespatial` from Suggests as it's only used as a reference in unit tests and it got removed from CRAN.
+
 # Version 1.2.5 (08/18/2023)
 * Use imgRaster getter rather than the S4 no-no of @image to get images to plot, as the latter will no longer work as of SFE 1.2.3 that wraps SpatRaster images when saving RDS. Reading RDS won't unwrap so images need to be unwrapped when they're needed.
 
