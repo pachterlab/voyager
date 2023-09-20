@@ -56,6 +56,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     } else {
         # i.e. polygons
         names_use <- c("linewidth", "linetype", "fill", "color", "alpha")
+        if (isTRUE(all.equal(0, fixed$linewidth))) fixed$color <- NA
     }
     fixed_applicable <- .drop_null_list(fixed[names_use])
     fixed_applicable
