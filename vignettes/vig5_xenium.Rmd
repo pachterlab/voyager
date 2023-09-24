@@ -57,7 +57,7 @@ Xenium is a new technology from 10X genomics for single cell resolution smFISH b
 
 The gene count matrix was downloaded as an HDF5 file and read into R as a `SingleCellExperiment` (SCE) object with `DropletUtils::read10xCounts()`. The gene count matrix is originally a `DelayedArray`, so the data is not all loaded into memory. For now, the matrix has been converted into an in memory `dgCMatrix`. However, for the next release, we would like to write another vignette on on disk analyses. The challenge is representing `sf` data frames on disk, perhaps with [`sedona`](https://github.com/apache/incubator-sedona) and [`SQLDataFrame`](https://bioconductor.org/packages/release/bioc/html/SQLDataFrame.html).
 
-The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with `arrow::read_parquet()`. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
+The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with read_parquet in the arrow package. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
 
 Here we load the packages used in this vignette.
 
