@@ -475,3 +475,4 @@ Cliff, A. D., Ord, J. K. 1981 Spatial processes, Pion, p. 17.
   distributional issues and an application. Geographical Analysis, 27,
   286-306
 }
+\concept{Spatial statistics}

@@ -15,6 +15,7 @@
 #' @return A data frame with 3 columns: \code{feature} for the features,
 #'   \code{cluster} a factor for cluster membership of the features within each
 #'   sample, and \code{sample_id} for the sample.
+#' @concept Downstream analyses of univariate spatial results
 #' @export
 #' @examples
 #' library(SpatialFeatureExperiment)
@@ -35,17 +36,13 @@
 clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
                                 method = "I", colGeometryName = NULL,
                                 annotGeometryName = NULL, reducedDimName = NULL,
-                                show_symbol = deprecated(),
                                 swap_rownames = NULL, name = "sp.correlogram") {
-    l <- .deprecate_show_symbol("clusterCorrelograms", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     name <- paste(name, method, sep = "_")
     res <- lapply(sample_id, function(s) {
         ress <- .get_feature_metadata(sfe, features, name, s, colGeometryName,
             annotGeometryName, reducedDimName,
-            show_symbol = show_symbol, swap_rownames = swap_rownames
+            show_symbol = !is.null(swap_rownames), swap_rownames = swap_rownames
         )
         if (method %in% c("I", "C")) {
             # First column is the metric, second column expectation, third is variance
@@ -93,6 +90,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' @importFrom methods as
 #' @importFrom SpatialFeatureExperiment localResults
 #' @export
+#' @concept Downstream analyses of univariate spatial results
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SingleCellExperiment)
@@ -111,10 +109,7 @@ clusterCorrelograms <- function(sfe, features, BLUSPARAM, sample_id = "all",
 clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
                              colGeometryName = NULL,
                              annotGeometryName = NULL,
-                             show_symbol = deprecated(), swap_rownames = NULL) {
-    l <- .deprecate_show_symbol("clusterMoranPlot", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
+                             swap_rownames = NULL) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     use_col <- is.null(annotGeometryName) || !is.null(colGeometryName)
     if (is.null(colGeometryName) && is.null(annotGeometryName)) {
@@ -161,10 +156,10 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
     } else {
         out <- out[[1]]
     }
-    if (show_symbol && any(features %in% rownames(sfe)) &&
-        "symbol" %in% names(rowData(sfe))) {
+    if (!is.null(swap_rownames) && any(features %in% rownames(sfe)) &&
+        swap_rownames %in% names(rowData(sfe))) {
         ind <- features %in% rownames(sfe)
-        features[ind] <- rowData(sfe)[features[ind], "symbol"]
+        features[ind] <- rowData(sfe)[features[ind], swap_rownames]
     }
     out
 }
@@ -181,6 +176,7 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #'   \code{cluster} a factor for cluster membership of the features within each
 #'   sample, and \code{sample_id} for the sample.
 #' @export
+#' @concept Downstream analyses of univariate spatial results
 #' @examples
 #' library(SFEData)
 #' library(scater)
@@ -206,11 +202,10 @@ clusterVariograms <- function(sfe, features, BLUSPARAM, n = 20,
                               swap_rownames = NULL, name = "variogram") {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     rlang::check_installed("gstat")
-    show_symbol <- !is.null(swap_rownames)
     ress <- lapply(sample_id, function(s) {
         .get_feature_metadata(sfe, features, name, s, colGeometryName,
                               annotGeometryName, reducedDimName,
-                              show_symbol = show_symbol,
+                              show_symbol = !is.null(swap_rownames),
                               swap_rownames = swap_rownames
         )
     })

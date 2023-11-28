@@ -13,6 +13,7 @@
 #' @param diverge_center Value to center on, defaults to 0.
 #' @return A numeric vector of length 2, the first element is for beginning, and
 #' the second for end. The values are between 0 and 1.
+#' @concept Spatial plotting
 #' @export
 #' @examples
 #' v <- rnorm(10)
@@ -55,6 +56,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     } else {
         # i.e. polygons
         names_use <- c("linewidth", "linetype", "fill", "color", "alpha")
+        if (isTRUE(all.equal(0, fixed$linewidth))) fixed$color <- NA
     }
     fixed_applicable <- .drop_null_list(fixed[names_use])
     fixed_applicable
@@ -215,6 +217,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     p <- ggplot()
     data <- NULL
     if (!is.null(img_df)) {
+        # Check if it's RGB
+        img <- img_df$data[[1]]
+        img_dim <- dim(imgRaster(img))
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
                               maxcell = maxcell)
     }
@@ -443,7 +448,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
             bb <- as.vector(bbox_use)
             lapply(img_data, function(img) {
-                img_cropped <- terra::crop(img@image, bbox_use, snap = "out")
+                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
                 img_cropped <- terra::shift(img_cropped,
                                             dx = -bb["xmin"],
                                             dy = -bb["ymin"])
@@ -648,6 +653,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom SpatialExperiment imgData getImg imgRaster
 #' @importMethodsFrom Matrix t
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(sf)
@@ -695,20 +701,17 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                size = 0.5, shape = 16, linewidth = 0,
                                linetype = 1, alpha = 1,
                                color = "black", fill = "gray80",
-                               show_symbol = deprecated(), swap_rownames = NULL,
+                               swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
                                dark = FALSE, ...) {
-    l <- .deprecate_show_symbol("plotSpatialFeature", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
         colGeometryName = colGeometryName,
         exprs_values = exprs_values,
         swap_rownames = swap_rownames,
-        show_symbol = show_symbol
+        show_symbol = !is.null(swap_rownames)
     )
 
     inds <- !names(values) %in% features
@@ -781,7 +784,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
             annotGeometry
         )
         geometry <- gf(sfe, type = geometry_name, sample_id = sample_id)
-        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id
+        if (MARGIN == 2L) geometry$sample_id <- sfe$sample_id[sfe$sample_id %in% sample_id]
     } else {
         geometry <- NULL
     }
@@ -835,6 +838,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom sf st_coordinates st_centroid st_geometry
 #' @return A ggplot2 object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
@@ -857,7 +861,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #'     annotGeometryName = "myofiber_simplified",
 #'     weights = TRUE
 #' )
-plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = NULL,
+plotColGraph <- function(sfe, colGraphName = 1L, colGeometryName = 1L,
                          sample_id = "all", weights = FALSE, segment_size = 0.5,
                          geometry_size = 0.5, ncol = NULL, bbox = NULL) {
     .plot_graph(sfe,
@@ -887,10 +891,15 @@ plotAnnotGraph <- function(sfe, annotGraphName = 1L, annotGeometryName = 1L,
 #' This function plots cell density in histological space as 2D histograms,
 #' especially helpful for larger smFISH-based datasets.
 #'
-#' @inheritParams plotColDataBin2D
 #' @inheritParams plotSpatialFeature
+#' @param bins Number of bins. Can be a vector of length 2 to specify for x and
+#'   y axes separately.
+#' @param binwidth Width of bins, passed to \code{\link{geom_bin2d}} or
+#'   \code{\link{geom_hex}}.
+#' @param hex Logical, whether to use hexagonal bins.
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe <- HeNSCLCData()
@@ -925,6 +934,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
 #' @return A ggplot object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' sfe1 <- McKellarMuscleData("small")

@@ -24,6 +24,7 @@
 #'   will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 #'   empirical anisotropic variograms and comparing them to the variogram fitted
 #'   to the entire dataset can be a useful EDA tool.
+#' @concept Spatial statistics
 #' @return An \code{autofitVariogram} object.
 #' @name variogram-internal
 .variogram <- function(x, coords_df, formula = x ~ 1, scale = TRUE, ...) {
@@ -213,6 +214,7 @@ variogram_map <- SFEMethod(package = "gstat", variate = "uni", scope = "global",
 #'   for each feature. The number next to each point is the number of pairs of
 #'   cells in that distance bin.
 #' @seealso plotVariogramMap
+#' @concept Plot spatial analysis results
 #' @export
 #' @importFrom rlang !! sym
 #' @importFrom utils modifyList
@@ -391,6 +393,7 @@ plotVariogram <- function(sfe, features, sample_id = "all", color_by = NULL,
 #' @seealso plotVariogram
 #' @export
 #' @importFrom ggplot2 geom_tile scale_fill_viridis_c
+#' @concept Plot spatial analysis results
 #' @examples
 #' library(SFEData)
 #' sfe <- McKellarMuscleData()
@@ -482,6 +485,7 @@ design_ragged_rows <- function(data, rows, cols) {
 #' @return A ggplot object. Unfortunately I haven't figured out a way to collect
 #' all the facet labels to the top of the entire plot.
 #' @seealso plotCrossVariogramMap
+#' @concept Plot spatial analysis results
 #' @export
 #' @examples
 #' library(SFEData)
@@ -527,6 +531,7 @@ plotCrossVariogram <- function(res, show_np = TRUE) {
 #' @inheritParams plotVariogramMap
 #' @return A ggplot object.
 #' @seealso plotCrossVariogram
+#' @concept Plot spatial analysis results
 #' @export
 #' @examples
 #' library(SFEData)

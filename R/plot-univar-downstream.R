@@ -160,7 +160,7 @@
 #' @inheritParams plotSpatialFeature
 #' @inheritParams clusterMoranPlot
 #' @inheritParams plotCorrelogram
-#' @inheritParams plotColDataBin2D
+#' @inheritParams plotCellBin2D
 #' @inheritParams plotDimLoadings
 #' @param sample_id One sample_id for the sample whose graph to plot.
 #' @param feature Name of one variable to show on the plot. It will be converted
@@ -191,10 +191,11 @@
 #'   smaller number to make sparser contours.
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
 #'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
 #'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
-#'   ggplot_build aes
+#'   ggplot_build aes geom_hex geom_bin2d
 #' @importFrom SpatialFeatureExperiment localResult
 #' @export
 #' @examples
@@ -218,13 +219,10 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
                       colGeometryName = NULL, annotGeometryName = NULL,
                       plot_singletons = TRUE, binned = FALSE,
                       filled = FALSE, divergent = FALSE, diverge_center = NULL,
-                      swap_rownames = NULL, show_symbol = deprecated(),
+                      swap_rownames = NULL,
                       bins = 100, binwidth = NULL, hex = FALSE,
                       plot_influential = TRUE, bins_contour = NULL,
                       name = "moran.plot", ...) {
-    l <- .deprecate_show_symbol("moranPlot", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     sample_id <- .check_sample_id(sfe, sample_id)
     # Change as moran.plot has been moved to localResults.
     not_geometry <- is.null(colGeometryName) && is.null(annotGeometryName)
@@ -234,7 +232,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
         sample_id = sample_id, colGeometryName = colGeometryName,
         annotGeometryName = annotGeometryName
     )
-    if (show_symbol && not_geometry) {
+    if (!is.null(swap_rownames) && not_geometry) {
         if (feature %in% rownames(sfe) && swap_rownames %in% colnames(rowData(sfe))) {
             feature <- rowData(sfe)[feature, swap_rownames]
         }
@@ -437,6 +435,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' @param name Name under which the correlogram results are stored, which is by
 #' default "sp.correlogram".
 #' @return A ggplot object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 theme geom_errorbar element_blank geom_text
 #' @importFrom stats p.adjust pnorm symnum
 #' @export
@@ -472,11 +471,8 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
                             reducedDimName = NULL,
                             plot_signif = TRUE, p_adj_method = "BH",
                             divergent = FALSE, diverge_center = NULL,
-                            show_symbol = deprecated(), swap_rownames = NULL,
+                            swap_rownames = NULL,
                             name = "sp.correlogram") {
-    l <- .deprecate_show_symbol("plotCorrelogram", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
         facet_by <- match.arg(facet_by)
@@ -490,7 +486,7 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
         o <- .get_plot_correlogram_df(
             sfe, features, s, method, color_by,
             colGeometryName, annotGeometryName, reducedDimName, name,
-            show_symbol, swap_rownames
+            !is.null(swap_rownames), swap_rownames
         )
         o$sample_id <- s
         o
@@ -691,6 +687,7 @@ plotCorrelogram <- function(sfe, features, sample_id = "all", method = "I",
 #'   \code{\link{geom_histogram}}, or \code{\link{geom_freqpoly}}, depending on
 #'   \code{ptype}.
 #' @return A \code{ggplot2} object.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 geom_density geom_histogram geom_freqpoly
 #' @export
 #' @examples
@@ -705,11 +702,8 @@ plotMoranMC <- function(sfe, features, sample_id = "all",
                         colGeometryName = NULL, annotGeometryName = NULL,
                         reducedDimName = NULL,
                         ptype = c("density", "histogram", "freqpoly"),
-                        show_symbol = deprecated(), swap_rownames = NULL,
+                        swap_rownames = NULL,
                         name = "moran.mc", ...) {
-    l <- .deprecate_show_symbol("plotMoranMC", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     ptype <- match.arg(ptype)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(sample_id) > 1L || length(features) > 1L) {
@@ -730,7 +724,7 @@ plotMoranMC <- function(sfe, features, sample_id = "all",
             sfe, features, s, name,
             colGeometryName,
             annotGeometryName, reducedDimName,
-            show_symbol, swap_rownames
+            !is.null(swap_rownames), swap_rownames
         )
     })
     if (length(sample_id) > 1L) {

@@ -11,7 +11,6 @@ clusterMoranPlot(
   sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
-  show_symbol = deprecated(),
   swap_rownames = NULL
 )
 }
@@ -34,9 +33,6 @@ for each sample.}
 
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot
@@ -68,3 +64,4 @@ clusts <- clusterMoranPlot(sfe, rownames(sfe)[1],
     BLUSPARAM = KmeansParam(2)
 )
 }
+\concept{Downstream analyses of univariate spatial results}

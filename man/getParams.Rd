@@ -50,3 +50,4 @@ colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 sfe <- colDataMoransI(sfe, "nCounts")
 getParams(sfe, "moran", colData = TRUE)
 }
+\concept{Spatial analysis results}

@@ -25,3 +25,4 @@ sfe <- McKellarMuscleData("small")
 g <- findVisiumGraph(sfe)
 mat <- listw2sparse(g)
 }
+\concept{Utilities}

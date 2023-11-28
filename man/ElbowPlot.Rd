@@ -56,3 +56,4 @@ sfe <- McKellarMuscleData("small")
 sfe <- runPCA(sfe, ncomponents = 10, exprs_values = "counts")
 ElbowPlot(sfe, ndims = 10)
 }
+\concept{Non-spatial plotting}

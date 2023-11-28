@@ -10,6 +10,7 @@
 #'   it will be the row and column names of the output matrix.
 #' @export
 #' @importFrom Matrix sparseMatrix
+#' @concept Utilities
 #' @examples
 #' library(SFEData)
 #' sfe <- McKellarMuscleData("small")
@@ -39,6 +40,7 @@ listw2sparse <- function(listw) {
 #' When the input is an SFE object, the rows and columns will match the column
 #' names of the SFE object.
 #' @export
+#' @concept Utilities
 #' @examples
 #' # example code
 #'
@@ -95,6 +97,7 @@ multi_listw2sparse <- function(listws) {
 #' @export
 #' @importFrom RSpectra eigs_sym
 #' @importFrom spdep listw2mat
+#' @concept Spatial statistics
 #' @references de Jong, P., Sprenger, C., & van Veen, F. (1984). On extreme values of Moran's I and Geary's C. Geographical Analysis, 16(1), 17-24.
 #' @examples
 #' # example code

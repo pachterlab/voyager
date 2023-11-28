@@ -121,6 +121,7 @@
 #' reorganize_fun = Voyager:::.moran2df
 #' )
 #' @name SFEMethod
+#' @concept Extensibility
 #' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
 #'   is_joint use_graph use_matrix
 setClass("SFEMethod", slots = c(

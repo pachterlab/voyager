@@ -67,6 +67,7 @@
 #'   arguments for aesthetics as if it's for \code{colGeometry}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
+#' @concept Plot spatial analysis results
 #' @importFrom ggplot2 ggtitle
 #' @importFrom patchwork plot_annotation
 #' @export
@@ -125,13 +126,10 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             annot_diverge_center = NULL,
                             size = 0.5, shape = 16, linewidth = 0, linetype = 1, alpha = 1,
                             color = "black", fill = "gray80",
-                            show_symbol = deprecated(), swap_rownames = NULL,
+                            swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
                             summary_fun = sum, hex = FALSE, dark = FALSE,
                             type = name, ...) {
-    l <- .deprecate_show_symbol("plotLocalResult", show_symbol, swap_rownames)
-    show_symbol <- l[[1]]; swap_rownames <- l[[2]]
-
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (!is.null(colGeometryName)) {
@@ -160,7 +158,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
     values <- .get_localResult_values(sfe, name, type, features, attribute,
         sample_id, colGeometryName,
         annotGeometryName,
-        show_symbol = show_symbol, swap_rownames = swap_rownames
+        show_symbol = !is.null(swap_rownames), swap_rownames = swap_rownames
     )
     # When Ensembl IDs are supplied but show gene symbols
     # colnames of values are gene symbols

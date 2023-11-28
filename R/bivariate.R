@@ -30,6 +30,7 @@
 #'   results for more than 2 genes jointly. Local results are stored in the
 #'   \code{\link{localResults}} field in the SFE object, with name the
 #'   concatenation the two gene names separated by two underscores (\code{__}).
+#' @concept Spatial statistics
 #' @export
 #' @examples
 #' library(SFEData)
