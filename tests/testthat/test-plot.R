@@ -567,12 +567,6 @@ names(int_metadata(sfe_cosmx2b)$spatialGraphs) <- "sample02"
 sfe_cosmx2 <- SpatialFeatureExperiment::cbind(sfe_cosmx2a, sfe_cosmx2b)
 sfe_cosmx2 <- removeEmptySpace(sfe_cosmx2)
 
-test_that("colData and rowData bin2d", {
-    expect_warning(plotColDataBin2D(sce = sfe_cosmx, x = "nCounts",
-                                    y = "nGenes"),
-                   "deprecated")
-})
-
 test_that("colData and rowData histograms", {
     expect_doppelganger("colData histogram, one variable", {
         plotColDataHistogram(sfe_cosmx, "nCounts")

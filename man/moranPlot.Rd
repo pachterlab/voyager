@@ -19,7 +19,6 @@ moranPlot(
   divergent = FALSE,
   diverge_center = NULL,
   swap_rownames = NULL,
-  show_symbol = deprecated(),
   bins = 100,
   binwidth = NULL,
   hex = FALSE,
@@ -79,9 +78,6 @@ identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count
 matrix will be used.}
 
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
-
 \item{bins}{If binning the \code{colGeometry} in space due to large number of
 cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
 \code{\link{geom_hex}}. If \code{NULL} (default), then the
@@ -89,8 +85,8 @@ cells or spots, the number of bins, passed to \code{\link{geom_bin2d}} or
 is recommended. If the geometry is not point, then the centroids will be
 used.}
 
-\item{binwidth}{Numeric vector giving bin width in both vertical and
-horizontal directions. Overrides \code{bins} if both set.}
+\item{binwidth}{Width of bins, passed to \code{\link{geom_bin2d}} or
+\code{\link{geom_hex}}.}
 
 \item{hex}{Logical, whether to use \code{\link{geom_hex}}. Note that
 \code{geom_hex} is broken in \code{ggplot2} version 3.4.0. Please update

@@ -13,7 +13,6 @@ clusterCorrelograms(
   colGeometryName = NULL,
   annotGeometryName = NULL,
   reducedDimName = NULL,
-  show_symbol = deprecated(),
   swap_rownames = NULL,
   name = "sp.correlogram"
 )
@@ -40,9 +39,6 @@ features.}
 \item{reducedDimName}{Name of a dimension reduction, can be seen in
 \code{\link{reducedDimNames}}. \code{colGeometryName} and
 \code{annotGeometryName} have precedence over \code{reducedDimName}.}
-
-\item{show_symbol}{Deprecated. Use argument \code{swap_rownames} instead, to
-be consistent with \code{scater} plotting functions.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot

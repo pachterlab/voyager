@@ -22,7 +22,6 @@
 #' @return A ggplot object. The y axis is eigenvalues or percentage of variance
 #'   explained if relevant.
 #' @importFrom scales breaks_extended
-#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)
@@ -148,10 +147,6 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 #' with negative eigenvalues are in the right most columns of the embedding and
 #' loading matrices. See the \code{\link{ElbowPlot}}.
 #' @param nfeatures Number of genes to plot.
-#' @param show_symbol Deprecated. Use argument \code{swap_rownames} instead, to
-#'   be consistent with \code{scater} plotting functions.
-#' @param symbol_col Deprecated. Use argument \code{swap_rownames} instead, to
-#'   be consistent with \code{scater} plotting functions.
 #' @param swap_rownames Column name of \code{rowData(object)} to be used to
 #'   identify features instead of \code{rownames(object)} when labeling plot
 #'   elements. If not found in \code{rowData}, then rownames of the gene count
@@ -166,7 +161,6 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 #' @importFrom stats reorder
 #' @importFrom lifecycle deprecated is_present deprecate_warn
 #' @export
-#' @concept Non-spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(scater)
@@ -175,18 +169,10 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 #' plotDimLoadings(sfe, dims = 1:2)
 plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
                             swap_rownames = NULL,
-                            show_symbol = deprecated(),
-                            symbol_col = deprecated(),
                             reduction = "PCA",
                             balanced = TRUE, ncol = 2,
                             sample_id = "all") {
     # deal with multiple samples with separate spatial dimred results
-    if (is_present(show_symbol)) {
-        deprecate_warn("1.2.0", "plotDimLoadings(show_symbol = )",
-                       "plotDimLoadings(swap_rownames = )")
-        if (is_present(symbol_col) && is.null(swap_rownames))
-            swap_rownames <- symbol_col
-    }
 
     loadings <- attr(reducedDim(sce, reduction), "rotation")
     loading_cols <- paste0("PC", dims)
@@ -224,100 +210,6 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
     }
     p
 }
-
-.plot_dimdata_bin2d_fun <- function(fun) {
-    function(sce, x, y, facet_by = NULL, subset = NULL, bins = 100,
-             binwidth = NULL, hex = FALSE, name_true = NULL, name_false = NULL,
-             ncol = NULL, ...) {
-        lifecycle::deprecate_warn("1.2.0", I("plotCol/RowDataBin2D()"),
-                                  with = I("scater::plotCol/RowData()"),
-                                  details = "Set `bins` argument to enable binning.")
-        args <- list(...)
-        if (missing(sce) && "sfe" %in% names(args)) {
-            warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
-            sce <- args$sfe
-        }
-        bin_fun <- if (hex) geom_hex else geom_bin2d
-        df <- as.data.frame(fun(sce))
-        if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {
-            warning(facet_by, " is not a categorical variable. Not facetting.")
-            facet_by <- NULL
-        }
-        p <- ggplot()
-        if (is.null(subset)) {
-            p <- p +
-                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
-                        data = df) +
-                scale_fill_distiller(palette = "Blues", direction = 1)
-        } else {
-            name_subset <- subset
-            subset <- df[[subset]]
-            if (anyNA(as.logical(subset))) {
-                stop("Column ", subset, " must be coerceable to logical.")
-            }
-            name_true <- name_true %||% name_subset
-            name_false <- name_false %||% paste0("!", name_subset)
-            p <- p +
-                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
-                        data = df[!subset,]) +
-                scale_fill_distiller(palette = "Blues", direction = 1,
-                                     name = name_false) +
-                new_scale_fill() +
-                bin_fun(aes(.data[[x]], .data[[y]]), bins = bins, binwidth = binwidth,
-                        data = df[subset,]) +
-                scale_fill_distiller(palette = "Reds", direction = 1,
-                                     name = name_true)
-        }
-        if (!is.null(facet_by)) {
-            p <- p + facet_wrap(facet_by, ncol = ncol)
-        }
-        p
-    }
-}
-
-#' Plot colData and rowData with 2D histograms
-#'
-#' To avoid overplotting in large datasets. The 2D histogram is more informative
-#' of point density on the plot than the scatter plot where there are so many
-#' points plotted that they effectively form a solid block.
-#'
-#' @inheritParams ggplot2::geom_bin2d
-#' @param sce A \code{SingleCellExperiment} object.
-#' @param x Name of the column in \code{colData} or \code{rowData} to plot on
-#'   the x axis of the plot.
-#' @param y Name of the column in \code{colData} or \code{rowData} to plot on
-#'   the y axis of the plot.
-#' @param facet_by Column in \code{colData} or \code{rowData} to facet with.
-#' @param bins Numeric vector giving number of bins in both vertical and
-#'   horizontal directions. Set to 100 by default.
-#' @param subset Name of a logical column in \code{colData} or \code{rowData},
-#'   indicating cells or genes to plot with a different palette. Since the 2D
-#'   histogram is effectively an opaque heatmap, don't use this argument unless
-#'   the two groups are largely non-overlapping in the variables being plotted.
-#' @param hex Logical, whether to use hexagon rather than rectangular bins.
-#'   Requires the \code{hexbin} package.
-#' @param name_true Character, name to show on the legend for cells or genes
-#'   indicated \code{TRUE} in the \code{subset} argument.
-#' @param name_false Character, name to show on the legend for cells or genes
-#'   indicated \code{FALSE} in the \code{subset} argument.
-#' @param ncol If facetting, the number of columns of facets, passed to
-#'   \code{\link{facet_wrap}}.
-#' @importFrom ggplot2 geom_bin2d geom_hex vars
-#' @importFrom stats reshape
-#' @export
-#' @return A ggplot object
-#' @name plotColDataBin2D
-#' @concept Non-spatial plotting
-#' @examples
-#' library(SFEData)
-#' sfe <- McKellarMuscleData()
-#' sfe <- sfe[, sfe$in_tissue]
-#' plotColDataBin2D(sfe, "nCounts", "nGenes")
-plotColDataBin2D <- .plot_dimdata_bin2d_fun(colData)
-
-#' @rdname plotColDataBin2D
-#' @export
-plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 
 .plot_dimdata_hist <- function(fun) {
     function(sce, feature, fill_by = NULL, facet_by = NULL, subset = NULL,
@@ -369,9 +261,11 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 
 #' Plot histograms for colData and rowData columns
 #'
-#' @inheritParams plotColDataBin2D
 #' @inheritParams ggplot2::facet_wrap
 #' @inheritParams ggplot2::geom_histogram
+#' @param sce A \code{SingleCellExperiment} object.
+#' @param bins Numeric vector giving number of bins in both vertical and
+#'   horizontal directions. Set to 100 by default.
 #' @param feature Names of columns in \code{colData} or \code{rowData} to plot.
 #'   When multiple features are specified, they will be plotted in separate
 #'   facets.
@@ -387,8 +281,8 @@ plotRowDataBin2D <- .plot_dimdata_bin2d_fun(rowData)
 #' @return A ggplot object
 #' @seealso plotColDataFreqpoly
 #' @importFrom rlang %||% .data
-#' @importFrom ggplot2 facet_grid
-#' @concept Non-spatial plotting
+#' @importFrom ggplot2 facet_grid vars
+#' @importFrom stats reshape
 #' @export
 #' @examples
 #' library(SFEData)
@@ -446,7 +340,6 @@ plotRowDataHistogram <- .plot_dimdata_hist(rowData)
 #' @param color_by Name of a categorical column in \code{colData} or
 #'   \code{rowData} to color the polygons.
 #' @seealso plotColDataHistogram
-#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)

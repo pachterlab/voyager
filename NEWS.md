@@ -1,3 +1,6 @@
+# Version 1.3.1 (05/15/2023)
+* Removed functions and arguments deprecated in 1.2.0
+
 # Version 1.2.7 (09/19/2023)
 * Polygon boundaries will show despite linewidth = 0 for Windows users. Set color = NA for polygons if linewidth = 0 so default will work for Windows.
 
