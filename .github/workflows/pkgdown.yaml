@@ -30,9 +30,9 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-      #- name: Install github version of SFEData
-      #  run: remotes::install_github("pachterlab/SFEData")
-      #  shell: Rscript {0}
+      - name: Install irlba from source
+        run: install.packages("irlba", type = "source")
+        shell: Rscript {0}
       - name: Setup python
         uses: actions/setup-python@v2
         with:
