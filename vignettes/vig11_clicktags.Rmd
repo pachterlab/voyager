@@ -64,17 +64,14 @@ library(SpatialFeatureExperiment)
 library(scater)
 library(scuttle)
 library(Voyager)
-library(zellkonverter)
 library(ggplot2)
 theme_set(theme_bw())
 ```
 
-```{r dwnld, message=FALSE, results='hide'}
-download.file("https://github.com/cellatlas/cellatlas/raw/main/examples/tag-clicktag/cellatlas_out/adata.h5ad.gz", 
-                  "adata.h5ad.gz", quiet = TRUE)
-system("gunzip -f adata.h5ad.gz")
-sce <- readH5AD("adata.h5ad")
-assayNames(sce) <- "counts"
+```{r, results='hide', message=TRUE}
+if (!file.exists("clicktags.rds"))
+    download.file("https://github.com/pachterlab/voyager/raw/documentation-devel/vignettes/clicktags.rds", destfile = "clicktags.rds")
+sce <- readRDS("clicktags.rds")
 ```
 
 ```{r}

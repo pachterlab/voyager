@@ -62,7 +62,6 @@ install.packages("anndata")
 The data in this vignette is shipped with the `cellatlas` repository. The count matrix and metadata are provided in the `cellatlas/examples` folder as an [`AnnData`](https://anndata-tutorials.readthedocs.io/en/latest/getting-started.html) object. We will begin by loading the object and converting it to a `SpatialFeatureExperiment` object. 
 
 ```{r setup, message=FALSE}
-library(zellkonverter)
 library(stringr)
 library(Matrix)
 library(SpatialExperiment)
@@ -72,12 +71,10 @@ library(scuttle)
 library(Voyager)
 ```
 
-```{r dwnld}
-download.file("https://github.com/cellatlas/cellatlas/raw/main/examples/rna-splitseq/cellatlas_out/adata.h5ad.gz", 
-              "adata.h5ad.gz", quiet = TRUE)
-system("gunzip -f adata.h5ad.gz")
-sce <- readH5AD("adata.h5ad")
-assayNames(sce) <- "counts"
+```{r, results='hide', message=TRUE}
+if (!file.exists("splitseq.rds"))
+    download.file("https://github.com/pachterlab/voyager/raw/documentation-devel/vignettes/splitseq.rds", destfile = "splitseq.rds")
+sce <- readRDS("splitseq.rds")
 ```
 
 ```{r}
