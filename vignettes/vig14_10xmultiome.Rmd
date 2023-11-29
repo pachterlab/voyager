@@ -65,17 +65,12 @@ library(SpatialFeatureExperiment)
 library(scater)
 library(scuttle)
 library(Voyager)
-library(zellkonverter)
 library(ggplot2)
 theme_set(theme_bw())
 ```
 
-```{r dwnld, message=FALSE, results='hide'}
-download.file("https://github.com/cellatlas/cellatlas/raw/main/examples/atac-10xmultiome/cellatlas_out/adata.h5ad.gz", 
-                  "adata.h5ad.gz", quiet = TRUE)
-system("gunzip -f adata.h5ad.gz")
-sce <- readH5AD("adata.h5ad")
-assayNames(sce) <- "counts"
+```{r}
+sce <- readRDS("10xmultiome.rds")
 ```
 
 ```{r}
