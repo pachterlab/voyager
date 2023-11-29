@@ -67,8 +67,10 @@ library(ggplot2)
 theme_set(theme_bw())
 ```
 
-```{r}
-sce <- readRDS("10xnuclei.rds")
+```{r, results='hide', message=TRUE}
+if (!file.exists("10x_nuclei.rds"))
+    download.file("https://github.com/pachterlab/voyager/raw/documentation-devel/vignettes/10x_nuclei.rds", destfile = "10x_nuclei.rds")
+sce <- readRDS("10x_nuclei.rds")
 ```
 
 ```{r}
