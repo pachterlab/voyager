@@ -8,8 +8,8 @@
 <meta name="description" content="Voyager">
 <title>Basic Visium exploratory data analysis • Voyager</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Basic Visium exploratory data analysis">
 <meta property="og:description" content="Voyager">
@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,7 +116,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2023-08-15</h4>
+            <h4 data-toc-skip class="date">2023-11-30</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -169,12 +169,12 @@ spatial data analyis vignette</a> with the same dataset.</p>
 <span><span class="va">PY_PATH</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.which.html" class="external-link">Sys.which</a></span><span class="op">(</span><span class="st">"python"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_python</a></span><span class="op">(</span><span class="va">PY_PATH</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/py_config.html" class="external-link">py_config</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.10.12/x64/bin/python</span></span>
-<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.10.12/x64/lib/libpython3.10.dylib</span></span>
-<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.10.12/x64:/Users/runner/hostedtoolcache/Python/3.10.12/x64</span></span>
-<span><span class="co">#&gt; version:        3.10.12 (main, Jun  7 2023, 13:40:41) [Clang 13.0.0 (clang-1300.0.29.30)]</span></span>
-<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/numpy</span></span>
-<span><span class="co">#&gt; numpy_version:  1.25.2</span></span>
+<span><span class="co">#&gt; python:         /Users/runner/hostedtoolcache/Python/3.10.13/x64/bin/python</span></span>
+<span><span class="co">#&gt; libpython:      /Users/runner/hostedtoolcache/Python/3.10.13/x64/lib/libpython3.10.dylib</span></span>
+<span><span class="co">#&gt; pythonhome:     /Users/runner/hostedtoolcache/Python/3.10.13/x64:/Users/runner/hostedtoolcache/Python/3.10.13/x64</span></span>
+<span><span class="co">#&gt; version:        3.10.13 (main, Aug 28 2023, 08:29:32) [Clang 13.0.0 (clang-1300.0.29.30)]</span></span>
+<span><span class="co">#&gt; numpy:          /Users/runner/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/numpy</span></span>
+<span><span class="co">#&gt; numpy_version:  1.26.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; NOTE: Python version was forced by use_python() function</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -602,33 +602,33 @@ rank sum test:</p>
 <p>The result is sorted by p-values:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 15043 rows and 8 columns</span></span>
+<span><span class="co">#&gt; DataFrame with 15043 rows and 7 columns</span></span>
 <span><span class="co">#&gt;                        p.value         FDR summary.AUC     AUC.2     AUC.3</span></span>
 <span><span class="co">#&gt;                      &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747 3.43824e-12 5.17214e-08    0.705522  0.705522  0.919795</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360 2.03670e-10 1.53190e-06    0.687278  0.687278  0.978198</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730 1.27923e-09 6.41448e-06    0.678486  0.678486  0.903761</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341 1.56376e-08 5.88089e-05    0.665798  0.665798  0.969446</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354 4.89703e-08 1.42223e-04    0.659698  0.659698  0.982496</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747 4.80010e-20 7.22078e-16    0.769519  0.943708  0.769519</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730 8.09326e-18 6.08734e-14    0.742550  0.890521  0.763579</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716 1.80996e-15 9.07575e-12    0.733185  0.844342  0.733185</span></span>
+<span><span class="co">#&gt; ENSMUSG00000061723 2.17169e-14 8.16717e-11    0.723785  0.949282  0.723785</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341 1.56889e-13 4.72016e-10    0.716022  0.972764  0.716022</span></span>
 <span><span class="co">#&gt; ...                        ...         ...         ...       ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000025094           1           1         0.5  0.497664  0.500000</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095           1           1         0.5  0.500000  0.493056</span></span>
 <span><span class="co">#&gt; ENSMUSG00000043969           1           1         0.5  0.500000  0.500000</span></span>
 <span><span class="co">#&gt; ENSMUSG00000091378           1           1         0.5  0.500000  0.500000</span></span>
 <span><span class="co">#&gt; ENSMUSG00000072437           1           1         0.5  0.500000  0.500000</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228           1           1         0.5  0.495074  0.476064</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649           1           1         0.5  0.497537  0.500000</span></span>
-<span><span class="co">#&gt;                        AUC.4     AUC.5     AUC.6</span></span>
-<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; ENSMUSG00000051747  0.973416  0.823342  0.840709</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064360  0.994585  0.745047  0.870710</span></span>
-<span><span class="co">#&gt; ENSMUSG00000030730  0.976922  0.793583  0.771421</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064341  0.990591  0.790956  0.902517</span></span>
-<span><span class="co">#&gt; ENSMUSG00000064354  0.999157  0.813394  0.922499</span></span>
-<span><span class="co">#&gt; ...                      ...       ...       ...</span></span>
-<span><span class="co">#&gt; ENSMUSG00000043969  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000091378  0.496183  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000072437  0.492366  0.500000       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000003228  0.473282  0.488889       0.5</span></span>
-<span><span class="co">#&gt; ENSMUSG00000094649  0.500000  0.500000       0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;                        AUC.4     AUC.5</span></span>
+<span><span class="co">#&gt;                    &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; ENSMUSG00000051747  0.991494  0.813135</span></span>
+<span><span class="co">#&gt; ENSMUSG00000030730  0.989068  0.742550</span></span>
+<span><span class="co">#&gt; ENSMUSG00000005716  0.959597  0.736196</span></span>
+<span><span class="co">#&gt; ENSMUSG00000061723  0.996592  0.832176</span></span>
+<span><span class="co">#&gt; ENSMUSG00000064341  0.998582  0.790951</span></span>
+<span><span class="co">#&gt; ...                      ...       ...</span></span>
+<span><span class="co">#&gt; ENSMUSG00000025094  0.500000       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000087095  0.496183       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000043969  0.496183       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000091378  0.496183       0.5</span></span>
+<span><span class="co">#&gt; ENSMUSG00000072437  0.492366       0.5</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/enrichr.html" class="external-link">gget enrichr</a>
 module from the <a href="https://pachterlab.github.io/gget/" class="external-link">gget</a>
 package to perform a gene enrichment analysis. You can choose from
@@ -696,12 +696,11 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gget_info</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gget_info</span><span class="op">$</span><span class="va">primary_gene_name</span></span>
 <span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">gget_info</span>, <span class="va">ncbi_description</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ncbi_description</span></span>
-<span><span class="co">#&gt; Ttn                                                                                                              Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Gapdh   This gene encodes a member of the glyceraldehyde-3-phosphate dehydrogenase protein family. The encoded protein has been identified as a moonlighting protein based on its ability to perform mechanistically distinct functions. The encoded protein was originally identified as a key glycolytic enzyme that converts D-glyceraldehyde 3-phosphate (G3P) into 3-phospho-D-glyceroyl phosphate. Subsequent studies have assigned a variety of additional functions to the protein including nitrosylation of nuclear proteins, the regulation of mRNA stability, and acting as a transferrin receptor on the cell surface of macrophage. Alternative splicing results in multiple transcript variants. Many pseudogenes similar to this locus are found throughout the mouse genome. [provided by RefSeq, Jan 2014]</span></span>
-<span><span class="co">#&gt; Angptl7                                                                                                                                                                                                                                             Predicted to enable identical protein binding activity and signaling receptor binding activity. Predicted to be involved in negative regulation of vasculature development involved in avascular cornea development in camera-type eye and regulation of extracellular matrix organization. Predicted to be located in extracellular region. Predicted to be active in collagen-containing extracellular matrix and extracellular space. Is expressed in brain. Orthologous to human ANGPTL7 (angiopoietin like 7). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Tmsb4x                                                                                                                                                                                                                                                                                                                                                                                        Predicted to enable actin monomer binding activity and enzyme binding activity. Acts upstream of or within regulation of cell migration. Located in cytosol and nucleus. Is expressed in several structures, including alimentary system; central nervous system; eye; heart; and somite. Orthologous to several human genes including TMSB4X (thymosin beta 4 X-linked). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
-<span><span class="co">#&gt; Des                                                                                        This gene encodes a muscle-specific class III intermediate filament. Homopolymers of this protein form a stable intracytoplasmic filamentous network connecting myofibrils to each other and to the plasma membrane and are essential for maintaining the strength and integrity of skeletal, cardiac and smooth muscle fibers. Mutations in this gene affect assembly of intermediate filaments. Mice lacking this gene are able to develop and reproduce but exhibit abnormal muscle fibers. Mutations in the human gene are associated with myofibrillar myopathy, dilated cardiomyopathy, neurogenic scapuloperoneal syndrome and autosomal recessive limb-girdle muscular dystrophy, type 2R. [provided by RefSeq, Jan 2014]</span></span></code></pre></div>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ncbi_description</span></span>
+<span><span class="co">#&gt; Ttn                                                                                                                                                                                                                                                                                                                                     Enables ankyrin binding activity. Involved in regulation of relaxation of cardiac muscle. Acts upstream of or within several processes, including chordate embryonic development; forward locomotion; and heart development. Located in M band and Z disc. Is expressed in several structures, including diaphragm; embryo mesenchyme; heart; musculature; and tarsus. Used to study autosomal recessive limb-girdle muscular dystrophy type 2J; dilated cardiomyopathy 1G; and tibial muscular dystrophy. Human ortholog(s) of this gene implicated in intrinsic cardiomyopathy (multiple) and myopathy (multiple). Orthologous to human TTN (titin). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Cryab This gene encodes a member of the small heat-shock protein (HSP20) family. The encoded protein is a molecular chaperone that protects proteins against thermal denaturation and other stresses. This protein is a component of the eye lens, regulates lens differentiation and functions as a refractive element in the lens. This protein is a negative regulator of inflammation, has anti-apoptotic properties and also plays a role in the formation of muscular tissue. Mice lacking this gene exhibit worse experimental autoimmune encephalomyelitis and inflammation of the central nervous system compared to the wild type. In mouse models, this gene has a critical role in alleviating the pathology of the neurodegenerative Alexander disease. Mutations in the human gene are associated with myofibrillar myopathy 2, fatal infantile hypertonic myofibrillar myopathy, multiple types of cataract and dilated cardiomyopathy. Alternative splicing results in multiple transcript variants. [provided by RefSeq, Jan 2014]</span></span>
+<span><span class="co">#&gt; Hspb7                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Enables filamin binding activity. Predicted to be involved in response to heat. Located in actin cytoskeleton. Is expressed in several structures, including alimentary system; genitourinary system; integumental system; nervous system; and sensory organ. Orthologous to human HSPB7 (heat shock protein family B (small) member 7). [provided by Alliance of Genome Resources, Apr 2022]</span></span>
+<span><span class="co">#&gt; Ftl1                                                                                                                                                                                                                                                                                        Predicted to enable ferric iron binding activity; ferrous iron binding activity; and identical protein binding activity. Predicted to be involved in intracellular sequestering of iron ion. Predicted to be located in autolysosome. Predicted to be part of intracellular ferritin complex. Predicted to be active in cytoplasm. Is expressed in several structures, including central nervous system; ciliary body; liver; and retina nuclear layer. Human ortholog(s) of this gene implicated in basal ganglia disease; hyperferritinemia-cataract syndrome; neurodegeneration with brain iron accumulation 3; and neurodegenerative disease. Orthologous to human FTL (ferritin light chain). [provided by Alliance of Genome Resources, Apr 2022]</span></span></code></pre></div>
 <p>These genes are interesting to view in spatial context:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"spotPoly"</span>, ncol <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -885,9 +884,9 @@ Visium vignette</a>.</p>
 </h2>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.3.1 (2023-06-16)</span></span>
+<span><span class="co">#&gt; R version 4.3.2 (2023-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-apple-darwin20 (64-bit)</span></span>
-<span><span class="co">#&gt; Running under: macOS Monterey 12.6.7</span></span>
+<span><span class="co">#&gt; Running under: macOS Ventura 13.6</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
 <span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib </span></span>
@@ -904,95 +903,93 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] BiocNeighbors_1.18.0           concordexR_1.0.0              </span></span>
-<span><span class="co">#&gt;  [3] reticulate_1.31                dplyr_1.1.2                   </span></span>
-<span><span class="co">#&gt;  [5] sparseMatrixStats_1.12.2       stringr_1.5.0                 </span></span>
-<span><span class="co">#&gt;  [7] BiocParallel_1.34.2            SFEData_1.2.0                 </span></span>
-<span><span class="co">#&gt;  [9] bluster_1.10.0                 patchwork_1.1.3               </span></span>
-<span><span class="co">#&gt; [11] scran_1.28.2                   scater_1.28.0                 </span></span>
-<span><span class="co">#&gt; [13] ggplot2_3.4.3                  scuttle_1.10.2                </span></span>
-<span><span class="co">#&gt; [15] SpatialExperiment_1.10.0       SingleCellExperiment_1.22.0   </span></span>
-<span><span class="co">#&gt; [17] SummarizedExperiment_1.30.2    Biobase_2.60.0                </span></span>
-<span><span class="co">#&gt; [19] GenomicRanges_1.52.0           GenomeInfoDb_1.36.1           </span></span>
-<span><span class="co">#&gt; [21] IRanges_2.34.1                 S4Vectors_0.38.1              </span></span>
-<span><span class="co">#&gt; [23] BiocGenerics_0.46.0            MatrixGenerics_1.12.3         </span></span>
-<span><span class="co">#&gt; [25] matrixStats_1.0.0              SpatialFeatureExperiment_1.2.2</span></span>
-<span><span class="co">#&gt; [27] Voyager_1.2.4                 </span></span>
+<span><span class="co">#&gt;  [1] BiocNeighbors_1.20.0           concordexR_1.2.0              </span></span>
+<span><span class="co">#&gt;  [3] reticulate_1.34.0              dplyr_1.1.4                   </span></span>
+<span><span class="co">#&gt;  [5] sparseMatrixStats_1.14.0       stringr_1.5.1                 </span></span>
+<span><span class="co">#&gt;  [7] BiocParallel_1.36.0            SFEData_1.4.0                 </span></span>
+<span><span class="co">#&gt;  [9] bluster_1.12.0                 patchwork_1.1.3               </span></span>
+<span><span class="co">#&gt; [11] scran_1.30.0                   scater_1.30.0                 </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.4.4                  scuttle_1.12.0                </span></span>
+<span><span class="co">#&gt; [15] SpatialExperiment_1.12.0       SingleCellExperiment_1.24.0   </span></span>
+<span><span class="co">#&gt; [17] SummarizedExperiment_1.32.0    Biobase_2.62.0                </span></span>
+<span><span class="co">#&gt; [19] GenomicRanges_1.54.1           GenomeInfoDb_1.38.1           </span></span>
+<span><span class="co">#&gt; [21] IRanges_2.36.0                 S4Vectors_0.40.2              </span></span>
+<span><span class="co">#&gt; [23] BiocGenerics_0.48.1            MatrixGenerics_1.14.0         </span></span>
+<span><span class="co">#&gt; [25] matrixStats_1.1.0              SpatialFeatureExperiment_1.3.0</span></span>
+<span><span class="co">#&gt; [27] Voyager_1.4.0                 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span><span class="co">#&gt;   [1] later_1.3.1                   bitops_1.0-7                 </span></span>
 <span><span class="co">#&gt;   [3] filelock_1.0.2                tibble_3.2.1                 </span></span>
-<span><span class="co">#&gt;   [5] R.oo_1.25.0                   lifecycle_1.0.3              </span></span>
-<span><span class="co">#&gt;   [7] sf_1.0-14                     edgeR_3.42.4                 </span></span>
-<span><span class="co">#&gt;   [9] rprojroot_2.0.3               lattice_0.21-8               </span></span>
-<span><span class="co">#&gt;  [11] magrittr_2.0.3                limma_3.56.2                 </span></span>
-<span><span class="co">#&gt;  [13] sass_0.4.7                    rmarkdown_2.24               </span></span>
-<span><span class="co">#&gt;  [15] jquerylib_0.1.4               yaml_2.3.7                   </span></span>
-<span><span class="co">#&gt;  [17] metapod_1.8.0                 httpuv_1.6.11                </span></span>
-<span><span class="co">#&gt;  [19] sp_2.0-0                      cowplot_1.1.1                </span></span>
-<span><span class="co">#&gt;  [21] RColorBrewer_1.1-3            DBI_1.1.3                    </span></span>
-<span><span class="co">#&gt;  [23] abind_1.4-5                   zlibbioc_1.46.0              </span></span>
-<span><span class="co">#&gt;  [25] purrr_1.0.2                   R.utils_2.12.2               </span></span>
-<span><span class="co">#&gt;  [27] RCurl_1.98-1.12               rappdirs_0.3.3               </span></span>
-<span><span class="co">#&gt;  [29] GenomeInfoDbData_1.2.10       ggrepel_0.9.3                </span></span>
-<span><span class="co">#&gt;  [31] irlba_2.3.5.1                 terra_1.7-39                 </span></span>
-<span><span class="co">#&gt;  [33] pheatmap_1.0.12               units_0.8-3                  </span></span>
-<span><span class="co">#&gt;  [35] RSpectra_0.16-1               dqrng_0.3.0                  </span></span>
-<span><span class="co">#&gt;  [37] pkgdown_2.0.7                 DelayedMatrixStats_1.22.5    </span></span>
-<span><span class="co">#&gt;  [39] codetools_0.2-19              DropletUtils_1.20.0          </span></span>
-<span><span class="co">#&gt;  [41] DelayedArray_0.26.7           tidyselect_1.2.0             </span></span>
-<span><span class="co">#&gt;  [43] farver_2.1.1                  ScaledMatrix_1.8.1           </span></span>
-<span><span class="co">#&gt;  [45] viridis_0.6.4                 BiocFileCache_2.8.0          </span></span>
-<span><span class="co">#&gt;  [47] jsonlite_1.8.7                e1071_1.7-13                 </span></span>
-<span><span class="co">#&gt;  [49] ellipsis_0.3.2                systemfonts_1.0.4            </span></span>
-<span><span class="co">#&gt;  [51] dbscan_1.1-11                 tools_4.3.1                  </span></span>
-<span><span class="co">#&gt;  [53] ggnewscale_0.4.9              ragg_1.2.5                   </span></span>
-<span><span class="co">#&gt;  [55] snow_0.4-4                    Rcpp_1.0.11                  </span></span>
-<span><span class="co">#&gt;  [57] glue_1.6.2                    gridExtra_2.3                </span></span>
-<span><span class="co">#&gt;  [59] xfun_0.40                     HDF5Array_1.28.1             </span></span>
-<span><span class="co">#&gt;  [61] withr_2.5.0                   BiocManager_1.30.22          </span></span>
-<span><span class="co">#&gt;  [63] fastmap_1.1.1                 boot_1.3-28.1                </span></span>
-<span><span class="co">#&gt;  [65] rhdf5filters_1.12.1           fansi_1.0.4                  </span></span>
-<span><span class="co">#&gt;  [67] spData_2.3.0                  digest_0.6.33                </span></span>
-<span><span class="co">#&gt;  [69] rsvd_1.0.5                    R6_2.5.1                     </span></span>
-<span><span class="co">#&gt;  [71] mime_0.12                     textshaping_0.3.6            </span></span>
-<span><span class="co">#&gt;  [73] colorspace_2.1-0              wk_0.7.3                     </span></span>
-<span><span class="co">#&gt;  [75] RSQLite_2.3.1                 R.methodsS3_1.8.2            </span></span>
-<span><span class="co">#&gt;  [77] utf8_1.2.3                    generics_0.1.3               </span></span>
-<span><span class="co">#&gt;  [79] FNN_1.1.3.2                   class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [81] httr_1.4.7                    S4Arrays_1.0.5               </span></span>
-<span><span class="co">#&gt;  [83] spdep_1.2-8                   uwot_0.1.16                  </span></span>
-<span><span class="co">#&gt;  [85] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
-<span><span class="co">#&gt;  [87] gtable_0.3.3                  blob_1.2.4                   </span></span>
-<span><span class="co">#&gt;  [89] XVector_0.40.0                htmltools_0.5.6              </span></span>
-<span><span class="co">#&gt;  [91] scales_1.2.1                  png_0.1-8                    </span></span>
-<span><span class="co">#&gt;  [93] knitr_1.43                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [95] curl_5.0.2                    proxy_0.4-27                 </span></span>
-<span><span class="co">#&gt;  [97] cachem_1.0.8                  rhdf5_2.44.0                 </span></span>
-<span><span class="co">#&gt;  [99] BiocVersion_3.17.1            KernSmooth_2.23-22           </span></span>
-<span><span class="co">#&gt; [101] parallel_4.3.1                vipor_0.4.5                  </span></span>
-<span><span class="co">#&gt; [103] AnnotationDbi_1.62.2          desc_1.4.2                   </span></span>
-<span><span class="co">#&gt; [105] s2_1.1.4                      pillar_1.9.0                 </span></span>
-<span><span class="co">#&gt; [107] grid_4.3.1                    vctrs_0.6.3                  </span></span>
-<span><span class="co">#&gt; [109] promises_1.2.1                BiocSingular_1.16.0          </span></span>
-<span><span class="co">#&gt; [111] dbplyr_2.3.3                  beachmat_2.16.0              </span></span>
-<span><span class="co">#&gt; [113] xtable_1.8-4                  cluster_2.1.4                </span></span>
-<span><span class="co">#&gt; [115] beeswarm_0.4.0                evaluate_0.21                </span></span>
-<span><span class="co">#&gt; [117] magick_2.7.5                  cli_3.6.1                    </span></span>
-<span><span class="co">#&gt; [119] locfit_1.5-9.8                compiler_4.3.1               </span></span>
-<span><span class="co">#&gt; [121] rlang_1.1.1                   crayon_1.5.2                 </span></span>
-<span><span class="co">#&gt; [123] labeling_0.4.2                classInt_0.4-9               </span></span>
-<span><span class="co">#&gt; [125] fs_1.6.3                      ggbeeswarm_0.7.2             </span></span>
-<span><span class="co">#&gt; [127] stringi_1.7.12                viridisLite_0.4.2            </span></span>
-<span><span class="co">#&gt; [129] deldir_1.0-9                  munsell_0.5.0                </span></span>
-<span><span class="co">#&gt; [131] Biostrings_2.68.1             Matrix_1.6-1                 </span></span>
-<span><span class="co">#&gt; [133] ExperimentHub_2.8.1           bit64_4.0.5                  </span></span>
-<span><span class="co">#&gt; [135] Rhdf5lib_1.22.0               KEGGREST_1.40.0              </span></span>
-<span><span class="co">#&gt; [137] statmod_1.5.0                 shiny_1.7.5                  </span></span>
-<span><span class="co">#&gt; [139] highr_0.10                    interactiveDisplayBase_1.38.0</span></span>
-<span><span class="co">#&gt; [141] AnnotationHub_3.8.0           igraph_1.5.1                 </span></span>
-<span><span class="co">#&gt; [143] memoise_2.0.1                 bslib_0.5.1                  </span></span>
-<span><span class="co">#&gt; [145] bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;   [5] lifecycle_1.0.4               sf_1.0-14                    </span></span>
+<span><span class="co">#&gt;   [7] edgeR_4.0.2                   rprojroot_2.0.4              </span></span>
+<span><span class="co">#&gt;   [9] lattice_0.22-5                magrittr_2.0.3               </span></span>
+<span><span class="co">#&gt;  [11] limma_3.58.1                  sass_0.4.7                   </span></span>
+<span><span class="co">#&gt;  [13] rmarkdown_2.25                jquerylib_0.1.4              </span></span>
+<span><span class="co">#&gt;  [15] yaml_2.3.7                    metapod_1.10.0               </span></span>
+<span><span class="co">#&gt;  [17] httpuv_1.6.12                 sp_2.1-2                     </span></span>
+<span><span class="co">#&gt;  [19] cowplot_1.1.1                 RColorBrewer_1.1-3           </span></span>
+<span><span class="co">#&gt;  [21] DBI_1.1.3                     abind_1.4-5                  </span></span>
+<span><span class="co">#&gt;  [23] zlibbioc_1.48.0               purrr_1.0.2                  </span></span>
+<span><span class="co">#&gt;  [25] RCurl_1.98-1.13               rappdirs_0.3.3               </span></span>
+<span><span class="co">#&gt;  [27] GenomeInfoDbData_1.2.11       ggrepel_0.9.4                </span></span>
+<span><span class="co">#&gt;  [29] irlba_2.3.5.1                 terra_1.7-55                 </span></span>
+<span><span class="co">#&gt;  [31] pheatmap_1.0.12               units_0.8-4                  </span></span>
+<span><span class="co">#&gt;  [33] RSpectra_0.16-1               dqrng_0.3.1                  </span></span>
+<span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.24.0    </span></span>
+<span><span class="co">#&gt;  [37] codetools_0.2-19              DelayedArray_0.28.0          </span></span>
+<span><span class="co">#&gt;  [39] tidyselect_1.2.0              farver_2.1.1                 </span></span>
+<span><span class="co">#&gt;  [41] ScaledMatrix_1.10.0           viridis_0.6.4                </span></span>
+<span><span class="co">#&gt;  [43] BiocFileCache_2.10.1          jsonlite_1.8.7               </span></span>
+<span><span class="co">#&gt;  [45] e1071_1.7-13                  ellipsis_0.3.2               </span></span>
+<span><span class="co">#&gt;  [47] systemfonts_1.0.5             dbscan_1.1-11                </span></span>
+<span><span class="co">#&gt;  [49] tools_4.3.2                   ggnewscale_0.4.9             </span></span>
+<span><span class="co">#&gt;  [51] ragg_1.2.6                    snow_0.4-4                   </span></span>
+<span><span class="co">#&gt;  [53] Rcpp_1.0.11                   glue_1.6.2                   </span></span>
+<span><span class="co">#&gt;  [55] gridExtra_2.3                 SparseArray_1.2.2            </span></span>
+<span><span class="co">#&gt;  [57] xfun_0.41                     HDF5Array_1.30.0             </span></span>
+<span><span class="co">#&gt;  [59] withr_2.5.2                   BiocManager_1.30.22          </span></span>
+<span><span class="co">#&gt;  [61] fastmap_1.1.1                 boot_1.3-28.1                </span></span>
+<span><span class="co">#&gt;  [63] rhdf5filters_1.14.1           fansi_1.0.5                  </span></span>
+<span><span class="co">#&gt;  [65] spData_2.3.0                  digest_0.6.33                </span></span>
+<span><span class="co">#&gt;  [67] rsvd_1.0.5                    R6_2.5.1                     </span></span>
+<span><span class="co">#&gt;  [69] mime_0.12                     textshaping_0.3.7            </span></span>
+<span><span class="co">#&gt;  [71] colorspace_2.1-0              wk_0.9.0                     </span></span>
+<span><span class="co">#&gt;  [73] RSQLite_2.3.3                 utf8_1.2.4                   </span></span>
+<span><span class="co">#&gt;  [75] generics_0.1.3                FNN_1.1.3.2                  </span></span>
+<span><span class="co">#&gt;  [77] class_7.3-22                  httr_1.4.7                   </span></span>
+<span><span class="co">#&gt;  [79] S4Arrays_1.2.0                spdep_1.3-1                  </span></span>
+<span><span class="co">#&gt;  [81] uwot_0.1.16                   pkgconfig_2.0.3              </span></span>
+<span><span class="co">#&gt;  [83] scico_1.5.0                   gtable_0.3.4                 </span></span>
+<span><span class="co">#&gt;  [85] blob_1.2.4                    XVector_0.42.0               </span></span>
+<span><span class="co">#&gt;  [87] htmltools_0.5.7               scales_1.2.1                 </span></span>
+<span><span class="co">#&gt;  [89] png_0.1-8                     knitr_1.45                   </span></span>
+<span><span class="co">#&gt;  [91] rjson_0.2.21                  curl_5.1.0                   </span></span>
+<span><span class="co">#&gt;  [93] proxy_0.4-27                  cachem_1.0.8                 </span></span>
+<span><span class="co">#&gt;  [95] rhdf5_2.46.0                  BiocVersion_3.18.1           </span></span>
+<span><span class="co">#&gt;  [97] KernSmooth_2.23-22            parallel_4.3.2               </span></span>
+<span><span class="co">#&gt;  [99] vipor_0.4.5                   AnnotationDbi_1.64.1         </span></span>
+<span><span class="co">#&gt; [101] desc_1.4.2                    s2_1.1.4                     </span></span>
+<span><span class="co">#&gt; [103] pillar_1.9.0                  grid_4.3.2                   </span></span>
+<span><span class="co">#&gt; [105] vctrs_0.6.4                   promises_1.2.1               </span></span>
+<span><span class="co">#&gt; [107] BiocSingular_1.18.0           dbplyr_2.4.0                 </span></span>
+<span><span class="co">#&gt; [109] beachmat_2.18.0               xtable_1.8-4                 </span></span>
+<span><span class="co">#&gt; [111] cluster_2.1.4                 beeswarm_0.4.0               </span></span>
+<span><span class="co">#&gt; [113] evaluate_0.23                 magick_2.8.1                 </span></span>
+<span><span class="co">#&gt; [115] cli_3.6.1                     locfit_1.5-9.8               </span></span>
+<span><span class="co">#&gt; [117] compiler_4.3.2                rlang_1.1.2                  </span></span>
+<span><span class="co">#&gt; [119] crayon_1.5.2                  labeling_0.4.3               </span></span>
+<span><span class="co">#&gt; [121] classInt_0.4-10               fs_1.6.3                     </span></span>
+<span><span class="co">#&gt; [123] ggbeeswarm_0.7.2              stringi_1.8.2                </span></span>
+<span><span class="co">#&gt; [125] viridisLite_0.4.2             deldir_2.0-2                 </span></span>
+<span><span class="co">#&gt; [127] munsell_0.5.0                 Biostrings_2.70.1            </span></span>
+<span><span class="co">#&gt; [129] Matrix_1.6-3                  ExperimentHub_2.10.0         </span></span>
+<span><span class="co">#&gt; [131] bit64_4.0.5                   Rhdf5lib_1.24.0              </span></span>
+<span><span class="co">#&gt; [133] KEGGREST_1.42.0               statmod_1.5.0                </span></span>
+<span><span class="co">#&gt; [135] shiny_1.8.0                   highr_0.10                   </span></span>
+<span><span class="co">#&gt; [137] interactiveDisplayBase_1.40.0 AnnotationHub_3.10.0         </span></span>
+<span><span class="co">#&gt; [139] igraph_1.5.1                  memoise_2.0.1                </span></span>
+<span><span class="co">#&gt; [141] bslib_0.6.0                   bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
