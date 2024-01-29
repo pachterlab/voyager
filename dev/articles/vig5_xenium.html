@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-01-28</h4>
+            <h4 data-toc-skip class="date">2024-01-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
@@ -880,7 +880,7 @@ time of spatial autocorrelation metrics.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   7.294   0.029   7.324</span></span></code></pre></div>
+<span><span class="co">#&gt;   7.121   0.027   7.151</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
@@ -944,7 +944,7 @@ normalize the data.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  34.057   4.157  20.430</span></span></code></pre></div>
+<span><span class="co">#&gt;  34.551   4.044  20.589</span></span></code></pre></div>
 <div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="va">is_any_neg</span></span></code></pre></div>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
@@ -1051,46 +1051,46 @@ commonly done for scRNA-seq.</p>
 <p>It’s already sorted by p-values:</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; DataFrame with 541 rows and 15 columns</span></span>
-<span><span class="co">#&gt;              p.value          FDR summary.AUC     AUC.1     AUC.2     AUC.3</span></span>
-<span><span class="co">#&gt;            &lt;numeric&gt;    &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; CD93    1.42443e-195 7.70618e-193    0.863187  0.900493  0.779389  0.869111</span></span>
-<span><span class="co">#&gt; AQP1    2.09173e-186 5.65813e-184    0.831633  0.891634  0.861863  0.817567</span></span>
-<span><span class="co">#&gt; VWF     8.74605e-176 1.57720e-173    0.821921  0.866937  0.849105  0.844943</span></span>
-<span><span class="co">#&gt; CLEC14A 4.97396e-162 6.72728e-160    0.830159  0.832982  0.821664  0.820733</span></span>
-<span><span class="co">#&gt; RAMP2   1.00945e-153 1.09223e-151    0.821457  0.821743  0.813303  0.802825</span></span>
-<span><span class="co">#&gt; ...              ...          ...         ...       ...       ...       ...</span></span>
-<span><span class="co">#&gt; TPD52              1            1    0.167334  0.167334  0.478863  0.491853</span></span>
-<span><span class="co">#&gt; TRAC               1            1    0.098802  0.569643  0.455366  0.451757</span></span>
-<span><span class="co">#&gt; TRAF4              1            1    0.211878  0.211878  0.521652  0.489904</span></span>
-<span><span class="co">#&gt; USP53              1            1    0.232210  0.232210  0.507661  0.436882</span></span>
-<span><span class="co">#&gt; ZNF562             1            1    0.342753  0.342753  0.479892  0.534452</span></span>
-<span><span class="co">#&gt;             AUC.4     AUC.5     AUC.7     AUC.8     AUC.9    AUC.10    AUC.11</span></span>
-<span><span class="co">#&gt;         &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; CD93     0.867422  0.868915  0.902953  0.889624  0.876993  0.855931  0.871322</span></span>
-<span><span class="co">#&gt; AQP1     0.860940  0.853170  0.890048  0.827669  0.887978  0.831633  0.866044</span></span>
-<span><span class="co">#&gt; VWF      0.842964  0.853794  0.875926  0.873847  0.865796  0.821921  0.848069</span></span>
-<span><span class="co">#&gt; CLEC14A  0.819943  0.824260  0.835086  0.832718  0.828647  0.816394  0.824287</span></span>
-<span><span class="co">#&gt; RAMP2    0.809337  0.812654  0.825618  0.822806  0.823262  0.806178  0.813241</span></span>
-<span><span class="co">#&gt; ...           ...       ...       ...       ...       ...       ...       ...</span></span>
-<span><span class="co">#&gt; TPD52    0.443396 0.0883431 0.0962249  0.262814  0.413792  0.467724  0.314196</span></span>
-<span><span class="co">#&gt; TRAC     0.098802 0.4370783 0.5757724  0.554619  0.565067  0.437688  0.350594</span></span>
-<span><span class="co">#&gt; TRAF4    0.534264 0.5244890 0.2952734  0.438645  0.508543  0.507428  0.497875</span></span>
-<span><span class="co">#&gt; USP53    0.526431 0.4934801 0.3118112  0.413622  0.512321  0.484612  0.546671</span></span>
-<span><span class="co">#&gt; ZNF562   0.574561 0.5522572 0.3578757  0.450013  0.564940  0.531835  0.571869</span></span>
-<span><span class="co">#&gt;            AUC.12    AUC.13</span></span>
-<span><span class="co">#&gt;         &lt;numeric&gt; &lt;numeric&gt;</span></span>
-<span><span class="co">#&gt; CD93     0.863187  0.848465</span></span>
-<span><span class="co">#&gt; AQP1     0.882190  0.825609</span></span>
-<span><span class="co">#&gt; VWF      0.853322  0.822751</span></span>
-<span><span class="co">#&gt; CLEC14A  0.830159  0.812106</span></span>
-<span><span class="co">#&gt; RAMP2    0.821457  0.780951</span></span>
-<span><span class="co">#&gt; ...           ...       ...</span></span>
-<span><span class="co">#&gt; TPD52    0.476575  0.538739</span></span>
-<span><span class="co">#&gt; TRAC     0.351554  0.525100</span></span>
-<span><span class="co">#&gt; TRAF4    0.374053  0.512868</span></span>
-<span><span class="co">#&gt; USP53    0.538777  0.354077</span></span>
-<span><span class="co">#&gt; ZNF562   0.593679  0.520011</span></span></code></pre></div>
+<span><span class="co">#&gt; DataFrame with 541 rows and 16 columns</span></span>
+<span><span class="co">#&gt;             p.value          FDR summary.AUC     AUC.1     AUC.2     AUC.3</span></span>
+<span><span class="co">#&gt;           &lt;numeric&gt;    &lt;numeric&gt;   &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; TENT5C 1.63326e-296 8.83591e-294    0.967126  0.925332  0.970773  0.973994</span></span>
+<span><span class="co">#&gt; SEC11C 7.21967e-230 1.95292e-227    0.910578  0.899842  0.926434  0.943356</span></span>
+<span><span class="co">#&gt; MZB1   1.53225e-208 2.76316e-206    0.890901  0.954750  0.952539  0.953965</span></span>
+<span><span class="co">#&gt; PRDM1  1.85488e-171 2.50872e-169    0.851328  0.902618  0.844973  0.845018</span></span>
+<span><span class="co">#&gt; SLAMF7 1.36571e-121 1.47770e-119    0.797638  0.973023  0.928639  0.964871</span></span>
+<span><span class="co">#&gt; ...             ...          ...         ...       ...       ...       ...</span></span>
+<span><span class="co">#&gt; TRAF4             1            1    0.190188  0.190188  0.498645  0.463686</span></span>
+<span><span class="co">#&gt; USP53             1            1    0.237375  0.237375  0.515006  0.439300</span></span>
+<span><span class="co">#&gt; VWF               1            1    0.148324  0.521143  0.492783  0.472879</span></span>
+<span><span class="co">#&gt; ZEB2              1            1    0.227203  0.764394  0.227203  0.317134</span></span>
+<span><span class="co">#&gt; ZNF562            1            1    0.286342  0.286342  0.426846  0.479020</span></span>
+<span><span class="co">#&gt;            AUC.4     AUC.5     AUC.7     AUC.8     AUC.9    AUC.10    AUC.11</span></span>
+<span><span class="co">#&gt;        &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; TENT5C  0.978959  0.957859  0.975948  0.951552  0.970808  0.957569  0.967970</span></span>
+<span><span class="co">#&gt; SEC11C  0.955726  0.912545  0.930013  0.929966  0.935488  0.925262  0.924159</span></span>
+<span><span class="co">#&gt; MZB1    0.957403  0.947673  0.955833  0.909592  0.954841  0.954570  0.946052</span></span>
+<span><span class="co">#&gt; PRDM1   0.886670  0.720187  0.838240  0.903536  0.876730  0.880933  0.863019</span></span>
+<span><span class="co">#&gt; SLAMF7  0.970315  0.931636  0.966127  0.973165  0.967341  0.927913  0.951534</span></span>
+<span><span class="co">#&gt; ...          ...       ...       ...       ...       ...       ...       ...</span></span>
+<span><span class="co">#&gt; TRAF4   0.498581  0.510160  0.476258  0.267629  0.424212  0.485015  0.482499</span></span>
+<span><span class="co">#&gt; USP53   0.367034  0.532702  0.506453  0.317515  0.461329  0.516505  0.492849</span></span>
+<span><span class="co">#&gt; VWF     0.436092  0.501213  0.148324  0.548782  0.541546  0.545200  0.438237</span></span>
+<span><span class="co">#&gt; ZEB2    0.296810  0.491759  0.278638  0.784944  0.645498  0.568365  0.301803</span></span>
+<span><span class="co">#&gt; ZNF562  0.468102  0.525932  0.449265  0.297023  0.407262  0.512553  0.480637</span></span>
+<span><span class="co">#&gt;           AUC.12    AUC.13    AUC.14</span></span>
+<span><span class="co">#&gt;        &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;</span></span>
+<span><span class="co">#&gt; TENT5C  0.953956  0.967126  0.979535</span></span>
+<span><span class="co">#&gt; SEC11C  0.902004  0.910578  0.926748</span></span>
+<span><span class="co">#&gt; MZB1    0.939414  0.890901  0.952151</span></span>
+<span><span class="co">#&gt; PRDM1   0.834607  0.851328  0.899233</span></span>
+<span><span class="co">#&gt; SLAMF7  0.944967  0.797638  0.971807</span></span>
+<span><span class="co">#&gt; ...          ...       ...       ...</span></span>
+<span><span class="co">#&gt; TRAF4   0.475006  0.352237  0.389822</span></span>
+<span><span class="co">#&gt; USP53   0.552792  0.545264  0.333889</span></span>
+<span><span class="co">#&gt; VWF     0.507755  0.508495  0.557926</span></span>
+<span><span class="co">#&gt; ZEB2    0.368603  0.251563  0.771073</span></span>
+<span><span class="co">#&gt; ZNF562  0.525134  0.543883  0.375170</span></span></code></pre></div>
 <p>The code below extracts the significant markers for each cluster:</p>
 <div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -1113,10 +1113,10 @@ commonly done for scRNA-seq.</p>
 <p>Global Moran’s I of these marker genes is shown below:</p>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">genes_use</span>, <span class="st">"moran_sample01"</span><span class="op">]</span>, <span class="va">genes_use</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     FOXA1      FGL2       LUM      CD3E    TENT5C      CD93     GATA3     KRT14 </span></span>
-<span><span class="co">#&gt; 0.7421765 0.2604219 0.6812312 0.4015241 0.2806543 0.3250982 0.6558350 0.5464716 </span></span>
-<span><span class="co">#&gt;     APOC1      CPA3     MS4A1    LILRA4     ADH1B </span></span>
-<span><span class="co">#&gt; 0.2696177 0.1904912 0.2144728 0.1092981 0.6108921</span></span></code></pre></div>
+<span><span class="co">#&gt;     FOXA1      FGL2       LUM    ADIPOQ      CD3E    TENT5C      CD93     GATA3 </span></span>
+<span><span class="co">#&gt; 0.7421765 0.2604219 0.6812312 0.5493112 0.4015241 0.2806543 0.3250982 0.6558350 </span></span>
+<span><span class="co">#&gt;      MYLK     APOC1      CPA3     MS4A1    LILRA4     KRT15 </span></span>
+<span><span class="co">#&gt; 0.4653625 0.2696177 0.1904912 0.2144728 0.1092981 0.5425155</span></span></code></pre></div>
 <p>All these marker genes have positive spatial autocorrelation, but
 some stronger than others.</p>
 <p>Local Moran’s I of these marker genes is shown below:</p>
@@ -1206,7 +1206,7 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt;  [35] pkgdown_2.0.7                 DelayedMatrixStats_1.24.0    </span></span>
 <span><span class="co">#&gt;  [37] codetools_0.2-19              DelayedArray_0.28.0          </span></span>
 <span><span class="co">#&gt;  [39] tidyselect_1.2.0              farver_2.1.1                 </span></span>
-<span><span class="co">#&gt;  [41] ScaledMatrix_1.10.0           viridis_0.6.4                </span></span>
+<span><span class="co">#&gt;  [41] ScaledMatrix_1.10.0           viridis_0.6.5                </span></span>
 <span><span class="co">#&gt;  [43] BiocFileCache_2.10.1          jsonlite_1.8.8               </span></span>
 <span><span class="co">#&gt;  [45] BiocNeighbors_1.20.2          e1071_1.7-14                 </span></span>
 <span><span class="co">#&gt;  [47] ellipsis_0.3.2                systemfonts_1.0.5            </span></span>
@@ -1250,13 +1250,13 @@ This may be due to spatial distribution of different cell types.</p>
 <span><span class="co">#&gt; [123] fs_1.6.3                      ggbeeswarm_0.7.2             </span></span>
 <span><span class="co">#&gt; [125] stringi_1.8.3                 viridisLite_0.4.2            </span></span>
 <span><span class="co">#&gt; [127] deldir_2.0-2                  munsell_0.5.0                </span></span>
-<span><span class="co">#&gt; [129] Biostrings_2.70.1             Matrix_1.6-5                 </span></span>
+<span><span class="co">#&gt; [129] Biostrings_2.70.2             Matrix_1.6-5                 </span></span>
 <span><span class="co">#&gt; [131] ExperimentHub_2.10.0          sparseMatrixStats_1.14.0     </span></span>
 <span><span class="co">#&gt; [133] bit64_4.0.5                   Rhdf5lib_1.24.1              </span></span>
 <span><span class="co">#&gt; [135] KEGGREST_1.42.0               statmod_1.5.0                </span></span>
 <span><span class="co">#&gt; [137] shiny_1.8.0                   highr_0.10                   </span></span>
 <span><span class="co">#&gt; [139] interactiveDisplayBase_1.40.0 AnnotationHub_3.10.0         </span></span>
-<span><span class="co">#&gt; [141] igraph_1.6.0                  memoise_2.0.1                </span></span>
+<span><span class="co">#&gt; [141] igraph_2.0.1                  memoise_2.0.1                </span></span>
 <span><span class="co">#&gt; [143] bslib_0.6.1                   bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
