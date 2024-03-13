@@ -934,8 +934,8 @@ sfe_ob3 <- removeEmptySpace(sfe_ob3)
 
 bbox_use <- c(xmin = 4000, ymin = 6000, xmax = 4750, ymax = 6750)
 
-dir_use <- system.file(file.path("extdata", "vizgen"), package = "SpatialFeatureExperiment")
-sfe_mer <- readVizgen(dir_use, z = 0L, image = "PolyT", use_cellpose = FALSE)
+dir_use <- system.file(file.path("extdata", "vizgen_cellbound"), package = "SpatialFeatureExperiment")
+sfe_mer <- readVizgen(dir_use, z = 3L, image = "PolyT")
 
 test_that("plotSpatialFeature with RGB image in the background", {
     expect_ggplot("One sample, one feature", {
@@ -970,7 +970,7 @@ imgData(sfe_mer) <- rbind(imgData(sfe_mer), DF)
 
 test_that("plotSpatialFeature with grayscale image", {
     expect_ggplot("One sample, one feature, grayscale", {
-        plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT",
+        plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT_z3",
                            colGeometryName = "cellSeg", alpha = 0.5,
                            dark = TRUE)
     })
