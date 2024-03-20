@@ -32,3 +32,10 @@ Or from Bioconductor with:
 ```r
 BiocManager::install("Voyager", version = "devel")
 ```
+
+## For contributors
+The whole git repo of this package is huge because of the large number of figures and Jupyter notebooks in the documentation website. To reduce download time and disk space usage, you may clone the `devel` branch only, so the documentation branches are not cloned:
+
+```
+git clone -b devel --single-branch https://github.com/pachterlab/voyager.git
+```
