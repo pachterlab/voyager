@@ -931,6 +931,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @param fill Logical, whether to fill polygons.
 #' @return A ggplot object.
 #' @export
 #' @concept Spatial plotting
@@ -943,11 +944,16 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, "spotPoly")
 #' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
 plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
-                         ncol = NULL, bbox = NULL, image_id = NULL,
-                         maxcell = 5e+5) {
+                         fill = TRUE, ncol = NULL, bbox = NULL,
+                         image_id = NULL, channel = NULL,
+                         maxcell = 5e+5, show_axes = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
     df <- fun(sfe, type, sample_id = sample_id)
+    # TODO: allow MARGIN == 1L and multiple margins. This should allow a small
+    # number of features/genes distinguished by point shape or larger number or
+    # all genes not distinguished. Can experiment with kernel density but that
+    # can't be plotted with the image.
     if (MARGIN == 2L) {
         df$sample_id <- sfe$sample_id
     }
@@ -957,16 +963,18 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     df <- .crop(df[,"sample_id"], bbox)
     p <- ggplot()
     if (!is.null(image_id))
-        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
     else img_df <- NULL
     if (!is.null(image_id) && nrow(img_df)) {
         data <- NULL
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
                               maxcell = maxcell)
     }
-    p <- p + geom_sf(data = df)
+    if (fill)
+        p <- p + geom_sf(data = df)
+    else p <- p + geom_sf(data = df, fill = NA, linewidth = 0.5)
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
-    p + theme_void()
+    if (show_axes) p else p + theme_void()
 }

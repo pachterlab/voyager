@@ -860,6 +860,12 @@ test_that("Plot geometries", {
     expect_ggplot("Plot annotGeometry, with bbox", {
         plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
     })
+    expect_ggplot("Plot colGeometry, not filling", {
+        plotGeometry(sfe_muscle, "spotPoly", fill = FALSE)
+    })
+    expect_ggplot("Plot colGeometry, showing axes", {
+        plotGeometry(sfe_muscle, "spotPoly", show_axes = TRUE)
+    })
 })
 
 test_that("Message about using linewidth instead of size for polygon outlines", {

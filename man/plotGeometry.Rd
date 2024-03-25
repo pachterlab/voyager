@@ -9,10 +9,13 @@ plotGeometry(
   type,
   MARGIN = 2L,
   sample_id = "all",
+  fill = TRUE,
   ncol = NULL,
   bbox = NULL,
   image_id = NULL,
-  maxcell = 5e+05
+  channel = NULL,
+  maxcell = 5e+05,
+  show_axes = FALSE
 )
 }
 \arguments{
@@ -28,6 +31,8 @@ stands for column. Here, in addition, 3 stands for annotation, to query the
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately
 for each sample.}
+
+\item{fill}{Logical, whether to fill polygons.}
 
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
@@ -46,12 +51,27 @@ plotted.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
-image IDs present.}
+image IDs present. To plot multiple grayscale images as different RGB
+channels, use a named vector here, whose names are channel names (r, g, b),
+and values are image_ids of the corresponding images. The RGB colorization
+may not be colorblind friendly. When plotting multiple samples, it is
+assumed that the same image_id is used for each channel across different
+samples.}
+
+\item{channel}{Numeric vector indicating which channels in a multi-channel
+image to plot. If \code{NULL}, grayscale is plotted if there is 1 channel
+and RGB for the first 3 channels. The numeric vector can be named (r, g, b)
+to indicate which channel maps to which color. The RGB colorization may not
+be colorblind friendly. This argument cannot be specified while
+\code{image_id} is a named vector to plot different grayscale images as
+different channels.}
 
 \item{maxcell}{Maximum number of pixels to plot in the image. If the image is
 larger, it will be resampled so it have less than this number of pixels to
 save memory and for faster plotting. We recommend reducing this number when
 plotting multiple facets.}
+
+\item{show_axes}{Logical, whether to show axes.}
 }
 \value{
 A ggplot object.
