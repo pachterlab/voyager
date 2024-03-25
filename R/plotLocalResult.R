@@ -119,7 +119,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             colGeometryName = NULL, annotGeometryName = NULL,
                             ncol = NULL, ncol_sample = NULL,
                             annot_aes = list(), annot_fixed = list(), bbox = NULL,
-                            image_id = NULL, maxcell = 5e+5,
+                            image_id = NULL, channel = NULL, maxcell = 5e+5,
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
                             annot_divergent = FALSE,
@@ -128,8 +128,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             color = "black", fill = "gray80",
                             swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
-                            summary_fun = sum, hex = FALSE, dark = FALSE,
-                            type = name, ...) {
+                            summary_fun = sum, hex = FALSE, show_axes = FALSE,
+                            dark = FALSE, type = name, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (!is.null(colGeometryName)) {
@@ -183,7 +183,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             alpha, color, fill,
             scattermore = scattermore, pointsize = pointsize,
             bins = bins, summary_fun = summary_fun, hex = hex,
-            maxcell = maxcell, dark = dark, ...
+            maxcell = maxcell, channel = channel, show_axes = show_axes,
+            dark = dark, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -192,19 +193,19 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         df <- df[,setdiff(names(df), names(values))]
         df <- cbind(df[,"sample_id"], values)
         df <- .crop(df, bbox)
-        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
         else img_df <- NULL
         if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
         out <- .wrap_spatial_plots(df,
-            annot_df = NULL, img_df = img_df, type_annot = NULL,
-            values, aes_use,
+            annot_df = NULL, img_df = img_df, type_annot = NULL, channel = channel,
+            values = values, aes_use = aes_use,
             annot_aes = list(), annot_fixed = list(),
             size, shape, linewidth, linetype, alpha,
             color, fill, ncol, ncol_sample, divergent,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
             pointsize = pointsize, bins = bins, summary_fun = summary_fun,
-            hex = hex, maxcell = maxcell, dark = dark, ...
+            hex = hex, maxcell = maxcell, show_axes = show_axes, dark = dark, ...
         )
     }
     # Add title to not to confuse with gene expression

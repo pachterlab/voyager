@@ -147,8 +147,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-#' @importFrom ggplot2 element_rect element_text theme margin
-.dark_theme <- function() {
+#' @importFrom ggplot2 element_rect element_text theme margin %+replace%
+#' theme_gray rel
+.dark_theme <- function(show_axes = FALSE) {
     # From Seurat but no axes
     black.background <- element_rect(fill = 'black')
     black.background.no.border <- element_rect(fill = 'black', linewidth = 0)
@@ -163,19 +164,36 @@ getDivergeRange <- function(values, diverge_center = 0) {
         )
     )
     # Create the dark theme
-    dark.theme <- theme(
-        #   Set background colors
-        plot.background = black.background,
-        panel.background = black.background,
-        legend.background = black.background,
-        legend.box.background = black.background.no.border,
-        legend.key = black.background.no.border,
-        strip.background = black.background,
-        #   Set text colors
-        text = white.text,
-        #   Validate the theme
-        validate = TRUE
-    )
+    if (show_axes) {
+        theme_gray() %+replace%
+            theme(axis.text = element_text(size = rel(0.8), colour = "white"),
+                  panel.border = element_rect(fill = NA, colour = "grey80"),
+                  panel.grid = element_line(colour = "gray30"),
+                  axis.ticks = element_line(colour = "grey30"),
+                  panel.grid.minor = element_line(linewidth = rel(0.5)),
+                  plot.background = black.background,
+                  panel.background = black.background,
+                  legend.background = black.background,
+                  legend.box.background = black.background.no.border,
+                  legend.key = black.background.no.border,
+                  strip.background = black.background,
+                  text = white.text,
+                  validate = TRUE)
+    } else {
+        theme(
+            #   Set background colors
+            plot.background = black.background,
+            panel.background = black.background,
+            legend.background = black.background,
+            legend.box.background = black.background.no.border,
+            legend.key = black.background.no.border,
+            strip.background = black.background,
+            #   Set text colors
+            text = white.text,
+            #   Validate the theme
+            validate = TRUE
+        )
+    }
 }
 
 #' @importFrom sf st_drop_geometry st_geometry_type
@@ -185,11 +203,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
-.plot_var_sf <- function(df, annot_df, img_df, type, type_annot, feature_aes,
+.plot_var_sf <- function(df, annot_df, img_df, channel, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
                          ncol_sample, scattermore, pointsize,
-                         bins, summary_fun, hex, maxcell, dark) {
+                         bins, summary_fun, hex, maxcell, show_axes, dark) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -284,8 +302,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p +
             facet_wrap(~sample_id, ncol = ncol_sample)
     }
-    p <- p + theme_void()
-    if (dark) p <- p + .dark_theme()
+
+    if (dark) p <- p + .dark_theme(show_axes)
+    else {
+        if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    }
     p
 }
 
@@ -321,12 +342,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-.wrap_spatial_plots <- function(df, annot_df, img_df, type_annot, values, aes_use,
+.wrap_spatial_plots <- function(df, annot_df, img_df, channel, type_annot, values, aes_use,
                                 annot_aes, annot_fixed, size, shape, linewidth,
                                 linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
-                                bins, summary_fun, hex, maxcell, dark, ...) {
+                                bins, summary_fun, hex, maxcell, show_axes, dark, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -336,14 +357,19 @@ getDivergeRange <- function(values, diverge_center = 0) {
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
         feature_aes <- setNames(list(n), feature_aes_name)
         .plot_var_sf(
-            df, annot_df, img_df, type, type_annot, feature_aes, feature_fixed,
+            df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
             annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize, bins, summary_fun, hex, maxcell, dark
+            pointsize, bins, summary_fun, hex, maxcell, show_axes, dark
         )
     })
     if (length(plots) > 1L) {
         out <- wrap_plots(plots, ncol = ncol, ...)
+        if (dark) {
+            out <- out +
+                plot_annotation(theme = theme(text = element_text(color = "white"),
+                                              plot.background = element_rect(fill = "black")))
+        }
     } else {
         out <- plots[[1]]
     }
@@ -504,15 +530,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
         type_annot <- NULL
     }
     if (!is.null(image_id)) {
-        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
     } else img_df <- NULL
     if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
-        df, annot_df, img_df, type_annot, values, aes_use,
+        df, annot_df, img_df, channel, type_annot, values, aes_use,
         annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, bins, summary_fun, hex, maxcell, dark, ...
+        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, ...
     )
 }
 
@@ -533,11 +559,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
 #' discrete variables, the \code{dittoSeq} palette is used.
 #'
-#' For annotation, the YlOrRd colorbrewer palette is used for continuous variables
-#' in the light theme. In the dark theme, the acton palette from \code{scico} is
-#' used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
-#' is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
-#' palette is used for discrete variables.
+#' For annotation, the YlOrRd colorbrewer palette is used for continuous
+#' variables in the light theme. In the dark theme, the acton palette from
+#' \code{scico} is used when \code{divergent = FALSE} and the vanimo palette
+#' from \code{scico} is used when \code{divergent = FALSE}. The other end of the
+#' \code{dittoSeq} palette is used for discrete variables.
 #'
 #' Each individual palette should be colorblind friendly, but when plotting
 #' continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}
@@ -633,7 +659,19 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   TRUE}.
 #' @param image_id ID of the image to plot behind the geometries. If
 #'   \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
-#'   image IDs present.
+#'   image IDs present. To plot multiple grayscale images as different RGB
+#'   channels, use a named vector here, whose names are channel names (r, g, b),
+#'   and values are image_ids of the corresponding images. The RGB colorization
+#'   may not be colorblind friendly. When plotting multiple samples, it is
+#'   assumed that the same image_id is used for each channel across different
+#'   samples.
+#' @param channel Numeric vector indicating which channels in a multi-channel
+#'   image to plot. If \code{NULL}, grayscale is plotted if there is 1 channel
+#'   and RGB for the first 3 channels. The numeric vector can be named (r, g, b)
+#'   to indicate which channel maps to which color. The RGB colorization may not
+#'   be colorblind friendly. This argument cannot be specified while
+#'   \code{image_id} is a named vector to plot different grayscale images as
+#'   different channels.
 #' @param maxcell Maximum number of pixels to plot in the image. If the image is
 #'   larger, it will be resampled so it have less than this number of pixels to
 #'   save memory and for faster plotting. We recommend reducing this number when
@@ -644,6 +682,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette will have lighter color represent higher values as if glowing in
 #'   the dark. This is intended for plotting gene expression on top of
 #'   fluorescent images.
+#' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
@@ -690,9 +729,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
                                annotGeometryName = NULL,
+                               rowGeometryName = NULL,
+                               rowGeometryFeatures = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts", bbox = NULL,
-                               image_id = NULL, maxcell = 5e+5,
+                               image_id = NULL, channel = NULL, maxcell = 5e+5,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NA,
                                annot_divergent = FALSE,
@@ -703,7 +744,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
-                               dark = FALSE, ...) {
+                               show_axes = FALSE, dark = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -720,11 +761,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
-        annot_fixed, bbox, image_id, aes_use, divergent,
+        annot_fixed, bbox, image_id, channel, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
-        maxcell, dark, ...
+        maxcell, show_axes, dark, ...
     )
 }
 
@@ -770,7 +811,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     do.call(rbind, dfs)
 }
 
-#' @importFrom ggplot2 geom_line theme_void
+#' @importFrom ggplot2 geom_line theme_void theme_bw
 #' @importFrom SpatialFeatureExperiment rowGeometry df2sf
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL,
@@ -976,5 +1017,5 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
-    if (show_axes) p else p + theme_void()
+    if (show_axes) p + theme_bw() else p + theme_void()
 }

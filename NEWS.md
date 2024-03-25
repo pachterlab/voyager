@@ -1,3 +1,7 @@
+# Version 1.5.1
+* Option to plot polygon geometry without fill in plotGeometry
+* Option to show axes in both light and dark themes
+
 # Version 1.3.1 (05/15/2023)
 * Removed functions and arguments deprecated in 1.2.0
 

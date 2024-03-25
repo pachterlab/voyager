@@ -34,6 +34,12 @@ test_that("Everything plotSpatialFeature", {
             exprs_values = "counts"
         )
     )
+    expect_ggplot("Plot gene expression, show axes",
+                  plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                     exprs_values = "counts",
+                                     show_axes = TRUE
+                  )
+    )
     expect_ggplot("Plot gene expression, dark theme",
                   plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
                                      exprs_values = "counts", dark = TRUE
@@ -169,6 +175,13 @@ test_that("Everything plotLocalResult", {
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
+    expect_ggplot("Plot localmoran Ii for gene, show axes", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0, swap_rownames = "symbol",
+                        show_axes = TRUE
+        )
+    })
     expect_ggplot("Plot localmoran Ii for gene, dark theme", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
                         colGeometryName = "spotPoly", divergent = TRUE,
@@ -207,6 +220,13 @@ test_that("Everything plotLocalResult", {
             annotGeometryName = "myofiber_simplified",
             linewidth = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
+        )
+    })
+    expect_ggplot("Plot Ii for annotGeometry alone, show axes", {
+        plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
+                        annotGeometryName = "myofiber_simplified",
+                        linewidth = 0.3, color = "cyan", divergent = TRUE,
+                        diverge_center = 0, show_axes = TRUE
         )
     })
     expect_ggplot("Plot Ii for annotGeometry alone, dark theme", {
@@ -457,6 +477,12 @@ test_that("Everything spatialReducedDim", {
         spatialReducedDim(sfe_muscle, "PCA", 2, colGeometryName = "spotPoly",
             annotGeometryName = "tissueBoundary",
             divergent = TRUE, diverge_center = 0
+        )
+    })
+    expect_ggplot("Plot PCs in space, show axes", {
+        spatialReducedDim(sfe_muscle, "PCA", 2, colGeometryName = "spotPoly",
+                          annotGeometryName = "tissueBoundary",
+                          divergent = TRUE, diverge_center = 0, show_axes = TRUE
         )
     })
     expect_ggplot("Plot only one component", {
