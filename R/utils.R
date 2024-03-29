@@ -203,6 +203,8 @@
     out[!.is_na_list(out)]
 }
 
+#' @importFrom SpatialFeatureExperiment colFeatureData geometryFeatureData
+#' reducedDimFeatureData
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
                                   reducedDimName,
