@@ -36,10 +36,6 @@ for each sample.}
 \item{annotGeometryName}{Name of annotGeometry from which to look for
 features.}
 
-\item{reducedDimName}{Name of a dimension reduction, can be seen in
-\code{\link{reducedDimNames}}. \code{colGeometryName} and
-\code{annotGeometryName} have precedence over \code{reducedDimName}.}
-
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count

@@ -88,4 +88,3 @@ plotColDataFreqpoly(sfe2, c("nCounts", "nGenes"), bins = 50)
 \seealso{
 plotColDataHistogram
 }
-\concept{Non-spatial plotting}

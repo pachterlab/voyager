@@ -261,7 +261,7 @@ graph. Must be specified otherwise.}
 \item{BPPARAM}{A \code{\link{BiocParallelParam}} object specifying whether
 and how computing the metric for numerous genes shall be parallelized.}
 
-\item{zero.policy}{default NULL, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
+\item{zero.policy}{default \code{attr(listw, "zero.policy")} as set when \code{listw} was created, if attribute not set, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
 
 \item{returnDF}{Logical, when the results are not added to a SFE object,
 whether the results should be formatted as a \code{DataFrame}.}

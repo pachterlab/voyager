@@ -41,10 +41,6 @@ frames associated with cells/spots.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
-\item{reducedDimName}{Name of a dimension reduction, can be seen in
-\code{\link{reducedDimNames}}. \code{colGeometryName} and
-\code{annotGeometryName} have precedence over \code{reducedDimName}.}
-
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
 identify features instead of \code{rownames(object)} when labeling plot
 elements. If not found in \code{rowData}, then rownames of the gene count

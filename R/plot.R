@@ -389,6 +389,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
         inds <- df$x > bbox["xmin"] & df$x < bbox["xmax"] &
             df$y > bbox["ymin"] & df$y < bbox["ymax"]
         df <- df[inds,, drop = FALSE]
+        # Also need to subtract xmin and ymin
+        df$x <- df$x - bbox["xmin"]
+        df$y <- df$y - bbox["ymin"]
     }
     if (nrow(df) == 0L)
         stop("The bounding box does not overlap with the geometry.")
@@ -459,42 +462,220 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df
 }
 
-.get_img_df <- function(sfe, sample_id, image_id, bbox) {
-    img_df <- imgData(sfe)
-    img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id == image_id,
-                     c("sample_id", "data")]
-    if (!is.null(bbox)) {
-        img_df <- img_df[order(img_df$sample_id),]
-        if (length(sample_id) == 1L) {
-            bbox <- matrix(bbox, ncol = 1, dimnames = list(names(bbox), sample_id))
-        }
-        new_imgs <- lapply(sample_id, function(s) {
-            img_data <- img_df$data[img_df$sample_id == s]
-            bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
-            bb <- as.vector(bbox_use)
-            lapply(img_data, function(img) {
-                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
-                img_cropped <- terra::shift(img_cropped,
-                                            dx = -bb["xmin"],
-                                            dy = -bb["ymin"])
-                new("SpatRasterImage", image = img_cropped)
-            })
-        })
-        new_imgs <- unlist(new_imgs, recursive = FALSE)
-        img_df$data <- I(new_imgs)
+#' @importFrom SpatialFeatureExperiment isFull imgSource .get_pixel_size ext
+#' imgRaster
+#' @importFrom sf st_area
+#' @importFrom terra RGB<- rast
+.find_res <- function(bfi, maxcell) {
+    check_installed("RBioFormats")
+    coreMetadata <- RBioFormats::coreMetadata
+    metas <- RBioFormats::read.metadata(imgSource(bfi))
+    n_series <- RBioFormats::seriesCount(metas)
+    cms <- coreMetadata(metas)
+    if (n_series == 1L) return(1L)
+
+    if (isFull(bfi)) {
+        dims <- data.frame(x = vapply(cms, function(x) x$sizeX, FUN.VALUE = numeric(1)),
+                           y = vapply(cms, function(x) x$sizeY, FUN.VALUE = numeric(1)))
+        ncells <- dims$x*dims$y
+    } else {
+        # Get the number of pixels within the extent at each resolution
+        ncells <- vapply(seq_len(n_series), function(i) {
+            ps <- .get_pixel_size(imgSource(bfi))
+            psx <- ps[1]; psy <- ps[2]
+            bb <- ext(bfi)
+            npx_x <- (bb["xmax"] - bb["xmin"])/psx
+            npx_y <- (bb["ymax"] - bb["ymin"])/psy
+            npx_x*npx_y
+        }, FUN.VALUE = numeric(1))
     }
-    as.data.frame(img_df)
+    n_use <- max(ncells < 1.1*maxcell) # 1.1 as in resample_spat
+    return(which(ncells == n_use))
+}
+
+.get_n_channels <- function(img) {
+    d <- dim(img)
+    if (length(d) == 2L) return(1L)
+    d[[3]]
+}
+# What I want: option to assign individual grayscale images to different channels
+# Option to select one or more channels from a multi-channel image
+.combine_channels <- function(imgs, channel_assign) {
+    # Already checked, cropped, and converted to SpatRaster
+    # BioFormatsImage
+    # choose highest resolution with fewer than maxcell when multiple res are present
+    # Convert to spi
+    # EBImage: convert to spi so can use custom color map in terra::as.raster
+    # Combine different image classes: all use spi
+    # For testing, need to use xenium v2 example data, everything is connected
+    # All convert to spi, find the one with the lowest resolution, then
+    # resample all the others to the same resolution before combining them into
+    # rgb channels
+    ncells <- vapply(imgs, ncell, FUN.VALUE = numeric(1))
+    dims <- vapply(imgs, function(img) dim(img)[1:2], FUN.VALUE = numeric(2))
+    same_dims <- length(unique(dims[1,])) == 1L & length(unique(dims[2,])) == 1L
+    if (!same_dims) {
+        ind <- which.min(ncells)
+        ind_resample <- seq_along(imgs)[-ind]
+        imgs[ind_resample] <- lapply(imgs[ind_resample], function(img) {
+            # It's just for plotting so I don't care about the method used to resample
+            terra::resample(img, imgs[ind])
+        })
+    }
+    ch <- c("r", "g", "b")
+    if (length(imgs) == 3L) {
+        names(imgs) <- channel_assign
+        imgs <- imgs[ch]
+        out <- rast(imgs)
+    } else if (length(imgs) == 2L) {
+        # Create raster of all 0's. Take names from the channels
+        bl <- rast(imgs[[1]], vals = 0)
+        bl_channel <- setdiff(ch, channel_assign)
+        ol <- setNames(c(imgs, bl), c(channel_assign, bl_channel))
+        ol <- ol[ch]
+        out <- rast(ol)
+    }
+    RGB(out) <- 1:3
+    return(out)
+}
+
+.subset_channels <- function(img, channel) {
+    # Mainly to assign the RGB channels
+    ch <- c("r", "g", "b")
+    if (length(channel) == 1L) {
+        return(img[[channel]])
+    } else if (length(channel) == 2L) {
+        bl <- rast(img, nlyrs = 1, vals = 0)
+        bl_channel <- setdiff(ch, channel)
+        chs <- c(names(channel), bl_channel)
+        ch_ord <- match(ch, chs)
+        out <- c(img[channel], bl_channel)
+        out <- out[ch_ord]
+    } else if (length(channel) == 3L) {
+        if (!is.null(names(channel))) {
+            channel <- channel[ch]
+        }
+        out <- out[channel]
+    }
+    RGB(out) <- 1:3
+    return(out)
+}
+
+#' @importFrom memuse Sys.meminfo
+.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell) {
+    # For each sample
+    df <- df[df$sample_id == sample_id,]
+    image_id <- image_id[image_id %in% df$image_id]
+    if (!is.null(channel)) {
+        if (!is.numeric(channel) || any(channel < 1L))
+            stop("channel must be numeric indices")
+        if (length(channel) > 3L) {
+            stop("Only up to 3 channels can plotted at once in an RGB image")
+        }
+        if (!is.null(names(channel)) && any(!names(channel)) %in% c("r", "g", "b")) {
+            stop("Names of channel indices must be among 'r', 'g', 'b'")
+        }
+        if (length(channel) == 2L && is.null(names(channel))) {
+            stop("channel of length 2 must have names to specify which of the RGB channels to use")
+        }
+        if (length(image_id) > 1L) {
+            warning("Cannot use multiple images as different channels when ",
+                    "argument channel is specified to select channels in one image. ",
+                    "Only using the first image.")
+            df <- df[1,,drop = FALSE]
+            image_id <- image_id[1]
+        }
+        n_channels <- .get_n_channels(df$data[[1]])
+        if (any(channel > n_channels))
+            stop("channel index out of bound")
+    }
+    imgs <- df$data
+    if (length(image_id) > 1L) {
+        # Check names if length < 3L, don't use red + green by default
+        if (length(imgs) > 3L)
+            stop("Colorization allows up to 3 channels")
+        # All images must have only 1 channel
+        n_channels <- vapply(imgs, .get_n_channels, FUN.VALUE = integer(1L))
+        if (any(n_channels > 1L)) {
+            ind <- which(n_channels > 1L)
+            stop("All images to be combined as different channels must only have 1 channel. ",
+                 "Image(s) number ", paste(ind, collapse = ", "), " has/have ",
+                 "multiple channels.")
+        }
+    }
+    # Crop
+    if (!is.null(bbox)) {
+        # For SpatRaster, for huge images on disk, downsample before cropping if
+        # the bbox is a large part of the image that also needs to be written to
+        # disk
+        imgs <- lapply(imgs, function(x) {
+            if (is(x, "SpatRasterImage")) {
+                tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
+                bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
+                bb_prop <- bb_area/tot_area
+                if (!inMemory(imgRaster(x))) {
+                    # Shouldn't need to write the cropped part to disk just for a plot
+                    tot_size <- file.info(imgSource(x))$size
+                    mem_free <- Sys.meminfo()$freeram |> as.numeric()
+                    if (bb_prop * tot_size > mem_free/2) {
+                        # The /2 since images take more RAM than disk space when compressed
+                        # But what if maxcell_tot is still too large?
+                        # What if it's larger than the fullres cropped area?
+                        maxcell_tot <- maxcell/bb_prop
+                        ds_prop <- maxcell_tot/ncell(imgRaster(x))
+                        if (ds_prop < bb_prop)
+                            x@image <- resample_spat(x@image, maxcell_tot)
+                    }
+                }
+            }
+            out <- cropImg(x, bbox)
+            translateImg(x, -bbox[c("xmin", "ymin")])
+        })
+    }
+    # All convert to SpatRaster
+    imgs <- lapply(imgs, function(img) {
+        if (is(img, "BioFormatsImage")) {
+            res_use <- .find_res(img, maxcell)
+            spi <- toSpatRasterImage(img, resolution = res_use, save_geotiff = FALSE)
+        } else if (is(img, "EBImage")) {
+            spi <- toSpatRasterImage(img, save_geotiff = FALSE)
+        } else spi <- img
+        imgRaster(spi) |> resample_spat(maxcell)
+    })
+    # Combine channels
+    if (length(image_id) > 1L)
+        imgs <- .combine_channels(imgs, names(image_id))
+    # Subset channels
+    if (!is.null(channel)) {
+        imgs[[1]] <- .subset_channels(imgs[[1]], channel)
+    }
+    # Output: should have only 1 image left
+    return(imgs[[1]])
+}
+
+.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
+    img_df <- imgData(sfe)
+    image_id <- unique(image_id)
+    img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
+                     c("sample_id", "data")]
+
+    # Edge case: when different images are used for different channels and there're
+    # multiple samples, some samples don't have images for all the channels
+    imgs <- lapply(sample_id, .get_img_df_sample, df = img_df,
+                   image_id = image_id, channel = channel, bbox = bbox,
+                   maxcell = maxcell)
+    data.frame(sample_id = sample_id, data = I(imgs))
 }
 
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
-                                annot_fixed, bbox, image_id, aes_use, divergent,
+                                annot_fixed, bbox, image_id, channel, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
-                                dark, ...) {
+                                show_axes, dark, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
@@ -613,6 +794,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   contains the expression values.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
+#' @param rowGeometryName Name of a \code{rowGeometry} of the SFE object to
+#'   plot.
+#' @param rowGeometryFeatures Which features from \code{rowGeometry} to plot.
+#'   Can only be a small number to avoid overplotting. Different features are
+#'   distinguished by point shape.
 #' @param annot_aes A named list of plotting parameters for the annotation sf
 #'   data frame. The names are which geom (as in ggplot2, such as color and
 #'   fill), and the values are column names in the annotation sf data frame.
