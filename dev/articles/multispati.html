@@ -23,7 +23,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary"><div class="container">
+    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
@@ -117,7 +117,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-04-09</h4>
+            <h4 data-toc-skip class="date">2024-04-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -304,7 +304,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  27.779   0.249  28.057</span></span></code></pre></div>
+<span><span class="co">#&gt;  32.351   0.237  32.615</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -424,11 +424,11 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  18.776   1.197  20.901</span></span>
+<span><span class="co">#&gt;  18.734   1.063  20.765</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16051825  857.3   25947888 1385.8         NA  25947888 1385.8</span></span>
-<span><span class="co">#&gt; Vcells 239243180 1825.3  502463916 3833.5      16384 497131782 3792.9</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16054376  857.4   25941522 1385.5         NA  25941522 1385.5</span></span>
+<span><span class="co">#&gt; Vcells 239247352 1825.4  502468923 3833.6      16384 497135954 3792.9</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -476,7 +476,7 @@ negative spatial autocorrelation.</p>
 <span><span class="co">#&gt; Warning in asMethod(object): sparse-&gt;dense coercion: allocating vector of size</span></span>
 <span><span class="co">#&gt; 1.1 GiB</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 169.265  13.338 194.441</span></span></code></pre></div>
+<span><span class="co">#&gt;  68.577  11.289  91.522</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -670,7 +670,7 @@ default k = 10.</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 510.860   3.425 515.345</span></span></code></pre></div>
+<span><span class="co">#&gt; 783.398   4.023 788.244</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
@@ -688,7 +688,7 @@ spatially coherent clusters</p>
 <span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
 <span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 687.208   5.364 695.195</span></span></code></pre></div>
+<span><span class="co">#&gt; 710.608   7.689 720.218</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -784,7 +784,7 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [25] ggrepel_0.9.5                 irlba_2.3.5.1                </span></span>
 <span><span class="co">#&gt;  [27] terra_1.7-71                  units_0.8-5                  </span></span>
 <span><span class="co">#&gt;  [29] RSpectra_0.16-1               dqrng_0.3.2                  </span></span>
-<span><span class="co">#&gt;  [31] pkgdown_2.0.7                 DelayedMatrixStats_1.24.0    </span></span>
+<span><span class="co">#&gt;  [31] pkgdown_2.0.8                 DelayedMatrixStats_1.24.0    </span></span>
 <span><span class="co">#&gt;  [33] codetools_0.2-20              DelayedArray_0.28.0          </span></span>
 <span><span class="co">#&gt;  [35] tidyselect_1.2.1              farver_2.1.1                 </span></span>
 <span><span class="co">#&gt;  [37] ScaledMatrix_1.10.0           viridis_0.6.5                </span></span>
@@ -806,39 +806,40 @@ spatial clustering.</p>
 <span><span class="co">#&gt;  [69] scattermore_1.2               RSQLite_2.3.6                </span></span>
 <span><span class="co">#&gt;  [71] hexbin_1.28.3                 utf8_1.2.4                   </span></span>
 <span><span class="co">#&gt;  [73] generics_0.1.3                class_7.3-22                 </span></span>
-<span><span class="co">#&gt;  [75] httr_1.4.7                    S4Arrays_1.2.1               </span></span>
-<span><span class="co">#&gt;  [77] spdep_1.3-3                   pkgconfig_2.0.3              </span></span>
-<span><span class="co">#&gt;  [79] scico_1.5.0                   gtable_0.3.4                 </span></span>
-<span><span class="co">#&gt;  [81] blob_1.2.4                    XVector_0.42.0               </span></span>
-<span><span class="co">#&gt;  [83] htmltools_0.5.8.1             scales_1.3.0                 </span></span>
-<span><span class="co">#&gt;  [85] png_0.1-8                     SpatialExperiment_1.12.0     </span></span>
-<span><span class="co">#&gt;  [87] knitr_1.45                    rjson_0.2.21                 </span></span>
-<span><span class="co">#&gt;  [89] nlme_3.1-164                  curl_5.2.1                   </span></span>
-<span><span class="co">#&gt;  [91] proxy_0.4-27                  cachem_1.0.8                 </span></span>
-<span><span class="co">#&gt;  [93] rhdf5_2.46.1                  BiocVersion_3.18.1           </span></span>
-<span><span class="co">#&gt;  [95] KernSmooth_2.23-22            parallel_4.3.3               </span></span>
-<span><span class="co">#&gt;  [97] vipor_0.4.7                   AnnotationDbi_1.64.1         </span></span>
-<span><span class="co">#&gt;  [99] desc_1.4.3                    s2_1.1.6                     </span></span>
-<span><span class="co">#&gt; [101] pillar_1.9.0                  grid_4.3.3                   </span></span>
-<span><span class="co">#&gt; [103] vctrs_0.6.5                   promises_1.3.0               </span></span>
-<span><span class="co">#&gt; [105] dbplyr_2.5.0                  beachmat_2.18.1              </span></span>
-<span><span class="co">#&gt; [107] xtable_1.8-4                  cluster_2.1.6                </span></span>
-<span><span class="co">#&gt; [109] beeswarm_0.4.0                evaluate_0.23                </span></span>
-<span><span class="co">#&gt; [111] magick_2.8.3                  cli_3.6.2                    </span></span>
-<span><span class="co">#&gt; [113] locfit_1.5-9.9                compiler_4.3.3               </span></span>
-<span><span class="co">#&gt; [115] rlang_1.1.3                   crayon_1.5.2                 </span></span>
-<span><span class="co">#&gt; [117] labeling_0.4.3                classInt_0.4-10              </span></span>
-<span><span class="co">#&gt; [119] fs_1.6.3                      ggbeeswarm_0.7.2             </span></span>
-<span><span class="co">#&gt; [121] stringi_1.8.3                 viridisLite_0.4.2            </span></span>
-<span><span class="co">#&gt; [123] deldir_2.0-4                  munsell_0.5.1                </span></span>
-<span><span class="co">#&gt; [125] Biostrings_2.70.3             Matrix_1.6-5                 </span></span>
-<span><span class="co">#&gt; [127] ExperimentHub_2.10.0          sparseMatrixStats_1.14.0     </span></span>
-<span><span class="co">#&gt; [129] bit64_4.0.5                   Rhdf5lib_1.24.2              </span></span>
-<span><span class="co">#&gt; [131] KEGGREST_1.42.0               statmod_1.5.0                </span></span>
-<span><span class="co">#&gt; [133] shiny_1.8.1.1                 interactiveDisplayBase_1.40.0</span></span>
-<span><span class="co">#&gt; [135] highr_0.10                    AnnotationHub_3.10.1         </span></span>
-<span><span class="co">#&gt; [137] igraph_2.0.3                  memoise_2.0.1                </span></span>
-<span><span class="co">#&gt; [139] bslib_0.7.0                   bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;  [75] httr_1.4.7                    htmlwidgets_1.6.4            </span></span>
+<span><span class="co">#&gt;  [77] S4Arrays_1.2.1                spdep_1.3-3                  </span></span>
+<span><span class="co">#&gt;  [79] pkgconfig_2.0.3               scico_1.5.0                  </span></span>
+<span><span class="co">#&gt;  [81] gtable_0.3.4                  blob_1.2.4                   </span></span>
+<span><span class="co">#&gt;  [83] XVector_0.42.0                htmltools_0.5.8.1            </span></span>
+<span><span class="co">#&gt;  [85] scales_1.3.0                  png_0.1-8                    </span></span>
+<span><span class="co">#&gt;  [87] SpatialExperiment_1.12.0      knitr_1.45                   </span></span>
+<span><span class="co">#&gt;  [89] rjson_0.2.21                  nlme_3.1-164                 </span></span>
+<span><span class="co">#&gt;  [91] curl_5.2.1                    proxy_0.4-27                 </span></span>
+<span><span class="co">#&gt;  [93] cachem_1.0.8                  rhdf5_2.46.1                 </span></span>
+<span><span class="co">#&gt;  [95] BiocVersion_3.18.1            KernSmooth_2.23-22           </span></span>
+<span><span class="co">#&gt;  [97] parallel_4.3.3                vipor_0.4.7                  </span></span>
+<span><span class="co">#&gt;  [99] AnnotationDbi_1.64.1          desc_1.4.3                   </span></span>
+<span><span class="co">#&gt; [101] s2_1.1.6                      pillar_1.9.0                 </span></span>
+<span><span class="co">#&gt; [103] grid_4.3.3                    vctrs_0.6.5                  </span></span>
+<span><span class="co">#&gt; [105] promises_1.3.0                dbplyr_2.5.0                 </span></span>
+<span><span class="co">#&gt; [107] beachmat_2.18.1               xtable_1.8-4                 </span></span>
+<span><span class="co">#&gt; [109] cluster_2.1.6                 beeswarm_0.4.0               </span></span>
+<span><span class="co">#&gt; [111] evaluate_0.23                 magick_2.8.3                 </span></span>
+<span><span class="co">#&gt; [113] cli_3.6.2                     locfit_1.5-9.9               </span></span>
+<span><span class="co">#&gt; [115] compiler_4.3.3                rlang_1.1.3                  </span></span>
+<span><span class="co">#&gt; [117] crayon_1.5.2                  labeling_0.4.3               </span></span>
+<span><span class="co">#&gt; [119] classInt_0.4-10               fs_1.6.3                     </span></span>
+<span><span class="co">#&gt; [121] ggbeeswarm_0.7.2              stringi_1.8.3                </span></span>
+<span><span class="co">#&gt; [123] viridisLite_0.4.2             deldir_2.0-4                 </span></span>
+<span><span class="co">#&gt; [125] munsell_0.5.1                 Biostrings_2.70.3            </span></span>
+<span><span class="co">#&gt; [127] Matrix_1.6-5                  ExperimentHub_2.10.0         </span></span>
+<span><span class="co">#&gt; [129] sparseMatrixStats_1.14.0      bit64_4.0.5                  </span></span>
+<span><span class="co">#&gt; [131] Rhdf5lib_1.24.2               KEGGREST_1.42.0              </span></span>
+<span><span class="co">#&gt; [133] statmod_1.5.0                 shiny_1.8.1.1                </span></span>
+<span><span class="co">#&gt; [135] highr_0.10                    interactiveDisplayBase_1.40.0</span></span>
+<span><span class="co">#&gt; [137] AnnotationHub_3.10.1          igraph_2.0.3                 </span></span>
+<span><span class="co">#&gt; [139] memoise_2.0.1                 bslib_0.7.0                  </span></span>
+<span><span class="co">#&gt; [141] bit_4.0.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -922,7 +923,7 @@ Transcriptomics.”</span> <em>bioRxiv</em>.
 
 <div class="pkgdown-footer-right">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.8.</p>
 </div>
 
     </footer>
