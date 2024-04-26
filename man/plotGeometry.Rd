@@ -15,7 +15,9 @@ plotGeometry(
   image_id = NULL,
   channel = NULL,
   maxcell = 5e+05,
-  show_axes = FALSE
+  show_axes = FALSE,
+  dark = FALSE,
+  palette = colorRampPalette(c("black", "white"))(255)
 )
 }
 \arguments{
@@ -72,6 +74,13 @@ save memory and for faster plotting. We recommend reducing this number when
 plotting multiple facets.}
 
 \item{show_axes}{Logical, whether to show axes.}
+
+\item{dark}{Logical, whether to use dark theme. When using dark theme, the
+palette will have lighter color represent higher values as if glowing in
+the dark. This is intended for plotting gene expression on top of
+fluorescent images.}
+
+\item{palette}{Vector of colors to use to color grayscale images.}
 }
 \value{
 A ggplot object.

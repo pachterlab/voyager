@@ -40,6 +40,7 @@ spatialReducedDim(
   hex = FALSE,
   show_axes = FALSE,
   dark = FALSE,
+  palette = colorRampPalette(c("black", "white"))(255),
   ...
 )
 }
@@ -194,6 +195,8 @@ TRUE}.}
 palette will have lighter color represent higher values as if glowing in
 the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
+
+\item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }

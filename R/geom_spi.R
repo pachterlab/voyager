@@ -14,13 +14,13 @@ resample_spat <- function(r, maxcell = 50000) {
 geom_spi_rgb <- function(mapping = NULL,
                          data = NULL,
                          interpolate = TRUE,
-                         maxcell = 500000,
+                         palette = colorRampPalette(c("black", "white"))(255),
                          ...) {
 
     layer_spatrast <- ggplot2::layer(
         data = data,
         mapping = mapping,
-        stat = StatSpiRGB,
+        stat = ggplot2::StatIdentity,
         geom = GeomSpiRGB,
         position = "identity",
         inherit.aes = FALSE,
@@ -28,9 +28,8 @@ geom_spi_rgb <- function(mapping = NULL,
         params = list(
             na.rm = TRUE,
             # Extra params
-            maxcell = maxcell,
             interpolate = interpolate,
-            ...
+            palette = palette
         )
     )
 
@@ -48,18 +47,16 @@ GeomSpiRGB <- ggplot2::ggproto(
     required_aes = c("spi"),
     default_aes = aes(channel = NA),
     draw_panel = function(self, data, panel_params, coord,
-                          col=colorRampPalette(c("black", "white"))(255),
+                          palette=colorRampPalette(c("black", "white"))(255),
                           interpolate = FALSE) {
         img <- data$spi[[1]]
-        bbox <- as.vector(ext(img))
-        # Check if 8 bit or 16 bit
-        mm <- terra::minmax(img, compute = TRUE)
-        #if (mm[2] < 256) max_use <- 256 else max_use <- 2^16
+        bbox <- ext(img)
+        max_value <- terra::minmax(img, compute = TRUE)[2,] |> max()
         # Would be nice to allow other color maps
-        if (length(nlyr(img)) == 3L)
-            raster <- terra::as.array(img) |> as.raster(max = mm[2])
+        if (nlyr(img) == 3L)
+            raster <- terra::as.array(img) |> as.raster(max = max_value)
         else
-            raster <- terra::as.raster(img, maxcell = Inf, col = col)
+            raster <- terra::as.raster(img, maxcell = Inf, col = palette)
         ggplot2::ggproto_parent(ggplot2::GeomCustomAnn, self)$draw_panel(
             panel_params = panel_params, coord = coord,
             xmin = bbox["xmin"], xmax = bbox["xmax"],

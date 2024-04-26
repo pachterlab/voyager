@@ -147,7 +147,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-#' @importFrom ggplot2 element_rect element_text theme margin %+replace%
+#' @importFrom ggplot2 element_rect element_text theme margin %+replace% element_line
 #' theme_gray rel
 .dark_theme <- function(show_axes = FALSE) {
     # From Seurat but no axes
@@ -180,19 +180,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
                   text = white.text,
                   validate = TRUE)
     } else {
-        theme(
-            #   Set background colors
-            plot.background = black.background,
-            panel.background = black.background,
-            legend.background = black.background,
-            legend.box.background = black.background.no.border,
-            legend.key = black.background.no.border,
-            strip.background = black.background,
-            #   Set text colors
-            text = white.text,
-            #   Validate the theme
-            validate = TRUE
-        )
+        theme_void() %+replace%
+            theme(
+                #   Set background colors
+                plot.background = black.background,
+                panel.background = black.background,
+                legend.background = black.background,
+                legend.box.background = black.background.no.border,
+                legend.key = black.background.no.border,
+                strip.background = black.background,
+                #   Set text colors
+                text = white.text,
+                #   Validate the theme
+                validate = TRUE
+            )
     }
 }
 
@@ -207,7 +208,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
                          ncol_sample, scattermore, pointsize,
-                         bins, summary_fun, hex, maxcell, show_axes, dark) {
+                         bins, summary_fun, hex, maxcell, show_axes, dark, palette) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -236,9 +237,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(img_df)) {
         # Check if it's RGB
         img <- img_df$data[[1]]
-        img_dim <- dim(imgRaster(img))
+        img_dim <- dim(img)
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
-                              maxcell = maxcell)
+                              palette = palette)
     }
     # Filled polygon annotations go beneath feature plot
     is_annot_filled <- !is.null(annot_df) &&
@@ -347,7 +348,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
-                                bins, summary_fun, hex, maxcell, show_axes, dark, ...) {
+                                bins, summary_fun, hex, maxcell, show_axes, dark,
+                                palette, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -360,7 +362,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
             df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
             annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize, bins, summary_fun, hex, maxcell, show_axes, dark
+            pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette
         )
     })
     if (length(plots) > 1L) {
@@ -462,8 +464,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df
 }
 
-#' @importFrom SpatialFeatureExperiment isFull imgSource .get_pixel_size ext
-#' imgRaster
+#' @importFrom SpatialFeatureExperiment isFull imgSource getPixelSize ext
+#' aggBboxes
 #' @importFrom sf st_area
 #' @importFrom terra RGB<- rast
 .find_res <- function(bfi, maxcell) {
@@ -481,7 +483,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     } else {
         # Get the number of pixels within the extent at each resolution
         ncells <- vapply(seq_len(n_series), function(i) {
-            ps <- .get_pixel_size(imgSource(bfi))
+            ps <- getPixelSize(imgSource(bfi), resolution = i)
             psx <- ps[1]; psy <- ps[2]
             bb <- ext(bfi)
             npx_x <- (bb["xmax"] - bb["xmin"])/psx
@@ -514,12 +516,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
     ncells <- vapply(imgs, ncell, FUN.VALUE = numeric(1))
     dims <- vapply(imgs, function(img) dim(img)[1:2], FUN.VALUE = numeric(2))
     same_dims <- length(unique(dims[1,])) == 1L & length(unique(dims[2,])) == 1L
+    # TODO: What if different channels have different extents
     if (!same_dims) {
         ind <- which.min(ncells)
         ind_resample <- seq_along(imgs)[-ind]
         imgs[ind_resample] <- lapply(imgs[ind_resample], function(img) {
             # It's just for plotting so I don't care about the method used to resample
-            terra::resample(img, imgs[ind])
+            terra::resample(img, imgs[[ind]])
         })
     }
     ch <- c("r", "g", "b")
@@ -549,13 +552,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
         bl_channel <- setdiff(ch, channel)
         chs <- c(names(channel), bl_channel)
         ch_ord <- match(ch, chs)
-        out <- c(img[channel], bl_channel)
-        out <- out[ch_ord]
+        out <- c(img[[channel]], bl)
+        out <- out[[ch_ord]]
     } else if (length(channel) == 3L) {
         if (!is.null(names(channel))) {
             channel <- channel[ch]
         }
-        out <- out[channel]
+        out <- img[[channel]]
     }
     RGB(out) <- 1:3
     return(out)
@@ -565,14 +568,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell) {
     # For each sample
     df <- df[df$sample_id == sample_id,]
-    image_id <- image_id[image_id %in% df$image_id]
+    image_id <- image_id[match(df$image_id, image_id)]
     if (!is.null(channel)) {
         if (!is.numeric(channel) || any(channel < 1L))
             stop("channel must be numeric indices")
         if (length(channel) > 3L) {
             stop("Only up to 3 channels can plotted at once in an RGB image")
         }
-        if (!is.null(names(channel)) && any(!names(channel)) %in% c("r", "g", "b")) {
+        if (!is.null(names(channel)) && !any(names(channel) %in% c("r", "g", "b"))) {
             stop("Names of channel indices must be among 'r', 'g', 'b'")
         }
         if (length(channel) == 2L && is.null(names(channel))) {
@@ -590,18 +593,24 @@ getDivergeRange <- function(values, diverge_center = 0) {
             stop("channel index out of bound")
     }
     imgs <- df$data
+    n_channels <- vapply(imgs, .get_n_channels, FUN.VALUE = integer(1L))
     if (length(image_id) > 1L) {
         # Check names if length < 3L, don't use red + green by default
+        if (length(image_id) == 2L && is.null(names(image_id))) {
+            stop("image_id of length 2 must have names to specify which of the RGB channels to use")
+        }
         if (length(imgs) > 3L)
             stop("Colorization allows up to 3 channels")
         # All images must have only 1 channel
-        n_channels <- vapply(imgs, .get_n_channels, FUN.VALUE = integer(1L))
         if (any(n_channels > 1L)) {
             ind <- which(n_channels > 1L)
             stop("All images to be combined as different channels must only have 1 channel. ",
                  "Image(s) number ", paste(ind, collapse = ", "), " has/have ",
                  "multiple channels.")
         }
+    } else if (n_channels > 1L && is.null(channel)) {
+        if (n_channels == 3L) channel <- 1:3
+        else stop("Argument `channel` must be specified to map channels to colors.")
     }
     # Crop
     if (!is.null(bbox)) {
@@ -613,7 +622,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_prop <- bb_area/tot_area
-                if (!inMemory(imgRaster(x))) {
+                if (!inMemory(x)) {
                     # Shouldn't need to write the cropped part to disk just for a plot
                     tot_size <- file.info(imgSource(x))$size
                     mem_free <- Sys.meminfo()$freeram |> as.numeric()
@@ -622,7 +631,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                         # But what if maxcell_tot is still too large?
                         # What if it's larger than the fullres cropped area?
                         maxcell_tot <- maxcell/bb_prop
-                        ds_prop <- maxcell_tot/ncell(imgRaster(x))
+                        ds_prop <- maxcell_tot/ncell(x)
                         if (ds_prop < bb_prop)
                             x@image <- resample_spat(x@image, maxcell_tot)
                     }
@@ -640,24 +649,23 @@ getDivergeRange <- function(values, diverge_center = 0) {
         } else if (is(img, "EBImage")) {
             spi <- toSpatRasterImage(img, save_geotiff = FALSE)
         } else spi <- img
-        imgRaster(spi) |> resample_spat(maxcell)
+        spi |> resample_spat(maxcell)
     })
     # Combine channels
     if (length(image_id) > 1L)
-        imgs <- .combine_channels(imgs, names(image_id))
+        img <- .combine_channels(imgs, names(image_id))
     # Subset channels
-    if (!is.null(channel)) {
-        imgs[[1]] <- .subset_channels(imgs[[1]], channel)
-    }
+    else if (!is.null(channel)) {
+        img <- .subset_channels(imgs[[1]], channel)
+    } else img <- imgs[[1]]
     # Output: should have only 1 image left
-    return(imgs[[1]])
+    return(img)
 }
 
 .get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
     img_df <- imgData(sfe)
-    image_id <- unique(image_id)
     img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
-                     c("sample_id", "data")]
+                     c("sample_id", "data", "image_id")]
 
     # Edge case: when different images are used for different channels and there're
     # multiple samples, some samples don't have images for all the channels
@@ -675,7 +683,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
-                                show_axes, dark, ...) {
+                                show_axes, dark, palette, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
@@ -684,10 +692,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df <- .crop(df, bbox)
     names(df)[!names(df) %in% c("geometry", "sample_id")] <- names_orig
     type_df <- .get_generalized_geometry_type(df)
-    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && size > 0 &&
-        linewidth == 0) {
-        message("Please use linewidth instead of size for thickness of polygon outlines.")
-        linewidth <- size
+    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && linewidth == 0) {
+        linewidth <- 0.3
     }
     if (scattermore || !is.null(bins)) {
         if (scattermore)
@@ -719,7 +725,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, ...
+        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette, ...
     )
 }
 
@@ -868,13 +874,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette will have lighter color represent higher values as if glowing in
 #'   the dark. This is intended for plotting gene expression on top of
 #'   fluorescent images.
+#' @param palette Vector of colors to use to color grayscale images.
 #' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
-#' @importFrom SpatialExperiment imgData getImg imgRaster
+#' @importFrom SpatialExperiment imgData getImg
 #' @importMethodsFrom Matrix t
 #' @export
 #' @concept Spatial plotting
@@ -930,7 +937,9 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
-                               show_axes = FALSE, dark = FALSE, ...) {
+                               show_axes = FALSE, dark = FALSE,
+                               palette = colorRampPalette(c("black", "white"))(255),
+                               ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -951,7 +960,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
-        maxcell, show_axes, dark, ...
+        maxcell, show_axes, dark, palette, ...
     )
 }
 
@@ -1173,7 +1182,8 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
                          fill = TRUE, ncol = NULL, bbox = NULL,
                          image_id = NULL, channel = NULL,
-                         maxcell = 5e+5, show_axes = FALSE) {
+                         maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
+                         palette = colorRampPalette(c("black", "white"))(255)) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
     df <- fun(sfe, type, sample_id = sample_id)
@@ -1194,14 +1204,18 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     else img_df <- NULL
     if (!is.null(image_id) && nrow(img_df)) {
         data <- NULL
-        p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
-                              maxcell = maxcell)
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
     }
-    if (fill)
-        p <- p + geom_sf(data = df)
-    else p <- p + geom_sf(data = df, fill = NA, linewidth = 0.5)
+    if (dark) color <- "gray90" else color <- "black"
+    if (fill) {
+        if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
+        p <- p + geom_sf(data = df, fill = fill_col, color = color)
+    }
+    else p <- p + geom_sf(data = df, fill = NA, color = color)
     if (MARGIN != 1L && length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
-    if (show_axes) p + theme_bw() else p + theme_void()
+    if (dark) p <- p + .dark_theme(show_axes)
+    else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
 }

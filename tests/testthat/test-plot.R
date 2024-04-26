@@ -7,6 +7,8 @@ library(scater)
 library(Matrix)
 library(ggplot2)
 library(scran)
+library(EBImage)
+library(scales)
 
 expect_ggplot <- function(description, g) {
     expect_s3_class(g, "ggplot")
@@ -991,7 +993,7 @@ test_that("plotSpatialFeature with RGB image in the background", {
 })
 
 # Test 16 bit images
-img16 <- getImg(sfe_mer) |> imgRaster()
+img16 <- getImg(sfe_mer)
 img16 <- img16 * 256
 DF <- DataFrame(
     sample_id = "sample01",
@@ -1053,4 +1055,88 @@ test_that("plotGeometry with image", {
     expect_ggplot("Two samples", {
         plotGeometry(sfe_ob3, "spotPoly", MARGIN = 2, image_id = "lowres")
     })
+})
+
+xenium_path <- "~/SFEData/xenium2" # To change after uploading
+try(xe <- readXenium(xenium_path)) # "RBioFormats.reader" is null
+xe <- readXenium(xenium_path)
+
+test_that("Plot BioFormats image behind geometries", {
+    expect_ggplot("Use defaults", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus",
+                     channel = 2, fill = FALSE)
+    })
+    expect_ggplot("Use dark theme, alternative palette", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = 3, dark = TRUE, palette = viridis_pal()(255))
+    })
+    expect_ggplot("Show axes", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = 4, dark = TRUE, palette = viridis_pal()(255),
+                     show_axes = TRUE)
+    })
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              dark = TRUE, palette = viridis_pal()(255)),
+                 "Argument `channel` must be specified")
+})
+
+test_that("Colorize channels when plotting image", {
+    expect_ggplot("Use 3 channels", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = c(2,4,1), dark = TRUE)
+    })
+    expect_ggplot("Specify 2 channels by name", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = c(g = 2, b = 1), dark = TRUE)
+    })
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = "foo", dark = TRUE),
+                 "channel must be numeric indices")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = 1:4, dark = TRUE),
+                 "Only up to 3 channels can plotted at once in an RGB image")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = c(foo = 1, bar = 2), dark = TRUE),
+                 "Names of channel indices must be among 'r', 'g', 'b'")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = 5, dark = TRUE),
+                 "channel index out of bound")
+})
+
+test_that("Colorize by different images", {
+    bfi <- getImg(xe)
+    img1 <- toEBImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toEBImage(bfi, resolution = 1L, channel = 2L)
+    img34 <- toEBImage(bfi, resolution = 1L, channel = 3:4)
+    xe <- addImg(xe, img1, image_id = "img1")
+    xe <- addImg(xe, img2, image_id = "img2")
+    xe <- addImg(xe, img34, image_id = "img34")
+    expect_ggplot("Use 2 channels", {
+        plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+                     fill = FALSE, dark = TRUE)
+    })
+    expect_warning(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+                                channel = 1, fill = FALSE, dark = TRUE),
+                   "Cannot use multiple images as different channels")
+    expect_error(plotGeometry(xe, type = "cellSeg",
+                              image_id = imgData(xe)$image_id,
+                              fill = FALSE, dark = TRUE),
+                 "Colorization allows up to 3 channels")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c("img2", "img1"),
+                              fill = FALSE, dark = TRUE),
+                 "image_id of length 2 must have names")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img34"),
+                              fill = FALSE, dark = TRUE),
+                 "must only have 1 channel")
+})
+
+test_that("When different images for different channels have different resolutions", {
+    bfi <- getImg(xe)
+    img1 <- toEBImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toEBImage(bfi, resolution = 1L, channel = 2L)
+    img2 <- resize(img2, w = 1000)
+    xe <- addImg(xe, img1, image_id = "img1")
+    xe <- addImg(xe, img2, image_id = "img_smaller")
+    plotGeometry(xe, type = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
+                 fill = FALSE, dark = TRUE)
 })

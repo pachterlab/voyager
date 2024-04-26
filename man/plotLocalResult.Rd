@@ -40,6 +40,7 @@ plotLocalResult(
   hex = FALSE,
   show_axes = FALSE,
   dark = FALSE,
+  palette = colorRampPalette(c("black", "white"))(255),
   type = name,
   ...
 )
@@ -201,6 +202,8 @@ TRUE}.}
 palette will have lighter color represent higher values as if glowing in
 the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
+
+\item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
 the name of one of such objects in the environment. If the

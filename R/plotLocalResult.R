@@ -129,7 +129,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             swap_rownames = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
                             summary_fun = sum, hex = FALSE, show_axes = FALSE,
-                            dark = FALSE, type = name, ...) {
+                            dark = FALSE, palette = colorRampPalette(c("black", "white"))(255),
+                            type = name, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (!is.null(colGeometryName)) {
@@ -184,7 +185,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             scattermore = scattermore, pointsize = pointsize,
             bins = bins, summary_fun = summary_fun, hex = hex,
             maxcell = maxcell, channel = channel, show_axes = show_axes,
-            dark = dark, ...
+            dark = dark, palette = palette, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -205,7 +206,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
             pointsize = pointsize, bins = bins, summary_fun = summary_fun,
-            hex = hex, maxcell = maxcell, show_axes = show_axes, dark = dark, ...
+            hex = hex, maxcell = maxcell, show_axes = show_axes, dark = dark,
+            palette = palette, ...
         )
     }
     # Add title to not to confuse with gene expression
