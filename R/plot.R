@@ -663,6 +663,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 .get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
+    image_id <- image_id %||% imageIDs(sfe)[1]
     img_df <- imgData(sfe)
     img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
                      c("sample_id", "data", "image_id")]
@@ -1212,7 +1213,62 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
         p <- p + geom_sf(data = df, fill = fill_col, color = color)
     }
     else p <- p + geom_sf(data = df, fill = NA, color = color)
-    if (MARGIN != 1L && length(sample_id) > 1L) {
+    if (length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id, ncol = ncol)
+    }
+    if (dark) p <- p + .dark_theme(show_axes)
+    else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
+}
+
+#' Show image without plotting geometries
+#'
+#' This function plots the images in SFE objects without plotting geometries.
+#' When showing axes, the numbers are coordinates within the image itself and
+#' have the same units as the spatial extent, but are not the actual spatial
+#' extent when plotting multiple samples to avoid excessive empty space.
+#'
+#' @inheritParams plotGeometry
+#' @param image_id ID of the image(s) to plot. If \code{NULL}, then the first
+#'   image present is plotted. Can be a vector of IDs to use different grayscale
+#'   images for different channels. The vector can be named ('r', 'g', 'b'), to
+#'   assign channels to images. The vector must be named if it's length 2.
+#' @return A \code{ggplot} object.
+#' @export
+#' @examples
+#' library(SFEData)
+#' library(SpatialFeatureExperiment)
+#' fn <- XeniumOutput("v2", file_path = "xenium_example")
+#' # Weird RBioFormats null pointer error the first time it's run
+#' try(sfe <- readXenium(fn))
+#' sfe <- readXenium(fn)
+#' # Plot one channel
+#' plotImage(sfe, image_id = "morphology_focus", channel = 1L)
+#' plotImage(sfe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
+#' # Colorize based on different channels
+#' plotImage(sfe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
+#' unlink("xenium_example", recursive = TRUE)
+plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
+                      ncol = NULL, bbox = NULL,
+                      maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
+                      palette = colorRampPalette(c("black", "white"))(255)) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+    data <- NULL
+    img_df$bbox <- lapply(img_df$data, function(x) {
+        out <- ext(x)
+        mins <- out[c("xmin", "ymin")]
+        out <- st_bbox(out) |> st_as_sfc()
+        if (length(sample_id) > 1L) {
+            out <- out - mins
+        }
+        out
+    })
+    img_df$bbox <- st_sfc(unlist(img_df$bbox, recursive = FALSE))
+    p <- ggplot() +
+        geom_sf(data = img_df, aes(geometry = bbox), fill = NA, linewidth = 0) +
+        geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
+    if (length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
     if (dark) p <- p + .dark_theme(show_axes)

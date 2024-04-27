@@ -1057,7 +1057,7 @@ test_that("plotGeometry with image", {
     })
 })
 
-xenium_path <- "~/SFEData/xenium2" # To change after uploading
+xenium_path <- XeniumOutput("v2", file_path = "xenium_test")
 try(xe <- readXenium(xenium_path)) # "RBioFormats.reader" is null
 xe <- readXenium(xenium_path)
 
@@ -1140,3 +1140,16 @@ test_that("When different images for different channels have different resolutio
     plotGeometry(xe, type = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
                  fill = FALSE, dark = TRUE)
 })
+
+test_that("Just plot image, no geometries", {
+    expect_ggplot("one sample", {
+        plotImage(sfe, image_id = "morphology_focus", channel = 1L)
+    })
+    expect_ggplot("Show axes", {
+        plotImage(sfe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
+    })
+    expect_ggplot("Multiple channels", {
+        plotImage(sfe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
+    })
+})
+unlink("xenium_test", recursive = TRUE)
