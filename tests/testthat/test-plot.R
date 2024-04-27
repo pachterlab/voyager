@@ -968,7 +968,7 @@ sfe_ob3 <- removeEmptySpace(sfe_ob3)
 
 bbox_use <- c(xmin = 4000, ymin = 6000, xmax = 4750, ymax = 6750)
 
-dir_use <- system.file(file.path("extdata", "vizgen_cellbound"), package = "SpatialFeatureExperiment")
+dir_use <- VizgenOutput("hdf5")
 sfe_mer <- readVizgen(dir_use, z = 3L, image = "PolyT")
 
 test_that("plotSpatialFeature with RGB image in the background", {
