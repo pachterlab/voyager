@@ -57,6 +57,10 @@ frames associated with cells/spots.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
+
 \item{plot_signif}{Logical, whether to plot significance symbols: p < 0.001:
 ***, p < 0.01: **, p < 0.05 *, p < 0.1: ., otherwise no symbol. The
 p-values are two sided, based on the assumption that the estimated Moran's

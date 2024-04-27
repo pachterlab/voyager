@@ -63,6 +63,10 @@ frames associated with cells/spots.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
+\item{reducedDimName}{Name of a dimension reduction, can be seen in
+\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{annotGeometryName} have precedence over \code{reducedDimName}.}
+
 \item{divergent}{Logical, whether a divergent palette should be used.}
 
 \item{diverge_center}{If \code{divergent = TRUE}, the center from which the
