@@ -18,6 +18,7 @@ plotLocalResult(
   annot_fixed = list(),
   bbox = NULL,
   image_id = NULL,
+  channel = NULL,
   maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
@@ -37,7 +38,9 @@ plotLocalResult(
   bins = NULL,
   summary_fun = sum,
   hex = FALSE,
+  show_axes = FALSE,
   dark = FALSE,
+  palette = colorRampPalette(c("black", "white"))(255),
   type = name,
   ...
 )
@@ -104,7 +107,20 @@ plotted.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
-image IDs present.}
+image IDs present. To plot multiple grayscale images as different RGB
+channels, use a named vector here, whose names are channel names (r, g, b),
+and values are image_ids of the corresponding images. The RGB colorization
+may not be colorblind friendly. When plotting multiple samples, it is
+assumed that the same image_id is used for each channel across different
+samples.}
+
+\item{channel}{Numeric vector indicating which channels in a multi-channel
+image to plot. If \code{NULL}, grayscale is plotted if there is 1 channel
+and RGB for the first 3 channels. The numeric vector can be named (r, g, b)
+to indicate which channel maps to which color. The RGB colorization may not
+be colorblind friendly. This argument cannot be specified while
+\code{image_id} is a named vector to plot different grayscale images as
+different channels.}
 
 \item{maxcell}{Maximum number of pixels to plot in the image. If the image is
 larger, it will be resampled so it have less than this number of pixels to
@@ -180,10 +196,14 @@ used.}
 \code{ggplot2} if you are getting horizontal stripes when \code{hex =
 TRUE}.}
 
+\item{show_axes}{Logical, whether to show axes.}
+
 \item{dark}{Logical, whether to use dark theme. When using dark theme, the
 palette will have lighter color represent higher values as if glowing in
 the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
+
+\item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
 the name of one of such objects in the environment. If the

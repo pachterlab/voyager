@@ -403,7 +403,7 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' @inheritParams calculateUnivariate
 #' @inheritParams spdep::sp.correlogram
 #' @inheritParams plotDimLoadings
-#' @inheritParams getParams
+#' @inheritParams SpatialFeatureExperiment::getParams
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry, colnames of cell embeddings
 #'   in \code{reducedDim}, or numeric indices of dimension reduction components.
