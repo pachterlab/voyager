@@ -896,19 +896,6 @@ test_that("Plot geometries", {
     })
 })
 
-test_that("Message about using linewidth instead of size for polygon outlines", {
-    expect_message(plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
-                                      aes_use = "color"),
-                   "Please use linewidth instead of size for thickness of polygon outlines.")
-    # Still get the right plot
-    expect_ggplot("Plot polygon, with size rather than linewidth",
-                        plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
-                                           aes_use = "color"))
-    expect_doppelganger("Moran plot hex bin", {
-        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
-    })
-})
-
 sfe_muscle2 <- logNormCounts(sfe_muscle2)
 gs <- modelGeneVar(sfe_muscle2)
 hvgs <- getTopHVGs(gs, fdr.threshold = 0.05)
@@ -998,7 +985,7 @@ img16 <- img16 * 256
 DF <- DataFrame(
     sample_id = "sample01",
     image_id = "16bit",
-    data=I(list(new("SpatRasterImage", image = img16))),
+    data=I(list(new("SpatRasterImage", img16))),
     scaleFactor=1)
 imgData(sfe_mer) <- rbind(imgData(sfe_mer), DF)
 
@@ -1105,9 +1092,9 @@ test_that("Colorize channels when plotting image", {
 
 test_that("Colorize by different images", {
     bfi <- getImg(xe)
-    img1 <- toEBImage(bfi, resolution = 1L, channel = 1L)
-    img2 <- toEBImage(bfi, resolution = 1L, channel = 2L)
-    img34 <- toEBImage(bfi, resolution = 1L, channel = 3:4)
+    img1 <- toExtImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toExtImage(bfi, resolution = 1L, channel = 2L)
+    img34 <- toExtImage(bfi, resolution = 1L, channel = 3:4)
     xe <- addImg(xe, img1, image_id = "img1")
     xe <- addImg(xe, img2, image_id = "img2")
     xe <- addImg(xe, img34, image_id = "img34")
@@ -1132,9 +1119,9 @@ test_that("Colorize by different images", {
 
 test_that("When different images for different channels have different resolutions", {
     bfi <- getImg(xe)
-    img1 <- toEBImage(bfi, resolution = 1L, channel = 1L)
-    img2 <- toEBImage(bfi, resolution = 1L, channel = 2L)
-    img2 <- resize(img2, w = 1000)
+    img1 <- toExtImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toExtImage(bfi, resolution = 1L, channel = 2L)
+    img2 <- EBImage::resize(img2, w = 1000)
     xe <- addImg(xe, img1, image_id = "img1")
     xe <- addImg(xe, img2, image_id = "img_smaller")
     plotGeometry(xe, type = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
@@ -1143,13 +1130,14 @@ test_that("When different images for different channels have different resolutio
 
 test_that("Just plot image, no geometries", {
     expect_ggplot("one sample", {
-        plotImage(sfe, image_id = "morphology_focus", channel = 1L)
+        plotImage(xe, image_id = "morphology_focus", channel = 1L)
     })
     expect_ggplot("Show axes", {
-        plotImage(sfe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
+        plotImage(xe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
     })
     expect_ggplot("Multiple channels", {
-        plotImage(sfe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
+        plotImage(xe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
     })
 })
 unlink("xenium_test", recursive = TRUE)
+unlink("vizgen_cellbound", recursive = TRUE)

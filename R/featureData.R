@@ -92,7 +92,7 @@
     fd
 }
 
-#' @importFrom S4Vectors metadata metadata<-
+#' @importFrom S4Vectors metadata metadata<- combineCols
 .initialize_fd_dimData <- function(x, MARGIN) {
     fd_name <- "featureData"
     dimData <- switch(MARGIN, rowData, colData)
@@ -103,7 +103,7 @@
         # Remove rows that correspond to columns that have been deleted and add
         # new ones
         fd <- metadata(dimData(x))[[fd_name]]
-        fd <- fd[intersect(rownames(fd), colnames(dimData(x))),]
+        fd <- fd[intersect(rownames(fd), colnames(dimData(x))),, drop = FALSE]
         empty <- .initDF(dimData(x))
         fd <- combineCols(empty, fd)
         metadata(dimData(x))[[fd_name]] <- fd

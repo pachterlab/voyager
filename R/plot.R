@@ -465,7 +465,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 #' @importFrom SpatialFeatureExperiment isFull imgSource getPixelSize ext
-#' aggBboxes
+#' aggBboxes cropImg imageIDs translateImg toSpatRasterImage getParams
 #' @importFrom sf st_area
 #' @importFrom terra RGB<- rast
 .find_res <- function(bfi, maxcell) {
@@ -498,7 +498,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 .get_n_channels <- function(img) {
     d <- dim(img)
     if (length(d) == 2L) return(1L)
-    d[[3]]
+    as.integer(d[[3]])
 }
 # What I want: option to assign individual grayscale images to different channels
 # Option to select one or more channels from a multi-channel image
@@ -507,7 +507,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     # BioFormatsImage
     # choose highest resolution with fewer than maxcell when multiple res are present
     # Convert to spi
-    # EBImage: convert to spi so can use custom color map in terra::as.raster
+    # ExtImage: convert to spi so can use custom color map in terra::as.raster
     # Combine different image classes: all use spi
     # For testing, need to use xenium v2 example data, everything is connected
     # All convert to spi, find the one with the lowest resolution, then
@@ -622,7 +622,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_prop <- bb_area/tot_area
-                if (!inMemory(x)) {
+                if (!terra::inMemory(x)) {
                     # Shouldn't need to write the cropped part to disk just for a plot
                     tot_size <- file.info(imgSource(x))$size
                     mem_free <- Sys.meminfo()$freeram |> as.numeric()
@@ -646,7 +646,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         if (is(img, "BioFormatsImage")) {
             res_use <- .find_res(img, maxcell)
             spi <- toSpatRasterImage(img, resolution = res_use, save_geotiff = FALSE)
-        } else if (is(img, "EBImage")) {
+        } else if (is(img, "ExtImage")) {
             spi <- toSpatRasterImage(img, save_geotiff = FALSE)
         } else spi <- img
         spi |> resample_spat(maxcell)
@@ -1071,7 +1071,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SpatialFeatureExperiment spatialGraphs spatialGraph
 #' @importFrom spdep card
-#' @importFrom sf st_coordinates st_centroid st_geometry
+#' @importFrom sf st_coordinates st_centroid st_geometry st_sfc
 #' @return A ggplot2 object.
 #' @export
 #' @concept Spatial plotting
