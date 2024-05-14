@@ -1,3 +1,11 @@
+# Version 1.6.0 (04/29/2023)
+* Option to plot polygon geometry without fill in plotGeometry
+* Option to show axes in both light and dark themes
+* Plot images of classes BioFormatsImage and ExtImage
+* Colorize image plot with different channels
+* Assign different grayscale images to channels
+* Added plotImage to only plot image without plotting geometry
+
 # Version 1.3.1 (05/15/2023)
 * Removed functions and arguments deprecated in 1.2.0
 

@@ -80,11 +80,3 @@ test_that("Different parameters of the same function for graph", {
     expect_message(sfe <- colDataMoransI(sfe, "nGenes", colGraphName = "knn2"),
                    "was computed with different parameters")
 })
-
-test_that("Return NULL when localResults are absent", {
-    expect_null(getParams(sfe, "localmoran", local = TRUE,
-                          annotGeometryName = "myofiber_simplified"))
-    expect_null(getParams(sfe, "localmoran", local = TRUE,
-                          colGeometryName = "spotPoly"))
-    expect_null(getParams(sfe, "localmoran", local = TRUE))
-})

@@ -148,8 +148,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-#' @importFrom ggplot2 element_rect element_text theme margin
-.dark_theme <- function() {
+#' @importFrom ggplot2 element_rect element_text theme margin %+replace% element_line
+#' theme_gray rel
+.dark_theme <- function(show_axes = FALSE) {
     # From Seurat but no axes
     black.background <- element_rect(fill = 'black')
     black.background.no.border <- element_rect(fill = 'black', linewidth = 0)
@@ -164,19 +165,37 @@ getDivergeRange <- function(values, diverge_center = 0) {
         )
     )
     # Create the dark theme
-    dark.theme <- theme(
-        #   Set background colors
-        plot.background = black.background,
-        panel.background = black.background,
-        legend.background = black.background,
-        legend.box.background = black.background.no.border,
-        legend.key = black.background.no.border,
-        strip.background = black.background,
-        #   Set text colors
-        text = white.text,
-        #   Validate the theme
-        validate = TRUE
-    )
+    if (show_axes) {
+        theme_gray() %+replace%
+            theme(axis.text = element_text(size = rel(0.8), colour = "white"),
+                  panel.border = element_rect(fill = NA, colour = "grey80"),
+                  panel.grid = element_line(colour = "gray30"),
+                  axis.ticks = element_line(colour = "grey30"),
+                  panel.grid.minor = element_line(linewidth = rel(0.5)),
+                  plot.background = black.background,
+                  panel.background = black.background,
+                  legend.background = black.background,
+                  legend.box.background = black.background.no.border,
+                  legend.key = black.background.no.border,
+                  strip.background = black.background,
+                  text = white.text,
+                  validate = TRUE)
+    } else {
+        theme_void() %+replace%
+            theme(
+                #   Set background colors
+                plot.background = black.background,
+                panel.background = black.background,
+                legend.background = black.background,
+                legend.box.background = black.background.no.border,
+                legend.key = black.background.no.border,
+                strip.background = black.background,
+                #   Set text colors
+                text = white.text,
+                #   Validate the theme
+                validate = TRUE
+            )
+    }
 }
 
 #' @importFrom sf st_drop_geometry st_geometry_type
@@ -186,11 +205,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
-.plot_var_sf <- function(df, annot_df, img_df, type, type_annot, feature_aes,
+.plot_var_sf <- function(df, annot_df, img_df, channel, type, type_annot, feature_aes,
                          feature_fixed, annot_aes, annot_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
                          ncol_sample, scattermore, pointsize,
-                         bins, summary_fun, hex, maxcell, dark) {
+                         bins, summary_fun, hex, maxcell, show_axes, dark, palette) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -219,9 +238,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
     if (!is.null(img_df)) {
         # Check if it's RGB
         img <- img_df$data[[1]]
-        img_dim <- dim(imgRaster(img))
+        img_dim <- dim(img)
         p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
-                              maxcell = maxcell)
+                              palette = palette)
     }
     # Filled polygon annotations go beneath feature plot
     is_annot_filled <- !is.null(annot_df) &&
@@ -285,8 +304,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
         p <- p +
             facet_wrap(~sample_id, ncol = ncol_sample)
     }
-    p <- p + theme_void()
-    if (dark) p <- p + .dark_theme()
+
+    if (dark) p <- p + .dark_theme(show_axes)
+    else {
+        if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    }
     p
 }
 
@@ -322,12 +344,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-.wrap_spatial_plots <- function(df, annot_df, img_df, type_annot, values, aes_use,
+.wrap_spatial_plots <- function(df, annot_df, img_df, channel, type_annot, values, aes_use,
                                 annot_aes, annot_fixed, size, shape, linewidth,
                                 linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
-                                bins, summary_fun, hex, maxcell, dark, ...) {
+                                bins, summary_fun, hex, maxcell, show_axes, dark,
+                                palette, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -337,14 +360,19 @@ getDivergeRange <- function(values, diverge_center = 0) {
         feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
         feature_aes <- setNames(list(n), feature_aes_name)
         .plot_var_sf(
-            df, annot_df, img_df, type, type_annot, feature_aes, feature_fixed,
+            df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
             annot_aes, annot_fixed, divergent, diverge_center,
             annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize, bins, summary_fun, hex, maxcell, dark
+            pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette
         )
     })
     if (length(plots) > 1L) {
         out <- wrap_plots(plots, ncol = ncol, ...)
+        if (dark) {
+            out <- out +
+                plot_annotation(theme = theme(text = element_text(color = "white"),
+                                              plot.background = element_rect(fill = "black")))
+        }
     } else {
         out <- plots[[1]]
     }
@@ -364,6 +392,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
         inds <- df$x > bbox["xmin"] & df$x < bbox["xmax"] &
             df$y > bbox["ymin"] & df$y < bbox["ymax"]
         df <- df[inds,, drop = FALSE]
+        # Also need to subtract xmin and ymin
+        df$x <- df$x - bbox["xmin"]
+        df$y <- df$y - bbox["ymin"]
     }
     if (nrow(df) == 0L)
         stop("The bounding box does not overlap with the geometry.")
@@ -434,42 +465,227 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df
 }
 
-.get_img_df <- function(sfe, sample_id, image_id, bbox) {
-    img_df <- imgData(sfe)
-    img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id == image_id,
-                     c("sample_id", "data")]
-    if (!is.null(bbox)) {
-        img_df <- img_df[order(img_df$sample_id),]
-        if (length(sample_id) == 1L) {
-            bbox <- matrix(bbox, ncol = 1, dimnames = list(names(bbox), sample_id))
-        }
-        new_imgs <- lapply(sample_id, function(s) {
-            img_data <- img_df$data[img_df$sample_id == s]
-            bbox_use <- ext(bbox[c("xmin", "xmax", "ymin", "ymax"),s])
-            bb <- as.vector(bbox_use)
-            lapply(img_data, function(img) {
-                img_cropped <- terra::crop(imgRaster(img), bbox_use, snap = "out")
-                img_cropped <- terra::shift(img_cropped,
-                                            dx = -bb["xmin"],
-                                            dy = -bb["ymin"])
-                new("SpatRasterImage", image = img_cropped)
-            })
-        })
-        new_imgs <- unlist(new_imgs, recursive = FALSE)
-        img_df$data <- I(new_imgs)
+#' @importFrom SpatialFeatureExperiment isFull imgSource getPixelSize ext
+#' aggBboxes cropImg imageIDs translateImg toSpatRasterImage getParams
+#' @importFrom sf st_area
+#' @importFrom terra RGB<- rast
+.find_res <- function(bfi, maxcell) {
+    check_installed("RBioFormats")
+    coreMetadata <- RBioFormats::coreMetadata
+    metas <- RBioFormats::read.metadata(imgSource(bfi))
+    n_series <- RBioFormats::seriesCount(metas)
+    cms <- coreMetadata(metas)
+    if (n_series == 1L) return(1L)
+
+    if (isFull(bfi)) {
+        dims <- data.frame(x = vapply(cms, function(x) x$sizeX, FUN.VALUE = numeric(1)),
+                           y = vapply(cms, function(x) x$sizeY, FUN.VALUE = numeric(1)))
+        ncells <- dims$x*dims$y
+    } else {
+        # Get the number of pixels within the extent at each resolution
+        ncells <- vapply(seq_len(n_series), function(i) {
+            ps <- getPixelSize(imgSource(bfi), resolution = i)
+            psx <- ps[1]; psy <- ps[2]
+            bb <- ext(bfi)
+            npx_x <- (bb["xmax"] - bb["xmin"])/psx
+            npx_y <- (bb["ymax"] - bb["ymin"])/psy
+            npx_x*npx_y
+        }, FUN.VALUE = numeric(1))
     }
-    as.data.frame(img_df)
+    n_use <- max(ncells < 1.1*maxcell) # 1.1 as in resample_spat
+    return(which(ncells == n_use))
+}
+
+.get_n_channels <- function(img) {
+    d <- dim(img)
+    if (length(d) == 2L) return(1L)
+    as.integer(d[[3]])
+}
+# What I want: option to assign individual grayscale images to different channels
+# Option to select one or more channels from a multi-channel image
+.combine_channels <- function(imgs, channel_assign) {
+    # Already checked, cropped, and converted to SpatRaster
+    # BioFormatsImage
+    # choose highest resolution with fewer than maxcell when multiple res are present
+    # Convert to spi
+    # ExtImage: convert to spi so can use custom color map in terra::as.raster
+    # Combine different image classes: all use spi
+    # For testing, need to use xenium v2 example data, everything is connected
+    # All convert to spi, find the one with the lowest resolution, then
+    # resample all the others to the same resolution before combining them into
+    # rgb channels
+    ncells <- vapply(imgs, ncell, FUN.VALUE = numeric(1))
+    dims <- vapply(imgs, function(img) dim(img)[1:2], FUN.VALUE = numeric(2))
+    same_dims <- length(unique(dims[1,])) == 1L & length(unique(dims[2,])) == 1L
+    # TODO: What if different channels have different extents
+    if (!same_dims) {
+        ind <- which.min(ncells)
+        ind_resample <- seq_along(imgs)[-ind]
+        imgs[ind_resample] <- lapply(imgs[ind_resample], function(img) {
+            # It's just for plotting so I don't care about the method used to resample
+            terra::resample(img, imgs[[ind]])
+        })
+    }
+    ch <- c("r", "g", "b")
+    if (length(imgs) == 3L) {
+        names(imgs) <- channel_assign
+        imgs <- imgs[ch]
+        out <- rast(imgs)
+    } else if (length(imgs) == 2L) {
+        # Create raster of all 0's. Take names from the channels
+        bl <- rast(imgs[[1]], vals = 0)
+        bl_channel <- setdiff(ch, channel_assign)
+        ol <- setNames(c(imgs, bl), c(channel_assign, bl_channel))
+        ol <- ol[ch]
+        out <- rast(ol)
+    }
+    RGB(out) <- 1:3
+    return(out)
+}
+
+.subset_channels <- function(img, channel) {
+    # Mainly to assign the RGB channels
+    ch <- c("r", "g", "b")
+    if (length(channel) == 1L) {
+        return(img[[channel]])
+    } else if (length(channel) == 2L) {
+        bl <- rast(img, nlyrs = 1, vals = 0)
+        bl_channel <- setdiff(ch, channel)
+        chs <- c(names(channel), bl_channel)
+        ch_ord <- match(ch, chs)
+        out <- c(img[[channel]], bl)
+        out <- out[[ch_ord]]
+    } else if (length(channel) == 3L) {
+        if (!is.null(names(channel))) {
+            channel <- channel[ch]
+        }
+        out <- img[[channel]]
+    }
+    RGB(out) <- 1:3
+    return(out)
+}
+
+#' @importFrom memuse Sys.meminfo
+.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell) {
+    # For each sample
+    df <- df[df$sample_id == sample_id,]
+    image_id <- image_id[match(df$image_id, image_id)]
+    if (!is.null(channel)) {
+        if (!is.numeric(channel) || any(channel < 1L))
+            stop("channel must be numeric indices")
+        if (length(channel) > 3L) {
+            stop("Only up to 3 channels can plotted at once in an RGB image")
+        }
+        if (!is.null(names(channel)) && !any(names(channel) %in% c("r", "g", "b"))) {
+            stop("Names of channel indices must be among 'r', 'g', 'b'")
+        }
+        if (length(channel) == 2L && is.null(names(channel))) {
+            stop("channel of length 2 must have names to specify which of the RGB channels to use")
+        }
+        if (length(image_id) > 1L) {
+            warning("Cannot use multiple images as different channels when ",
+                    "argument channel is specified to select channels in one image. ",
+                    "Only using the first image.")
+            df <- df[1,,drop = FALSE]
+            image_id <- image_id[1]
+        }
+        n_channels <- .get_n_channels(df$data[[1]])
+        if (any(channel > n_channels))
+            stop("channel index out of bound")
+    }
+    imgs <- df$data
+    n_channels <- vapply(imgs, .get_n_channels, FUN.VALUE = integer(1L))
+    if (length(image_id) > 1L) {
+        # Check names if length < 3L, don't use red + green by default
+        if (length(image_id) == 2L && is.null(names(image_id))) {
+            stop("image_id of length 2 must have names to specify which of the RGB channels to use")
+        }
+        if (length(imgs) > 3L)
+            stop("Colorization allows up to 3 channels")
+        # All images must have only 1 channel
+        if (any(n_channels > 1L)) {
+            ind <- which(n_channels > 1L)
+            stop("All images to be combined as different channels must only have 1 channel. ",
+                 "Image(s) number ", paste(ind, collapse = ", "), " has/have ",
+                 "multiple channels.")
+        }
+    } else if (n_channels > 1L && is.null(channel)) {
+        if (n_channels == 3L) channel <- 1:3
+        else stop("Argument `channel` must be specified to map channels to colors.")
+    }
+    # Crop
+    if (!is.null(bbox)) {
+        # For SpatRaster, for huge images on disk, downsample before cropping if
+        # the bbox is a large part of the image that also needs to be written to
+        # disk
+        imgs <- lapply(imgs, function(x) {
+            if (is(x, "SpatRasterImage")) {
+                tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
+                bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
+                bb_prop <- bb_area/tot_area
+                if (!terra::inMemory(x)) {
+                    # Shouldn't need to write the cropped part to disk just for a plot
+                    tot_size <- file.info(imgSource(x))$size
+                    mem_free <- Sys.meminfo()$freeram |> as.numeric()
+                    if (bb_prop * tot_size > mem_free/2) {
+                        # The /2 since images take more RAM than disk space when compressed
+                        # But what if maxcell_tot is still too large?
+                        # What if it's larger than the fullres cropped area?
+                        maxcell_tot <- maxcell/bb_prop
+                        ds_prop <- maxcell_tot/ncell(x)
+                        if (ds_prop < bb_prop)
+                            x@image <- resample_spat(x@image, maxcell_tot)
+                    }
+                }
+            }
+            out <- cropImg(x, bbox)
+            translateImg(x, -bbox[c("xmin", "ymin")])
+        })
+    }
+    # All convert to SpatRaster
+    imgs <- lapply(imgs, function(img) {
+        if (is(img, "BioFormatsImage")) {
+            res_use <- .find_res(img, maxcell)
+            spi <- toSpatRasterImage(img, resolution = res_use, save_geotiff = FALSE)
+        } else if (is(img, "ExtImage")) {
+            spi <- toSpatRasterImage(img, save_geotiff = FALSE)
+        } else spi <- img
+        spi |> resample_spat(maxcell)
+    })
+    # Combine channels
+    if (length(image_id) > 1L)
+        img <- .combine_channels(imgs, names(image_id))
+    # Subset channels
+    else if (!is.null(channel)) {
+        img <- .subset_channels(imgs[[1]], channel)
+    } else img <- imgs[[1]]
+    # Output: should have only 1 image left
+    return(img)
+}
+
+.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
+    image_id <- image_id %||% imageIDs(sfe)[1]
+    img_df <- imgData(sfe)
+    img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
+                     c("sample_id", "data", "image_id")]
+
+    # Edge case: when different images are used for different channels and there're
+    # multiple samples, some samples don't have images for all the channels
+    imgs <- lapply(sample_id, .get_img_df_sample, df = img_df,
+                   image_id = image_id, channel = channel, bbox = bbox,
+                   maxcell = maxcell)
+    data.frame(sample_id = sample_id, data = I(imgs))
 }
 
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
-                                annot_fixed, bbox, image_id, aes_use, divergent,
+                                annot_fixed, bbox, image_id, channel, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
-                                dark, ...) {
+                                show_axes, dark, palette, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
@@ -478,10 +694,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df <- .crop(df, bbox)
     names(df)[!names(df) %in% c("geometry", "sample_id")] <- names_orig
     type_df <- .get_generalized_geometry_type(df)
-    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && size > 0 &&
-        linewidth == 0) {
-        message("Please use linewidth instead of size for thickness of polygon outlines.")
-        linewidth <- size
+    if (type_df %in% c("POLYGON", "MULTIPOLYGON") && is.na(fill) && linewidth == 0) {
+        linewidth <- 0.3
     }
     if (scattermore || !is.null(bins)) {
         if (scattermore)
@@ -505,15 +719,15 @@ getDivergeRange <- function(values, diverge_center = 0) {
         type_annot <- NULL
     }
     if (!is.null(image_id)) {
-        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
     } else img_df <- NULL
     if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
-        df, annot_df, img_df, type_annot, values, aes_use,
+        df, annot_df, img_df, channel, type_annot, values, aes_use,
         annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, bins, summary_fun, hex, maxcell, dark, ...
+        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette, ...
     )
 }
 
@@ -534,11 +748,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
 #' discrete variables, the \code{dittoSeq} palette is used.
 #'
-#' For annotation, the YlOrRd colorbrewer palette is used for continuous variables
-#' in the light theme. In the dark theme, the acton palette from \code{scico} is
-#' used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
-#' is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
-#' palette is used for discrete variables.
+#' For annotation, the YlOrRd colorbrewer palette is used for continuous
+#' variables in the light theme. In the dark theme, the acton palette from
+#' \code{scico} is used when \code{divergent = FALSE} and the vanimo palette
+#' from \code{scico} is used when \code{divergent = FALSE}. The other end of the
+#' \code{dittoSeq} palette is used for discrete variables.
 #'
 #' Each individual palette should be colorblind friendly, but when plotting
 #' continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}
@@ -588,6 +802,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   contains the expression values.
 #' @param annotGeometryName Name of a \code{annotGeometry} of the SFE object, to
 #'   annotate the gene expression plot.
+#' @param rowGeometryName Name of a \code{rowGeometry} of the SFE object to
+#'   plot.
+#' @param rowGeometryFeatures Which features from \code{rowGeometry} to plot.
+#'   Can only be a small number to avoid overplotting. Different features are
+#'   distinguished by point shape.
 #' @param annot_aes A named list of plotting parameters for the annotation sf
 #'   data frame. The names are which geom (as in ggplot2, such as color and
 #'   fill), and the values are column names in the annotation sf data frame.
@@ -634,7 +853,19 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   TRUE}.
 #' @param image_id ID of the image to plot behind the geometries. If
 #'   \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
-#'   image IDs present.
+#'   image IDs present. To plot multiple grayscale images as different RGB
+#'   channels, use a named vector here, whose names are channel names (r, g, b),
+#'   and values are image_ids of the corresponding images. The RGB colorization
+#'   may not be colorblind friendly. When plotting multiple samples, it is
+#'   assumed that the same image_id is used for each channel across different
+#'   samples.
+#' @param channel Numeric vector indicating which channels in a multi-channel
+#'   image to plot. If \code{NULL}, grayscale is plotted if there is 1 channel
+#'   and RGB for the first 3 channels. The numeric vector can be named (r, g, b)
+#'   to indicate which channel maps to which color. The RGB colorization may not
+#'   be colorblind friendly. This argument cannot be specified while
+#'   \code{image_id} is a named vector to plot different grayscale images as
+#'   different channels.
 #' @param maxcell Maximum number of pixels to plot in the image. If the image is
 #'   larger, it will be resampled so it have less than this number of pixels to
 #'   save memory and for faster plotting. We recommend reducing this number when
@@ -645,12 +876,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette will have lighter color represent higher values as if glowing in
 #'   the dark. This is intended for plotting gene expression on top of
 #'   fluorescent images.
+#' @param palette Vector of colors to use to color grayscale images.
+#' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
 #' @return A \code{ggplot2} object if plotting one feature. A \code{patchwork}
 #'   object if plotting multiple features.
 #' @importFrom patchwork wrap_plots
 #' @importFrom stats setNames
-#' @importFrom SpatialExperiment imgData getImg imgRaster
+#' @importFrom SpatialExperiment imgData getImg
 #' @importMethodsFrom Matrix t
 #' @export
 #' @concept Spatial plotting
@@ -691,9 +924,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
                                annotGeometryName = NULL,
+                               rowGeometryName = NULL,
+                               rowGeometryFeatures = NULL,
                                annot_aes = list(), annot_fixed = list(),
                                exprs_values = "logcounts", bbox = NULL,
-                               image_id = NULL, maxcell = 5e+5,
+                               image_id = NULL, channel = NULL, maxcell = 5e+5,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NA,
                                annot_divergent = FALSE,
@@ -704,7 +939,9 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                swap_rownames = NULL,
                                scattermore = FALSE, pointsize = 0,
                                bins = NULL, summary_fun = sum, hex = FALSE,
-                               dark = FALSE, ...) {
+                               show_axes = FALSE, dark = FALSE,
+                               palette = colorRampPalette(c("black", "white"))(255),
+                               ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     values <- .get_feature_values(sfe, features, sample_id,
@@ -721,11 +958,11 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
-        annot_fixed, bbox, image_id, aes_use, divergent,
+        annot_fixed, bbox, image_id, channel, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
-        maxcell, dark, ...
+        maxcell, show_axes, dark, palette, ...
     )
 }
 
@@ -771,7 +1008,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     do.call(rbind, dfs)
 }
 
-#' @importFrom ggplot2 geom_line theme_void
+#' @importFrom ggplot2 geom_line theme_void theme_bw
 #' @importFrom SpatialFeatureExperiment rowGeometry df2sf
 .plot_graph <- function(sfe, MARGIN, sample_id, graph_name, geometry_name,
                         segment_size = 0.5, geometry_size = 0.5, ncol = NULL,
@@ -835,7 +1072,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SpatialFeatureExperiment spatialGraphs spatialGraph
 #' @importFrom spdep card
-#' @importFrom sf st_coordinates st_centroid st_geometry
+#' @importFrom sf st_coordinates st_centroid st_geometry st_sfc
 #' @return A ggplot2 object.
 #' @export
 #' @concept Spatial plotting
@@ -932,6 +1169,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @param fill Logical, whether to fill polygons.
 #' @return A ggplot object.
 #' @export
 #' @concept Spatial plotting
@@ -944,11 +1182,17 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, "spotPoly")
 #' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
 plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
-                         ncol = NULL, bbox = NULL, image_id = NULL,
-                         maxcell = 5e+5) {
+                         fill = TRUE, ncol = NULL, bbox = NULL,
+                         image_id = NULL, channel = NULL,
+                         maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
+                         palette = colorRampPalette(c("black", "white"))(255)) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
     df <- fun(sfe, type, sample_id = sample_id)
+    # TODO: allow MARGIN == 1L and multiple margins. This should allow a small
+    # number of features/genes distinguished by point shape or larger number or
+    # all genes not distinguished. Can experiment with kernel density but that
+    # can't be plotted with the image.
     if (MARGIN == 2L) {
         df$sample_id <- sfe$sample_id
     }
@@ -958,16 +1202,77 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     df <- .crop(df[,"sample_id"], bbox)
     p <- ggplot()
     if (!is.null(image_id))
-        img_df <- .get_img_df(sfe, sample_id, image_id, bbox)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
     else img_df <- NULL
     if (!is.null(image_id) && nrow(img_df)) {
         data <- NULL
-        p <- p + geom_spi_rgb(data = img_df, aes(spi = data),
-                              maxcell = maxcell)
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
     }
-    p <- p + geom_sf(data = df)
-    if (MARGIN != 1L && length(sample_id) > 1L) {
+    if (dark) color <- "gray90" else color <- "black"
+    if (fill) {
+        if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
+        p <- p + geom_sf(data = df, fill = fill_col, color = color)
+    }
+    else p <- p + geom_sf(data = df, fill = NA, color = color)
+    if (length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
-    p + theme_void()
+    if (dark) p <- p + .dark_theme(show_axes)
+    else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
+}
+
+#' Show image without plotting geometries
+#'
+#' This function plots the images in SFE objects without plotting geometries.
+#' When showing axes, the numbers are coordinates within the image itself and
+#' have the same units as the spatial extent, but are not the actual spatial
+#' extent when plotting multiple samples to avoid excessive empty space.
+#'
+#' @inheritParams plotGeometry
+#' @param image_id ID of the image(s) to plot. If \code{NULL}, then the first
+#'   image present is plotted. Can be a vector of IDs to use different grayscale
+#'   images for different channels. The vector can be named ('r', 'g', 'b'), to
+#'   assign channels to images. The vector must be named if it's length 2.
+#' @return A \code{ggplot} object.
+#' @export
+#' @examples
+#' library(SFEData)
+#' library(SpatialFeatureExperiment)
+#' fn <- XeniumOutput("v2", file_path = "xenium_example")
+#' # Weird RBioFormats null pointer error the first time it's run
+#' try(sfe <- readXenium(fn))
+#' sfe <- readXenium(fn)
+#' # Plot one channel
+#' plotImage(sfe, image_id = "morphology_focus", channel = 1L)
+#' plotImage(sfe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
+#' # Colorize based on different channels
+#' plotImage(sfe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
+#' unlink("xenium_example", recursive = TRUE)
+plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
+                      ncol = NULL, bbox = NULL,
+                      maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
+                      palette = colorRampPalette(c("black", "white"))(255)) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+    data <- NULL
+    img_df$bbox <- lapply(img_df$data, function(x) {
+        out <- ext(x)
+        mins <- out[c("xmin", "ymin")]
+        out <- st_bbox(out) |> st_as_sfc()
+        if (length(sample_id) > 1L) {
+            out <- out - mins
+        }
+        out
+    })
+    img_df$bbox <- st_sfc(unlist(img_df$bbox, recursive = FALSE))
+    p <- ggplot() +
+        geom_sf(data = img_df, aes(geometry = bbox), fill = NA, linewidth = 0) +
+        geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
+    if (length(sample_id) > 1L) {
+        p <- p + facet_wrap(~ sample_id, ncol = ncol)
+    }
+    if (dark) p <- p + .dark_theme(show_axes)
+    else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
 }
