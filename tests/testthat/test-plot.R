@@ -7,6 +7,8 @@ library(scater)
 library(Matrix)
 library(ggplot2)
 library(scran)
+library(EBImage)
+library(scales)
 
 expect_ggplot <- function(description, g) {
     expect_s3_class(g, "ggplot")
@@ -33,6 +35,12 @@ test_that("Everything plotSpatialFeature", {
         plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
             exprs_values = "counts"
         )
+    )
+    expect_ggplot("Plot gene expression, show axes",
+                  plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                     exprs_values = "counts",
+                                     show_axes = TRUE
+                  )
     )
     expect_ggplot("Plot gene expression, dark theme",
                   plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
@@ -169,6 +177,13 @@ test_that("Everything plotLocalResult", {
             diverge_center = 0, swap_rownames = "symbol"
         )
     })
+    expect_ggplot("Plot localmoran Ii for gene, show axes", {
+        plotLocalResult(sfe_muscle, "localmoran", "Myh1",
+                        colGeometryName = "spotPoly", divergent = TRUE,
+                        diverge_center = 0, swap_rownames = "symbol",
+                        show_axes = TRUE
+        )
+    })
     expect_ggplot("Plot localmoran Ii for gene, dark theme", {
         plotLocalResult(sfe_muscle, "localmoran", "Myh1",
                         colGeometryName = "spotPoly", divergent = TRUE,
@@ -207,6 +222,13 @@ test_that("Everything plotLocalResult", {
             annotGeometryName = "myofiber_simplified",
             linewidth = 0.3, color = "cyan", divergent = TRUE,
             diverge_center = 0
+        )
+    })
+    expect_ggplot("Plot Ii for annotGeometry alone, show axes", {
+        plotLocalResult(sfe_muscle, "localmoran", "area", "Ii",
+                        annotGeometryName = "myofiber_simplified",
+                        linewidth = 0.3, color = "cyan", divergent = TRUE,
+                        diverge_center = 0, show_axes = TRUE
         )
     })
     expect_ggplot("Plot Ii for annotGeometry alone, dark theme", {
@@ -457,6 +479,12 @@ test_that("Everything spatialReducedDim", {
         spatialReducedDim(sfe_muscle, "PCA", 2, colGeometryName = "spotPoly",
             annotGeometryName = "tissueBoundary",
             divergent = TRUE, diverge_center = 0
+        )
+    })
+    expect_ggplot("Plot PCs in space, show axes", {
+        spatialReducedDim(sfe_muscle, "PCA", 2, colGeometryName = "spotPoly",
+                          annotGeometryName = "tissueBoundary",
+                          divergent = TRUE, diverge_center = 0, show_axes = TRUE
         )
     })
     expect_ggplot("Plot only one component", {
@@ -860,18 +888,11 @@ test_that("Plot geometries", {
     expect_ggplot("Plot annotGeometry, with bbox", {
         plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
     })
-})
-
-test_that("Message about using linewidth instead of size for polygon outlines", {
-    expect_message(plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
-                                      aes_use = "color"),
-                   "Please use linewidth instead of size for thickness of polygon outlines.")
-    # Still get the right plot
-    expect_ggplot("Plot polygon, with size rather than linewidth",
-                        plotSpatialFeature(sfe, "nCounts", fill = NA, size = 0.5,
-                                           aes_use = "color"))
-    expect_doppelganger("Moran plot hex bin", {
-        moranPlot(sfe_muscle2, "nCounts", binned = TRUE, hex = TRUE, bins = 30)
+    expect_ggplot("Plot colGeometry, not filling", {
+        plotGeometry(sfe_muscle, "spotPoly", fill = FALSE)
+    })
+    expect_ggplot("Plot colGeometry, showing axes", {
+        plotGeometry(sfe_muscle, "spotPoly", show_axes = TRUE)
     })
 })
 
@@ -934,8 +955,8 @@ sfe_ob3 <- removeEmptySpace(sfe_ob3)
 
 bbox_use <- c(xmin = 4000, ymin = 6000, xmax = 4750, ymax = 6750)
 
-dir_use <- system.file(file.path("extdata", "vizgen"), package = "SpatialFeatureExperiment")
-sfe_mer <- readVizgen(dir_use, z = 0L, image = "PolyT", use_cellpose = FALSE)
+dir_use <- VizgenOutput("hdf5")
+sfe_mer <- readVizgen(dir_use, z = 3L, image = "PolyT")
 
 test_that("plotSpatialFeature with RGB image in the background", {
     expect_ggplot("One sample, one feature", {
@@ -959,18 +980,18 @@ test_that("plotSpatialFeature with RGB image in the background", {
 })
 
 # Test 16 bit images
-img16 <- getImg(sfe_mer) |> imgRaster()
+img16 <- getImg(sfe_mer)
 img16 <- img16 * 256
 DF <- DataFrame(
     sample_id = "sample01",
     image_id = "16bit",
-    data=I(list(new("SpatRasterImage", image = img16))),
+    data=I(list(new("SpatRasterImage", img16))),
     scaleFactor=1)
 imgData(sfe_mer) <- rbind(imgData(sfe_mer), DF)
 
 test_that("plotSpatialFeature with grayscale image", {
     expect_ggplot("One sample, one feature, grayscale", {
-        plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT",
+        plotSpatialFeature(sfe_mer, "volume", image_id = "PolyT_z3",
                            colGeometryName = "cellSeg", alpha = 0.5,
                            dark = TRUE)
     })
@@ -1022,3 +1043,101 @@ test_that("plotGeometry with image", {
         plotGeometry(sfe_ob3, "spotPoly", MARGIN = 2, image_id = "lowres")
     })
 })
+
+xenium_path <- XeniumOutput("v2", file_path = "xenium_test")
+try(xe <- readXenium(xenium_path)) # "RBioFormats.reader" is null
+xe <- readXenium(xenium_path)
+
+test_that("Plot BioFormats image behind geometries", {
+    expect_ggplot("Use defaults", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus",
+                     channel = 2, fill = FALSE)
+    })
+    expect_ggplot("Use dark theme, alternative palette", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = 3, dark = TRUE, palette = viridis_pal()(255))
+    })
+    expect_ggplot("Show axes", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = 4, dark = TRUE, palette = viridis_pal()(255),
+                     show_axes = TRUE)
+    })
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              dark = TRUE, palette = viridis_pal()(255)),
+                 "Argument `channel` must be specified")
+})
+
+test_that("Colorize channels when plotting image", {
+    expect_ggplot("Use 3 channels", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = c(2,4,1), dark = TRUE)
+    })
+    expect_ggplot("Specify 2 channels by name", {
+        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                     channel = c(g = 2, b = 1), dark = TRUE)
+    })
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = "foo", dark = TRUE),
+                 "channel must be numeric indices")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = 1:4, dark = TRUE),
+                 "Only up to 3 channels can plotted at once in an RGB image")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = c(foo = 1, bar = 2), dark = TRUE),
+                 "Names of channel indices must be among 'r', 'g', 'b'")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+                              channel = 5, dark = TRUE),
+                 "channel index out of bound")
+})
+
+test_that("Colorize by different images", {
+    bfi <- getImg(xe)
+    img1 <- toExtImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toExtImage(bfi, resolution = 1L, channel = 2L)
+    img34 <- toExtImage(bfi, resolution = 1L, channel = 3:4)
+    xe <- addImg(xe, img1, image_id = "img1")
+    xe <- addImg(xe, img2, image_id = "img2")
+    xe <- addImg(xe, img34, image_id = "img34")
+    expect_ggplot("Use 2 channels", {
+        plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+                     fill = FALSE, dark = TRUE)
+    })
+    expect_warning(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+                                channel = 1, fill = FALSE, dark = TRUE),
+                   "Cannot use multiple images as different channels")
+    expect_error(plotGeometry(xe, type = "cellSeg",
+                              image_id = imgData(xe)$image_id,
+                              fill = FALSE, dark = TRUE),
+                 "Colorization allows up to 3 channels")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c("img2", "img1"),
+                              fill = FALSE, dark = TRUE),
+                 "image_id of length 2 must have names")
+    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img34"),
+                              fill = FALSE, dark = TRUE),
+                 "must only have 1 channel")
+})
+
+test_that("When different images for different channels have different resolutions", {
+    bfi <- getImg(xe)
+    img1 <- toExtImage(bfi, resolution = 1L, channel = 1L)
+    img2 <- toExtImage(bfi, resolution = 1L, channel = 2L)
+    img2 <- EBImage::resize(img2, w = 1000)
+    xe <- addImg(xe, img1, image_id = "img1")
+    xe <- addImg(xe, img2, image_id = "img_smaller")
+    plotGeometry(xe, type = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
+                 fill = FALSE, dark = TRUE)
+})
+
+test_that("Just plot image, no geometries", {
+    expect_ggplot("one sample", {
+        plotImage(xe, image_id = "morphology_focus", channel = 1L)
+    })
+    expect_ggplot("Show axes", {
+        plotImage(xe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, dark = TRUE)
+    })
+    expect_ggplot("Multiple channels", {
+        plotImage(xe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
+    })
+})
+unlink("xenium_test", recursive = TRUE)
+unlink("vizgen_cellbound", recursive = TRUE)

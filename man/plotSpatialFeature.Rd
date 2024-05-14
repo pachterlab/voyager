@@ -12,11 +12,14 @@ plotSpatialFeature(
   ncol = NULL,
   ncol_sample = NULL,
   annotGeometryName = NULL,
+  rowGeometryName = NULL,
+  rowGeometryFeatures = NULL,
   annot_aes = list(),
   annot_fixed = list(),
   exprs_values = "logcounts",
   bbox = NULL,
   image_id = NULL,
+  channel = NULL,
   maxcell = 5e+05,
   aes_use = c("fill", "color", "shape", "linetype"),
   divergent = FALSE,
@@ -36,7 +39,9 @@ plotSpatialFeature(
   bins = NULL,
   summary_fun = sum,
   hex = FALSE,
+  show_axes = FALSE,
   dark = FALSE,
+  palette = colorRampPalette(c("black", "white"))(255),
   ...
 )
 }
@@ -68,6 +73,13 @@ facetted by samples.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
+\item{rowGeometryName}{Name of a \code{rowGeometry} of the SFE object to
+plot.}
+
+\item{rowGeometryFeatures}{Which features from \code{rowGeometry} to plot.
+Can only be a small number to avoid overplotting. Different features are
+distinguished by point shape.}
+
 \item{annot_aes}{A named list of plotting parameters for the annotation sf
 data frame. The names are which geom (as in ggplot2, such as color and
 fill), and the values are column names in the annotation sf data frame.
@@ -93,7 +105,20 @@ plotted.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
-image IDs present.}
+image IDs present. To plot multiple grayscale images as different RGB
+channels, use a named vector here, whose names are channel names (r, g, b),
+and values are image_ids of the corresponding images. The RGB colorization
+may not be colorblind friendly. When plotting multiple samples, it is
+assumed that the same image_id is used for each channel across different
+samples.}
+
+\item{channel}{Numeric vector indicating which channels in a multi-channel
+image to plot. If \code{NULL}, grayscale is plotted if there is 1 channel
+and RGB for the first 3 channels. The numeric vector can be named (r, g, b)
+to indicate which channel maps to which color. The RGB colorization may not
+be colorblind friendly. This argument cannot be specified while
+\code{image_id} is a named vector to plot different grayscale images as
+different channels.}
 
 \item{maxcell}{Maximum number of pixels to plot in the image. If the image is
 larger, it will be resampled so it have less than this number of pixels to
@@ -169,10 +194,14 @@ used.}
 \code{ggplot2} if you are getting horizontal stripes when \code{hex =
 TRUE}.}
 
+\item{show_axes}{Logical, whether to show axes.}
+
 \item{dark}{Logical, whether to use dark theme. When using dark theme, the
 palette will have lighter color represent higher values as if glowing in
 the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
+
+\item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }
@@ -197,11 +226,11 @@ nuuk palette from \code{scico} is used if \code{divergent = FALSE}, and the
 berlin palette from \code{scico} is used if \code{divergent = TRUE}. For
 discrete variables, the \code{dittoSeq} palette is used.
 
-For annotation, the YlOrRd colorbrewer palette is used for continuous variables
-in the light theme. In the dark theme, the acton palette from \code{scico} is
-used when \code{divergent = FALSE} and the vanimo palette from \code{scico}
-is used when \code{divergent = FALSE}. The other end of the \code{dittoSeq}
-palette is used for discrete variables.
+For annotation, the YlOrRd colorbrewer palette is used for continuous
+variables in the light theme. In the dark theme, the acton palette from
+\code{scico} is used when \code{divergent = FALSE} and the vanimo palette
+from \code{scico} is used when \code{divergent = FALSE}. The other end of the
+\code{dittoSeq} palette is used for discrete variables.
 
 Each individual palette should be colorblind friendly, but when plotting
 continuous variables coloring a \code{colGeometry} and a \code{annotGeometry}

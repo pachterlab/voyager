@@ -1,13 +1,14 @@
 Type: Package
 Package: Voyager
 Title: From geospatial to spatial omics
-Depends: 
-    R (>= 4.2.0)
-Version: 1.4.0
+Version: 1.6.0
 Authors@R: 
     c(person("Lambda", "Moses", email = "dlu2@caltech.edu", 
     role = c("aut", "cre"),
     comment = c(ORCID = "0000-0002-7092-9427")),
+    person("Alik", "Huseynov",
+    comment = c(ORCID = "0000-0002-1438-4389"),
+    role = "aut"),
     person("Kayla", "Jackson", email = "kaylajac@caltech.edu",
     role = c("aut"),
     comment = c(ORCID = "0000-0001-6483-0108")),
@@ -29,6 +30,9 @@ Description: SpatialFeatureExperiment (SFE) is a new S4 class for working with
     PCA and multivariate local Geary's C recently developed by Anselin. The 
     Voyager package also implements plotting functions to plot SFE data and ESDA 
     results. 
+Depends: 
+    R (>= 4.2.0),
+    SpatialFeatureExperiment (>= 1.5.2)
 Imports:
     BiocParallel,
     bluster,
@@ -40,6 +44,7 @@ Imports:
     lifecycle,
     Matrix,
     matrixStats,
+    memuse,
     methods,
     patchwork,
     rlang,
@@ -50,7 +55,6 @@ Imports:
     sf,
     SingleCellExperiment,
     SpatialExperiment,
-    SpatialFeatureExperiment (>= 1.2.1),
     spdep,
     stats,
     SummarizedExperiment,
@@ -70,6 +74,8 @@ Suggests:
     fossil,
     gghighlight,
     glue,
+    EBImage,
+    ExperimentHub,
     ggh4x,
     gstat,
     hexbin,
@@ -79,6 +85,7 @@ Suggests:
     reticulate,
     rjson,
     rmapshaper,
+    RBioFormats,
     rhdf5,
     rmarkdown,
     scater,
@@ -95,14 +102,16 @@ Suggests:
     tidyr,
     uwot,
     vdiffr,
-    vroom
-VignetteBuilder: 
-    knitr
-biocViews:GeneExpression, Spatial, Transcriptomics, Visualization
+    vroom,
+    xml2
+RoxygenNote: 7.3.1
 Config/testthat/edition: 3
-License: Artistic-2.0
-Encoding: UTF-8
-RoxygenNote: 7.2.3
+biocViews:
+    GeneExpression,
+    Spatial,
+    Transcriptomics,
+    Visualization
+VignetteBuilder: knitr
 URL: https://github.com/pachterlab/voyager
 BugReports: https://github.com/pachterlab/voyager/issues
 Collate: 

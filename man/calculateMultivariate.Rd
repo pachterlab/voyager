@@ -64,7 +64,7 @@ spatial neighborhood graph, such as the variogram.}
 \item{transposed}{Logical, whether the matrix has genes in columns and cells
 in rows.}
 
-\item{zero.policy}{default NULL, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
+\item{zero.policy}{default \code{attr(listw, "zero.policy")} as set when \code{listw} was created, if attribute not set, use global option value; if TRUE assign zero to the lagged value of zones without neighbours, if FALSE assign NA}
 
 \item{p.adjust.method}{Method to correct for multiple testing, passed to
 \code{\link[spdep]{p.adjustSP}}. Methods allowed are in

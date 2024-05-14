@@ -34,5 +34,17 @@ Lambda Moses, Pétur Helgi Einarsson, Kayla Jackson, Laura Luebbert, A. Sina Boo
 bioRxiv 2023.07.20.549945; doi: https://doi.org/10.1101/2023.07.20.549945
 
 <img src="https://github.com/pachterlab/voyager/raw/documentation/vignettes/voyager_schematics.png" width="1024"/>
-
 <!--- About the banner: USS Voyager resting on N San Gabriel Canyon Rd, along north fork San Gabriel River, north of Glendora, LA county --->
+
+Or from Bioconductor with:
+
+```r
+BiocManager::install("Voyager", version = "devel")
+```
+
+## For contributors
+The whole git repo of this package is huge because of the large number of figures and Jupyter notebooks in the documentation website. To reduce download time and disk space usage, you may clone the `devel` branch only, so the documentation branches are not cloned:
+
+```
+git clone -b devel --single-branch https://github.com/pachterlab/voyager.git
+```
