@@ -22,6 +22,7 @@
 #' @return A ggplot object. The y axis is eigenvalues or percentage of variance
 #'   explained if relevant.
 #' @importFrom scales breaks_extended
+#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)
@@ -160,6 +161,7 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 #' @importFrom ggplot2 facet_wrap scale_y_discrete
 #' @importFrom stats reorder
 #' @importFrom lifecycle deprecated is_present deprecate_warn
+#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)
@@ -283,6 +285,7 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
 #' @importFrom rlang %||% .data
 #' @importFrom ggplot2 facet_grid vars
 #' @importFrom stats reshape
+#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)
@@ -340,6 +343,7 @@ plotRowDataHistogram <- .plot_dimdata_hist(rowData)
 #' @param color_by Name of a categorical column in \code{colData} or
 #'   \code{rowData} to color the polygons.
 #' @seealso plotColDataHistogram
+#' @concept Non-spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)

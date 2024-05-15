@@ -89,3 +89,4 @@ plotImage(sfe, image_id = "morphology_focus", channel = 1L, show_axes = TRUE, da
 plotImage(sfe, image_id = "morphology_focus", channel = c(2,4,1), show_axes = TRUE, dark = TRUE)
 unlink("xenium_example", recursive = TRUE)
 }
+\concept{Spatial plotting}

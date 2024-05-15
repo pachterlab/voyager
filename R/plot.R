@@ -1235,6 +1235,7 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
 #'   images for different channels. The vector can be named ('r', 'g', 'b'), to
 #'   assign channels to images. The vector must be named if it's length 2.
 #' @return A \code{ggplot} object.
+#' @concept Spatial plotting
 #' @export
 #' @examples
 #' library(SFEData)
