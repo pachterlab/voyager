@@ -58,19 +58,17 @@ library(Voyager)
 library(SpatialFeatureExperiment)
 library(rjson)
 library(Matrix)
+library(SFEData)
 ```
+The following is reproduced from the [SFE vignette](https://pachterlab.github.io/SpatialFeatureExperiment/articles/SFE.html#object-construction).
 
 # Visium Space Ranger output
 
 10x Genomics Space Ranger output from a Visium experiment can be read in a similar manner as in `SpatialExperiment`; the `SpatialFeatureExperiment` SFE object has the `spotPoly` column geometry for the spot polygons. If the filtered matrix (i.e. only spots in the tissue) is read in, then a column graph called `visium` will also be present for the spatial neighborhood graph of the Visium spots on the tissue. The graph is not computed if all spots are read in regardless of whether they are on tissue.
 
 ```{r}
-# Example from SpatialExperiment
-dir <- system.file(
-  file.path("extdata", "10xVisium"), 
-  package = "SpatialExperiment")
-  
-sample_ids <- c("section1", "section2")
+dir <- system.file("extdata", package = "SpatialFeatureExperiment")
+sample_ids <- c("sample01", "sample02")
 (samples <- file.path(dir, sample_ids, "outs"))
 ```
 
@@ -102,25 +100,68 @@ Now we read in the toy data that is in the Space Ranger output format. Since Bio
 
 ```{r}
 (sfe3 <- read10xVisiumSFE(samples, dirs = samples, sample_id = sample_ids, 
-                          type = "sparse", data = "raw", images = "lowres", 
+                          type = "sparse", data = "filtered", images = "lowres", 
                           unit = "full_res_image_pixel"))
 ```
 
 Space Ranger output includes the gene count matrix, spot coordinates, and spot diameter. The Space Ranger output does NOT include nuclei segmentation or pathologist annotation of histological regions. Extra image processing, such as with ImageJ and QuPath, are required for those geometries.
 
-## Vizgen MERFISH output
-The commercialized MERFISH from Vizgen has a standard output format, that can be read into SFE with `readVizgen()`. Because the cell segmentation from each field of view (FOV) has a separate HDF5 file and a MERFISH dataset can have hundreds of FOVs, we strongly recommend reading the MERFISH output on a server with a large number of CPU cores. Alternatively, some but not all MERFISH datasets store cell segmentation in a `parquet` file, which can be more easily read into R. Here we read a toy dataset which is the first FOV from a real dataset:
+# Vizgen MERFISH output
+The commercialized MERFISH from Vizgen has a standard output format, that can be read into SFE with `readVizgen()`. Because the cell segmentation from each field of view (FOV) has a separate HDF5 file and a MERFISH dataset can have hundreds of FOVs, we strongly recommend reading the MERFISH output on a server with a large number of CPU cores. Alternatively, some but not all MERFISH datasets store cell segmentation in a `parquet` file, which can be more easily read into R. This requires the installation of `arrow`. Here we read a toy dataset which is the first FOV from a real dataset:
 
 ```{r}
-dir_use <- system.file(file.path("extdata", "vizgen"), 
-                       package = "SpatialFeatureExperiment")
+fp <- tempdir()
+dir_use <- VizgenOutput(file_path = file.path(fp, "vizgen"))
+list.files(dir_use)
+```
+
+The optional `add_molecules` argument can be set to `TRUE` to read in the transcript spots
+```{r}
+(sfe_mer <- readVizgen(dir_use, z = 3L, image = "PolyT", add_molecules = TRUE))
+```
+
+The unit is always in microns. To make it easier and faster to read the data next time, the processed cell segmentation geometries and transcript spots are written to the same directory where the data resides:
+```{r}
+list.files(dir_use)
+```
+
+# 10X Xenium output
+SFE supports reading the output from Xenium Onboarding Analysis (XOA) v1 and v2 with the function `readXenium()`. Especially for XOA v2, `arrow` is strongly recommended. The cell and nuclei polygon vertices and transcript spot coordinates are in `parquet` files  Similar to `readVizgen()`, `readXenium()` makes `sf` data frames from the vertices and transcript spots and saves them as GeoParquet files.
+
+```{r}
+dir_use <- XeniumOutput("v2", file_path = file.path(fp, "xenium"))
+list.files(dir_use)
 ```
 
 ```{r}
-(sfe_mer <- readVizgen(dir_use, z = 0L, image = "PolyT", use_cellpose = FALSE))
+# RBioFormats issue: https://github.com/aoles/RBioFormats/issues/42
+try(sfe_xen <- readXenium(dir_use, add_molecules = TRUE))
+(sfe_xen <- readXenium(dir_use, add_molecules = TRUE))
 ```
 
-The unit is always in microns.
+```{r}
+list.files(dir_use)
+```
+
+
+# Nanostring CosMX output
+This is similar to `readVizgen()` and `readXenium()`, except that the output doesn't come with images.
+
+```{r}
+dir_use <- CosMXOutput(file_path = file.path(fp, "cosmx"))
+list.files(dir_use)
+```
+
+```{r}
+(sfe_cosmx <- readCosMX(dir_use, add_molecules = TRUE))
+```
+
+```{r}
+list.files(dir_use)
+```
+
+# Other technologies
+A read function for Visium HD is in progress. Contribution for Akoya, Molecular Cartography, and Curio Seeker are welcome. See the [issues](https://github.com/pachterlab/SpatialFeatureExperiment/issues).
 
 # Create SFE object from scratch
 An SFE object can be constructed from scratch with the assay matrices and metadata. In this toy example, `dgCMatrix` is used, but since SFE inherits from SingleCellExperiment (SCE), other types of arrays supported by SCE such as delayed arrays should also work.
@@ -157,75 +198,51 @@ rownames(cg) <- colnames(mat)
 sfe3 <- SpatialFeatureExperiment(list(counts = mat), colGeometries = list(foo = cg))
 ```
 
-## Technology specific notes
-Not all commercial technologies have a function to directly read the outputs. We may implement more such functions in the next version of `SpatialFeatureExperiment`. For now we show example code to read output from CosMX and Xenium.
-
-### Gene count matrix and cell metadata
-The gene count matrix and cell metadata (including cell centroid coordinates) from example datasets for technologies such as CosMX and Vizgen are CSV files. We recommend the [`vroom`](https://vroom.r-lib.org/) package to quickly read in large CSV files. The CSV files are read in as data frames. For the gene count matrix, this can be converted to a matrix and then a sparse `dgCMatrix`. The matrix may need to be transposed so the genes are in rows and cells are in columns. While smFISH based data tend to be less sparse than scRNA-seq data, using sparse matrix is worthwhile since the matrix is still about 50% zero.
-
-For 10x Genomics' new single cell resolution technology Xenium, the gene count matrix is an `h5` file, which can be read into R as an SCE object with `DropletUtils::read10xCounts()`. This can then be converted to `SpatialExperiment`, and then `SpatialFeatureExperiment`. The gene count matrix is a `DelayedArray`, so the data is not all loaded into memory and operations on this matrix are performed in chunks. The `DelayedArray` has been converted into a `dgCMatrix` in memory. While the cell metadata is available in the CSV format, there's also the `parquet` format which is more compact on disk, which can be read into R as a data frame with the arrow package. Example code:
-```{r, eval=FALSE}
-# Download data from https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast
-
-system("curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep1/Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip")
-system("unzip Xenium_FFPE_Human_Breast_Cancer_Rep1_outs.zip")
-system("mv outs outs_R1")
-
-system("curl -O https://cf.10xgenomics.com/samples/xenium/1.0.1/Xenium_FFPE_Human_Breast_Cancer_Rep2/Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip")
-system("unzip Xenium_FFPE_Human_Breast_Cancer_Rep2_outs.zip")
-system("mv outs outs_R2")
+# Coercion from `SpatialExperiment`
+SPE objects can be coerced into SFE objects. If column geometries or spot diameter are not specified, then a column geometry called "centroids" will be created.
+```{r}
+spe <- SpatialExperiment::read10xVisium(samples, sample_ids, type = "sparse", 
+                                        data = "filtered", 
+                                        images = "hires", load = FALSE)
 ```
 
-```{r, eval=FALSE}
-library(SpatialExperiment)
-library(DropletUtils)
-#library(arrow)
-sce <- read10xCounts("outs_R1/cell_feature_matrix.h5")
-cell_info <- read_parquet("outs_R1/cells.parquet")
-# Add the centroid coordinates to colData
-colData(sce) <- cbind(colData(sce), cell_info[,-1])
-spe <- toSpatialExperiment(sce, spatialCoordsNames = c("x_centroid", "y_centroid"))
-sfe <- toSpatialFeatureExperiment(spe)
+For the coercion, column names must not be duplicate.
+```{r}
+colnames(spe) <- make.unique(colnames(spe), sep = "-")
+rownames(spatialCoords(spe)) <- colnames(spe)
 ```
 
-### Cell polygons
-File format of cell polygons (if available) is in different formats in different technology. The cell polygons should be [`sf`](https://r-spatial.github.io/sf/) data frames to put into `colGeometries()` of the SFE object. This section explains how to do that for a number of smFISH-based technologies.
-
-In Xenium, the cell polygons come in CSV or parquet files that can be directly read into R as a data frame, with 2 columns for x and y coordinates, and one indicating which cell the coordinates belong to. Change the name of the cell ID column into "ID", and use `SpatialFeatureExperiment::df2sf()` to convert the data frame into an `sf` data frame with `POLYGON` geometry. Example code:
-
-```{r, eval=FALSE}
-#library(arrow)
-cell_poly <- read_parquet("outs_R2/cell_boundaries.parquet")
-# Here the first column is cell ID
-names(cell_poly)[1] <- "ID"
-# "vertex_x" and "vertex_y" are the column names for coordinates here
-cell_sf <- df2sf(cell_poly, c("vertex_x", "vertex_y"), geometryType = "POLYGON")
+```{r}
+(sfe3 <- toSpatialFeatureExperiment(spe))
 ```
 
-In CoxMX, cell polygons are in CSV files. Besides the two coordinates columns, there's a column for field of view (FOV) and another for cell ID. However, unlike in Xenium, the cell IDs are only unique in each FOV, so they should be concatenated to FOV to make them unique. Then `df2sf()` can also be used to convert the regular data frame into `sf`. Example code:
-```{r, eval=FALSE}
-# Download data from https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/
-# stored here: https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=0
+If images are present in the SPE object, they will be converted into `SpatRaster` when the SPE object is converted into SFE. Plotting functions in the `Voyager` package relies on `SpatRaster` to plot the image behind the geometries. 
 
-system("wget https://www.dropbox.com/s/hl3peavrx92bluy/Lung5_Rep1-polygons.csv?dl=1")
-system("mv Lung5_Rep1-polygons.csv?dl=1 Lung5_Rep1-polygons.csv")
+# Coercion from `Seurat`
+Seurat objects can be coerced into SFE objects though coercion from SFE to Seurat is not yet implemented.
+```{r}
+dir_extdata <- system.file("extdata", package = "SpatialFeatureExperiment")
+obj_vis <- readRDS(file.path(dir_extdata, "seu_vis_toy.rds"))
 ```
 
-```{r, eval=FALSE}
-library(vroom)
-library(tidyr)
-cell_poly <- vroom("Lung5_Rep1-polygons.csv")
-cell_poly <- cell_poly |> 
-    unite("ID", fov:cellID)
-cell_sf <- df2sf(cell_poly, spatialCoordsNames = c("x_global_px", "y_global_px"),
-                 geometryType = "POLYGON")
+```{r}
+sfe_conv_vis <-
+  toSpatialFeatureExperiment(x = obj_vis, 
+                             image_scalefactors = "lowres",
+                             unit = "micron",
+                             BPPARAM = BPPARAM)
+sfe_conv_vis
 ```
-
-See [the code used to construct the example datasets in `SFEData`](https://github.com/pachterlab/SFEData/blob/main/inst/scripts/make-data.R) for more examples. 
-
-Use `sf::st_is_valid()` to check if the polygons are valid. Polygons with self-intersection are not valid, and will throw an error in geometric operations. A common reason why polygons are invalid is a protruding line, which can be eliminated with `sf::st_buffer(cell_sf, dist = 0)`. Use `sf::st_is_valid(cell_sf, reason = TRUE)`, and plot the invalid polygons, to find why some polygons are not valid. 
 
 # Session info
+
+```{r}
+# Clean up
+unlink(file.path(fp, "vizgen"), recursive = TRUE)
+unlink(file.path(fp, "xenium"), recursive = TRUE)
+unlink(file.path(fp, "cosmx"), recursive = TRUE)
+```
+
 ```{r}
 sessionInfo()
 ```
