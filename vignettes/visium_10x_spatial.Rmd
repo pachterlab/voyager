@@ -86,7 +86,7 @@ library(reticulate)
 theme_set(theme_bw())
 ```
 
-```{r}
+```{r,eval=FALSE}
 # Specify Python version to use gget
 PY_PATH <- system("which python", intern = TRUE)
 use_python(PY_PATH)
@@ -97,7 +97,7 @@ py_config()
 system("pip3 install gget")
 ```
 
-```{r}
+```{r,eval=FALSE}
 gget <- import("gget")
 ```
 
@@ -443,7 +443,7 @@ top_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
 ```
 
 We can use the [gget info](https://pachterlab.github.io/gget/info.html) module from the [gget](https://pachterlab.github.io/gget/) package to get additional information on these genes, such as their descriptions, synonyms, transcripts and more from a collection of reference databases including [Ensembl](https://ensembl.org/), [UniProt](https://www.uniprot.org/) and [NCBI](https://www.ncbi.nlm.nih.gov/) Here, we are showing their gene descriptions from [NCBI](https://www.ncbi.nlm.nih.gov/):
-```{r}
+```{r,eval=FALSE}
 gget_info <- gget$info(top_moran)
 
 rownames(gget_info) <- gget_info$primary_gene_name
@@ -464,7 +464,7 @@ neg_moran <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_sample01,
                                         decreasing = FALSE)[1:9]]
 ```
 
-```{r}
+```{r,eval=FALSE}
 # Display NCBI descriptions for these genes
 gget_info_neg <- gget$info(neg_moran)
 
@@ -553,7 +553,7 @@ top_moran2 <- rownames(sfe_tissue)[order(rowData(sfe_tissue)$moran_ns_sample01,
                                         decreasing = TRUE)[1:9]]
 ```
 
-```{r}
+```{r,eval=FALSE}
 # Display NCBI descriptions for these genes
 gget_info2 <- gget$info(top_moran2)
 
