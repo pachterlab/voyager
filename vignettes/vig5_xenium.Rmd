@@ -53,11 +53,7 @@ packageVersion("Voyager")
 
 # Introduction
 
-Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The first Xenium dataset is for formalin fixed paraffin embedded (FFPE) human breast tumor, reported in [@Janesick2022-rp] and downloaded from the [10X website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast).
-
-The gene count matrix was downloaded as an HDF5 file and read into R as a `SingleCellExperiment` (SCE) object with `DropletUtils::read10xCounts()`. The gene count matrix is originally a `DelayedArray`, so the data is not all loaded into memory. For now, the matrix has been converted into an in memory `dgCMatrix`. However, for the next release, we would like to write another vignette on on disk analyses. The challenge is representing `sf` data frames on disk, perhaps with [`sedona`](https://github.com/apache/incubator-sedona) and [`SQLDataFrame`](https://bioconductor.org/packages/release/bioc/html/SQLDataFrame.html).
-
-The cell metadata (including centroid coordinates) and cell segmentation polygons were downloaded as `parquet` files, a more compact way to store columnar data than CSV, and read into R as data frames with read_parquet in the arrow package. The cell polygons were converted into `sf` data frame with `SpatialFeatureExperiment::df2sf()`. Then the SCE object was converted into `SpatialFeatureExperiment` (SFE) and the polygon geometry was added to the SFE object, which is in the `SFEData` package.
+Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The dataset used here is from human pancreas and processed with Xenium Onboarding Analysis (XOA) v2. It was originally downloaded [here](https://cf.10xgenomics.com/samples/xenium/2.0.0/Xenium_V1_human_Pancreas_FFPE/Xenium_V1_human_Pancreas_FFPE_outs.zip). In the version of the data used here, the large Zarr files have been removed because they're not used here anyway and to speed up download.
 
 Here we load the packages used in this vignette.
 
@@ -76,19 +72,38 @@ library(BiocSingular)
 library(bluster)
 library(scran)
 library(patchwork)
+library(RBioFormats)
+library(fs)
 theme_set(theme_bw())
+options(timeout = Inf)
 ```
 
 ```{r}
-(sfe <- JanesickBreastData(dataset = "rep2"))
+base <- "/Volumes/Archives"
+if (!dir.exists(file.path(base, "xenium2_pancreas"))) {
+    download.file("https://caltech.box.com/shared/static/6yvpahb97dgp4y2gx7oqjktom9a7qp3o",
+                  destfile = file.path(base, "xenium2_pancreas.tar.gz"))
+    untar(file.path(base, "xenium2_pancreas.tar.gz"), exdir = base)
+}
+fn <- file.path(base, "xenium2_pancreas")
 ```
 
-There are 118708 cells in this dataset, a little more than in the CosMX dataset.
-
-The SFE object doesn't have column names (i.e. cell IDs). Here we assign cell IDs.
+This should be the standard XOA v2 output file structure (excluding the Zarr files)
 ```{r}
-colnames(sfe) <- seq_len(ncol(sfe))
+dir_tree(fn)
 ```
+
+The gene count matrix is in the `cell_feature_matrix` h5 or tar.gz file. The cell metadata is in the `cells.csv.gz` or `cells.parquet` file. The cell segmentation polygon vertices are in the `cell_boundaries.csv.gz` or `parquet` file. The nucleus segmentation polygon vertices are in the `nucleus_boundaries.csv.gz` or `parquet` files. The transcript spot coordinates are in the `transcripts.csv.gz` or `parquet` file. The images for different histological stains are in the `morphology_focus` directory. These are the files relevant to the SFE objects; see [10X documentation](https://www.10xgenomics.com/support/software/xenium-onboard-analysis/latest/analysis/xoa-output-at-a-glance) for what the other files are.
+
+The `readXenium()` function in `SpatialFeatureExperiment` reads XOA v1 and v2 outputs into R.
+
+```{r}
+# Annoying RBioFormats bug
+try(sfe <- readXenium(fn))
+(sfe <- readXenium(fn))
+```
+
+There are 140702 cells in this dataset, a little more than in the CosMX dataset.
 
 This is what the tissue, with the cell outlines, looks like
 
@@ -100,6 +115,25 @@ Plot cell density in space
 ```{r}
 plotCellBin2D(sfe, hex = TRUE)
 ```
+
+There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
+
+Plot the images; the image has 4 channels, which are DAPI, ATP1A1/CD45/E-Cadherin, 18S, and AlphaSMA/Vimentin, in this order. The images are pyramids with multiple resolutions; some applications would not require the highest resolution. The file for each channel is around 370 MB. Only the metadata is read in R and only the relevant portion of the image at the highest resolution necessary is loaded into memory when needed, say when plotting. 
+
+```{r}
+getImg(sfe)
+```
+
+There are 4 image files, each for one channel, though the XML metadata of the files connect them together so BioFormats treats them as one file.
+```{r}
+dir_tree(dirname(imgSource(getImg(sfe))))
+```
+
+The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot DAPI, 18S, and one of the membrane stains.
+```{r}
+plotImage(sfe, image_id = "morphology_focus", channel = 3:1)
+```
+
 
 # Quality control
 ## Cells
