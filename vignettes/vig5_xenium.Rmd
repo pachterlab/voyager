@@ -113,7 +113,7 @@ plotGeometry(sfe, "cellSeg")
 
 Plot cell density in space
 ```{r}
-plotCellBin2D(sfe, hex = TRUE)
+plotCellBin2D(sfe, hex = TRUE, bins = 150)
 ```
 
 There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
@@ -129,9 +129,21 @@ There are 4 image files, each for one channel, though the XML metadata of the fi
 dir_tree(dirname(imgSource(getImg(sfe))))
 ```
 
-The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot DAPI, 18S, and one of the membrane stains.
+The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot18S (red), ATP1A1/CD45/E-Cadherin (green), and DAPI (blue). These are specified in the `channel` argument, using channel indices. When using 3 channels, by default the indices correspond to R, G, and B channels in this order.
 ```{r}
-plotImage(sfe, image_id = "morphology_focus", channel = 3:1)
+plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
+          dark = TRUE)
+```
+
+Zoom into smaller regions, one in the dense region, another in the sparser region
+```{r}
+bbox1 <- c(xmin = 5000, xmax = 6000, ymin = -1500, ymax = -500)
+bbox2 <- c(xmin = 1000, xmax = 2000, ymin = -2250, ymax = -1250)
+```
+
+```{r}
+plotImage(sfe, image_id = "morphology_focus", channel = 3:1,
+          bbox = bbox1)
 ```
 
 
