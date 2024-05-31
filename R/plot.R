@@ -491,8 +491,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
             npx_x*npx_y
         }, FUN.VALUE = numeric(1))
     }
-    n_use <- max(ncells < 1.1*maxcell) # 1.1 as in resample_spat
-    return(which(ncells == n_use))
+    n_use <- min(which(ncells < 1.1*maxcell)) # 1.1 as in resample_spat
+    return(n_use)
 }
 
 .get_n_channels <- function(img) {
