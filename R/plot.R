@@ -639,7 +639,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 }
             }
             out <- cropImg(x, bbox)
-            translateImg(x, -bbox[c("xmin", "ymin")])
+            translateImg(out, -bbox[c("xmin", "ymin")])
         })
     }
     # All convert to SpatRaster
