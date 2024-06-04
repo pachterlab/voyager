@@ -130,6 +130,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
                             summary_fun = sum, hex = FALSE, show_axes = FALSE,
                             dark = FALSE, palette = colorRampPalette(c("black", "white"))(255),
+                            normalize_channels = FALSE,
                             type = name, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -185,7 +186,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             scattermore = scattermore, pointsize = pointsize,
             bins = bins, summary_fun = summary_fun, hex = hex,
             maxcell = maxcell, channel = channel, show_axes = show_axes,
-            dark = dark, palette = palette, ...
+            dark = dark, palette = palette, normalize_channels = normalize_channels, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -194,7 +195,9 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         df <- df[,setdiff(names(df), names(values))]
         df <- cbind(df[,"sample_id"], values)
         df <- .crop(df, bbox)
-        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id,
+                                                      channel, bbox, maxcell,
+                                                      normalize_channels)
         else img_df <- NULL
         if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
         out <- .wrap_spatial_plots(df,

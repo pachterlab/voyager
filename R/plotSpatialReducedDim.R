@@ -47,7 +47,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
                               color = NA, fill = "gray80", scattermore = FALSE,
                               pointsize = 0, bins = NULL, summary_fun = sum,
                               hex = FALSE, show_axes = FALSE, dark = FALSE,
-                              palette = colorRampPalette(c("black", "white"))(255), ...) {
+                              palette = colorRampPalette(c("black", "white"))(255),
+                              normalize_channels = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(ncomponents) == 1L) {
@@ -65,7 +66,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
         alpha, color, fill,
         show_symbol = FALSE, scattermore = scattermore, pointsize = pointsize,
         bins = bins, summary_fun = summary_fun, hex = hex, maxcell = maxcell,
-        channel = channel, show_axes = show_axes, dark = dark, palette = palette, ...
+        channel = channel, show_axes = show_axes, dark = dark, palette = palette,
+        normalize_channels = normalize_channels, ...
     )
     if (is(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)
