@@ -74,6 +74,7 @@ library(scran)
 library(patchwork)
 library(RBioFormats)
 library(fs)
+library(sf)
 theme_set(theme_bw())
 options(timeout = Inf)
 ```
@@ -100,7 +101,8 @@ The `readXenium()` function in `SpatialFeatureExperiment` reads XOA v1 and v2 ou
 ```{r}
 # Annoying RBioFormats bug
 try(sfe <- readXenium(fn))
-(sfe <- readXenium(fn))
+# Use gene symbols as row names but Ensembl IDs are still in rowData(sfe)
+(sfe <- readXenium(fn, row.names = "symbol"))
 ```
 
 There are 140702 cells in this dataset, a little more than in the CosMX dataset.
@@ -111,9 +113,14 @@ This is what the tissue, with the cell outlines, looks like
 plotGeometry(sfe, "cellSeg")
 ```
 
+Plot the nuclei
+```{r}
+plotGeometry(sfe, "nucSeg")
+```
+
 Plot cell density in space
 ```{r}
-plotCellBin2D(sfe, hex = TRUE, bins = 150)
+plotCellBin2D(sfe, binwidth = 50)
 ```
 
 There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
@@ -129,7 +136,7 @@ There are 4 image files, each for one channel, though the XML metadata of the fi
 dir_tree(dirname(imgSource(getImg(sfe))))
 ```
 
-The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot18S (red), ATP1A1/CD45/E-Cadherin (green), and DAPI (blue). These are specified in the `channel` argument, using channel indices. When using 3 channels, by default the indices correspond to R, G, and B channels in this order.
+The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot 18S (red), ATP1A1/CD45/E-Cadherin (green), and DAPI (blue). These are specified in the `channel` argument, using channel indices. When using 3 channels, by default the indices correspond to R, G, and B channels in this order.
 ```{r}
 plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
           dark = TRUE)
@@ -137,8 +144,16 @@ plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
 
 Zoom into smaller regions, one in the dense region, another in the sparser region
 ```{r}
-bbox1 <- c(xmin = 5000, xmax = 6000, ymin = -1500, ymax = -500)
-bbox2 <- c(xmin = 1000, xmax = 2000, ymin = -2250, ymax = -1250)
+bbox1 <- c(xmin = 5500, xmax = 6000, ymin = -1250, ymax = -750)
+bbox2 <- c(xmin = 1500, xmax = 2000, ymin = -2000, ymax = -1500)
+```
+
+Plot the bounding boxes in the full image
+```{r}
+bboxes_sf <- c(st_as_sfc(st_bbox(bbox1)), st_as_sfc(st_bbox(bbox2)))
+plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
+          dark = TRUE) +
+    geom_sf(data = bboxes_sf, fill = NA, color = "white")
 ```
 
 ```{r}
@@ -146,8 +161,169 @@ plotImage(sfe, image_id = "morphology_focus", channel = 3:1,
           bbox = bbox1)
 ```
 
+```{r}
+plotImage(sfe, image_id = "morphology_focus", channel = 3:1,
+          bbox = bbox2)
+```
+
+Since we're using the RGB channels for color, this is not colorblind friendly. Plot the channels separately to be colorblind friendly:
+```{r}
+p1 <- plotImage(sfe, image_id = "morphology_focus", channel = 1,
+          bbox = bbox2) +
+    ggtitle("DAPI")
+p2 <- plotImage(sfe, image_id = "morphology_focus", channel = 2,
+          bbox = bbox2) +
+    ggtitle("ATP1A1/CD45/E-Cadherin")
+p1 + p2
+```
+
+```{r}
+p3 <- plotImage(sfe, image_id = "morphology_focus", channel = 1,
+          bbox = bbox1) +
+    ggtitle("DAPI")
+p4 <- plotImage(sfe, image_id = "morphology_focus", channel = 2,
+          bbox = bbox1) +
+    ggtitle("ATP1A1/CD45/E-Cadherin")
+p3 + p4
+```
+
+We can also plot the cell and nuclei geometries on top of the images
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox1)
+```
+
+```{r}
+plotGeometry(sfe, "nucSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox1)
+```
+
+Plot cells and nuclei together; since there're still quite a lot of cells in that bounding box and the plot looks busy, we can use a even smaller bounding box to plus both cells and nuclei
+```{r}
+bbox3 <- c(xmin = 5750, xmax = 6000, ymin = -1100, ymax = -850)
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox3)), nucSeg(sfe))
+nuc <- nuc - bbox3[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox3) +
+    geom_sf(data = nuc, fill = NA, color = "#85C1E9")
+```
 
 # Quality control
+## Negative controls
+Some of the features are not genes but negative controls
+```{r}
+names(rowData(sfe))
+```
+
+```{r}
+unique(rowData(sfe)$Type)
+```
+
+According to the Xenium paper [@Janesick2022-rp], there are 3 types of controls:
+
+> 1) probe controls to assess non-specific binding to RNA, 
+2) decoding controls to assess misassigned genes, and 
+3) genomic DNA (gDNA) controls to ensure the signal is from RNA.
+
+The paper does not explain in detail how those control probes were designed.
+
+```{r}
+is_blank <- rowData(sfe)$Type == "Unassigned Codeword"
+sum(is_blank)
+```
+
+This should be number 1, the probe control
+```{r}
+is_neg <- rowData(sfe)$Type == "Negative Control Probe"
+sum(is_neg)
+```
+
+This should be number 2, the decoding control
+```{r}
+is_neg2 <- rowData(sfe)$Type == "Negative Control Codeword"
+sum(is_neg2)
+```
+
+Also make an indicator of whether a feature is any sort of negative control
+```{r}
+is_any_neg <- is_blank | is_neg | is_neg2
+```
+
+The `addPerCellQCMetrics()` function in the `scuttle` package can conveniently add transcript counts, proportion of total counts, and number of features detected for any subset of features to the SCE object. Here we do this for the SFE object, as SFE inherits from SCE. 
+```{r}
+sfe <- addPerCellQCMetrics(sfe, subsets = list(unassigned = is_blank,
+                                               negProbe = is_neg,
+                                               negCodeword = is_neg2,
+                                               any_neg = is_any_neg))
+```
+
+```{r}
+names(colData(sfe))
+```
+
+Next we plot the proportion of transcript counts coming from any negative control. 
+
+```{r}
+cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
+plotColDataHistogram(sfe, cols_use, bins = 100)
+```
+
+The histogram is dominated by the bin at zero and there are some extreme outliers too few to be seen but evident from the scale of the x axis. We also plot the histogram only for cells with at least 1 count from a negative control. The NA's come from cells that got segmented but have no transcripts detected.
+```{r}
+plotColDataHistogram(sfe, cols_use, bins = 100) + 
+    scale_x_log10() +
+    annotation_logticks(sides = "b")
+```
+
+For the most part cells have less than 10% of spots assigned to the negative controls.
+
+Next we plot the distribution of the number of negative control counts per cell:
+```{r}
+cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_sum$")]
+plotColDataHistogram(sfe, cols_use, bins = 20) +
+    # Avoid decimal breaks on x axis unless there're too few breaks
+    scale_x_continuous(breaks = scales::breaks_extended(Q = c(1,2,5))) +
+    scale_y_log10() +
+    annotation_logticks(sides = "l")
+```
+
+The counts are low, mostly zero, but there are outliers with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with.
+
+```{r}
+names(colData(sfe))
+```
+
+Where are the cells with any negative control detected in space?
+```{r}
+plotSpatialFeature(sfe, "subsets_any_neg_sum", colGeometryName = "cellSeg") +
+    theme(legend.position = "bottom")
+```
+
+They appear to be randomly distributed in space. No spatial pattern is apparent. Unlike in the first preview dataset (`JanesickBreastData()`), 
+
+```{r}
+sfe$has_any_neg <- sfe$subsets_any_neg_sum > 0
+```
+
+```{r}
+plotColData(sfe, y = "has_any_neg", x = "cell_area", 
+            # To not to plot the points in the violin plots, too many of them
+            point_fun = function(...) list()) 
+```
+
+```{r}
+plotColData(sfe, y = "has_any_neg", x = "total_counts", 
+            point_fun = function(...) list()) 
+```
+
+It seems that cells that have negative controls tend to be larger and have more total counts. This is the opposite trend from the first Xenium preview data from 2022 (see `JanesickBreastData()`). Given that cells with any negative control count only have 1 or 2 molecules from negative controls, this trend can probably be explained simply by the larger number of molecules, just like when tossing a fair coin 10 times and repeat that for 1000 times, the probability of getting 10 tails in at least one trial is large. The probability is even larger if done 10000 times.
+
 ## Cells
 Some QC metrics are precomputed and are stored in `colData`
 
@@ -158,7 +334,7 @@ names(colData(sfe))
 Since there're more cells, it would be better to plot the tissue larger, so we'll plot the histogram of QC metrics and the spatial plots separately, unlike in the CosMx vignette.
 
 ```{r}
-n_panel <- 313
+n_panel <- nrow(sfe)
 colData(sfe)$nCounts_normed <- sfe$nCounts/n_panel
 colData(sfe)$nGenes_normed <- sfe$nGenes/n_panel
 ```
@@ -254,151 +430,6 @@ plotColData(sfe, x="nucleus_area", y="prop_nuc", bins = 100)
 ```
 
 The outlier is obvious. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
-
-## Negative controls
-Since there are only a few hundred genes plus negative control probes, all row names of the SFE object can be printed out to find what the negative control probes are called.
-```{r}
-rownames(sfe)
-```
-
-According to the Xenium paper [@Janesick2022-rp], there are 3 types of controls:
-
-> 1) probe controls to assess non-specific binding to RNA, 
-2) decoding controls to assess misassigned genes, and 
-3) genomic DNA (gDNA) controls to ensure the signal is from RNA.
-
-The paper does not explain in detail how those control probes were designed, nor explain what the blank probes are. But the blank probes can be used as a negative control.
-
-```{r}
-is_blank <- str_detect(rownames(sfe), "^BLANK_")
-sum(is_blank)
-```
-
-This should be number 1, the probe control
-```{r}
-is_neg <- str_detect(rownames(sfe), "^NegControlProbe")
-sum(is_neg)
-```
-
-This should be number 2, the decoding control
-```{r}
-is_neg2 <- str_detect(rownames(sfe), "^NegControlCodeword")
-sum(is_neg2)
-```
-
-This must be number 3, gDNA control
-```{r}
-is_anti <- str_detect(rownames(sfe), "^antisense")
-sum(is_anti)
-```
-
-Also make an indicator of whether a feature is any sort of negative control
-```{r}
-is_any_neg <- is_blank | is_neg | is_neg2 | is_anti
-```
-
-The `addPerCellQCMetrics()` function in the `scuttle` package can conveniently add transcript counts, proportion of total counts, and number of features detected for any subset of features to the SCE object. Here we do this for the SFE object, as SFE inherits from SCE. 
-```{r}
-sfe <- addPerCellQCMetrics(sfe, subsets = list(blank = is_blank,
-                                               negProbe = is_neg,
-                                               negCodeword = is_neg2,
-                                               anti = is_anti,
-                                               any_neg = is_any_neg))
-```
-
-```{r}
-names(colData(sfe))
-```
-
-Next we plot the proportion of transcript counts coming from any negative control. 
-
-```{r}
-cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
-plotColDataHistogram(sfe, cols_use, bins = 100, ncol = 3)
-```
-
-The histogram is dominated by the bin at zero and there are some extreme outliers too few to be seen but evident from the scale of the x axis. We also plot the histogram only for cells with at least 1 count from a negative control. The NA's come from cells that got segmented but have no transcripts detected.
-```{r}
-plotColDataHistogram(sfe, cols_use, bins = 100, ncol = 3) + 
-    scale_x_log10() +
-    annotation_logticks(sides = "b")
-```
-
-The vast majority of these cells have less than 1% of transcript counts from negative controls, but there are outliers with up to 50%. 
-
-Next we plot the distribution of the number of negative control counts per cell:
-```{r}
-cols_use2 <- names(colData(sfe))[str_detect(names(colData(sfe)), "_detected$")]
-plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
-    # Avoid decimal breaks on x axis unless there're too few breaks
-    scale_x_continuous(breaks = scales::breaks_extended(Q = c(1,2,5)))
-```
-
-The counts are low, mostly zero, but there are outliers with up to 10 counts of all types aggregated. Then the outlier with 50% of counts from negative controls must have very low total real transcript counts to begin with.
-
-The `scuttle` package can detect outliers, but by default it assigns anything above zero as an outlier, since that is over 3 median absolute deviations (MADs) away from the median, which is 0, and the MAD is 0 since the vast majority of cells don't have any negative control count. But it makes sense to allow a small proportion of negative controls. Here we use the distribution just for cells with at least 1 negative control count to find outliers. This distribution has a very long tail and some definite outliers.
-
-The code below extracts the outliers, based only on cells with at least one negative control count
-
-```{r}
-get_neg_ctrl_outliers <- function(col, sfe) {
-    inds <- colData(sfe)$nCounts > 0 & colData(sfe)[[col]] > 0
-    df <- colData(sfe)[inds,]
-    outlier_inds <- isOutlier(df[[col]], type = "higher")
-    outliers <- rownames(df)[outlier_inds]
-    col2 <- str_remove(col, "^subsets_")
-    col2 <- str_remove(col2, "_percent$")
-    new_colname <- paste("is", col2, "outlier", sep = "_")
-    colData(sfe)[[new_colname]] <- colnames(sfe) %in% outliers
-    sfe
-}
-```
-
-```{r}
-cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_percent$")]
-for (n in cols_use) {
-    sfe <- get_neg_ctrl_outliers(n, sfe)
-}
-```
-
-```{r}
-names(colData(sfe))
-```
-
-Below we examine where the outliers are located in space:
-```{r}
-plotSpatialFeature(sfe, "is_blank_outlier", colGeometryName = "cellSeg")
-```
-
-We find that the outliers are difficult to see:
-```{r}
-plotColData(sfe, y = "is_blank_outlier", x = "cell_area", 
-            point_fun = function(...) list()) 
-```
-
-The analysis reveals that the outliers seem to be smaller. Outliers for negative probe controls and negative codeword controls are also hard to see on the plot, so their plots are skipped here. But the top left region in the tissue tends to have more counts from antisense controls. 
-```{r}
-plotSpatialFeature(sfe, "is_anti_outlier", colGeometryName = "cellSeg")
-```
-
-Now that we have identified the outliers, we can remove them along with empty cells before proceeding to further analysis:
-
-```{r}
-inds_keep <- sfe$nCounts > 0 & sfe$nucleus_area < 400 & !sfe$is_anti_outlier &
-    !sfe$is_blank_outlier & !sfe$is_negCodeword_outlier & !sfe$is_negProbe_outlier
-(sfe <- sfe[,inds_keep])
-```
-
-Over 1000 cells were removed. 
-
-Next we check how many negative control features are detected per cell:
-```{r}
-plotColDataHistogram(sfe, cols_use2, bins = 20, ncol = 3) +
-    # Avoid decimal breaks on x axis unless there're too few breaks
-    scale_x_continuous(breaks = scales::breaks_extended(3, Q = c(1,2,5)))
-```
-
-There are at most 3 counts per cell per type. For the non-outliers, each type is at most around 1%, so this data looks good. 
 
 ## Genes
 Here we look at the mean and variance of each gene
