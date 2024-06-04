@@ -564,8 +564,17 @@ getDivergeRange <- function(values, diverge_center = 0) {
     return(out)
 }
 
+.normalize_channels <- function(img) {
+    max_values <- terra::minmax(img, compute = TRUE)[2,]
+    for (i in seq_len(nlyr(img))) {
+        if (max_values[[i]] > 0) img[[i]] <- img[[i]]/max_values[[i]]
+    }
+    img
+}
+
 #' @importFrom memuse Sys.meminfo
-.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell) {
+.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell,
+                               normalize_channels) {
     # For each sample
     df <- df[df$sample_id == sample_id,]
     image_id <- image_id[match(df$image_id, image_id)]
@@ -658,11 +667,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
     else if (!is.null(channel)) {
         img <- .subset_channels(imgs[[1]], channel)
     } else img <- imgs[[1]]
+    if (normalize_channels) img <- .normalize_channels(img)
     # Output: should have only 1 image left
     return(img)
 }
 
-.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
+.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell,
+                        normalize_channels) {
     image_id <- image_id %||% imageIDs(sfe)[1]
     img_df <- imgData(sfe)
     img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
@@ -672,7 +683,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     # multiple samples, some samples don't have images for all the channels
     imgs <- lapply(sample_id, .get_img_df_sample, df = img_df,
                    image_id = image_id, channel = channel, bbox = bbox,
-                   maxcell = maxcell)
+                   maxcell = maxcell, normalize_channels = normalize_channels)
     data.frame(sample_id = sample_id, data = I(imgs))
 }
 
@@ -684,7 +695,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
-                                show_axes, dark, palette, ...) {
+                                show_axes, dark, palette, normalize_channels, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
@@ -718,7 +729,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
         type_annot <- NULL
     }
     if (!is.null(image_id)) {
-        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                              normalize_channels)
     } else img_df <- NULL
     if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
@@ -875,6 +887,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette will have lighter color represent higher values as if glowing in
 #'   the dark. This is intended for plotting gene expression on top of
 #'   fluorescent images.
+#' @param normalize_channels Logical, whether to normalize each channel of the
+#' image individually. Should be \code{FALSE} for bright field color images such
+#' as H&E but should set to \code{TRUE} for fluorescent images.
 #' @param palette Vector of colors to use to color grayscale images.
 #' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
@@ -940,6 +955,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                bins = NULL, summary_fun = sum, hex = FALSE,
                                show_axes = FALSE, dark = FALSE,
                                palette = colorRampPalette(c("black", "white"))(255),
+                               normalize_channels = FALSE,
                                ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -961,7 +977,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
-        maxcell, show_axes, dark, palette, ...
+        maxcell, show_axes, dark, palette, normalize_channels, ...
     )
 }
 
@@ -1184,7 +1200,8 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
                          fill = TRUE, ncol = NULL, bbox = NULL,
                          image_id = NULL, channel = NULL,
                          maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
-                         palette = colorRampPalette(c("black", "white"))(255)) {
+                         palette = colorRampPalette(c("black", "white"))(255),
+                         normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
     df <- fun(sfe, type, sample_id = sample_id)
@@ -1201,7 +1218,8 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
     df <- .crop(df[,"sample_id"], bbox)
     p <- ggplot()
     if (!is.null(image_id))
-        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                              normalize_channels)
     else img_df <- NULL
     if (!is.null(image_id) && nrow(img_df)) {
         data <- NULL
@@ -1251,9 +1269,11 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
 plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
                       ncol = NULL, bbox = NULL,
                       maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
-                      palette = colorRampPalette(c("black", "white"))(255)) {
+                      palette = colorRampPalette(c("black", "white"))(255),
+                      normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                          normalize_channels)
     data <- NULL
     img_df$bbox <- lapply(img_df$data, function(x) {
         out <- ext(x)

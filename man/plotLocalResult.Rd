@@ -41,6 +41,7 @@ plotLocalResult(
   show_axes = FALSE,
   dark = FALSE,
   palette = colorRampPalette(c("black", "white"))(255),
+  normalize_channels = FALSE,
   type = name,
   ...
 )
@@ -204,6 +205,10 @@ the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
 
 \item{palette}{Vector of colors to use to color grayscale images.}
+
+\item{normalize_channels}{Logical, whether to normalize each channel of the
+image individually. Should be \code{FALSE} for bright field color images such
+as H&E but should set to \code{TRUE} for fluorescent images.}
 
 \item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
 the name of one of such objects in the environment. If the
