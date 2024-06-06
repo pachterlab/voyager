@@ -64,6 +64,7 @@ library(SingleCellExperiment)
 library(SpatialExperiment)
 library(SpatialFeatureExperiment)
 library(ggplot2)
+library(ggforce)
 library(stringr)
 library(scater) 
 library(scuttle)
@@ -75,6 +76,7 @@ library(patchwork)
 library(RBioFormats)
 library(fs)
 library(sf)
+library(arrow)
 theme_set(theme_bw())
 options(timeout = Inf)
 ```
@@ -102,28 +104,53 @@ The `readXenium()` function in `SpatialFeatureExperiment` reads XOA v1 and v2 ou
 # Annoying RBioFormats bug
 try(sfe <- readXenium(fn))
 # Use gene symbols as row names but Ensembl IDs are still in rowData(sfe)
-(sfe <- readXenium(fn, row.names = "symbol"))
+(sfe <- readXenium(fn, row.names = "symbol", add_molecules = TRUE))
 ```
 
 There are 140702 cells in this dataset, a little more than in the CosMX dataset.
 
 This is what the tissue, with the cell outlines, looks like
 
-```{r}
+```{r, fig.width=6, fig.height=3}
 plotGeometry(sfe, "cellSeg")
 ```
 
 Plot the nuclei
-```{r}
+```{r, fig.width=6, fig.height=3}
 plotGeometry(sfe, "nucSeg")
 ```
 
 Plot cell density in space
-```{r}
+```{r, fig.width=6, fig.height=2.5}
 plotCellBin2D(sfe, binwidth = 50)
 ```
 
 There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
+
+Plot total transcript density
+```{r}
+tx_coords <- st_coordinates(txSpots(sfe))
+tx_points <- df2sf(tx_coords, spatialCoordsNames = c("X", "Y", "Z"), 
+                   geometryType = "POINT")
+tx_points <- st_geometry(tx_points)
+grid <- st_make_grid(tx_points, cellsize = 50)
+tx_int <- st_intersects(grid, tx_points)
+tx_int <- lengths(tx_int)
+grid <- st_sf(tx_count = tx_int, geometry = grid)
+grid <- grid[grid$tx_count > 0,]
+```
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(grid, aes(fill = tx_count)) +
+    geom_sf(linewidth = 0) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
+```
+
+Cool, so the region with higher cell density also has higher transcript density.
+```{r}
+rm(list = c("tx_points", "tx_coords"))
+gc()
+```
 
 Plot the images; the image has 4 channels, which are DAPI, ATP1A1/CD45/E-Cadherin, 18S, and AlphaSMA/Vimentin, in this order. The images are pyramids with multiple resolutions; some applications would not require the highest resolution. The file for each channel is around 370 MB. Only the metadata is read in R and only the relevant portion of the image at the highest resolution necessary is loaded into memory when needed, say when plotting. 
 
@@ -136,10 +163,10 @@ There are 4 image files, each for one channel, though the XML metadata of the fi
 dir_tree(dirname(imgSource(getImg(sfe))))
 ```
 
-The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot 18S (red), ATP1A1/CD45/E-Cadherin (green), and DAPI (blue). These are specified in the `channel` argument, using channel indices. When using 3 channels, by default the indices correspond to R, G, and B channels in this order.
-```{r}
+The image can be plotted with `plotImage()` in `Voyager`, but only up to 3 channels can be ploted at the same time. Say plot 18S (red), ATP1A1/CD45/E-Cadherin (green), and DAPI (blue). These are specified in the `channel` argument, using channel indices. When using 3 channels, by default the indices correspond to R, G, and B channels in this order. The `normalize_channels` argument determines if the channels should be normalized individually in case the different channels have different dynamic ranges. We recommend setting it to `TRUE` for fluorescent images where each channel is separated separately using different fluorophores but not the bright field images where the RGB channels are imaged simultaneously.
+```{r, fig.width=6, fig.height=3}
 plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
-          dark = TRUE)
+          dark = TRUE, normalize_channels = TRUE)
 ```
 
 Zoom into smaller regions, one in the dense region, another in the sparser region
@@ -149,21 +176,21 @@ bbox2 <- c(xmin = 1500, xmax = 2000, ymin = -2000, ymax = -1500)
 ```
 
 Plot the bounding boxes in the full image
-```{r}
+```{r, fig.width=6, fig.height=3}
 bboxes_sf <- c(st_as_sfc(st_bbox(bbox1)), st_as_sfc(st_bbox(bbox2)))
 plotImage(sfe, image_id = "morphology_focus", channel = 3:1, show_axes = TRUE,
-          dark = TRUE) +
+          dark = TRUE, normalize_channels = TRUE) +
     geom_sf(data = bboxes_sf, fill = NA, color = "white")
 ```
 
 ```{r}
 plotImage(sfe, image_id = "morphology_focus", channel = 3:1,
-          bbox = bbox1)
+          bbox = bbox1, normalize_channels = TRUE)
 ```
 
 ```{r}
 plotImage(sfe, image_id = "morphology_focus", channel = 3:1,
-          bbox = bbox2)
+          bbox = bbox2, normalize_channels = TRUE)
 ```
 
 Since we're using the RGB channels for color, this is not colorblind friendly. Plot the channels separately to be colorblind friendly:
@@ -191,13 +218,13 @@ We can also plot the cell and nuclei geometries on top of the images
 ```{r}
 plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
              image_id = "morphology_focus", 
-             channel = 3:1, bbox = bbox1)
+             channel = 3:1, bbox = bbox1, normalize_channels = TRUE)
 ```
 
 ```{r}
 plotGeometry(sfe, "nucSeg", fill = FALSE, dark = TRUE,
              image_id = "morphology_focus", 
-             channel = 3:1, bbox = bbox1)
+             channel = 3:1, bbox = bbox1, normalize_channels = TRUE)
 ```
 
 Plot cells and nuclei together; since there're still quite a lot of cells in that bounding box and the plot looks busy, we can use a even smaller bounding box to plus both cells and nuclei
@@ -210,8 +237,8 @@ nuc <- nuc - bbox3[c("xmin", "ymin")]
 ```{r}
 plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
              image_id = "morphology_focus", 
-             channel = 3:1, bbox = bbox3) +
-    geom_sf(data = nuc, fill = NA, color = "#85C1E9")
+             channel = 3:1, bbox = bbox3, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
 ```
 
 # Quality control
@@ -286,26 +313,84 @@ For the most part cells have less than 10% of spots assigned to the negative con
 Next we plot the distribution of the number of negative control counts per cell:
 ```{r}
 cols_use <- names(colData(sfe))[str_detect(names(colData(sfe)), "_sum$")]
-plotColDataHistogram(sfe, cols_use, bins = 20) +
+plotColDataHistogram(sfe, cols_use, bins = 20, ncol = 2) +
     # Avoid decimal breaks on x axis unless there're too few breaks
     scale_x_continuous(breaks = scales::breaks_extended(Q = c(1,2,5))) +
     scale_y_log10() +
     annotation_logticks(sides = "l")
 ```
 
-The counts are low, mostly zero, but there are outliers with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with.
+The counts are low, mostly zero, but there are some cells with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with. The negative controls indicates the prevalence of false positives. Here we have only a few hundred cells out of over 140,000 that have negative control probes detected. 
 
 ```{r}
 names(colData(sfe))
 ```
 
-Where are the cells with any negative control detected in space?
+Where are cells with higher proportion of negative control probes (i.e. low total counts and have negative control probes detected) located in space?
 ```{r}
-plotSpatialFeature(sfe, "subsets_any_neg_sum", colGeometryName = "cellSeg") +
+data("ditto_colors")
+```
+
+```{r}
+sfe$more_neg <- sfe$subsets_any_neg_percent > 10
+plotSpatialFeature(sfe, "subsets_any_neg_sum", colGeometryName = "cellSeg",
+                   show_axes = TRUE) +
+    geom_sf(data = SpatialFeatureExperiment::centroids(sfe)[sfe$more_neg,],
+            size = 0.5, color = ditto_colors[1]) +
     theme(legend.position = "bottom")
 ```
 
-They appear to be randomly distributed in space. No spatial pattern is apparent. Unlike in the first preview dataset (`JanesickBreastData()`), 
+Cells that have any negative control probe appear to be randomly distributed in space, but cells that have higher proportion of negative control seem to be few and over-represented in the less dense area. Those could be segmentation artifacts and not actually cells.
+
+Where are negative control spots located?
+```{r}
+tx_coords <- st_coordinates(txSpots(sfe)[is_any_neg,])
+tx_points <- df2sf(tx_coords, spatialCoordsNames = c("X", "Y", "Z"), 
+                   geometryType = "POINT")
+tx_points <- st_geometry(tx_points)
+grid <- st_make_grid(tx_points, cellsize = 100)
+tx_int <- st_intersects(grid, tx_points)
+tx_int <- lengths(tx_int)
+grid <- st_sf(tx_count = tx_int, geometry = grid)
+grid <- grid[grid$tx_count > 0,]
+```
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(grid, aes(fill = tx_count)) +
+    geom_sf(linewidth = 0) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
+```
+
+Generally there are more negative control spots in the region with higher cell and transcript density, which is not surprising.
+
+Zoom into one of those areas to inspect
+```{r}
+bbox <- c(xmin = 1550, xmax = 1750, ymin = -1800, ymax = -1700)
+```
+
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox)), nucSeg(sfe))
+nuc <- nuc - bbox[c("xmin", "ymin")]
+more_neg <- st_intersection(st_as_sfc(st_bbox(bbox)),
+                         SpatialFeatureExperiment::centroids(sfe)[sfe$more_neg,])
+more_neg <- more_neg - bbox[c("xmin", "ymin")]
+neg_spots <- st_intersection(st_as_sfc(st_bbox(bbox)), tx_points)
+neg_spots <- neg_spots - bbox[c("xmin", "ymin")]
+```
+
+```{r}
+plotSpatialFeature(sfe, "total_counts", colGeometryName = "cellSeg", 
+                   aes_use = "color",
+                   fill = NA, dark = TRUE, image_id = "morphology_focus", 
+                   channel = 3:1, bbox = bbox, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta") +
+    geom_sf(data = more_neg, shape = 4,
+            size = 4, color = ditto_colors[1]) +
+    geom_sf(data = neg_spots, color = "white", size = 1, shape = 3) +
+    theme(legend.position = "bottom")
+```
+
+The two cells in this bounding box with over 10% of counts from negative controls are indicated with organge crosses. In terms of total counts and morphology, they don't seem exceptional, so they might not be lower quality cells.
 
 ```{r}
 sfe$has_any_neg <- sfe$subsets_any_neg_sum > 0
@@ -314,7 +399,8 @@ sfe$has_any_neg <- sfe$subsets_any_neg_sum > 0
 ```{r}
 plotColData(sfe, y = "has_any_neg", x = "cell_area", 
             # To not to plot the points in the violin plots, too many of them
-            point_fun = function(...) list()) 
+            point_fun = function(...) list()) /
+    
 ```
 
 ```{r}
@@ -322,7 +408,7 @@ plotColData(sfe, y = "has_any_neg", x = "total_counts",
             point_fun = function(...) list()) 
 ```
 
-It seems that cells that have negative controls tend to be larger and have more total counts. This is the opposite trend from the first Xenium preview data from 2022 (see `JanesickBreastData()`). Given that cells with any negative control count only have 1 or 2 molecules from negative controls, this trend can probably be explained simply by the larger number of molecules, just like when tossing a fair coin 10 times and repeat that for 1000 times, the probability of getting 10 tails in at least one trial is large. The probability is even larger if done 10000 times.
+It seems that cells that have negative controls tend to be larger and have more total counts. This is the opposite trend from the first Xenium preview data from 2022 which has a region in the top left corner with more negative control probes detected (see `JanesickBreastData()`). Given that cells with any negative control count only have 1 or 2 molecules from negative controls, this trend can probably be explained simply by the larger number of molecules, just like when tossing a fair coin 10 times and repeat that for 1000 times, the probability of getting 10 tails in at least one trial is large. The probability is even larger if done 10000 times.
 
 ## Cells
 Some QC metrics are precomputed and are stored in `colData`
@@ -334,35 +420,41 @@ names(colData(sfe))
 Since there're more cells, it would be better to plot the tissue larger, so we'll plot the histogram of QC metrics and the spatial plots separately, unlike in the CosMx vignette.
 
 ```{r}
-n_panel <- nrow(sfe)
+n_panel <- sum(!is_any_neg)
+sfe$nCounts <- colSums(counts(sfe)[!is_any_neg,])
+sfe$nGenes <- colSums(counts(sfe)[!is_any_neg,] > 0)
 colData(sfe)$nCounts_normed <- sfe$nCounts/n_panel
 colData(sfe)$nGenes_normed <- sfe$nGenes/n_panel
 ```
 
-Here we divided nCounts by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. 
+Here we divided the total number of transcript molecules detected from genes (`nCounts`) and the number of genes detected (`nGenes`) by the total number of genes probed, so this histogram is comparable to those from other smFISH-based datasets. 
 
+```{r}
+plotColDataHistogram(sfe, c("nCounts", "nGenes"))
+```
+
+There're weirdly some discrete values of the number of genes detected, which excludes negative controls.
 ```{r}
 plotColDataHistogram(sfe, c("nCounts_normed", "nGenes_normed"))
 ```
 
-Compared to the [FFPE CosMX non-small cell lung cancer dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#cells), more transcripts per gene on average and a larger proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX.
+Compared to the [FFPE CosMX non-small cell lung cancer dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#cells), fewer transcripts per gene on average and a smaller proportion of all genes are detected in this dataset, which is also FFPE. However, this should be interpreted with care, since these two datasets are from different tissues and have different gene panels, so this may or may not indicate that Xenium has better detection efficiency than CosMX. See (I know the two papers) for systematic comparisons of different imaging based technologies with the same tissue.
 
-```{r}
+```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
 ```
 
 There seem to be FOV artifacts. However, the cell ID and FOV information were unavailable so we cannot examine them. 
 
-```{r}
+```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
 ```
 
 A standard examination is to look at the relationship between nCounts and nGenes:
 ```{r}
-plotColData(sfe, x="nCounts", y="nGenes", bins = 100)
+plotColData(sfe, x="nCounts", y="nGenes", bins = 70) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
-
-There appear to be two branches. 
 
 Here we plot the distribution of cell area
 ```{r}
@@ -372,25 +464,50 @@ plotColDataHistogram(sfe, c("cell_area", "nucleus_area"), scales = "free_y")
 That should be in pixels. There's a very long tail. The nuclei are much smaller than the cells.
 
 How is cell area distributed in space?
-```{r}
-plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg")
+```{r, fig.width=6, fig.height=2.5}
+plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg", 
+                   show_axes = TRUE)
 ```
 
-Cells in the sparse region tend to be larger than those in the dense region. This may be biological or an artifact of the cell segmentation algorithm or both.
+The largest cells tend to be in the sparse area. This may be biological or an artifact of the cell segmentation algorithm or both.
 
 Here the nuclei segmentations are plotted instead of cell segmentation. The nuclei are much smaller to the extent that they are difficult to see.
-```{r}
-plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "nucSeg")
+```{r, fig.width=6, fig.height=2.5}
+plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "nucSeg",
+                   show_axes = TRUE)
 ```
 
-There's an outlier near the right edge of the section, throwing off the dynamic range of the plot. Upon inspection of the H&E image, the outlier is a bit of tissue debris that doesn't look like a cell. But we can still that cells in the dense, gland like regions tend to have larger nuclei. This may be biological, or that nuclei are so densely packed in those regions that they are more likely to be undersegmented, i.e. when multiple nuclei are counted as one by the nuclei segmentation program, or both.
-
-These observations motivate an examination of the relationship between cell area and nuclei area:
+Zoom into smaller regions to see the nature of the very large cells
 ```{r}
-plotColData(sfe, x="cell_area", y="nucleus_area", bins = 100)
+bbox3 <- c(xmin = 1350, xmax = 1550, ymin = -1750, ymax = -1550)
+bbox4 <- c(xmin = 3400, xmax = 3600, ymin = -2900, ymax = -2700)
 ```
 
-Again, there are two branches, probably related to cell density and cell type. The nucleus outlier also has large cell area, though it is not as much an outlier in cell area. However, it is a spatial outlier as it's unusually large compared to its neighbors (scroll up two plots back). 
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox3)), nucSeg(sfe))
+nuc <- nuc - bbox3[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox3, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
+```
+
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox4)), nucSeg(sfe))
+nuc <- nuc - bbox4[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox4, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
+```
+
+In most cases, the large cells don't immediately look like artifacts of segmentation, so maybe don't remove them for QC purposes. Meanwhile we see different morphologies in the cells and nuclei which can be interesting to further explore.
 
 Next we calculate the proportion of cell in this z-plane taken up by the nucleus, and examine the distribution:
 
@@ -399,37 +516,100 @@ colData(sfe)$prop_nuc <- sfe$nucleus_area / sfe$cell_area
 ```
 
 ```{r}
+summary(sfe$prop_nuc)
+```
+
+```{r}
 plotColDataHistogram(sfe, "prop_nuc")
 ```
 
-This distribution could have been generated from two peaks that were combined. From the histogram, there do not seem to be cells without nuclei or segmentation artifacts where the nucleus is larger than the cell. However, there are so many cells in this dataset and it is possible that just a few cells would not be visible on this histogram. We double check:
-```{r}
-# No nucleus
-sum(sfe$nucleus_area < 1)
-# Nucleus larger than cell
-sum(sfe$nucleus_area > sfe$cell_area)
-```
+The NA's are cells that don't have nuclei detected. There are also nearly 2500 cells entirely taken up the their nuclei.
 
-So there are no cells without nuclei or nuclei larger than their cells. Here we plot the nuclei proportion in space:
-```{r}
+Here we plot the nuclei proportion in space:
+```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "prop_nuc", colGeometryName = "cellSeg")
 ```
 
 Cells in some histological regions have larger proportions occupied by the nuclei. It is interesting to check, controlling for cell type, how cell area, nucleus area, and the proportion of cell occupied by nucleus relate to gene expression. However, a problem in performing such an analysis is that cell segmentation is only available for one z-plane here and these areas also relate to where this z-plane intersects each cell. 
 
-Below we plot a 2D histogram to better show the density of points on this plot:
+Does cell area relate to `nCounts`, nucleus area, proportion of area taken up by nucleus, and so on? Here we plot how each pair of variables relate to each other in a matrix plot using the [`ggforce`](https://ggforce.data-imaginist.com/) package.
+
 ```{r}
-plotColData(sfe, x="cell_area", y="prop_nuc")
+cols_use <- c("nCounts", "nGenes", "cell_area", "nucleus_area", "prop_nuc")
+df <- colData(sfe)[,cols_use] |> as.data.frame()
 ```
 
-Smaller cells tend to have higher proportion occupied by the nucleus. This can be related to cell type, or it could be a limitation in how small the nuclei can be in this tissue.
-
-We also examine the relationship between nucleus area and the proportion of cell occupied by the nucleus:
-```{r}
-plotColData(sfe, x="nucleus_area", y="prop_nuc", bins = 100)
+```{r, fig.width=8, fig.height=6}
+ggplot(df) +
+    geom_bin2d(aes(x = .panel_x, y = .panel_y), bins = 30) +
+    geom_autodensity(fill = "gray90", color = "gray70", linewidth = 0.2) +
+    facet_matrix(vars(tidyselect::everything()), layer.diag = 2) +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
-The outlier is obvious. There are more cells with both small nuclei and low proportion of area occupied by the nucleus.
+Cool, so, generally, `nCounts`, `nGenes`, cell area, and nucleus area positively correlate with each other, but the proportion of cell area taken up by the nucleus doesn't seem to correlate with the other variables.
+
+```{r}
+sfe$has_nuclei <- !is.na(sfe$nucleus_area)
+plotColData(sfe, y = "has_nuclei", x = "cell_area", 
+            point_fun = function(...) list())
+```
+
+It seems that cells that don't have nuclei detected tend to be smaller, probably because less of their nuclei are captured in this tissue section. Where are the cells without nuclei distributed in space?
+
+```{r, fig.width=6, fig.height=2.5}
+plotSpatialFeature(sfe, "has_nuclei", colGeometryName = "cellSeg",
+                   show_axes = TRUE) +
+    # To highlight the cells that don't have nuclei
+    geom_sf(data = SpatialFeatureExperiment::centroids(sfe)[!sfe$has_nuclei,], 
+            color = ditto_colors[1], size = 0.3)
+```
+
+It seems that there are more cells without nuclei in regions with higher cell density; would be interesting to do spatial point process analysis. Zoom into a smaller region to inspect, especially the cells outside the main piece of tissue:
+
+```{r}
+bbox5 <- c(xmin = 6400, xmax = 6800, ymin = -300, ymax = -50)
+bbox6 <- c(xmin = 600, xmax = 1000, ymin = -600, ymax = -300)
+bbox7 <- c(xmin = 6800, xmax = 7200, ymin = -2900, ymax = -2500)
+```
+
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox5)), nucSeg(sfe))
+nuc <- nuc - bbox5[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox5, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
+```
+
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox6)), nucSeg(sfe))
+nuc <- nuc - bbox6[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox6, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
+```
+
+```{r}
+nuc <- st_intersection(st_as_sfc(st_bbox(bbox7)), nucSeg(sfe))
+nuc <- nuc - bbox7[c("xmin", "ymin")]
+```
+
+```{r}
+plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
+             image_id = "morphology_focus", 
+             channel = 3:1, bbox = bbox7, normalize_channels = TRUE) +
+    geom_sf(data = nuc, fill = NA, color = "magenta")
+```
+
+Here in QC we are looking for low quality cells. From what we've explored so far, cells with negative control counts and exceptionally large cells might not be suspect, but cells far outside the tissue are suspect.
 
 ## Genes
 Here we look at the mean and variance of each gene
