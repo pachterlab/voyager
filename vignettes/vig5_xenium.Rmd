@@ -51,6 +51,22 @@ system.time(
 packageVersion("Voyager")
 ```
 
+For website when we submit the new Voyager paper:
+1. mouse OB and muscle for Visium*
+2. Xenium v2 (this dataset)*
+3. MERFISH*
+4. VisiumHD*
+5. Slide-seq v2
+6. CosMX
+7. seqFISH
+8. CODEX
+9. both Visium and metabolomics
+10. non-spatial, check in with Sina for updates
+
+Spatial methods for website:
+1. Univariate
+
+
 # Introduction
 
 Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The dataset used here is from human pancreas and processed with Xenium Onboarding Analysis (XOA) v2. It was originally downloaded [here](https://cf.10xgenomics.com/samples/xenium/2.0.0/Xenium_V1_human_Pancreas_FFPE/Xenium_V1_human_Pancreas_FFPE_outs.zip). In the version of the data used here, the large Zarr files have been removed because they're not used here anyway and to speed up download.
@@ -68,6 +84,7 @@ library(ggforce)
 library(stringr)
 library(scater) 
 library(scuttle)
+library(scales)
 library(BiocParallel)
 library(BiocSingular)
 library(bluster)
@@ -77,6 +94,8 @@ library(RBioFormats)
 library(fs)
 library(sf)
 library(arrow)
+library(dplyr)
+library(BiocNeighbors)
 theme_set(theme_bw())
 options(timeout = Inf)
 ```
@@ -104,7 +123,7 @@ The `readXenium()` function in `SpatialFeatureExperiment` reads XOA v1 and v2 ou
 # Annoying RBioFormats bug
 try(sfe <- readXenium(fn))
 # Use gene symbols as row names but Ensembl IDs are still in rowData(sfe)
-(sfe <- readXenium(fn, row.names = "symbol", add_molecules = TRUE))
+(sfe <- readXenium(fn, row.names = "symbol"))
 ```
 
 There are 140702 cells in this dataset, a little more than in the CosMX dataset.
@@ -128,29 +147,20 @@ plotCellBin2D(sfe, binwidth = 50)
 There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
 
 Plot total transcript density
+
 ```{r}
-tx_coords <- st_coordinates(txSpots(sfe))
-tx_points <- df2sf(tx_coords, spatialCoordsNames = c("X", "Y", "Z"), 
-                   geometryType = "POINT")
-tx_points <- st_geometry(tx_points)
-grid <- st_make_grid(tx_points, cellsize = 50)
-tx_int <- st_intersects(grid, tx_points)
-tx_int <- lengths(tx_int)
-grid <- st_sf(tx_count = tx_int, geometry = grid)
-grid <- grid[grid$tx_count > 0,]
+tx <- read_parquet("/Volumes/Archives/xenium2_pancreas/transcripts.parquet")
 ```
 
 ```{r, fig.width=6, fig.height=2.5}
-ggplot(grid, aes(fill = tx_count)) +
-    geom_sf(linewidth = 0) +
-    scale_fill_distiller(palette = "Blues", direction = 1)
+ggplot(tx, aes(x_location, -y_location)) +
+    geom_bin2d(binwidth = 50) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    coord_equal() +
+    labs(x = NULL, y = NULL)
 ```
 
 Cool, so the region with higher cell density also has higher transcript density.
-```{r}
-rm(list = c("tx_points", "tx_coords"))
-gc()
-```
 
 Plot the images; the image has 4 channels, which are DAPI, ATP1A1/CD45/E-Cadherin, 18S, and AlphaSMA/Vimentin, in this order. The images are pyramids with multiple resolutions; some applications would not require the highest resolution. The file for each channel is around 370 MB. Only the metadata is read in R and only the relevant portion of the image at the highest resolution necessary is loaded into memory when needed, say when plotting. 
 
@@ -204,14 +214,10 @@ p2 <- plotImage(sfe, image_id = "morphology_focus", channel = 2,
 p1 + p2
 ```
 
+We can also use a different color map for single channels, such as viridis
 ```{r}
-p3 <- plotImage(sfe, image_id = "morphology_focus", channel = 1,
-          bbox = bbox1) +
-    ggtitle("DAPI")
-p4 <- plotImage(sfe, image_id = "morphology_focus", channel = 2,
-          bbox = bbox1) +
-    ggtitle("ATP1A1/CD45/E-Cadherin")
-p3 + p4
+plotImage(sfe, image_id = "morphology_focus", channel = 1,
+          bbox = bbox2, palette = viridis_pal()(255))
 ```
 
 We can also plot the cell and nuclei geometries on top of the images
@@ -258,7 +264,7 @@ According to the Xenium paper [@Janesick2022-rp], there are 3 types of controls:
 2) decoding controls to assess misassigned genes, and 
 3) genomic DNA (gDNA) controls to ensure the signal is from RNA.
 
-The paper does not explain in detail how those control probes were designed.
+The paper does not explain in detail how those control probes were designed. The negative controls give us a sense of the false positive rate.
 
 ```{r}
 is_blank <- rowData(sfe)$Type == "Unassigned Codeword"
@@ -320,13 +326,13 @@ plotColDataHistogram(sfe, cols_use, bins = 20, ncol = 2) +
     annotation_logticks(sides = "l")
 ```
 
-The counts are low, mostly zero, but there are some cells with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with. The negative controls indicates the prevalence of false positives. Here we have only a few hundred cells out of over 140,000 that have negative control probes detected. 
+The counts are low, mostly zero, but there are some cells with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with. The negative controls indicates the prevalence of false positives. Here we have only about 2000 out of over 140,000 that have negative control spots detected. About `r format(sum(tx$feature_name %in% rownames(sfe)[is_any_neg])/nrow(tx)*100, digits = 3)`% are negative control spots, so false positive rate is low.
 
 ```{r}
 names(colData(sfe))
 ```
 
-Where are cells with higher proportion of negative control probes (i.e. low total counts and have negative control probes detected) located in space?
+Where are cells with higher proportion of negative control spots (i.e. low total counts and have negative control spots detected, >10% here) located in space?
 ```{r}
 data("ditto_colors")
 ```
@@ -340,75 +346,20 @@ plotSpatialFeature(sfe, "subsets_any_neg_sum", colGeometryName = "cellSeg",
     theme(legend.position = "bottom")
 ```
 
-Cells that have any negative control probe appear to be randomly distributed in space, but cells that have higher proportion of negative control seem to be few and over-represented in the less dense area. Those could be segmentation artifacts and not actually cells.
+Cells that have any negative control spots appear to be randomly distributed in space, but cells that have higher proportion of negative control seem to be few and over-represented in the less dense area, because the proportion is higher when total transcript counts are lower to begin with.
 
 Where are negative control spots located?
-```{r}
-tx_coords <- st_coordinates(txSpots(sfe)[is_any_neg,])
-tx_points <- df2sf(tx_coords, spatialCoordsNames = c("X", "Y", "Z"), 
-                   geometryType = "POINT")
-tx_points <- st_geometry(tx_points)
-grid <- st_make_grid(tx_points, cellsize = 100)
-tx_int <- st_intersects(grid, tx_points)
-tx_int <- lengths(tx_int)
-grid <- st_sf(tx_count = tx_int, geometry = grid)
-grid <- grid[grid$tx_count > 0,]
-```
 
 ```{r, fig.width=6, fig.height=2.5}
-ggplot(grid, aes(fill = tx_count)) +
-    geom_sf(linewidth = 0) +
-    scale_fill_distiller(palette = "Blues", direction = 1)
+tx |> 
+    filter(feature_name %in% rownames(sfe)[is_any_neg]) |> 
+    ggplot(aes(x_location, -y_location)) +
+    geom_bin2d(binwidth = 50) +
+    scale_fill_distiller(palette = "Blues", direction = 1) +
+    labs(x = NULL, y = NULL)
 ```
 
-Generally there are more negative control spots in the region with higher cell and transcript density, which is not surprising.
-
-Zoom into one of those areas to inspect
-```{r}
-bbox <- c(xmin = 1550, xmax = 1750, ymin = -1800, ymax = -1700)
-```
-
-```{r}
-nuc <- st_intersection(st_as_sfc(st_bbox(bbox)), nucSeg(sfe))
-nuc <- nuc - bbox[c("xmin", "ymin")]
-more_neg <- st_intersection(st_as_sfc(st_bbox(bbox)),
-                         SpatialFeatureExperiment::centroids(sfe)[sfe$more_neg,])
-more_neg <- more_neg - bbox[c("xmin", "ymin")]
-neg_spots <- st_intersection(st_as_sfc(st_bbox(bbox)), tx_points)
-neg_spots <- neg_spots - bbox[c("xmin", "ymin")]
-```
-
-```{r}
-plotSpatialFeature(sfe, "total_counts", colGeometryName = "cellSeg", 
-                   aes_use = "color",
-                   fill = NA, dark = TRUE, image_id = "morphology_focus", 
-                   channel = 3:1, bbox = bbox, normalize_channels = TRUE) +
-    geom_sf(data = nuc, fill = NA, color = "magenta") +
-    geom_sf(data = more_neg, shape = 4,
-            size = 4, color = ditto_colors[1]) +
-    geom_sf(data = neg_spots, color = "white", size = 1, shape = 3) +
-    theme(legend.position = "bottom")
-```
-
-The two cells in this bounding box with over 10% of counts from negative controls are indicated with organge crosses. In terms of total counts and morphology, they don't seem exceptional, so they might not be lower quality cells.
-
-```{r}
-sfe$has_any_neg <- sfe$subsets_any_neg_sum > 0
-```
-
-```{r}
-plotColData(sfe, y = "has_any_neg", x = "cell_area", 
-            # To not to plot the points in the violin plots, too many of them
-            point_fun = function(...) list()) /
-    
-```
-
-```{r}
-plotColData(sfe, y = "has_any_neg", x = "total_counts", 
-            point_fun = function(...) list()) 
-```
-
-It seems that cells that have negative controls tend to be larger and have more total counts. This is the opposite trend from the first Xenium preview data from 2022 which has a region in the top left corner with more negative control probes detected (see `JanesickBreastData()`). Given that cells with any negative control count only have 1 or 2 molecules from negative controls, this trend can probably be explained simply by the larger number of molecules, just like when tossing a fair coin 10 times and repeat that for 1000 times, the probability of getting 10 tails in at least one trial is large. The probability is even larger if done 10000 times.
+Generally there are more negative control spots in the region with higher cell and transcript density, but especially regions with high cell density, which is not surprising. There don't visually seem to be regions with more negative control spots not accounted for by cell and transcript density. In contrast, the first Xenium preview data from 2022 has a region in the top left corner with more negative control probes detected that seems like an artifact (see `JanesickBreastData()`).
 
 ## Cells
 Some QC metrics are precomputed and are stored in `colData`
@@ -444,8 +395,6 @@ Compared to the [FFPE CosMX non-small cell lung cancer dataset](https://pachterl
 plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
 ```
 
-There seem to be FOV artifacts. However, the cell ID and FOV information were unavailable so we cannot examine them. 
-
 ```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
 ```
@@ -461,7 +410,7 @@ Here we plot the distribution of cell area
 plotColDataHistogram(sfe, c("cell_area", "nucleus_area"), scales = "free_y")
 ```
 
-That should be in pixels. There's a very long tail. The nuclei are much smaller than the cells.
+There's a very long tail. The nuclei are much smaller than the cells.
 
 How is cell area distributed in space?
 ```{r, fig.width=6, fig.height=2.5}
@@ -471,7 +420,7 @@ plotSpatialFeature(sfe, "cell_area", colGeometryName = "cellSeg",
 
 The largest cells tend to be in the sparse area. This may be biological or an artifact of the cell segmentation algorithm or both.
 
-Here the nuclei segmentations are plotted instead of cell segmentation. The nuclei are much smaller to the extent that they are difficult to see.
+Here the nuclei segmentations are plotted instead of cell segmentation.
 ```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "nucleus_area", colGeometryName = "nucSeg",
                    show_axes = TRUE)
@@ -507,7 +456,7 @@ plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
     geom_sf(data = nuc, fill = NA, color = "magenta")
 ```
 
-In most cases, the large cells don't immediately look like artifacts of segmentation, so maybe don't remove them for QC purposes. Meanwhile we see different morphologies in the cells and nuclei which can be interesting to further explore.
+In most cases, the large cells don't immediately look like artifacts of segmentation, so maybe don't remove them for QC purposes. Meanwhile we see different morphologies in the cells and nuclei which can be interesting to further explore. There are also some cells that don't have nuclei which may have nuclei in a different z-plane or may be false positives, and maybe some false negatives in regions with fluorescence and seemingly nuclei but not cell segmentation.
 
 Next we calculate the proportion of cell in this z-plane taken up by the nucleus, and examine the distribution:
 
@@ -523,7 +472,7 @@ summary(sfe$prop_nuc)
 plotColDataHistogram(sfe, "prop_nuc")
 ```
 
-The NA's are cells that don't have nuclei detected. There are also nearly 2500 cells entirely taken up the their nuclei.
+The NA's are cells that don't have nuclei detected. There are also nearly 2500 cells entirely taken up the their nuclei, which may be due to cell type or false negative in segmenting the rest of the cell.
 
 Here we plot the nuclei proportion in space:
 ```{r, fig.width=6, fig.height=2.5}
@@ -555,7 +504,7 @@ plotColData(sfe, y = "has_nuclei", x = "cell_area",
             point_fun = function(...) list())
 ```
 
-It seems that cells that don't have nuclei detected tend to be smaller, probably because less of their nuclei are captured in this tissue section. Where are the cells without nuclei distributed in space?
+It seems that cells that don't have nuclei detected tend to be smaller, probably because less of them are captured in this tissue section when their nuclei are not in this section. Where are the cells without nuclei distributed in space?
 
 ```{r, fig.width=6, fig.height=2.5}
 plotSpatialFeature(sfe, "has_nuclei", colGeometryName = "cellSeg",
@@ -580,7 +529,7 @@ nuc <- nuc - bbox5[c("xmin", "ymin")]
 
 ```{r}
 plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
-             image_id = "morphology_focus", 
+             image_id = "morphology_focus", show_axes = TRUE,
              channel = 3:1, bbox = bbox5, normalize_channels = TRUE) +
     geom_sf(data = nuc, fill = NA, color = "magenta")
 ```
@@ -592,7 +541,7 @@ nuc <- nuc - bbox6[c("xmin", "ymin")]
 
 ```{r}
 plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
-             image_id = "morphology_focus", 
+             image_id = "morphology_focus", show_axes = TRUE,
              channel = 3:1, bbox = bbox6, normalize_channels = TRUE) +
     geom_sf(data = nuc, fill = NA, color = "magenta")
 ```
@@ -604,12 +553,66 @@ nuc <- nuc - bbox7[c("xmin", "ymin")]
 
 ```{r}
 plotGeometry(sfe, "cellSeg", fill = FALSE, dark = TRUE,
-             image_id = "morphology_focus", 
+             image_id = "morphology_focus", show_axes = TRUE,
              channel = 3:1, bbox = bbox7, normalize_channels = TRUE) +
     geom_sf(data = nuc, fill = NA, color = "magenta")
 ```
 
-Here in QC we are looking for low quality cells. From what we've explored so far, cells with negative control counts and exceptionally large cells might not be suspect, but cells far outside the tissue are suspect.
+Here in QC we are looking for low quality cells. From what we've explored so far, cells with negative control counts and exceptionally large cells might not be suspect, but cells far outside the tissue are suspect. For some types of spatial neighborhood graphs, such as the k nearest neighbor graph, these cells will also affect spatial analysis. So here we remove those cells. Here we compute a k nearest neighbor graph with k = 5 and remove cells whith neighbors that are too far away.
+
+```{r}
+g <- findKNN(spatialCoords(sfe)[,1:2], k = 5, BNPARAM = AnnoyParam())
+```
+
+```{r}
+max_dist <- rowMaxs(g$distance)
+data.frame(max_dist = max_dist) |> 
+    ggplot(aes(max_dist)) +
+    geom_histogram(bins = 100) +
+    scale_y_continuous(transform = "log1p") +
+    scale_x_continuous(breaks = breaks_pretty()) +
+    annotation_logticks(sides = "l")
+```
+
+Also look at minimum distance between the neighbors to find outlying single cells that may be less far from the tissue
+```{r}
+min_dist <- rowMins(g$distance)
+data.frame(min_dist = min_dist) |> 
+    ggplot(aes(med_dist)) +
+    geom_histogram(bins = 100) +
+    scale_y_continuous(transform = "log1p") +
+    scale_x_continuous(breaks = breaks_pretty()) +
+    annotation_logticks(sides = "l")
+```
+
+There's a long tail, which must be the small clusters of cells away from the tissue. Say use a cutoff of 60 microns, and see where those cells are.
+```{r}
+sfe$main_tissue <- !(max_dist > 60 | min_dist > 50)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+plotSpatialFeature(sfe, "main_tissue", colGeometryName = "cellSeg",
+                   show_axes = TRUE) +
+    # To highlight the outliers
+    geom_sf(data = SpatialFeatureExperiment::centroids(sfe)[!sfe$main_tissue,], 
+            color = ditto_colors[1], size = 0.3)
+```
+
+To be more fastidious, I can also compare the max neighbor distance of each cell to those of its neighbors in order to account for cell density in different parts of the tissue, and to extract data from the image to remove cells that lack fluorescent signals. Here we remove the cells away from the main tissue, cells that have very low total gene expression, cells that are too small to make sense, and genes that are not detected.
+
+```{r}
+plotColDataHistogram(sfe, c("nCounts", "cell_area")) +
+    scale_x_log10() +
+    annotation_logticks(sides = "b")
+```
+
+The x axis is log transformed to better see the small values, and there's no obvious outlier. Say use an arbitrary cutoff of 5 for nCounts
+
+```{r}
+sfe <- sfe[,sfe$main_tissue & sfe$nCounts > 5]
+sfe <- sfe[rowSums(counts(sfe)) > 0,]
+dim(sfe)
+```
 
 ## Genes
 Here we look at the mean and variance of each gene
@@ -618,9 +621,9 @@ rowData(sfe)$means <- rowMeans(counts(sfe))
 rowData(sfe)$vars <- rowVars(counts(sfe))
 ```
 
-Real genes generally have higher mean expression across cells than negative controls.
+Real genes generally have higher mean expression across cells than negative controls. This is the mean of each gene across cells.
 ```{r}
-rowData(sfe)$is_neg <- is_any_neg
+rowData(sfe)$is_neg <- rowData(sfe)$Type != "Gene Expression"
 plotRowData(sfe, x = "means", y = "is_neg") +
     scale_y_log10() +
     annotation_logticks(sides = "b")
@@ -636,7 +639,7 @@ plotRowData(sfe, x="means", y="vars", color_by = "is_neg") +
     labs(color = "Negative control")
 ```
 
-The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed.
+The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed. Overdispersion in gene expression can not only be caused by transcription bursts and cell type heterogeneity, but also by spatial autocorrelation (cite the tww Daniel Griffith papers, one for PSA, one for NSA)
 
 # Spatial autocorrelation of QC metrics
 
@@ -650,6 +653,11 @@ system.time(
                                                   dist_type = "idw", k = 5, 
                                                   style = "W")
 )
+```
+
+I think it makes sense to replace NA with 0 for nucleus area here though generally 0 is not an appropriate substitute for NA. 
+```{r}
+sfe$nucleus_area <- ifelse(is.na(sfe$nucleus_area), 0, sfe$nucleus_area)
 ```
 
 ```{r}
@@ -671,27 +679,84 @@ sfe <- colDataUnivariate(sfe, type = "localmoran",
 ```
 
 The `pointsize` argument adjusts the point size in `scattermore`. The default is 0, meaning single pixels, but since the cells in the sparse region are hard to see that way, we increase `pointsize`. We would still plot the polygons in larger single panel plots, but use `scattermore` in multi-panel plots where the polygons in each panel are invisible anyway due to the small size to save some time.
-```{r, fig.width=9, fig.height=6}
+```{r, fig.width=6, fig.height=7}
 plotLocalResult(sfe, "localmoran",
                 features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
                 colGeometryName = "centroids", scattermore = TRUE,
-                divergent = TRUE, diverge_center = 0, pointsize = 1)
+                divergent = TRUE, diverge_center = 0, pointsize = 1.5,
+                ncol = 1)
 ```
 
-Interestingly, nCounts is more homogeneous in the interior of the dense region, while nGenes is more homogeneous by the edge of the dense region. As expected, cell area is more homogeneous in the sparse region. However, the nucleus area is more homogeneous in the interior of the dense region. 
+It seems that the glandular areas tend to be more homogeneous. 
+
+```{r, fig.width=6, fig.height=7}
+plotLocalResult(sfe, "localmoran", attribute = "pysal",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "centroids", scattermore = TRUE, pointsize = 1.5,
+                ncol = 1, size = 3)
+```
+
+```{r}
+localResultAttrs(sfe, "localmoran", "nCounts")
+```
+
+It's hard to see without zooming in.
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", divergent = TRUE, diverge_center = 0,
+                ncol = 2, bbox = bbox1)
+```
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran", attribute = "pysal",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", bbox = bbox1, ncol = 2)
+```
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran", attribute = "-log10p_adj", 
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", divergent = TRUE, 
+                diverge_center = -log10(0.05),
+                ncol = 2, bbox = bbox1)
+```
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", divergent = TRUE, diverge_center = 0,
+                ncol = 2, bbox = bbox2)
+```
+
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran", attribute = "pysal",
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", bbox = bbox2, ncol = 2)
+```
+
+```{r, fig.width=8, fig.height=7}
+plotLocalResult(sfe, "localmoran", attribute = "-log10p_adj", 
+                features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
+                colGeometryName = "cellSeg", divergent = TRUE, 
+                diverge_center = -log10(0.05),
+                ncol = 2, bbox = bbox2)
+```
+
+That's interesting. It seems that locally we can have a mixture of positive and negative spatial autocorrelation, though for the most part local Moran's I is not statistically significant.
 
 Moran plot for nCounts
 ```{r}
 sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
-```{r, fig.width=8, fig.height=7}
-p1 <- moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
-p2 <- moranPlot(sfe, "nCounts", binned = TRUE)
-p1 / p2 + plot_layout(guides = "collect")
+```{r, fig.width=6, fig.height=3}
+moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
 ```
 
-There are no obvious clusters here. In the lower panel, the 2D histogram of influential points is plotted in red.
+There are no obvious clusters here.
 
 # Moran's I
 
@@ -857,6 +922,9 @@ plotLocalResult(sfe, "LOSH", features = genes_use,
 ```
 
 Again, just like in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes), LOSH is higher where the gene is more highly expressed in some (e.g. CD3E, LUM, TENT5C) but not all cases (e.g. FOXA1, GATA3). This may be due to spatial distribution of different cell types.
+
+# Explore multiple length scales
+Here we perform spatial binning of the transcript spots with bins of different sizes to see how the spatial statistics change over length scales.
 
 # Session info
 ```{r}
