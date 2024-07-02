@@ -69,7 +69,7 @@ Spatial methods for website:
 
 # Introduction
 
-Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The dataset used here is from human pancreas and processed with Xenium Onboarding Analysis (XOA) v2. It was originally downloaded [here](https://cf.10xgenomics.com/samples/xenium/2.0.0/Xenium_V1_human_Pancreas_FFPE/Xenium_V1_human_Pancreas_FFPE_outs.zip). In the version of the data used here, the large Zarr files have been removed because they're not used here anyway and to speed up download.
+Xenium is a new technology from 10X genomics for single cell resolution smFISH based spatial transcriptomics. The dataset used here is from adult human pancreatic cancer and processed with Xenium Onboarding Analysis (XOA) v2. It was originally downloaded [here](https://cf.10xgenomics.com/samples/xenium/2.0.0/Xenium_V1_human_Pancreas_FFPE/Xenium_V1_human_Pancreas_FFPE_outs.zip). In the version of the data used here, the large Zarr files have been removed because they're not used here anyway and to speed up download.
 
 Here we load the packages used in this vignette.
 
@@ -95,6 +95,7 @@ library(fs)
 library(sf)
 library(arrow)
 library(dplyr)
+library(tidyr)
 library(BiocNeighbors)
 theme_set(theme_bw())
 options(timeout = Inf)
@@ -399,6 +400,8 @@ plotSpatialFeature(sfe, "nCounts", colGeometryName = "cellSeg")
 plotSpatialFeature(sfe, "nGenes", colGeometryName = "cellSeg")
 ```
 
+These plots clearly show that nCounts and nGenes are spatially structured and may be biologically relevant.
+
 A standard examination is to look at the relationship between nCounts and nGenes:
 ```{r}
 plotColData(sfe, x="nCounts", y="nGenes", bins = 70) +
@@ -578,7 +581,7 @@ Also look at minimum distance between the neighbors to find outlying single cell
 ```{r}
 min_dist <- rowMins(g$distance)
 data.frame(min_dist = min_dist) |> 
-    ggplot(aes(med_dist)) +
+    ggplot(aes(min_dist)) +
     geom_histogram(bins = 100) +
     scale_y_continuous(transform = "log1p") +
     scale_x_continuous(breaks = breaks_pretty()) +
@@ -639,7 +642,7 @@ plotRowData(sfe, x="means", y="vars", color_by = "is_neg") +
     labs(color = "Negative control")
 ```
 
-The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed. Overdispersion in gene expression can not only be caused by transcription bursts and cell type heterogeneity, but also by spatial autocorrelation (cite the tww Daniel Griffith papers, one for PSA, one for NSA)
+The red line $y = x$ is expected if the data follows a Poisson distribution. Negative controls and real genes form mostly separate clusters. Negative controls stick close to the line, while real genes are overdispersed. Unlike in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#genes), the negative controls don't seem overdispersed. Overdispersion in gene expression can not only be caused by transcription bursts and cell type heterogeneity, but also by both positive and negative spatial autocorrelation [@Chun2018-ar; @Griffith2011-lx].
 
 # Spatial autocorrelation of QC metrics
 
@@ -648,11 +651,9 @@ There's a sparse and a dense region. This poses the question of what type of nei
 For the purpose of demonstration, we use k nearest neighbors with $k = 5$, with inverse distance weighting. Note that using more neighbors leads to longer computation time of spatial autocorrelation metrics.
 
 ```{r}
-system.time(
-    colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
-                                                  dist_type = "idw", k = 5, 
-                                                  style = "W")
-)
+colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
+                                              dist_type = "idw", k = 5, 
+                                              style = "W")
 ```
 
 I think it makes sense to replace NA with 0 for nucleus area here though generally 0 is not an appropriate substitute for NA. 
@@ -669,7 +670,7 @@ sfe <- colDataMoransI(sfe, c("nCounts", "nGenes", "cell_area", "nucleus_area"),
 colFeatureData(sfe)[c("nCounts", "nGenes", "cell_area", "nucleus_area"),]
 ```
 
-Global Moran's I indicatse positive spatial autocorrelation. As the strength of spatial autocorrelation can vary spatially, we also run local Moran's I.
+Global Moran's I indicates positive spatial autocorrelation. Here global spatial autocorrelation for these QC metrics is moderate or weak, at least at the level of single cells using a k nearest neighbor graph with k = 5. From earlier plots of these metrics, there may be stronger spatial autocorrelation at a longer length scale. As the strength of spatial autocorrelation can vary spatially, we also run local Moran's I.
 
 ```{r}
 sfe <- colDataUnivariate(sfe, type = "localmoran", 
@@ -687,17 +688,17 @@ plotLocalResult(sfe, "localmoran",
                 ncol = 1)
 ```
 
-It seems that the glandular areas tend to be more homogeneous. 
+It seems that the glandular areas tend to be more homogeneous, greatly contributing to the global Moran's I value, but most of the tissue is not very spatially autocorrelated for these metrics. The $I_i$ value is not the only thing computed in local Moran's I. P-values and types of neighborhoods are also computed. "Type of neighborhood" include cells with low values and neighbors with low values (low-low), low-high, high-high, and high-low, and "low" and "high" are relative to the mean. One can make a scatter plot with the value at each cell on the x axis and spatially weighted average of the cell's neighbors on the spatial neighborhood graph on the y axis; this is the Moran scatter plot. These neighborhood types are quadrants on the plot. However, when the value doesn't deviate much from the mean, the neighborhood type might not mean much, but it does seem to highlight some tissue structure. Another caveat is that the mean is from the entire section, while from tissue morphology, there clearly are two very different regions within the section. It would be cool to have a method to better determine areas in the tissue for spatial analysis that can best answer the questions of interest. It might make sense to analyze the sparse and dense regions separately at some point.
+
+```{r}
+localResultAttrs(sfe, "localmoran", "nCounts")
+```
 
 ```{r, fig.width=6, fig.height=7}
 plotLocalResult(sfe, "localmoran", attribute = "pysal",
                 features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
                 colGeometryName = "centroids", scattermore = TRUE, pointsize = 1.5,
                 ncol = 1, size = 3)
-```
-
-```{r}
-localResultAttrs(sfe, "localmoran", "nCounts")
 ```
 
 It's hard to see without zooming in.
@@ -723,13 +724,14 @@ plotLocalResult(sfe, "localmoran", attribute = "-log10p_adj",
                 ncol = 2, bbox = bbox1)
 ```
 
+Here the center of the divergent palette is at $-\mathrm{log}_{10}0.05$ and the p-values have been corrected for multiple testing (see `spdep::p.adjustSP()`). Warm color indicates "significant" and cool color indicates "not significant" based on this conventional threshold. Here in this dense region, for these metrics, local Moran's I is generally not significant.
+
 ```{r, fig.width=8, fig.height=7}
 plotLocalResult(sfe, "localmoran",
                 features = c("nCounts", "nGenes", "cell_area", "nucleus_area"),
                 colGeometryName = "cellSeg", divergent = TRUE, diverge_center = 0,
                 ncol = 2, bbox = bbox2)
 ```
-
 
 ```{r, fig.width=8, fig.height=7}
 plotLocalResult(sfe, "localmoran", attribute = "pysal",
@@ -745,7 +747,7 @@ plotLocalResult(sfe, "localmoran", attribute = "-log10p_adj",
                 ncol = 2, bbox = bbox2)
 ```
 
-That's interesting. It seems that locally we can have a mixture of positive and negative spatial autocorrelation, though for the most part local Moran's I is not statistically significant.
+In this sparser region, there're more areas where local Moran's I is significant for these metrics. It seems that locally we can have a mixture of positive and negative spatial autocorrelation, though for the most part local Moran's I is not statistically significant and the significant parts are in the high-high regions. What to make of this? 
 
 Moran plot for nCounts
 ```{r}
@@ -753,20 +755,22 @@ sfe <- colDataUnivariate(sfe, "moran.plot", "nCounts", colGraphName = "knn5")
 ```
 
 ```{r, fig.width=6, fig.height=3}
-moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE) 
+moranPlot(sfe, "nCounts", binned = TRUE, plot_influential = FALSE, bins = c(150, 60)) 
 ```
 
-There are no obvious clusters here.
+There are no obvious clusters here based on the 2D histogram showing point density in the scatter plot. With W style (the adjacency matrix with edge weights have row sums of 1), the slope of the least square line fitted to the scatter plot is Moran's I [@Anselin1996-mo].
 
 # Moran's I
 
-By default, for gene expression, the log normalized counts are used in spatial autocorrelation metrics, so before running Moran's I, we normalize the data.
+By default, for gene expression, the log normalized counts are used in spatial autocorrelation metrics because many statistical methods were developed for normally distributed data and there can be technical artifacts affecting the raw gene counts per cell, so before running Moran's I, we normalize the data. In the single cell tradition, total counts (nCounts) is treated like a technical artifact to be normalized away, which makes sense given the transcript capture and PCR amplification steps in the single cell RNA-seq protocol. However, as seen above, nCounts clearly has biologically relevant spatial structure, and imaging based technologies don't have those steps. Furthermore, in imaging based technologies, typically a curated gene panel of a few hundred genes targeting certain cell types of interest is used, while scRNA-seq is usually untargeted and transcriptome wide. Due to the skewed gene panel, nCounts is biologically skewed as well so using it to normalize data can lead to false negatives in finding spatially variable genes and differential expression [@Atta2024-tl]. 
+
+Sometimes cell area is used when normalizing imaging based data, which makes sense when larger cells have more room for more transcripts and as seen above in the matrix plot, cell area does positively correlate with nCounts. However, as seen in the earlier cell level QC plots, cell size is also spatially structured and seemingly biologically relevant because cells of some types tend to be larger than cells of some other types, though its global Moran's I is a bit weaker than that of nCounts. Often some cells are larger because more of them get captured in this section and some cells are smaller because less of them are in this section, so there still is a technical component. In [@Atta2024-tl], normalizing by cell area and not normalizing are also examined; here SVG and DE results are more comparable to when using a more representative gene panel, with fewer false positives and false negatives compared to normalizing by nCounts. Due to the technical effect of partial capture of cells in the section, [@Atta2024-tl] recommends normalizing with cell area if it's reliable. While cell area from XOA v1 with cell segmentations that look like Voroni tessellation doesn't seem reliable, with multiple fluorescent stains in XOA v2, it seems much better, so we'll normalize with cell area here while noting the caveat that cell area can be biologically relevant.
 
 ```{r}
-sfe <- logNormCounts(sfe)
+sfe <- logNormCounts(sfe, size.factor = sfe$cell_area)
 ```
 
-Use more cores if available to speed this up.
+Use more cores if available to speed this up. It's slower here because the gene count matrix is actually on disk thanks to `DelayedArray` and not loaded into memory.
 ```{r}
 system.time(
     sfe <- runMoransI(sfe, colGraphName = "knn5", BPPARAM = MulticoreParam(2))
@@ -774,40 +778,46 @@ system.time(
 ```
 
 ```{r}
-rowData(sfe)$is_neg <- is_any_neg
-```
-
-```{r}
 plotRowData(sfe, x = "moran_sample01", y = "is_neg")
 ```
 
-As expected, generally the negative controls are tightly clustered around 0, while the real genes have positive Moran's I, which means there is generally no technical artifact spatial trend. No significantly negative Moran's I is observed. Why is negative spatial autocorrelation so rare in gene expression?
-
-What are the two negative controls with a sizable Moran's I?
-```{r, fig.width=9, fig.height=3}
-ord <- order(rowData(sfe)$moran_sample01[is_any_neg], decreasing = TRUE)[1:2]
-top_neg <- rownames(sfe)[is_any_neg][ord]
-plotSpatialFeature(sfe, top_neg, colGeometryName = "centroids",
-                   scattermore = TRUE, pointsize = 1)
-```
-
-There is somewhat a spatial trend for that antisense probe, with more detected in the upper left. However, this might not significantly affect other results since there are at most 2 counts and at most about 1% of all counts in each cell. The negative control codeword has at most 1 count per cell and the cells with this negative control detected seem to be few and far between. 
-
-These are the most detected negative controls, and the most detected one is also the one with the highest Moran's I among negative controls. However, the other negative control with higher Moran's I is not among the most detected.
-```{r}
-head(sort(rowData(sfe)$means[is_any_neg], decreasing = TRUE), 15)
-```
+As expected, generally the negative controls are tightly clustered around 0, while the real genes have positive Moran's I, which means there is generally no technical artifact spatial trend. 
 
 What are the genes with the highest Moran's I?
-```{r, fig.width=9, fig.height=9}
-top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:6]]
+
+```{r, fig.width=6, fig.height=7}
+top_moran <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[1:4]]
 plotSpatialFeature(sfe, top_moran, colGeometryName = "centroids",
-                   scattermore = TRUE, ncol = 2, pointsize = 0.5)
+                   scattermore = TRUE, pointsize = 1.5, ncol = 1)
 ```
 
-They all highlight the same histological regions, as in the [CosMX vignette](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#morans-i). How does Moran's I relate to gene expression level?
+AMY2A is amylase alpha 2A, involved in breaking down starch. INS is insulin. GCG is glucagon. GATM is glycine amidinotransferase involved in creatine biosynthesis. So the dense area have exocrine acini making digestive enzymes and the endocrine Langerhan's islets making insulin and glucagon. These are very spatially structured. Zoom into a smaller area
+
 ```{r}
-plotRowData(sfe, x = "means", y = "moran_sample01")
+bbox8 <- c(xmin = 4950, xmax = 5450, ymin = -1000, ymax = -500)
+```
+
+```{r, fig.width=8, fig.height=7}
+plotSpatialFeature(sfe, top_moran, colGeometryName = "cellSeg", ncol = 2,
+                   bbox = bbox8)
+```
+
+```{r, fig.width=6, fig.height=7}
+top_moran2 <- rownames(sfe)[order(rowData(sfe)$moran_sample01, decreasing = TRUE)[5:8]]
+plotSpatialFeature(sfe, top_moran2, colGeometryName = "centroids",
+                   scattermore = TRUE, pointsize = 1.5, ncol = 1)
+```
+
+GPRC5A is G protein-coupled receptor class C group 5 member A, which may play a role in embryonic development and epithelial cell differentiation. SST is somatostatin, which is a regulator of the endocrine system. CFTR encodes the chlorine ion channel whose mutation causes cystic fibrosis. DMBT1 stands for deleted in malignant brain tumors 1. "Loss of sequences from human chromosome 10q has been associated with the progression of human cancers", according to RefSeq. So the sparse region is probably cancerous. Zoom into a smaller area
+```{r, fig.width=8, fig.height=7}
+plotSpatialFeature(sfe, top_moran2, colGeometryName = "cellSeg", ncol = 2,
+                   bbox = bbox2)
+```
+
+How does Moran's I relate to gene expression level?
+```{r}
+plotRowData(sfe, x = "means", y = "moran_sample01", color_by = "is_neg") +
+    scale_x_log10() + annotation_logticks(sides = "b")
 ```
 
 Very highly expressed genes have higher Moran's I, but there are some less expressed genes with higher Moran's I as well.
@@ -817,20 +827,27 @@ Very highly expressed genes have higher Moran's I, but there are some less expre
 Here we run non-spatial PCA as for scRNA-seq data
 ```{r}
 set.seed(29)
-sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam())
+sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam(),
+              subset_row = !rowData(sfe)$is_neg)
 ```
 
 ```{r}
 ElbowPlot(sfe, ndims = 30)
 ```
 
-```{r}
-plotDimLoadings(sfe, dims = 1:6)
+```{r, fig.width=6, fig.height=6}
+plotDimLoadings(sfe, dims = 1:8)
 ```
 
-```{r, fig.width=9, fig.height=9}
-spatialReducedDim(sfe, "PCA", 6, colGeometryName = "centroids", divergent = TRUE,
-                  diverge_center = 0, ncol = 2, scattermore = TRUE, pointsize = 0.5)
+```{r, fig.width=6, fig.height=7}
+spatialReducedDim(sfe, "PCA", 4, colGeometryName = "centroids", divergent = TRUE,
+                  diverge_center = 0, ncol = 1, scattermore = TRUE, pointsize = 1.5)
+```
+
+```{r, fig.width=6, fig.height=7}
+spatialReducedDim(sfe, "PCA", components = 5:8, colGeometryName = "centroids", 
+                  divergent = TRUE, diverge_center = 0, 
+                  ncol = 1, scattermore = TRUE, pointsize = 1.5)
 ```
 
 While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types.
@@ -847,12 +864,13 @@ colData(sfe)$cluster <- clusterRows(reducedDim(sfe, "PCA")[,1:15],
 
 Now the `scater` can also rasterize the plots with lots of points with the `rasterise` argument, but with a different mechanism from `scattermore` that requires more system dependencies. 
 ```{r, fig.height=8, fig.width=8}
-plotPCA(sfe, ncomponents = 4, colour_by = "cluster", rasterise = FALSE)
+plotPCA(sfe, ncomponents = 4, colour_by = "cluster", scattermore = TRUE)
 ```
 
 Plot the location of the clusters in space
 ```{r}
-plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg")
+plotSpatialFeature(sfe, "cluster", colGeometryName = "centroids", scattermore = TRUE,
+                   pointsize = 1.2, size = 3)
 ```
 
 # Differential expression
@@ -883,8 +901,8 @@ plotGroupedHeatmap(sfe, genes_use2, group = "cluster", colour = scales::viridis_
 
 First we plot those genes in space as a reference
 ```{r, fig.width=9, fig.height=9}
-plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 3,
-                   pointsize = 0.3, scattermore = TRUE)
+plotSpatialFeature(sfe, genes_use, colGeometryName = "centroids", ncol = 2,
+                   pointsize = 0, scattermore = TRUE)
 ```
 
 Global Moran's I of these marker genes is shown below:
@@ -903,8 +921,8 @@ sfe <- runUnivariate(sfe, "localmoran", features = genes_use, colGraphName = "kn
 
 ```{r, fig.width=9, fig.height=9}
 plotLocalResult(sfe, "localmoran", features = genes_use, 
-                colGeometryName = "centroids", ncol = 3, divergent = TRUE,
-                diverge_center = 0, scattermore = TRUE, pointsize = 0.3)
+                colGeometryName = "centroids", ncol = 2, divergent = TRUE,
+                diverge_center = 0, scattermore = TRUE, pointsize = 0)
 ```
 
 It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous. For some genes, regions with higher expression also have higher local Moran's I, such as FOXA1 and GATA3, while for some genes, this is not the case, such as FGL2 and LUM. 
@@ -917,8 +935,8 @@ sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
 
 ```{r, fig.width=9, fig.height=9}
 plotLocalResult(sfe, "LOSH", features = genes_use, 
-                colGeometryName = "centroids", ncol = 3, scattermore = TRUE, 
-                pointsize = 0.3)
+                colGeometryName = "centroids", ncol = 2, scattermore = TRUE, 
+                pointsize = 0)
 ```
 
 Again, just like in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes), LOSH is higher where the gene is more highly expressed in some (e.g. CD3E, LUM, TENT5C) but not all cases (e.g. FOXA1, GATA3). This may be due to spatial distribution of different cell types.
