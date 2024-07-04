@@ -1178,14 +1178,39 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
     p
 }
 
+.add_image <- function(p, sfe, sample_id, image_id, channel, bbox, maxcell,
+                       normalize_channels, palette) {
+    if (!is.null(image_id))
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                              normalize_channels)
+    else img_df <- NULL
+    if (!is.null(image_id) && nrow(img_df)) {
+        data <- NULL
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
+    }
+    p
+}
+
 #' Plot geometries without coloring
 #'
-#' Different samples are plotted in separate facets.
+#' Different samples are plotted in separate facets. When multiple geometries
+#' are plotted at the same time, they will be differentiated by color, by
+#' default using the \code{dittoSeq} palette, but this can be overridden with
+#' \code{scale_color_*} functions. Transcript spots of different genes are
+#' differentiated by point shape if plotted, so the number of genes plotted
+#' shouldn't exceed about 6 or a warning will be issued.
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @inheritParams plotTxBin2D
 #' @param fill Logical, whether to fill polygons.
-#' @return A ggplot object.
+#' @param tx_alpha Transparency for transcript spots, helpful when the
+#'   transcript spots are overplotting.
+#' @param tx_size Point size for transcript spots.
+#' @param tx_file File path to GeoParquet file of the transcript spots if you
+#'   don't wish to load all transcript spots into the SFE object. See
+#'   \code{\link{formatTxSpots}} on generating such a GeoParquet file.
+#' @return A \code{ggplot} object.
 #' @export
 #' @concept Spatial plotting
 #' @examples
@@ -1196,41 +1221,87 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' sfe <- removeEmptySpace(sfe)
 #' plotGeometry(sfe, "spotPoly")
 #' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
-plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
-                         fill = TRUE, ncol = NULL, bbox = NULL,
+plotGeometry <- function(sfe, colGeometryName = NULL, annotGeometryName = NULL,
+                         rowGeometryName = NULL, gene = "all",
+                         type = deprecated(), MARGIN = deprecated(),
+                         sample_id = "all",
+                         fill = TRUE, ncol = NULL, bbox = NULL, tx_alpha = 1,
+                         tx_size = 1, tx_file = NULL,
                          image_id = NULL, channel = NULL,
                          maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
                          palette = colorRampPalette(c("black", "white"))(255),
                          normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
-    df <- fun(sfe, type, sample_id = sample_id)
-    # TODO: allow MARGIN == 1L and multiple margins. This should allow a small
-    # number of features/genes distinguished by point shape or larger number or
-    # all genes not distinguished. Can experiment with kernel density but that
-    # can't be plotted with the image.
-    if (MARGIN == 2L) {
-        df$sample_id <- sfe$sample_id
+    if (is.null(colGeometryName) && is.null(annotGeometryName) && is.null(rowGeometryName)) {
+        stop("At lease one of colGeometryName, annotGeometryName, and rowGeometryName must be specified.")
     }
-    if (MARGIN == 3L) {
-        sample_id <- unique(df$sample_id)
+    if (is_present(type))
+        deprecate_warn("1.8.0", "plotGeometry(type)", details =
+                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
+    if (is_present(MARGIN))
+        deprecate_warn("1.8.0", "plotGeometry(MARGIN)", details =
+                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
+    if (is_present(type) && is_present(MARGIN)) {
+        # The old behavior
+        if (MARGIN == 2L) {
+            colGeometryName <- type
+            annotGeometryName <- NULL
+            rowGeometryName <- NULL
+        }
+        else if (MARGIN == 3L) {
+            annotGeometryName <- type
+            colGeometryName <- NULL
+            rowGeometryName <- NULL
+        }
     }
-    df <- .crop(df[,"sample_id"], bbox)
+    cgs <- lapply(colGeometryName, function(n) {
+        out <- colGeometry(sfe, type = n, sample_id = sample_id)
+        out$sample_id <- colData(sfe)[rownames(out), "sample_id"]
+        out$type <- n
+        out[,c("sample_id", "type", "geometry")]
+    })
+    ags <- lapply(annotGeometryName, function(n) {
+        out <- annotGeometry(sfe, type = n, sample_id = sample_id)
+        out$type <- n
+        out[,c("sample_id", "type", "geometry")]
+    })
+    if (!is.null(rowGeometryName)) {
+        if (length(rowGeometryName) > 1L) {
+            rowGeometryName <- rowGeometryName[1]
+            message("Only the first item in rowGeometryName is used.")
+        }
+        rgs <- .get_tx_df(sfe, data_dir = NULL, tech = NULL, file = NULL,
+                          sample_id = sample_id, spatialCoordsNames = c("X", "Y"),
+                          gene_col = "gene", bbox = bbox, gene = gene,
+                          return_sf = TRUE, rowGeometryName = rowGeometryName,
+                          geoparquet_file = tx_file)
+    } else rgs <- NULL
+    df <- do.call(rbind, c(cgs, ags))
     p <- ggplot()
-    if (!is.null(image_id))
-        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
-                              normalize_channels)
-    else img_df <- NULL
-    if (!is.null(image_id) && nrow(img_df)) {
-        data <- NULL
-        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
-    }
+    p <- .add_image(p, sfe, sample_id, image_id, channel, bbox, maxcell,
+                    normalize_channels, palette)
     if (dark) color <- "gray90" else color <- "black"
-    if (fill) {
-        if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
-        p <- p + geom_sf(data = df, fill = fill_col, color = color)
+    if (!is.null(rowGeometryName)) {
+        if (!identical(gene, "all") && length(unique(rgs$gene)) > 1L)
+            p <- p + geom_sf(data = rgs, aes(shape = gene), color = color,
+                             alpha = tx_alpha, size = tx_size,
+                             show.legend = "point")
+        else p <- p + geom_sf(data = rgs, shape = 4, color = color,
+                              alpha = tx_alpha, size = tx_size,
+                              show.legend = "point")
     }
-    else p <- p + geom_sf(data = df, fill = NA, color = color)
+    if (!is.null(df)) {
+        df <- .crop(df, bbox)
+        if (fill) {
+            if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
+        } else fill_col <- NA
+        if (length(unique(df$type)) > 1L) {
+            p <- p + geom_sf(data = df, aes(color = type), fill = NA) +
+                scale_color_manual(values = ditto_colors)
+        } else {
+            p <- p + geom_sf(data = df, fill = fill_col, color = color)
+        }
+    }
     if (length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }

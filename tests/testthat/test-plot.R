@@ -876,17 +876,21 @@ test_that("Plot geometries", {
     expect_ggplot("plot colGeometry 1 sample", {
         plotGeometry(sfe_muscle, "spotPoly")
     })
+    # Old behavior still works for now
+    expect_warning(plotGeometry(sfe, type = "myofiber_simplified", MARGIN = 3),
+                   "deprecated")
+    expect_ggplot(plotGeometry(sfe, type = "spotPoly", MARGIN = 2))
     expect_ggplot("plot annotGeometry 2 samples", {
-        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+        plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
     })
     expect_ggplot("plot annotGeometry 1 sample", {
-        plotGeometry(sfe_muscle, "myofiber_simplified", MARGIN = 3)
+        plotGeometry(sfe_muscle, annotGeometryName = "myofiber_simplified")
     })
     expect_ggplot("Plot colGeometry, with bbox", {
         plotGeometry(sfe, "spotPoly", bbox = bbox_2s)
     })
     expect_ggplot("Plot annotGeometry, with bbox", {
-        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
+        plotGeometry(sfe, annotGeometryName = "myofiber_simplified", bbox = bbox_2s)
     })
     expect_ggplot("Plot colGeometry, not filling", {
         plotGeometry(sfe_muscle, "spotPoly", fill = FALSE)

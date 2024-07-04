@@ -6,12 +6,19 @@
 \usage{
 plotGeometry(
   sfe,
-  type,
-  MARGIN = 2L,
+  colGeometryName = NULL,
+  annotGeometryName = NULL,
+  rowGeometryName = NULL,
+  gene = "all",
+  type = deprecated(),
+  MARGIN = deprecated(),
   sample_id = "all",
   fill = TRUE,
   ncol = NULL,
   bbox = NULL,
+  tx_alpha = 1,
+  tx_size = 1,
+  tx_file = NULL,
   image_id = NULL,
   channel = NULL,
   maxcell = 5e+05,
@@ -23,6 +30,20 @@ plotGeometry(
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
+
+\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots.}
+
+\item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
+annotate the gene expression plot.}
+
+\item{rowGeometryName}{Name of a \code{rowGeometry} of the SFE object to
+plot.}
+
+\item{gene}{Character vector of names of genes to plot. If "all" then
+transcript spots of all genes are plotted.}
 
 \item{type}{Name of the geometry associated with the MARGIN of interest for
 which to compute the graph.}
@@ -51,6 +72,15 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{tx_alpha}{Transparency for transcript spots, helpful when the
+transcript spots are overplotting.}
+
+\item{tx_size}{Point size for transcript spots.}
+
+\item{tx_file}{File path to GeoParquet file of the transcript spots if you
+don't wish to load all transcript spots into the SFE object. See
+\code{\link{formatTxSpots}} on generating such a GeoParquet file.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
@@ -88,10 +118,15 @@ image individually. Should be \code{FALSE} for bright field color images such
 as H&E but should set to \code{TRUE} for fluorescent images.}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object.
 }
 \description{
-Different samples are plotted in separate facets.
+Different samples are plotted in separate facets. When multiple geometries
+are plotted at the same time, they will be differentiated by color, by
+default using the \code{dittoSeq} palette, but this can be overridden with
+\code{scale_color_*} functions. Transcript spots of different genes are
+differentiated by point shape if plotted, so the number of genes plotted
+shouldn't exceed about 6 or a warning will be issued.
 }
 \examples{
 library(SFEData)
