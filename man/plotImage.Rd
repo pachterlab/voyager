@@ -21,9 +21,9 @@ plotImage(
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
-\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
-"all" to compute metric for all samples; the metric is computed separately
-for each sample.}
+\item{sample_id}{Which sample(s) in the SFE object to use for the graph. Can
+also be "all", which means this function will compute the graph for all
+samples independently.}
 
 \item{image_id}{ID of the image(s) to plot. If \code{NULL}, then the first
 image present is plotted. Can be a vector of IDs to use different grayscale
@@ -68,8 +68,8 @@ fluorescent images.}
 \item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{normalize_channels}{Logical, whether to normalize each channel of the
-image individually. Should be \code{FALSE} for bright field color images such
-as H&E but should set to \code{TRUE} for fluorescent images.}
+image individually. Should be \code{FALSE} for bright field color images
+such as H&E but should set to \code{TRUE} for fluorescent images.}
 }
 \value{
 A \code{ggplot} object.

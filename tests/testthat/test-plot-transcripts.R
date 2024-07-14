@@ -1,6 +1,9 @@
 library(SFEData)
 library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
+library(scater)
+library(sf)
+library(spdep)
 
 expect_ggplot <- function(description, g) {
     expect_s3_class(g, "ggplot")
@@ -30,11 +33,13 @@ test_that("plotGeometry plot both colGeometry and annotGeometry", {
                                annotGeometryName = "myofiber_simplified"))
 })
 
-set.seed(29)
-genes <- rownames(sfe)[rowData(sfe)$Type == "Gene Expression"]
+sfe <- sfe[rowData(sfe)$Type == "Gene Expression",]
+sfe <- sfe[rowSums(counts(sfe)) > 10, ]
+set.seed(129)
+genes <- rownames(sfe)
 total <- rowSums(counts(sfe))
 probs <- total/sum(total)
-genes_use <- sample(rownames(sfe)[rowData(sfe)$Type == "Gene Expression"], 3)
+genes_use <- sample(rownames(sfe)[rowData(sfe)$Type == "Gene Expression"], 4)
 
 test_that("plotGeometry plotting transcript spots", {
     expect_ggplot("All transcripts regardless of genes",
@@ -101,6 +106,83 @@ test_that("plotTxBin2D", {
                  "None of the genes are in the transcript spot file")
     expect_error(plotTxBin2D(sfe, binwidth = 20, gene = "foobar"),
                  "None of the genes are in the SFE object")
+})
+
+test_that("plotSpatialFeature showing transcript spots", {
+    expect_ggplot("Same set of genes",
+                  plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg",
+                                     exprs_values = "counts", bbox = bbox, ncol = 2,
+                                     rowGeometryName = "txSpots",
+                                     rowGeometryFeatures = genes_use,
+                                     color = "lightgray", linewidth = 0.3,
+                                     tx_fixed = list(size = 0.5, shape = 4, color = "violet")))
+    expect_ggplot("A proper subset of genes",
+                  plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg",
+                                     exprs_values = "counts", bbox = bbox, ncol = 2,
+                                     rowGeometryName = "txSpots",
+                                     rowGeometryFeatures = genes_use[2:4],
+                                     color = "lightgray", linewidth = 0.3,
+                                     tx_fixed = list(size = 0.5, color = "violet")))
+    expect_ggplot("Not a subset",
+                  plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg",
+                                     exprs_values = "counts", bbox = bbox, ncol = 2,
+                                     rowGeometryName = "txSpots",
+                                     rowGeometryFeatures = c(genes_use[1:2], genes[1]),
+                                     color = "lightgray", linewidth = 0.3,
+                                     tx_fixed = list(size = 1, color = "violet", alpha = 0.8))
+                  )
+    expect_ggplot("When rowGeometryFeatures is not specified",
+                  plotSpatialFeature(sfe, genes_use, colGeometryName = "cellSeg",
+                                     exprs_values = "counts", bbox = bbox, ncol = 2,
+                                     rowGeometryName = "txSpots",
+                                     color = "lightgray", linewidth = 0.3,
+                                     tx_fixed = list(size = 0.5, shape = 4, color = "violet")))
+})
+
+sfe <- logNormCounts(sfe, size.factors = sfe$cell_area)
+colGraph(sfe, "knn") <- findSpatialNeighbors(sfe, method = "knearneigh", k = 5)
+sfe <- runUnivariate(sfe, "localmoran", features = genes_use)
+
+# Just for testing purposes
+annotGeometry(sfe, "buffered") <- st_buffer(cellSeg(sfe), 5)
+annotGeometry(sfe, "buffered")$area <- st_area(annotGeometry(sfe))
+g <- st_intersects(annotGeometry(sfe))
+class(g) <- "nb"
+annotGraph(sfe, "contiguity") <- nb2listw(g)
+sfe <- annotGeometryUnivariate(sfe, type = "localmoran",
+                               annotGeometryName = "buffered", features = "area")
+
+test_that("plotLocalResult showing transcript spots", {
+    expect_ggplot("Local result for colGeometry",
+                  plotLocalResult(sfe, "localmoran", genes_use, colGeometryName = "cellSeg",
+                                  rowGeometryName = "txSpots", rowGeometryFeatures = genes_use,
+                                  color = "lightgray", linewidth = 0.3,
+                                  tx_fixed = list(size = 0.5, shape = 4, color = "violet"),
+                                  divergent = TRUE, diverge_center = 0, bbox = bbox))
+    expect_ggplot("Local result for annotGeometry",
+                  plotLocalResult(sfe, "localmoran", "area", annotGeometryName = "buffered",
+                                  rowGeometryName = "txSpots", rowGeometryFeatures = genes_use,
+                                  color = "lightgray", linewidth = 0.3,
+                                  tx_fixed = list(size = 0.5, shape = 4, color = "violet"),
+                                  divergent = TRUE, diverge_center = 0, bbox = bbox))
+})
+
+sfe <- runPCA(sfe, ncomponents = 10, scale = TRUE)
+
+test_that("spatialReducedDim showing transcript spots", {
+    expect_ggplot("Plot PCA with tx spots",
+                  spatialReducedDim(sfe, "PCA", 2, colGeometryName = "cellSeg",
+                                    rowGeometryName = "txSpots", rowGeometryFeatures = genes_use,
+                                    color = "lightgray", linewidth = 0.3,
+                                    tx_fixed = list(size = 0.5, shape = 4, color = "violet"),
+                                    divergent = TRUE, diverge_center = 0, bbox = bbox))
+    expect_error(spatialReducedDim(sfe, "PCA", 2, colGeometryName = "cellSeg",
+                                   rowGeometryName = "txSpots",
+                                   color = "lightgray", linewidth = 0.3,
+                                   tx_fixed = list(size = 0.5, shape = 4, color = "violet"),
+                                   divergent = TRUE, diverge_center = 0, bbox = bbox),
+                 "rowGeometryFeatures must be specified")
+
 })
 
 unlink(fn, recursive = TRUE)

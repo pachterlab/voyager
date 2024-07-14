@@ -31,11 +31,6 @@ plotGeometry(
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
-\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
-whose numeric columns of interest are to be used to compute the metric. Use
-\code{\link{colGeometryNames}} to look up names of the \code{sf} data
-frames associated with cells/spots.}
-
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
@@ -52,9 +47,9 @@ which to compute the graph.}
 stands for column. Here, in addition, 3 stands for annotation, to query the
 \code{\link[SpatialFeatureExperiment]{annotGeometries}}, such as nuclei segmentation in a Visium data}
 
-\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
-"all" to compute metric for all samples; the metric is computed separately
-for each sample.}
+\item{sample_id}{Which sample(s) in the SFE object to use for the graph. Can
+also be "all", which means this function will compute the graph for all
+samples independently.}
 
 \item{fill}{Logical, whether to fill polygons.}
 
@@ -114,8 +109,8 @@ fluorescent images.}
 \item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{normalize_channels}{Logical, whether to normalize each channel of the
-image individually. Should be \code{FALSE} for bright field color images such
-as H&E but should set to \code{TRUE} for fluorescent images.}
+image individually. Should be \code{FALSE} for bright field color images
+such as H&E but should set to \code{TRUE} for fluorescent images.}
 }
 \value{
 A \code{ggplot} object.

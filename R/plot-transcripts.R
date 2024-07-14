@@ -132,3 +132,5 @@ plotTxBin2D <- function(sfe = NULL, data_dir = NULL,
     if (use_samples) p <- p + facet_wrap(~ sample_id, ncol = ncol)
     p
 }
+
+# TODO: KDE, also do so for cell density
