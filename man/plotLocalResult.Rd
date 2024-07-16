@@ -12,11 +12,15 @@ plotLocalResult(
   sample_id = "all",
   colGeometryName = NULL,
   annotGeometryName = NULL,
+  rowGeometryName = NULL,
+  rowGeometryFeatures = NULL,
   ncol = NULL,
   ncol_sample = NULL,
   annot_aes = list(),
   annot_fixed = list(),
+  tx_fixed = list(),
   bbox = NULL,
+  tx_file = NULL,
   image_id = NULL,
   channel = NULL,
   maxcell = 5e+05,
@@ -76,6 +80,18 @@ frames associated with cells/spots.}
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
+\item{rowGeometryName}{Name of a \code{rowGeometry} of the SFE object to
+plot.}
+
+\item{rowGeometryFeatures}{Which features from \code{rowGeometry} to plot.
+Can only be a small number to avoid overplotting. Different features are
+distinguished by point shape. By default (\code{NULL}), when
+\code{rowGeometryName} is specified, this will be whichever items in
+\code{features} that are also in the row names of the SFE object. If
+features specified for this argument are not the same as or a subset of
+those in argument \code{features}, then the spots of all features specified
+here will be plotted, differentiated by point shape.}
+
 \item{ncol}{Number of columns if plotting multiple features. Defaults to
 \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.}
@@ -95,6 +111,9 @@ Tidyeval is NOT supported.}
 settings, such as \code{color = "gray"}. The defaults are the same as the
 relevant defaults for this function.}
 
+\item{tx_fixed}{Similar to \code{annot_fixed}, but to specify fixed aesthetic
+for transcript spots.}
+
 \item{bbox}{A bounding box to specify a smaller region to plot, useful when
 the dataset is large. Can be a named numeric vector with names "xmin",
 "xmax", "ymin", and "ymax", in any order. If plotting multiple samples, it
@@ -105,6 +124,10 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{tx_file}{File path to GeoParquet file of the transcript spots if you
+don't wish to load all transcript spots into the SFE object. See
+\code{\link{formatTxSpots}} on generating such a GeoParquet file.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
@@ -207,8 +230,8 @@ fluorescent images.}
 \item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{normalize_channels}{Logical, whether to normalize each channel of the
-image individually. Should be \code{FALSE} for bright field color images such
-as H&E but should set to \code{TRUE} for fluorescent images.}
+image individually. Should be \code{FALSE} for bright field color images
+such as H&E but should set to \code{TRUE} for fluorescent images.}
 
 \item{type}{An \code{\link{SFEMethod}} object or a string corresponding to
 the name of one of such objects in the environment. If the
