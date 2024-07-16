@@ -37,6 +37,10 @@ and CosMX.}
 \item{file}{File (not GeoParquet) with numeric columns for xy coordinates of
 the transcript spots. Ignored if \code{data_dir} is specified.}
 
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
+
 \item{bins}{Number of bins. Can be a vector of length 2 to specify for x and
 y axes separately.}
 
@@ -67,6 +71,9 @@ transcript spots of all genes are plotted.}
 coordinates of the spots. The defaults are for Vizgen.}
 
 \item{gene_col}{Column name for genes.}
+
+\item{rowGeometryName}{Name of a \code{rowGeometry} of the SFE object to
+plot.}
 
 \item{flip}{Logical, whether to flip the y axis when plotting data from file.}
 

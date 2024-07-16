@@ -371,7 +371,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     )
     type <- if(scattermore || !is.null(bins)) "POINT" else .get_generalized_geometry_type(df)
     features <- names(values)
-    if (all(rowGeometryFeatures %in% features)) {
+    if (!is.null(rowGeometryFeatures) && all(rowGeometryFeatures %in% features)) {
         tx_dfs <- split(tx_df, tx_df$gene)
         plots <- lapply(features, function(n) {
             feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
@@ -767,7 +767,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                             gene_col = "gene", bbox = bbox, gene = rowGeometryFeatures,
                             return_sf = TRUE, rowGeometryName = rowGeometryName,
                             geoparquet_file = tx_file)
-    }
+    } else tx_df <- NULL
     if (!is.null(image_id)) {
         img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
                               normalize_channels)
@@ -832,8 +832,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' \code{ggplot2}.
 #'
 #' @inheritParams plotCorrelogram
-#' @inheritParams plotDimLoadings
-#' @inheritParams plotGeometry
+#' @inheritParams calculateUnivariate
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
@@ -951,6 +950,9 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param normalize_channels Logical, whether to normalize each channel of the
 #'   image individually. Should be \code{FALSE} for bright field color images
 #'   such as H&E but should set to \code{TRUE} for fluorescent images.
+#' @param tx_file File path to GeoParquet file of the transcript spots if you
+#'   don't wish to load all transcript spots into the SFE object. See
+#'   \code{\link{formatTxSpots}} on generating such a GeoParquet file.
 #' @param palette Vector of colors to use to color grayscale images.
 #' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
@@ -1273,9 +1275,6 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' @param tx_alpha Transparency for transcript spots, helpful when the
 #'   transcript spots are overplotting.
 #' @param tx_size Point size for transcript spots.
-#' @param tx_file File path to GeoParquet file of the transcript spots if you
-#'   don't wish to load all transcript spots into the SFE object. See
-#'   \code{\link{formatTxSpots}} on generating such a GeoParquet file.
 #' @return A \code{ggplot} object.
 #' @export
 #' @concept Spatial plotting
@@ -1285,11 +1284,12 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' sfe2 <- McKellarMuscleData("small2")
 #' sfe <- cbind(sfe1, sfe2)
 #' sfe <- removeEmptySpace(sfe)
-#' plotGeometry(sfe, "spotPoly")
-#' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
-plotGeometry <- function(sfe, colGeometryName = NULL, annotGeometryName = NULL,
-                         rowGeometryName = NULL, gene = "all",
+#' plotGeometry(sfe, colGeometryName = "spotPoly")
+#' plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
+plotGeometry <- function(sfe,
                          type = deprecated(), MARGIN = deprecated(),
+                         colGeometryName = NULL, annotGeometryName = NULL,
+                         rowGeometryName = NULL, gene = "all",
                          sample_id = "all",
                          fill = TRUE, ncol = NULL, bbox = NULL, tx_alpha = 1,
                          tx_size = 1, tx_file = NULL,
@@ -1298,9 +1298,6 @@ plotGeometry <- function(sfe, colGeometryName = NULL, annotGeometryName = NULL,
                          palette = colorRampPalette(c("black", "white"))(255),
                          normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    if (is.null(colGeometryName) && is.null(annotGeometryName) && is.null(rowGeometryName)) {
-        stop("At lease one of colGeometryName, annotGeometryName, and rowGeometryName must be specified.")
-    }
     if (is_present(type))
         deprecate_warn("1.8.0", "plotGeometry(type)", details =
                            "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
@@ -1319,6 +1316,9 @@ plotGeometry <- function(sfe, colGeometryName = NULL, annotGeometryName = NULL,
             colGeometryName <- NULL
             rowGeometryName <- NULL
         }
+    }
+    if (is.null(colGeometryName) && is.null(annotGeometryName) && is.null(rowGeometryName)) {
+        stop("At lease one of colGeometryName, annotGeometryName, and rowGeometryName must be specified.")
     }
     cgs <- lapply(colGeometryName, function(n) {
         out <- colGeometry(sfe, type = n, sample_id = sample_id)

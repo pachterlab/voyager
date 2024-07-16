@@ -213,7 +213,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                                 gene_col = "gene", bbox = bbox, gene = rowGeometryFeatures,
                                 return_sf = TRUE, rowGeometryName = rowGeometryName,
                                 geoparquet_file = tx_file)
-        }
+        } else tx_df <- NULL
         out <- .wrap_spatial_plots(df,
             annot_df = NULL, img_df = img_df, type_annot = NULL, channel = channel,
             values = values, aes_use = aes_use,

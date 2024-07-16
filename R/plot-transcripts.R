@@ -92,6 +92,7 @@
 #'
 #' @inheritParams plotCellBin2D
 #' @inheritParams plotGeometry
+#' @inheritParams plotSpatialFeature
 #' @inheritParams SpatialFeatureExperiment::getTechTxFields
 #' @inheritParams SpatialFeatureExperiment::aggregateTx
 #' @param data_dir Top level directory of the output files. This can be

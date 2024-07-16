@@ -17,6 +17,10 @@ plotCellBin2D(
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
+
 \item{bins}{Number of bins. Can be a vector of length 2 to specify for x and
 y axes separately.}
 

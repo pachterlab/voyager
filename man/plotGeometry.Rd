@@ -6,12 +6,12 @@
 \usage{
 plotGeometry(
   sfe,
+  type = deprecated(),
+  MARGIN = deprecated(),
   colGeometryName = NULL,
   annotGeometryName = NULL,
   rowGeometryName = NULL,
   gene = "all",
-  type = deprecated(),
-  MARGIN = deprecated(),
   sample_id = "all",
   fill = TRUE,
   ncol = NULL,
@@ -31,6 +31,18 @@ plotGeometry(
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
 
+\item{type}{Name of the geometry associated with the MARGIN of interest for
+which to compute the graph.}
+
+\item{MARGIN}{Just like in \code{\link{apply}}, where 1 stands for row, 2
+stands for column. Here, in addition, 3 stands for annotation, to query the
+\code{\link[SpatialFeatureExperiment]{annotGeometries}}, such as nuclei segmentation in a Visium data}
+
+\item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
+whose numeric columns of interest are to be used to compute the metric. Use
+\code{\link{colGeometryNames}} to look up names of the \code{sf} data
+frames associated with cells/spots.}
+
 \item{annotGeometryName}{Name of a \code{annotGeometry} of the SFE object, to
 annotate the gene expression plot.}
 
@@ -40,16 +52,9 @@ plot.}
 \item{gene}{Character vector of names of genes to plot. If "all" then
 transcript spots of all genes are plotted.}
 
-\item{type}{Name of the geometry associated with the MARGIN of interest for
-which to compute the graph.}
-
-\item{MARGIN}{Just like in \code{\link{apply}}, where 1 stands for row, 2
-stands for column. Here, in addition, 3 stands for annotation, to query the
-\code{\link[SpatialFeatureExperiment]{annotGeometries}}, such as nuclei segmentation in a Visium data}
-
-\item{sample_id}{Which sample(s) in the SFE object to use for the graph. Can
-also be "all", which means this function will compute the graph for all
-samples independently.}
+\item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
+"all" to compute metric for all samples; the metric is computed separately
+for each sample.}
 
 \item{fill}{Logical, whether to fill polygons.}
 
@@ -129,7 +134,7 @@ sfe1 <- McKellarMuscleData("small")
 sfe2 <- McKellarMuscleData("small2")
 sfe <- cbind(sfe1, sfe2)
 sfe <- removeEmptySpace(sfe)
-plotGeometry(sfe, "spotPoly")
-plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+plotGeometry(sfe, colGeometryName = "spotPoly")
+plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
 }
 \concept{Spatial plotting}
