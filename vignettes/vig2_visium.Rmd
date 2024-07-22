@@ -75,7 +75,7 @@ library(reticulate)
 theme_set(theme_bw(10))
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Specify Python version to use gget
 PY_PATH <- system("which python", intern = TRUE)
 use_python(PY_PATH)
@@ -206,13 +206,13 @@ markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
 ```
 
 We can use the [gget search](https://pachterlab.github.io/gget/search.html) and [gget info](https://pachterlab.github.io/gget/info.html) modules from the [gget](https://pachterlab.github.io/gget/) package to get the Ensembl IDs and additional information (for example their [NCBI](https://www.ncbi.nlm.nih.gov/) description) for these marker genes:
-```{r}
+```{r, eval=FALSE}
 gget_search <- gget$search(list("Myh7", "Myh2", "Myh4", "Myh1"), species="mouse")
 gget_search <- gget_search[gget_search$gene_name %in% list("Myh7", "Myh2", "Myh4", "Myh1"), ]
 gget_search
 ```
 
-```{r}
+```{r, eval=FALSE}
 gget_info <- gget$info(gget_search$ensembl_id)
 
 rownames(gget_info) <- gget_info$primary_gene_name
@@ -473,7 +473,7 @@ clusts <- clusterMoranPlot(sfe_tissue, "Myh2", BLUSPARAM = KmeansParam(2),
 ```
 
 We can use the [gget search](https://pachterlab.github.io/gget/search.html) module to get the Ensembl ID for Myh2:
-```{r}
+```{r, eval=FALSE}
 gget$search("Myh2", species="mouse")
 ```
 

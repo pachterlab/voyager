@@ -96,7 +96,7 @@ py_config()
 system("pip3 install gget")
 ```
 
-```{r}
+```{r, eval=FALSE}
 gget <- import("gget")
 ```
 
@@ -357,7 +357,7 @@ markers[[1]]
 ```
 
 We can use the [gget enrichr](https://pachterlab.github.io/gget/enrichr.html) module from the [gget](https://pachterlab.github.io/gget/) package to perform a gene enrichment analysis. You can choose from >200 enrichment databases which are listed on the [Enrichr website](https://maayanlab.cloud/Enrichr/#libraries). Here, we are analyzing the top 20 genes for cluster 1 using the default ontology database [GO_Biological_Process_2021](http://geneontology.org/):
-```{r}
+```{r, eval=FALSE}
 enrichr_genes <- rownames(markers[[1]])[1:20]
 gget_e <- gget$enrichr(enrichr_genes, ensembl=TRUE, database = "ontology")
 
@@ -411,7 +411,7 @@ plotExpression(sfe_tissue, rowData(sfe_tissue)[genes_use, "symbol"], x = "cluste
 ```
 
 We'll use the module [gget info](https://pachterlab.github.io/gget/info.html) to get additional information on these genes, such as their descriptions, synonyms, transcripts and more from a collection of reference databases including [Ensembl](https://ensembl.org/), [UniProt](https://www.uniprot.org/), and [NCBI](https://www.ncbi.nlm.nih.gov/). Here, we are showing their gene descriptions from [NCBI](https://www.ncbi.nlm.nih.gov/):
-```{r}
+```{r, eval=FALSE}
 gget_info <- gget$info(genes_use)
 
 rownames(gget_info) <- gget_info$primary_gene_name
@@ -477,7 +477,7 @@ df[ord, c("symbol", "moran_Vis5A")]
 We see that some genes that have strong positive spatial autocorrelation, but don't observe strong negative spatial autocorrelation.
 
 Let's get some additional information on the genes with the strongest positive spatial autocorrelation in space using [gget info](https://pachterlab.github.io/gget/info.html) as above:
-```{r}
+```{r, eval=FALSE}
 gget_info2 <- gget$info(rownames(df)[1:6])
 
 rownames(gget_info2) <- gget_info2$primary_gene_name
