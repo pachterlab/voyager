@@ -254,3 +254,27 @@ test_that("calculateBivariate SFE method for lee matrix and swap_rownames, with 
     expect_equal(rownames(out), rownames(mat_x))
     expect_equal(colnames(out), rownames(mat_y))
 })
+
+# Deal with the Lee's L error caused by DelayedArray
+library(DelayedArray)
+library(RBioFormats)
+
+fp <- tempfile()
+fp <- XeniumOutput("v2", file_path = file.path(fp, "xenium2"))
+
+try(sfe <- readXenium(fp))
+sfe <- readXenium(fp)
+sfe <- sfe[rowData(sfe)$Type == "Gene Expression",]
+sfe <- sfe[rowSums(counts(sfe)) > 0, colSums(counts(sfe)) > 5]
+sfe <- logNormCounts(sfe, size.factors = sfe$cell_area)
+colGraph(sfe, "knn") <- findSpatialNeighbors(sfe, MARGIN = 2L,
+                                             method = "knearneigh", k = 5)
+# Both counts and logcounts are DelayedArray
+test_that("Lee's L for DelayedArray", {
+    lee_res <- calculateBivariate(sfe, "lee", feature1 = rownames(sfe))
+    expect_true(is.matrix(lee_res) & is.numeric(lee_res))
+    expect_equal(ncol(lee_res), nrow(sfe))
+    expect_equal(nrow(lee_res), nrow(sfe))
+})
+
+unlink(fp, recursive = TRUE)
