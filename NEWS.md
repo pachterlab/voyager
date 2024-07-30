@@ -1,3 +1,6 @@
+# Version 1.7.2 (07/30/2024)
+* Fixed bug that caused error when computing Lee's L on DelayedArray
+
 # Version 1.7.1 (07/16/2024)
 * Revamped user interface of plotGeometry to allow plotting multiple col, row, and annot geometries at once
 * Allow plotting transcript spots in plotGeometry, plotSpatialFeature, plotLocalResult, and spatialReducedDim
