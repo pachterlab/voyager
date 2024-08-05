@@ -4,6 +4,7 @@ library(scran)
 library(SpatialFeatureExperiment)
 library(SpatialExperiment)
 library(vdiffr)
+library(DelayedArray)
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
@@ -265,7 +266,7 @@ fp <- XeniumOutput("v2", file_path = file.path(fp, "xenium2"))
 try(sfe <- readXenium(fp))
 sfe <- readXenium(fp)
 sfe <- sfe[rowData(sfe)$Type == "Gene Expression",]
-sfe <- sfe[rowSums(counts(sfe)) > 0, colSums(counts(sfe)) > 5]
+sfe <- sfe[DelayedArray::rowSums(counts(sfe)) > 0, DelayedArray::colSums(counts(sfe)) > 5]
 sfe <- logNormCounts(sfe, size.factors = sfe$cell_area)
 colGraph(sfe, "knn") <- findSpatialNeighbors(sfe, MARGIN = 2L,
                                              method = "knearneigh", k = 5)
