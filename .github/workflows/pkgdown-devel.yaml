@@ -28,9 +28,12 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-      - name: Install irlba from source
-        run: install.packages("irlba", type = "source")
+      - name: Must use devel version of SFE
+        run: BiocManager::install("SpatialFeatureExperiment", version = "devel")
         shell: Rscript {0}
+      #- name: Install irlba from source
+      #  run: install.packages("irlba", type = "source")
+      #  shell: Rscript {0}
       - name: Setup python
         uses: actions/setup-python@v2
         with:
