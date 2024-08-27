@@ -24,13 +24,13 @@ jobs:
         uses: grimbough/bioc-actions/setup-bioc@v1
         with:
           bioc-version: devel
+      - name: Must use devel version of SFE
+        run: BiocManager::install("SpatialFeatureExperiment", version = "devel")
+        shell: Rscript {0}
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-      - name: Must use devel version of SFE
-        run: BiocManager::install("SpatialFeatureExperiment", version = "devel")
-        shell: Rscript {0}
       #- name: Install irlba from source
       #  run: install.packages("irlba", type = "source")
       #  shell: Rscript {0}
