@@ -85,6 +85,12 @@
     df
 }
 
+.initDF <- function(m) {
+    rownames_use <- colnames(m)
+    fd <- make_zero_col_DFrame(nrow = ncol(m))
+    rownames(fd) <- rownames_use
+    fd
+}
 .initialize_fd_reddim <- function(x, dimred) {
     if (is.null(attr(reducedDim(x, dimred), "featureData"))) {
         attr(reducedDim(x, dimred), "featureData") <- .initDF(reducedDim(x, dimred))
@@ -96,10 +102,7 @@
     res <- .add_name_sample_id(res, sample_id)
     dimData <- switch(MARGIN, rowData, colData)
     `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
-    if (is.null(mcols(dimData(x)))) {
-        fd <- make_zero_col_DFrame(ncol(dimData(x)))
-        rownames(fd) <- colnames(dimData(x))
-    }
+    if (is.null(mcols(dimData(x)))) fd <- .initDF(dimData(x))
     else fd <- mcols(dimData(x)) 
     fd[features, names(res)] <- res
     mcols(dimData(x)) <- fd
