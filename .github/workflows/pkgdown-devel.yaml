@@ -24,11 +24,6 @@ jobs:
         uses: grimbough/bioc-actions/setup-bioc@v1
         with:
           bioc-version: devel
-      - name: install system dependencies of SFE
-        run: apt install -y --no-install-recommends libmagick++-dev
-      - name: Must use devel version of SFE
-        run: BiocManager::install("SpatialFeatureExperiment", version = "devel"); require(SpatialFeatureExperiment)
-        shell: Rscript {0}
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::pkgdown, local::.
