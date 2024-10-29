@@ -1,4 +1,4 @@
-#' @importFrom S4Vectors mcols metadata metadata<-
+#' @importFrom S4Vectors mcols metadata metadata<- mcols<-
 .check_old_params <- function(params, old_params, name, not_check) {
     if (!identical(not_check, NA_character_))
         params <- params[!names(params) %in% not_check]

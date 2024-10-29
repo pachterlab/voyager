@@ -19,7 +19,7 @@
 #'   features with different magnitudes when the length scale of spatial
 #'   autocorrelation is of interest.
 #' @param ... Other arguments passed to \code{automap::autofitVariogram} such as
-#'   \code{model} and \code{\link{variogram}} such as \code{alpha} for
+#'   \code{model} and \code{\link[gstat]{variogram}} such as \code{alpha} for
 #'   anisotropy. Note that \code{gstat} does not fit ansotropic models and you
 #'   will get a warning if you specify \code{alpha}. Nevertheless, plotting the
 #'   empirical anisotropic variograms and comparing them to the variogram fitted
