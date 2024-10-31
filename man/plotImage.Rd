@@ -68,8 +68,8 @@ fluorescent images.}
 \item{palette}{Vector of colors to use to color grayscale images.}
 
 \item{normalize_channels}{Logical, whether to normalize each channel of the
-image individually. Should be \code{FALSE} for bright field color images such
-as H&E but should set to \code{TRUE} for fluorescent images.}
+image individually. Should be \code{FALSE} for bright field color images
+such as H&E but should set to \code{TRUE} for fluorescent images.}
 }
 \value{
 A \code{ggplot} object.
