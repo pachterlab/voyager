@@ -160,7 +160,7 @@
             g <- .graph_fun(x, type = graphName, sample_id = sample_id[1])
         else g <- NULL
         params <- c(info(type, c("name", "package")),
-                    list(version = packageVersion(info(type, "package")),
+                    list(version = as.character(packageVersion(info(type, "package"))),
                          zero.policy = zero.policy, include_self = include_self,
                          p.adjust.method = p.adjust.method,
                          graph_params = attr(g, "method")), other_args)
@@ -378,7 +378,7 @@
             g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
         else g <- NULL
         params <- c(info(type, c("name", "package")),
-                    list(version = packageVersion(info(type, "package")),
+                    list(version = as.character(packageVersion(info(type, "package"))),
                          zero.policy = zero.policy, include_self = include_self,
                          p.adjust.method = p.adjust.method,
                          graph_params = attr(g, "method")), other_args)
