@@ -1,3 +1,4 @@
+#' @importFrom S4Vectors mcols metadata metadata<- mcols<-
 .check_old_params <- function(params, old_params, name, not_check) {
     if (!identical(not_check, NA_character_))
         params <- params[!names(params) %in% not_check]
@@ -91,26 +92,6 @@
     rownames(fd) <- rownames_use
     fd
 }
-
-#' @importFrom S4Vectors metadata metadata<- combineCols
-.initialize_fd_dimData <- function(x, MARGIN) {
-    fd_name <- "featureData"
-    dimData <- switch(MARGIN, rowData, colData)
-    `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
-    if (is.null(metadata(dimData(x))[[fd_name]])) {
-        metadata(dimData(x))[[fd_name]] <- .initDF(dimData(x))
-    } else {
-        # Remove rows that correspond to columns that have been deleted and add
-        # new ones
-        fd <- metadata(dimData(x))[[fd_name]]
-        fd <- fd[intersect(rownames(fd), colnames(dimData(x))),, drop = FALSE]
-        empty <- .initDF(dimData(x))
-        fd <- combineCols(empty, fd)
-        metadata(dimData(x))[[fd_name]] <- fd
-    }
-    x
-}
-
 .initialize_fd_reddim <- function(x, dimred) {
     if (is.null(attr(reducedDim(x, dimred), "featureData"))) {
         attr(reducedDim(x, dimred), "featureData") <- .initDF(reducedDim(x, dimred))
@@ -120,13 +101,12 @@
 
 .add_fd_dimData <- function(x, MARGIN, sample_id, name, features, res, params) {
     res <- .add_name_sample_id(res, sample_id)
-    x <- .initialize_fd_dimData(x, MARGIN)
-    fd_name <- "featureData"
     dimData <- switch(MARGIN, rowData, colData)
     `dimData<-` <- switch(MARGIN, `rowData<-`, `colData<-`)
-    fd <- metadata(dimData(x))[[fd_name]]
+    if (is.null(mcols(dimData(x)))) fd <- .initDF(dimData(x))
+    else fd <- mcols(dimData(x)) 
     fd[features, names(res)] <- res
-    metadata(dimData(x))[[fd_name]] <- fd
+    mcols(dimData(x)) <- fd
     metadata(dimData(x))$params[[name]] <- params
     x
 }
