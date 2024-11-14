@@ -105,6 +105,7 @@
 #' transcript spots of all genes are plotted.
 #' @param flip Logical, whether to flip the y axis when plotting data from file.
 #' @return A ggplot object, facetting by sample.
+#' @concept Spatial plotting
 #' @export
 #' @importFrom zeallot %<-%
 #' @importFrom SpatialFeatureExperiment .check_rg
