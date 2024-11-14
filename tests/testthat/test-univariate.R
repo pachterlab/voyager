@@ -51,7 +51,7 @@ test_that("Correct structure of colDataMoransI output", {
     # Check the params field
     params <- getParams(out, "moran", colData = TRUE)
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$graph_params,
@@ -73,7 +73,7 @@ test_that("Correct structure of colGeometryMoransI output", {
     # Check the params field
     params <- getParams(out, "moran", colGeometryName = "spotPoly")
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$graph_params,
@@ -107,7 +107,7 @@ test_that("Properly add Moran's I results (no permutation) to SFE rowData", {
     # Check the params field
     params <- getParams(sfe2, "moran")
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$graph_params,
@@ -318,7 +318,7 @@ test_that("colDataUnivariate run on multiple samples", {
     # parameters
     params <- getParams(sfe, "localmoran", local = TRUE, colData = TRUE)
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$p.adjust.method, "BH")
@@ -359,7 +359,7 @@ test_that("annotGeometryUnivariate run on multiple samples", {
     params <- getParams(sfe, "localmoran", local = TRUE,
                         annotGeometryName = "myofiber_simplified")
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$p.adjust.method, "BH")
@@ -379,7 +379,7 @@ test_that("Univariate global results corrected added to metadata of reducedDim",
     # parameters
     params <- getParams(sfe, "moran", reducedDimName = "PCA")
     expect_equal(params$package, "spdep")
-    expect_equal(params$version, packageVersion("spdep"))
+    expect_equal(params$version, as.character(packageVersion("spdep")))
     expect_null(params$zero.policy)
     expect_false(params$include_self)
     expect_equal(params$graph_params,

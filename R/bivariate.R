@@ -238,7 +238,7 @@ runBivariate <- function(x, type, feature1, feature2 = NULL, colGraphName = 1L,
         g <- colGraph(x, type = colGraphName, sample_id = sample_id[1])
     else g <- NULL
     params <- c(info(type, c("name", "package")),
-                list(version = packageVersion(info(type, "package")),
+                list(version = as.character(packageVersion(info(type, "package"))),
                      zero.policy = zero.policy,
                      p.adjust.method = p.adjust.method,
                      graph_params = attr(g, "method")), other_args)
