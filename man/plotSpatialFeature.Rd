@@ -16,8 +16,10 @@ plotSpatialFeature(
   rowGeometryFeatures = NULL,
   annot_aes = list(),
   annot_fixed = list(),
+  tx_fixed = list(),
   exprs_values = "logcounts",
   bbox = NULL,
+  tx_file = NULL,
   image_id = NULL,
   channel = NULL,
   maxcell = 5e+05,
@@ -42,6 +44,7 @@ plotSpatialFeature(
   show_axes = FALSE,
   dark = FALSE,
   palette = colorRampPalette(c("black", "white"))(255),
+  normalize_channels = FALSE,
   ...
 )
 }
@@ -78,7 +81,12 @@ plot.}
 
 \item{rowGeometryFeatures}{Which features from \code{rowGeometry} to plot.
 Can only be a small number to avoid overplotting. Different features are
-distinguished by point shape.}
+distinguished by point shape. By default (\code{NULL}), when
+\code{rowGeometryName} is specified, this will be whichever items in
+\code{features} that are also in the row names of the SFE object. If
+features specified for this argument are not the same as or a subset of
+those in argument \code{features}, then the spots of all features specified
+here will be plotted, differentiated by point shape.}
 
 \item{annot_aes}{A named list of plotting parameters for the annotation sf
 data frame. The names are which geom (as in ggplot2, such as color and
@@ -88,6 +96,9 @@ Tidyeval is NOT supported.}
 \item{annot_fixed}{Similar to \code{annot_aes}, but for fixed aesthetic
 settings, such as \code{color = "gray"}. The defaults are the same as the
 relevant defaults for this function.}
+
+\item{tx_fixed}{Similar to \code{annot_fixed}, but to specify fixed aesthetic
+for transcript spots.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
@@ -102,6 +113,10 @@ will be used for all samples. You may see points at the edge of the
 geometries if the intersection between the bounding box and a geometry
 happens to be a point there. If \code{NULL}, then the entire tissue is
 plotted.}
+
+\item{tx_file}{File path to GeoParquet file of the transcript spots if you
+don't wish to load all transcript spots into the SFE object. See
+\code{\link{formatTxSpots}} on generating such a GeoParquet file.}
 
 \item{image_id}{ID of the image to plot behind the geometries. If
 \code{NULL}, then not plotting images. Use \code{\link{imgData}} to see
@@ -202,6 +217,10 @@ the dark. This is intended for plotting gene expression on top of
 fluorescent images.}
 
 \item{palette}{Vector of colors to use to color grayscale images.}
+
+\item{normalize_channels}{Logical, whether to normalize each channel of the
+image individually. Should be \code{FALSE} for bright field color images
+such as H&E but should set to \code{TRUE} for fluorescent images.}
 
 \item{...}{Other arguments passed to \code{\link{wrap_plots}}.}
 }

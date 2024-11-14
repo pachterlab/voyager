@@ -206,10 +206,11 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
 .plot_var_sf <- function(df, annot_df, img_df, channel, type, type_annot, feature_aes,
-                         feature_fixed, annot_aes, annot_fixed, divergent,
+                         feature_fixed, annot_aes, annot_fixed, tx_fixed, divergent,
                          diverge_center,annot_divergent, annot_diverge_center,
                          ncol_sample, scattermore, pointsize,
-                         bins, summary_fun, hex, maxcell, show_axes, dark, palette) {
+                         bins, summary_fun, hex, maxcell, show_axes, dark, palette,
+                         tx_df) {
     # Add annotGeometry if present
     if (!is.null(annot_df)) {
         annot_fixed <- .get_applicable(type_annot, annot_fixed)
@@ -300,13 +301,27 @@ getDivergeRange <- function(values, diverge_center = 0) {
             p <- p + pal_annot
         }
     }
+    if (!is.null(tx_df)) {
+        tx_fixed <- .get_applicable("MULTIPOINT", tx_fixed)
+        if (length(unique(tx_df$gene)) > 1L) {
+            tx_fixed <- tx_fixed[names(tx_fixed) != "shape"]
+            geom_tx <- do.call(geom_sf, c(
+                list(mapping = aes(shape = gene), data = tx_df),
+                tx_fixed
+            ))
+        } else geom_tx <- do.call(geom_sf, c(
+            list(data = tx_df), tx_fixed
+        ))
+            p <- p + geom_tx
+    }
     if ("sample_id" %in% names(df) && length(unique(df$sample_id)) > 1L) {
         p <- p +
             facet_wrap(~sample_id, ncol = ncol_sample)
     }
 
-    if (dark) p <- p + .dark_theme(show_axes)
-    else {
+    if (dark) {
+        p <- p + .dark_theme(show_axes)
+    } else {
         if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
     }
     p
@@ -345,27 +360,44 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 .wrap_spatial_plots <- function(df, annot_df, img_df, channel, type_annot, values, aes_use,
-                                annot_aes, annot_fixed, size, shape, linewidth,
+                                annot_aes, annot_fixed, tx_fixed, size, shape, linewidth,
                                 linetype, alpha, color, fill, ncol, ncol_sample,
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
                                 bins, summary_fun, hex, maxcell, show_axes, dark,
-                                palette, ...) {
+                                palette, tx_df, rowGeometryFeatures, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
     )
     type <- if(scattermore || !is.null(bins)) "POINT" else .get_generalized_geometry_type(df)
-    plots <- lapply(names(values), function(n) {
-        feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
-        feature_aes <- setNames(list(n), feature_aes_name)
-        .plot_var_sf(
-            df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
-            annot_aes, annot_fixed, divergent, diverge_center,
-            annot_divergent, annot_diverge_center, ncol_sample, scattermore,
-            pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette
-        )
-    })
+    features <- names(values)
+    if (!is.null(rowGeometryFeatures) && all(rowGeometryFeatures %in% features)) {
+        tx_dfs <- split(tx_df, tx_df$gene)
+        plots <- lapply(features, function(n) {
+            feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
+            feature_aes <- setNames(list(n), feature_aes_name)
+            .plot_var_sf(
+                df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
+                annot_aes, annot_fixed, tx_fixed, divergent, diverge_center,
+                annot_divergent, annot_diverge_center, ncol_sample, scattermore,
+                pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette,
+                tx_dfs[[n]]
+            )
+        })
+    } else {
+        plots <- lapply(names(values), function(n) {
+            feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
+            feature_aes <- setNames(list(n), feature_aes_name)
+            .plot_var_sf(
+                df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
+                annot_aes, annot_fixed, tx_fixed, divergent, diverge_center,
+                annot_divergent, annot_diverge_center, ncol_sample, scattermore,
+                pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette,
+                tx_df
+            )
+        })
+    }
     if (length(plots) > 1L) {
         out <- wrap_plots(plots, ncol = ncol, ...)
         if (dark) {
@@ -492,8 +524,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
             npx_x*npx_y
         }, FUN.VALUE = numeric(1))
     }
-    n_use <- max(ncells < 1.1*maxcell) # 1.1 as in resample_spat
-    return(which(ncells == n_use))
+    n_use <- min(which(ncells < 1.1*maxcell)) # 1.1 as in resample_spat
+    return(n_use)
 }
 
 .get_n_channels <- function(img) {
@@ -565,8 +597,17 @@ getDivergeRange <- function(values, diverge_center = 0) {
     return(out)
 }
 
+.normalize_channels <- function(img) {
+    max_values <- terra::minmax(img, compute = TRUE)[2,]
+    for (i in seq_len(nlyr(img))) {
+        if (max_values[[i]] > 0) img[[i]] <- img[[i]]/max_values[[i]]
+    }
+    img
+}
+
 #' @importFrom memuse Sys.meminfo
-.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell) {
+.get_img_df_sample <- function(sample_id, df, image_id, channel, bbox, maxcell,
+                               normalize_channels) {
     # For each sample
     df <- df[df$sample_id == sample_id,]
     image_id <- image_id[match(df$image_id, image_id)]
@@ -639,7 +680,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
                 }
             }
             out <- cropImg(x, bbox)
-            translateImg(x, -bbox[c("xmin", "ymin")])
+            translateImg(out, -bbox[c("xmin", "ymin")])
         })
     }
     # All convert to SpatRaster
@@ -659,11 +700,13 @@ getDivergeRange <- function(values, diverge_center = 0) {
     else if (!is.null(channel)) {
         img <- .subset_channels(imgs[[1]], channel)
     } else img <- imgs[[1]]
+    if (normalize_channels) img <- .normalize_channels(img)
     # Output: should have only 1 image left
     return(img)
 }
 
-.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell) {
+.get_img_df <- function(sfe, sample_id, image_id, channel, bbox, maxcell,
+                        normalize_channels) {
     image_id <- image_id %||% imageIDs(sfe)[1]
     img_df <- imgData(sfe)
     img_df <- img_df[img_df$sample_id %in% sample_id & img_df$image_id %in% image_id,
@@ -673,19 +716,20 @@ getDivergeRange <- function(values, diverge_center = 0) {
     # multiple samples, some samples don't have images for all the channels
     imgs <- lapply(sample_id, .get_img_df_sample, df = img_df,
                    image_id = image_id, channel = channel, bbox = bbox,
-                   maxcell = maxcell)
+                   maxcell = maxcell, normalize_channels = normalize_channels)
     data.frame(sample_id = sample_id, data = I(imgs))
 }
 
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
-                                annot_fixed, bbox, image_id, channel, aes_use, divergent,
+                                annot_fixed, tx_fixed, bbox, image_id, channel, aes_use, divergent,
                                 diverge_center, annot_divergent,
                                 annot_diverge_center, size, shape, linewidth,
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
-                                show_axes, dark, palette, ...) {
+                                show_axes, dark, palette, normalize_channels,
+                                rowGeometryName, rowGeometryFeatures, tx_file,...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
@@ -718,17 +762,38 @@ getDivergeRange <- function(values, diverge_center = 0) {
         annot_df <- NULL
         type_annot <- NULL
     }
+    if (!is.null(rowGeometryName)) {
+        tx_df <- .get_tx_df(sfe, data_dir = NULL, tech = NULL, file = NULL,
+                            sample_id = sample_id, spatialCoordsNames = c("X", "Y"),
+                            gene_col = "gene", bbox = bbox, gene = rowGeometryFeatures,
+                            return_sf = TRUE, rowGeometryName = rowGeometryName,
+                            geoparquet_file = tx_file)
+    } else tx_df <- NULL
     if (!is.null(image_id)) {
-        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                              normalize_channels)
     } else img_df <- NULL
     if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
         df, annot_df, img_df, channel, type_annot, values, aes_use,
-        annot_aes, annot_fixed, size, shape, linewidth, linetype, alpha,
+        annot_aes, annot_fixed, tx_fixed, size, shape, linewidth, linetype, alpha,
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
-        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette, ...
+        pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette,
+        tx_df, rowGeometryFeatures,...
     )
+}
+
+.getRowGeometryFeatures <- function(sfe, features, rowGeometryName, rowGeometryFeatures) {
+    if (!is.null(rowGeometryName)) {
+        if (is.null(rowGeometryFeatures)) {
+            rowGeometryFeatures <- intersect(features, rownames(sfe))
+        } else {
+            rowGeometryFeatures <- intersect(rowGeometryFeatures, rownames(sfe))
+        }
+        if (!length(rowGeometryFeatures)) rowGeometryName <- NULL
+    }
+    list(name = rowGeometryName, features = rowGeometryFeatures)
 }
 
 #' Plot gene expression in space
@@ -768,7 +833,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' \code{ggplot2}.
 #'
 #' @inheritParams plotCorrelogram
-#' @inheritParams plotDimLoadings
+#' @inheritParams calculateUnivariate
 #' @param sfe A \code{SpatialFeatureExperiment} object.
 #' @param features Features to plot, must be in rownames of the gene count
 #'   matrix, colnames of colData or a colGeometry.
@@ -806,7 +871,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   plot.
 #' @param rowGeometryFeatures Which features from \code{rowGeometry} to plot.
 #'   Can only be a small number to avoid overplotting. Different features are
-#'   distinguished by point shape.
+#'   distinguished by point shape. By default (\code{NULL}), when
+#'   \code{rowGeometryName} is specified, this will be whichever items in
+#'   \code{features} that are also in the row names of the SFE object. If
+#'   features specified for this argument are not the same as or a subset of
+#'   those in argument \code{features}, then the spots of all features specified
+#'   here will be plotted, differentiated by point shape.
 #' @param annot_aes A named list of plotting parameters for the annotation sf
 #'   data frame. The names are which geom (as in ggplot2, such as color and
 #'   fill), and the values are column names in the annotation sf data frame.
@@ -814,6 +884,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' @param annot_fixed Similar to \code{annot_aes}, but for fixed aesthetic
 #'   settings, such as \code{color = "gray"}. The defaults are the same as the
 #'   relevant defaults for this function.
+#' @param tx_fixed Similar to \code{annot_fixed}, but to specify fixed aesthetic
+#'   for transcript spots.
 #' @param ncol Number of columns if plotting multiple features. Defaults to
 #'   \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 #'   is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.
@@ -876,6 +948,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   palette will have lighter color represent higher values as if glowing in
 #'   the dark. This is intended for plotting gene expression on top of
 #'   fluorescent images.
+#' @param normalize_channels Logical, whether to normalize each channel of the
+#'   image individually. Should be \code{FALSE} for bright field color images
+#'   such as H&E but should set to \code{TRUE} for fluorescent images.
+#' @param tx_file File path to GeoParquet file of the transcript spots if you
+#'   don't wish to load all transcript spots into the SFE object. See
+#'   \code{\link{formatTxSpots}} on generating such a GeoParquet file.
 #' @param palette Vector of colors to use to color grayscale images.
 #' @param show_axes Logical, whether to show axes.
 #' @param ... Other arguments passed to \code{\link{wrap_plots}}.
@@ -927,7 +1005,9 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                rowGeometryName = NULL,
                                rowGeometryFeatures = NULL,
                                annot_aes = list(), annot_fixed = list(),
+                               tx_fixed = list(),
                                exprs_values = "logcounts", bbox = NULL,
+                               tx_file = NULL,
                                image_id = NULL, channel = NULL, maxcell = 5e+5,
                                aes_use = c("fill", "color", "shape", "linetype"),
                                divergent = FALSE, diverge_center = NA,
@@ -941,6 +1021,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                bins = NULL, summary_fun = sum, hex = FALSE,
                                show_axes = FALSE, dark = FALSE,
                                palette = colorRampPalette(c("black", "white"))(255),
+                               normalize_channels = FALSE,
                                ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -955,14 +1036,17 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
     if (any(inds))
         features[inds] <- rowData(sfe)[features[inds], swap_rownames]
     values <- values[,features, drop = FALSE]
+    c(rowGeometryName, rowGeometryFeatures) %<-%
+        .getRowGeometryFeatures(sfe, features, rowGeometryName, rowGeometryFeatures)
     .plotSpatialFeature(
         sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName, annot_aes,
-        annot_fixed, bbox, image_id, channel, aes_use, divergent,
+        annot_fixed, tx_fixed, bbox, image_id, channel, aes_use, divergent,
         diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
-        maxcell, show_axes, dark, palette, ...
+        maxcell, show_axes, dark, palette, normalize_channels,
+        rowGeometryName, rowGeometryFeatures, tx_file, ...
     )
 }
 
@@ -1163,14 +1247,36 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
     p
 }
 
+.add_image <- function(p, sfe, sample_id, image_id, channel, bbox, maxcell,
+                       normalize_channels, palette) {
+    if (!is.null(image_id))
+        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                              normalize_channels)
+    else img_df <- NULL
+    if (!is.null(image_id) && nrow(img_df)) {
+        data <- NULL
+        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
+    }
+    p
+}
+
 #' Plot geometries without coloring
 #'
-#' Different samples are plotted in separate facets.
+#' Different samples are plotted in separate facets. When multiple geometries
+#' are plotted at the same time, they will be differentiated by color, by
+#' default using the \code{dittoSeq} palette, but this can be overridden with
+#' \code{scale_color_*} functions. Transcript spots of different genes are
+#' differentiated by point shape if plotted, so the number of genes plotted
+#' shouldn't exceed about 6 or a warning will be issued.
 #'
 #' @inheritParams plotSpatialFeature
 #' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
+#' @inheritParams plotTxBin2D
 #' @param fill Logical, whether to fill polygons.
-#' @return A ggplot object.
+#' @param tx_alpha Transparency for transcript spots, helpful when the
+#'   transcript spots are overplotting.
+#' @param tx_size Point size for transcript spots.
+#' @return A \code{ggplot} object.
 #' @export
 #' @concept Spatial plotting
 #' @examples
@@ -1179,41 +1285,90 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' sfe2 <- McKellarMuscleData("small2")
 #' sfe <- cbind(sfe1, sfe2)
 #' sfe <- removeEmptySpace(sfe)
-#' plotGeometry(sfe, "spotPoly")
-#' plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
-plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
-                         fill = TRUE, ncol = NULL, bbox = NULL,
+#' plotGeometry(sfe, colGeometryName = "spotPoly")
+#' plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
+plotGeometry <- function(sfe,
+                         type = deprecated(), MARGIN = deprecated(),
+                         colGeometryName = NULL, annotGeometryName = NULL,
+                         rowGeometryName = NULL, gene = "all",
+                         sample_id = "all",
+                         fill = TRUE, ncol = NULL, bbox = NULL, tx_alpha = 1,
+                         tx_size = 1, tx_file = NULL,
                          image_id = NULL, channel = NULL,
                          maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
-                         palette = colorRampPalette(c("black", "white"))(255)) {
+                         palette = colorRampPalette(c("black", "white"))(255),
+                         normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    fun <- switch (MARGIN, rowGeometry, colGeometry, annotGeometry)
-    df <- fun(sfe, type, sample_id = sample_id)
-    # TODO: allow MARGIN == 1L and multiple margins. This should allow a small
-    # number of features/genes distinguished by point shape or larger number or
-    # all genes not distinguished. Can experiment with kernel density but that
-    # can't be plotted with the image.
-    if (MARGIN == 2L) {
-        df$sample_id <- sfe$sample_id
+    if (is_present(type))
+        deprecate_warn("1.8.0", "plotGeometry(type)", details =
+                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
+    if (is_present(MARGIN))
+        deprecate_warn("1.8.0", "plotGeometry(MARGIN)", details =
+                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
+    if (is_present(type) && is_present(MARGIN)) {
+        # The old behavior
+        if (MARGIN == 2L) {
+            colGeometryName <- type
+            annotGeometryName <- NULL
+            rowGeometryName <- NULL
+        }
+        else if (MARGIN == 3L) {
+            annotGeometryName <- type
+            colGeometryName <- NULL
+            rowGeometryName <- NULL
+        }
     }
-    if (MARGIN == 3L) {
-        sample_id <- unique(df$sample_id)
+    if (is.null(colGeometryName) && is.null(annotGeometryName) && is.null(rowGeometryName)) {
+        stop("At lease one of colGeometryName, annotGeometryName, and rowGeometryName must be specified.")
     }
-    df <- .crop(df[,"sample_id"], bbox)
+    cgs <- lapply(colGeometryName, function(n) {
+        out <- colGeometry(sfe, type = n, sample_id = sample_id)
+        out$sample_id <- colData(sfe)[rownames(out), "sample_id"]
+        out$type <- n
+        out[,c("sample_id", "type", "geometry")]
+    })
+    ags <- lapply(annotGeometryName, function(n) {
+        out <- annotGeometry(sfe, type = n, sample_id = sample_id)
+        out$type <- n
+        out[,c("sample_id", "type", "geometry")]
+    })
+    if (!is.null(rowGeometryName)) {
+        if (length(rowGeometryName) > 1L) {
+            rowGeometryName <- rowGeometryName[1]
+            message("Only the first item in rowGeometryName is used.")
+        }
+        rgs <- .get_tx_df(sfe, data_dir = NULL, tech = NULL, file = NULL,
+                          sample_id = sample_id, spatialCoordsNames = c("X", "Y"),
+                          gene_col = "gene", bbox = bbox, gene = gene,
+                          return_sf = TRUE, rowGeometryName = rowGeometryName,
+                          geoparquet_file = tx_file)
+    } else rgs <- NULL
+    df <- do.call(rbind, c(cgs, ags))
     p <- ggplot()
-    if (!is.null(image_id))
-        img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
-    else img_df <- NULL
-    if (!is.null(image_id) && nrow(img_df)) {
-        data <- NULL
-        p <- p + geom_spi_rgb(data = img_df, aes(spi = data), palette = palette)
-    }
+    p <- .add_image(p, sfe, sample_id, image_id, channel, bbox, maxcell,
+                    normalize_channels, palette)
     if (dark) color <- "gray90" else color <- "black"
-    if (fill) {
-        if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
-        p <- p + geom_sf(data = df, fill = fill_col, color = color)
+    if (!is.null(rowGeometryName)) {
+        if (!identical(gene, "all") && length(unique(rgs$gene)) > 1L)
+            p <- p + geom_sf(data = rgs, aes(shape = gene), color = color,
+                             alpha = tx_alpha, size = tx_size,
+                             show.legend = "point")
+        else p <- p + geom_sf(data = rgs, shape = 4, color = color,
+                              alpha = tx_alpha, size = tx_size,
+                              show.legend = "point")
     }
-    else p <- p + geom_sf(data = df, fill = NA, color = color)
+    if (!is.null(df)) {
+        df <- .crop(df, bbox)
+        if (fill) {
+            if (dark) fill_col <- "darkblue" else fill_col <- "gray90"
+        } else fill_col <- NA
+        if (length(unique(df$type)) > 1L) {
+            p <- p + geom_sf(data = df, aes(color = type), fill = NA) +
+                scale_color_manual(values = ditto_colors)
+        } else {
+            p <- p + geom_sf(data = df, fill = fill_col, color = color)
+        }
+    }
     if (length(sample_id) > 1L) {
         p <- p + facet_wrap(~ sample_id, ncol = ncol)
     }
@@ -1253,9 +1408,11 @@ plotGeometry <- function(sfe, type, MARGIN = 2L, sample_id = "all",
 plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
                       ncol = NULL, bbox = NULL,
                       maxcell = 5e+5, show_axes = FALSE, dark = FALSE,
-                      palette = colorRampPalette(c("black", "white"))(255)) {
+                      palette = colorRampPalette(c("black", "white"))(255),
+                      normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+    img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
+                          normalize_channels)
     data <- NULL
     img_df$bbox <- lapply(img_df$data, function(x) {
         out <- ext(x)

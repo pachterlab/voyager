@@ -871,28 +871,33 @@ test_that("Moran plot bin2d", {
 
 test_that("Plot geometries", {
     expect_ggplot("plot colGeometry 2 samples", {
-        plotGeometry(sfe, "spotPoly")
+        plotGeometry(sfe, colGeometryName = "spotPoly")
     })
     expect_ggplot("plot colGeometry 1 sample", {
-        plotGeometry(sfe_muscle, "spotPoly")
+        plotGeometry(sfe_muscle, colGeometryName = "spotPoly")
     })
+    # Old behavior still works for now
+    w <- capture_warnings(plotGeometry(sfe, type = "myofiber_simplified", MARGIN = 3))
+    expect_match(w, "deprecated")
+    expect_ggplot("Old behavior for colGeometry",
+                  suppressWarnings(plotGeometry(sfe, type = "spotPoly", MARGIN = 2)))
     expect_ggplot("plot annotGeometry 2 samples", {
-        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3)
+        plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
     })
     expect_ggplot("plot annotGeometry 1 sample", {
-        plotGeometry(sfe_muscle, "myofiber_simplified", MARGIN = 3)
+        plotGeometry(sfe_muscle, annotGeometryName = "myofiber_simplified")
     })
     expect_ggplot("Plot colGeometry, with bbox", {
-        plotGeometry(sfe, "spotPoly", bbox = bbox_2s)
+        plotGeometry(sfe, colGeometryName = "spotPoly", bbox = bbox_2s)
     })
     expect_ggplot("Plot annotGeometry, with bbox", {
-        plotGeometry(sfe, "myofiber_simplified", MARGIN = 3, bbox = bbox_2s)
+        plotGeometry(sfe, annotGeometryName = "myofiber_simplified", bbox = bbox_2s)
     })
     expect_ggplot("Plot colGeometry, not filling", {
-        plotGeometry(sfe_muscle, "spotPoly", fill = FALSE)
+        plotGeometry(sfe_muscle, colGeometryName = "spotPoly", fill = FALSE)
     })
     expect_ggplot("Plot colGeometry, showing axes", {
-        plotGeometry(sfe_muscle, "spotPoly", show_axes = TRUE)
+        plotGeometry(sfe_muscle, colGeometryName = "spotPoly", show_axes = TRUE)
     })
 })
 
@@ -1037,10 +1042,10 @@ test_that("spatialReducedDim with image", {
 
 test_that("plotGeometry with image", {
     expect_ggplot("One sample", {
-        plotGeometry(sfe_ob, "spotPoly", MARGIN = 2, image_id = "lowres")
+        plotGeometry(sfe_ob, colGeometryName = "spotPoly", image_id = "lowres")
     })
     expect_ggplot("Two samples", {
-        plotGeometry(sfe_ob3, "spotPoly", MARGIN = 2, image_id = "lowres")
+        plotGeometry(sfe_ob3, colGeometryName = "spotPoly", image_id = "lowres")
     })
 })
 
@@ -1050,42 +1055,42 @@ xe <- readXenium(xenium_path)
 
 test_that("Plot BioFormats image behind geometries", {
     expect_ggplot("Use defaults", {
-        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus",
-                     channel = 2, fill = FALSE)
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus",
+                     fill = FALSE, channel = 3:1)
     })
     expect_ggplot("Use dark theme, alternative palette", {
-        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                      channel = 3, dark = TRUE, palette = viridis_pal()(255))
     })
     expect_ggplot("Show axes", {
-        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                      channel = 4, dark = TRUE, palette = viridis_pal()(255),
                      show_axes = TRUE)
     })
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                               dark = TRUE, palette = viridis_pal()(255)),
                  "Argument `channel` must be specified")
 })
 
 test_that("Colorize channels when plotting image", {
     expect_ggplot("Use 3 channels", {
-        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                      channel = c(2,4,1), dark = TRUE)
     })
     expect_ggplot("Specify 2 channels by name", {
-        plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                      channel = c(g = 2, b = 1), dark = TRUE)
     })
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                               channel = "foo", dark = TRUE),
                  "channel must be numeric indices")
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                               channel = 1:4, dark = TRUE),
                  "Only up to 3 channels can plotted at once in an RGB image")
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                               channel = c(foo = 1, bar = 2), dark = TRUE),
                  "Names of channel indices must be among 'r', 'g', 'b'")
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = "morphology_focus", fill = FALSE,
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = "morphology_focus", fill = FALSE,
                               channel = 5, dark = TRUE),
                  "channel index out of bound")
 })
@@ -1099,20 +1104,20 @@ test_that("Colorize by different images", {
     xe <- addImg(xe, img2, image_id = "img2")
     xe <- addImg(xe, img34, image_id = "img34")
     expect_ggplot("Use 2 channels", {
-        plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+        plotGeometry(xe, colGeometryName = "cellSeg", image_id = c(r = "img2", b = "img1"),
                      fill = FALSE, dark = TRUE)
     })
-    expect_warning(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img1"),
+    expect_warning(plotGeometry(xe, colGeometryName = "cellSeg", image_id = c(r = "img2", b = "img1"),
                                 channel = 1, fill = FALSE, dark = TRUE),
                    "Cannot use multiple images as different channels")
-    expect_error(plotGeometry(xe, type = "cellSeg",
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg",
                               image_id = imgData(xe)$image_id,
                               fill = FALSE, dark = TRUE),
                  "Colorization allows up to 3 channels")
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c("img2", "img1"),
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = c("img2", "img1"),
                               fill = FALSE, dark = TRUE),
                  "image_id of length 2 must have names")
-    expect_error(plotGeometry(xe, type = "cellSeg", image_id = c(r = "img2", b = "img34"),
+    expect_error(plotGeometry(xe, colGeometryName = "cellSeg", image_id = c(r = "img2", b = "img34"),
                               fill = FALSE, dark = TRUE),
                  "must only have 1 channel")
 })
@@ -1124,8 +1129,9 @@ test_that("When different images for different channels have different resolutio
     img2 <- EBImage::resize(img2, w = 1000)
     xe <- addImg(xe, img1, image_id = "img1")
     xe <- addImg(xe, img2, image_id = "img_smaller")
-    plotGeometry(xe, type = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
-                 fill = FALSE, dark = TRUE)
+    expect_ggplot("",
+                  plotGeometry(xe, colGeometryName = "cellSeg", image_id = c(r = "img1", g = "img_smaller"),
+                               fill = FALSE, dark = TRUE))
 })
 
 test_that("Just plot image, no geometries", {

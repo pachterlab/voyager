@@ -9,6 +9,7 @@
     sweep(X, 1, ss, "/")
 }
 #' @importFrom Matrix rowSums rowMeans
+#' @importFrom DelayedArray sweep
 .lee_mat <- function(x, y = NULL, listw, zero.policy = TRUE, ...) {
     # X has genes in rows
     if (is(listw, "listw"))

@@ -7,7 +7,7 @@ on:
     - cron: "30 19 * * *"
 jobs:
   pkgdown:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
     # Only restrict concurrency for non-PR jobs
     concurrency:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
@@ -28,9 +28,9 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-      - name: Install irlba from source
-        run: install.packages("irlba", type = "source")
-        shell: Rscript {0}
+      #- name: Install irlba from source
+      #  run: install.packages("irlba", type = "source")
+      #  shell: Rscript {0}
       - name: Setup python
         uses: actions/setup-python@v4
         with:

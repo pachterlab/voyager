@@ -1,9 +1,9 @@
 Type: Package
 Package: Voyager
 Title: From geospatial to spatial omics
-Version: 1.6.0
+Version: 1.8.1
 Authors@R: 
-    c(person("Lambda", "Moses", email = "dlu2@caltech.edu", 
+    c(person("Lambda", "Moses", email = "dl3764@columbia.edu", 
     role = c("aut", "cre"),
     comment = c(ORCID = "0000-0002-7092-9427")),
     person("Alik", "Huseynov",
@@ -32,11 +32,12 @@ Description: SpatialFeatureExperiment (SFE) is a new S4 class for working with
     results. 
 Depends: 
     R (>= 4.2.0),
-    SpatialFeatureExperiment (>= 1.5.2)
+    SpatialFeatureExperiment (>= 1.7.3)
 Imports:
     BiocParallel,
     bluster,
     DropletUtils,
+    DelayedArray,
     ggnewscale,
     ggplot2 (>= 3.4.0),
     grDevices,
@@ -59,8 +60,10 @@ Imports:
     stats,
     SummarizedExperiment,
     terra,
-    utils
+    utils,
+    zeallot
 Suggests:
+    arrow,
     automap,
     batchelor,
     BiocNeighbors,
@@ -68,14 +71,14 @@ Suggests:
     BiocStyle,
     concordexR,
     cowplot,
+    data.table,
     dbscan,
     dplyr,
     EBImage,
+    ExperimentHub,
     fossil,
     gghighlight,
     glue,
-    EBImage,
-    ExperimentHub,
     ggh4x,
     gstat,
     hexbin,
@@ -102,10 +105,10 @@ Suggests:
     tidyr,
     uwot,
     vdiffr,
-    vroom,
     xml2
-RoxygenNote: 7.3.1
+License: Artistic-2.0
 Encoding: UTF-8
+RoxygenNote: 7.3.2
 Config/testthat/edition: 3
 biocViews:
     GeneExpression,
@@ -130,6 +133,7 @@ Collate:
     'listSFEMethods.R'
     'multivariate.R'
     'plot-non-spatial.R'
+    'plot-transcripts.R'
     'plot-univar-downstream.R'
     'plot.R'
     'plotLocalResult.R'

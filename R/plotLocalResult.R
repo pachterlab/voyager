@@ -117,8 +117,11 @@
 plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             sample_id = "all",
                             colGeometryName = NULL, annotGeometryName = NULL,
+                            rowGeometryName = NULL,
+                            rowGeometryFeatures = NULL,
                             ncol = NULL, ncol_sample = NULL,
-                            annot_aes = list(), annot_fixed = list(), bbox = NULL,
+                            annot_aes = list(), annot_fixed = list(),
+                            tx_fixed = list(), bbox = NULL, tx_file = NULL,
                             image_id = NULL, channel = NULL, maxcell = 5e+5,
                             aes_use = c("fill", "color", "shape", "linetype"),
                             divergent = FALSE, diverge_center = NULL,
@@ -130,6 +133,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                             scattermore = FALSE, pointsize = 0, bins = NULL,
                             summary_fun = sum, hex = FALSE, show_axes = FALSE,
                             dark = FALSE, palette = colorRampPalette(c("black", "white"))(255),
+                            normalize_channels = FALSE,
                             type = name, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -143,6 +147,8 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                                                       sample_id = "all")))
         ag_name <- if (pred) annotGeometryName else NULL
     } else ag_name <- NULL
+    c(rowGeometryName, rowGeometryFeatures) %<-%
+        .getRowGeometryFeatures(sfe, features, rowGeometryName, rowGeometryFeatures)
     params <- getParams(sfe, name, local = TRUE,
                         colGeometryName = cg_name,
                         annotGeometryName = ag_name)
@@ -178,14 +184,16 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
             sfe, values, colGeometryName, sample_id,
             ncol,
             ncol_sample, annotGeometryName, annot_aes,
-            annot_fixed, bbox, image_id, aes_use, divergent,
+            annot_fixed, tx_fixed, bbox, image_id, aes_use, divergent,
             diverge_center, annot_divergent,
             annot_diverge_center, size, shape, linewidth, linetype,
             alpha, color, fill,
             scattermore = scattermore, pointsize = pointsize,
             bins = bins, summary_fun = summary_fun, hex = hex,
             maxcell = maxcell, channel = channel, show_axes = show_axes,
-            dark = dark, palette = palette, ...
+            dark = dark, palette = palette, normalize_channels = normalize_channels,
+            rowGeometryName = rowGeometryName,
+            rowGeometryFeatures = rowGeometryFeatures, tx_file = tx_file, ...
         )
     } else if (is.null(annotGeometryName)) {
         stop("At least one of colGeometryName and annotGeometryName must be specified.")
@@ -194,20 +202,30 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         df <- df[,setdiff(names(df), names(values))]
         df <- cbind(df[,"sample_id"], values)
         df <- .crop(df, bbox)
-        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell)
+        if (!is.null(image_id)) img_df <- .get_img_df(sfe, sample_id, image_id,
+                                                      channel, bbox, maxcell,
+                                                      normalize_channels)
         else img_df <- NULL
         if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
+        if (!is.null(rowGeometryName)) {
+            tx_df <- .get_tx_df(sfe, data_dir = NULL, tech = NULL, file = NULL,
+                                sample_id = sample_id, spatialCoordsNames = c("X", "Y"),
+                                gene_col = "gene", bbox = bbox, gene = rowGeometryFeatures,
+                                return_sf = TRUE, rowGeometryName = rowGeometryName,
+                                geoparquet_file = tx_file)
+        } else tx_df <- NULL
         out <- .wrap_spatial_plots(df,
             annot_df = NULL, img_df = img_df, type_annot = NULL, channel = channel,
             values = values, aes_use = aes_use,
-            annot_aes = list(), annot_fixed = list(),
+            annot_aes = list(), annot_fixed = list(), tx_fixed = tx_fixed,
             size, shape, linewidth, linetype, alpha,
             color, fill, ncol, ncol_sample, divergent,
             diverge_center, annot_divergent = FALSE,
             annot_diverge_center = NULL, scattermore = scattermore,
             pointsize = pointsize, bins = bins, summary_fun = summary_fun,
             hex = hex, maxcell = maxcell, show_axes = show_axes, dark = dark,
-            palette = palette, ...
+            palette = palette, tx_df = tx_df,
+            rowGeometryFeatures = rowGeometryFeatures,...
         )
     }
     # Add title to not to confuse with gene expression

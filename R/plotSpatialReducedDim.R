@@ -35,8 +35,11 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
                               components = ncomponents, colGeometryName = 1L,
                               sample_id = "all", ncol = NULL, ncol_sample = NULL,
                               annotGeometryName = NULL,
+                              rowGeometryName = NULL,
+                              rowGeometryFeatures = NULL,
                               annot_aes = list(), annot_fixed = list(),
-                              exprs_values = "logcounts", bbox = NULL,
+                              tx_fixed = list(),
+                              exprs_values = "logcounts", bbox = NULL, tx_file = NULL,
                               image_id = NULL, channel = NULL, maxcell = 5e+5,
                               aes_use = c("fill", "color", "shape", "linetype"),
                               divergent = FALSE, diverge_center = NULL,
@@ -47,7 +50,8 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
                               color = NA, fill = "gray80", scattermore = FALSE,
                               pointsize = 0, bins = NULL, summary_fun = sum,
                               hex = FALSE, show_axes = FALSE, dark = FALSE,
-                              palette = colorRampPalette(c("black", "white"))(255), ...) {
+                              palette = colorRampPalette(c("black", "white"))(255),
+                              normalize_channels = FALSE, ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     if (length(ncomponents) == 1L) {
@@ -57,15 +61,19 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
     } else dims_use <- components
     sample_ind <- colData(sfe)$sample_id %in% sample_id
     values <- as.data.frame(reducedDim(sfe, dimred)[sample_ind, dims_use, drop = FALSE])
+    if (!is.null(rowGeometryName) && is.null(rowGeometryFeatures))
+        stop("rowGeometryFeatures must be specified")
     out <- .plotSpatialFeature(sfe, values, colGeometryName, sample_id, ncol,
         ncol_sample, annotGeometryName,
-        annot_aes, annot_fixed, bbox, image_id, aes_use,
+        annot_aes, annot_fixed, tx_fixed, bbox, image_id, aes_use,
         divergent, diverge_center, annot_divergent,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill,
         show_symbol = FALSE, scattermore = scattermore, pointsize = pointsize,
         bins = bins, summary_fun = summary_fun, hex = hex, maxcell = maxcell,
-        channel = channel, show_axes = show_axes, dark = dark, palette = palette, ...
+        channel = channel, show_axes = show_axes, dark = dark, palette = palette,
+        normalize_channels = normalize_channels, rowGeometryName = rowGeometryName,
+        rowGeometryFeatures = rowGeometryFeatures, tx_file = tx_file, ...
     )
     if (is(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)
