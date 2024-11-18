@@ -412,7 +412,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 #' @importFrom sf st_as_sfc st_bbox st_intersection
 .bbox_sample <- function(df, bbox) {
-    if (is(df, "sf")) {
+    if (inherits(df, "sf")) {
         # Only for one sample
         bbox_use <- st_as_sfc(st_bbox(bbox))
         suppressWarnings(df <- st_intersection(df, bbox_use))
@@ -659,7 +659,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         # the bbox is a large part of the image that also needs to be written to
         # disk
         imgs <- lapply(imgs, function(x) {
-            if (is(x, "SpatRasterImage")) {
+            if (inherits(x, "SpatRasterImage")) {
                 tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_prop <- bb_area/tot_area
@@ -684,10 +684,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
     }
     # All convert to SpatRaster
     imgs <- lapply(imgs, function(img) {
-        if (is(img, "BioFormatsImage")) {
+        if (inherits(img, "BioFormatsImage")) {
             res_use <- .find_res(img, maxcell)
             spi <- toSpatRasterImage(img, resolution = res_use, save_geotiff = FALSE)
-        } else if (is(img, "ExtImage")) {
+        } else if (inherits(img, "ExtImage")) {
             spi <- toSpatRasterImage(img, save_geotiff = FALSE)
         } else spi <- img
         spi |> resample_spat(maxcell)
@@ -772,7 +772,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
                               normalize_channels)
     } else img_df <- NULL
-    if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
+    if (inherits(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
         df, annot_df, img_df, channel, type_annot, values, aes_use,
         annot_aes, annot_fixed, tx_fixed, size, shape, linewidth, linetype, alpha,
