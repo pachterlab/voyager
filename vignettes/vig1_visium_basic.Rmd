@@ -82,6 +82,7 @@ library(dplyr)
 library(reticulate)
 library(concordexR)
 library(BiocNeighbors)
+library(pheatmap)
 theme_set(theme_bw(10))
 ```
 
@@ -125,10 +126,11 @@ if (!file.exists("tissue_lowres_5a.jpeg")) {
 ```
 
 ```{r}
-sfe <- addImg(sfe, file = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
+sfe <- addImg(sfe, imageSource = "tissue_lowres_5a.jpeg", sample_id = "Vis5A", 
               image_id = "lowres", 
               scale_fct = 1024/22208)
-sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
+# Don't need to mirror for terra >= 1.7.83
+#sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
 ```
 
 
@@ -313,24 +315,29 @@ plotUMAP(sfe_tissue, colour_by = "cluster")
 UMAP is often used to visualize clusters. An alternative to UMAP is [`concordex`](https://bioconductor.org/packages/devel/bioc/html/concordexR.html), which quantitatively shows the proportion of neighbors on the k nearest neighbor graph with the same cluster label. To be consistent with the default in igraph Leiden clustering, we use k = 10.
 
 ```{r}
-g <- findKNN(reducedDim(sfe_tissue, "PCA")[,1:3], k = 10)
-res <- calculateConcordex(g$index, labels = sfe_tissue$cluster, k = 10, 
-                          return.map = TRUE)
+res <- calculateConcordex(sfe_tissue, labels = sfe_tissue$cluster, 
+                          n_neighbors = 18,
+                          BLUSPARAM = SNNGraphParam(
+                              cluster.fun = "leiden",
+                              cluster.args = list(
+                                  resolution_parameter = 0.5,
+                                  objective_function = "modularity")))
 ```
 
-The cluster labels are permuted to estimate a null distribution, and the observed values can be compared to the simulated values:
+The result is a neighborhood consolidation matrix which can help finding spatial regions, see the [concordex paper](https://www.biorxiv.org/content/10.1101/2023.06.28.546949v2). The heatmap here shows the proportion of the spatial neighborhood (k nearest neighbors with k = 18 here for 2nd order neighbors on the hexagonal array) of each spot that belongs to a given gene expression based cluster; this matrix shown in this heatmap is then clustered 
 ```{r}
-plotConcordexSim(res)
+pheatmap(res)
 ```
 
-The observed value is much higher than in the simulated values, indicating good clustering. The single number is the average of all clusters. Values for different clusters can be plotted in a heatmap:
-```{r, fig.width=5, fig.height=4}
-heatConcordex(res, angle_col = 0, cluster_rows = FALSE, cluster_cols = FALSE)
+```{r}
+sfe_tissue$concordex <- attr(res, "shrs")
 ```
 
-The diagonal represents the proportion of neighbors of cells from each cluster that are from the same cluster. That the off diagonal entries are very low indicate good clustering.
+```{r}
+plotSpatialFeature(sfe_tissue, "concordex", image = "lowres", maxcell = 5e4)
+```
 
-More interesting in spatial transcriptomics, is to locate the clusters in space, and this can be done as follows:
+Also plot the clusters that did not use spatial information here
 ```{r}
 plotSpatialFeature(sfe_tissue, "cluster", colGeometryName = "spotPoly",
                    image = "lowres")

@@ -90,6 +90,8 @@ library(BiocSingular)
 library(BiocParallel)
 library(sf)
 library(patchwork)
+library(spdep)
+set.ZeroPolicyOption(TRUE)
 theme_set(theme_bw())
 ```
 
@@ -143,7 +145,7 @@ Next we compute Moran's I for QC metrics, which requires a spatial neighborhood 
 system.time(
     colGraph(sfe, "knn5") <- findSpatialNeighbors(sfe, method = "knearneigh", 
                                                   dist_type = "idw", k = 5, 
-                                                  style = "W")
+                                                  style = "W", zero.policy = TRUE)
 )
 ```
 
@@ -167,14 +169,33 @@ inds2 <- st_intersects(cellSeg(sfe), st_as_sfc(st_bbox(bbox_use)),
 sfe_sub <- sfe[, inds2]
 ```
 
+Note that since SpatialFeatureExperiment v1.8, the sptial graphs are subsetted rather than reconstructed when the SFE object is subsetted because reconstruction tends to be more time consuming and the BPPARAM and BNPARAM arguments can't be stored and saved by `alabaster.sfe`. Subsetting removes some of the neighbors of cells near the boundary of this bounding box but the vast majority of cells still have all 5 nearest neighbors.
+
+```{r}
+table(card(colGraph(sfe_sub, "knn5")$neighbours))
+```
+
 ```{r}
 (mb <- moranBounds(colGraph(sfe_sub, "knn5")))
 ```
 
-So considering the bounds, the MOran's I values of the QC metrics are more like
+The lower bound is quite different from if we reconstruct the knn graph on the subset
+```{r}
+colGraph(sfe_sub, "knn5_reconst") <- findSpatialNeighbors(sfe_sub, method = "knearneigh", 
+                                                          k = 5L, dist_type = "idw",
+                                                          style = "W")
+```
+
+```{r}
+(mb2 <- moranBounds(colGraph(sfe_sub, "knn5_reconst")))
+```
+
+It would be cool to systematically investigate the effects of perturbations to the spatial neighborhood graph on Moran's I and other spatial statistics.
+
+So considering the bounds, the Moran's I values of the QC metrics are more like
 ```{r}
 setNames(colFeatureData(sfe)[c("nCounts", "nGenes", "volume"), 
-                             "moran.mc_statistic_sample01"] / mb["Imin"],
+                             "moran.mc_statistic_sample01"] / mb2["Imin"],
          features_use)
 ```
 
@@ -358,7 +379,7 @@ df_moran |>
     geom_line() +
     scale_color_manual(values = ditto_colors) +
     geom_hline(yintercept = 0, color = "gray") +
-    geom_hline(yintercept = mb, linetype = 2, color = "gray") +
+    geom_hline(yintercept = mb2, linetype = 2, color = "gray") +
     scale_y_continuous(breaks = scales::breaks_pretty()) +
     scale_x_continuous(breaks = scales::breaks_width(5)) +
     labs(y = "Moran's I", color = "Type", x = "Component")
@@ -367,7 +388,7 @@ df_moran |>
 In MULTISPATI, Moran's I is high in PC1 and PC2, but then sharply drops. Moran's I for the PC with the most negative eigenvalues is not very negative, which means the large magnitude of that eigenvalue comes from explaining more variance. However, considering the lower bound of Moran's I that is around -0.6 instead of -1, the magnitude of Moran's I for the PC with the most negative eigenvalue is not trivial.
 
 ```{r}
-min(df_moran$MULTISPATI_neg) / mb[1]
+min(df_moran$MULTISPATI_neg) / mb2[1]
 ```
 
 Non-spatial PCs are not sorted by Moran's I; PC5 has surprising large Moran's I. 
