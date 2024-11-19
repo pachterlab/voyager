@@ -87,3 +87,4 @@ A ggplot object, facetting by sample.
 \description{
 Plot transcript spot density as 2D histogram
 }
+\concept{Spatial plotting}
