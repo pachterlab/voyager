@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "release", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -121,7 +121,7 @@ system.time({
 
 When run on our server, plotting almost 400,000 polygons took around 23 seconds, while using `geom_scattermore()` (`scattermore = TRUE`) took about 2 seconds. Since `geom_scattermore()` rasterizes the plot, the plot will be pixelated when zoomed in. 
 
-While interactive data visualization is useful for ESDA, there is a need for static figures in publications. As of Voyager 1.2.0 (Bioconductor 3.17), a bounding box can be specified to zoom into the data.
+While interactive data visualization is useful for ESDA, there is a need for static figures in publications. As of Voyager 1.2.0 (Bioconductor release), a bounding box can be specified to zoom into the data.
 
 ```{r}
 bbox_use <- c(xmin = 3000, xmax = 3500, ymin = 2500, ymax = 3000)
@@ -332,7 +332,7 @@ plotGeometry(sfe, "cellSeg", bbox = bbox_use)
 
 There are quite a few cells that are not contiguous to any other cell, and cell segmentation is imperfect, so purely using `poly2nb()` is problematic. In the next release, we might implement a way to blend a polygon contiguity graph with some other graph in case of singletons. For now, we use k nearest neighbors with $k = 5$, which seems like a reasonable approximation of contiguity based on the visual inspection. 
 
-As of Voyager 1.2.0 (Bioconductor 3.17), `findSpatialNeighbors()` by default uses `BiocNeighbors` for k nearest neighbors and distance neighbors and saving the distances between neighbors. This bypasses the most time consuming step in `spdep` when calculating distance based edge weights, which is to compute distance, hence greatly speeding up computation.
+As of Voyager 1.2.0 (Bioconductor release), `findSpatialNeighbors()` by default uses `BiocNeighbors` for k nearest neighbors and distance neighbors and saving the distances between neighbors. This bypasses the most time consuming step in `spdep` when calculating distance based edge weights, which is to compute distance, hence greatly speeding up computation.
 
 ```{r}
 system.time(
@@ -468,7 +468,7 @@ $$
 
 where $X$ is the value such as gene expression, and $t$ is a spatial vector. $X_0$ is the value at a location of interest, and $X_t$ is the value lagged by $t$. With positive spatial autocorrelation, the variance would be smaller among nearby values, so the variogram would increase with distance, eventually leveling off when the distance is beyond the length scale of spatial autocorrelation. The "semi" comes from the 1/2.
 
-The variogram is in Voyager v1.2.0 or higher (Bioconductor 3.17 or later) and can be computed with the same `runUnivariate()` function. See [vignette for variograms and variogram maps](https://pachterlab.github.io/voyager/articles/variogram.html).
+The variogram is in Voyager v1.2.0 or higher (Bioconductor release or later) and can be computed with the same `runUnivariate()` function. See [vignette for variograms and variogram maps](https://pachterlab.github.io/voyager/articles/variogram.html).
 
 First we find an empirical variogram assuming that it's the same in all directions. Here the data is binned at distance intervals, so this is much faster than the correlogram at the cell level. The `width` argument controlls the bin size. The `cutoff` argument is the maximum distance to consider. Here we use the defaults. The first argument is a formula; covariates can be specified, but is not done here.
 
@@ -535,7 +535,7 @@ spatialReducedDim(sfe, "PCA", 4, colGeometryName = "centroids", scattermore = TR
                   divergent = TRUE, diverge_center = 0)
 ```
 
-PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. There are some methods for spatially informed PCA, such as MULTISPATI PCA [@Dray2008-en] in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package, which seeks to maximize both variance (as in non-spatial PCA) and Moran's I on each PC. Unlike traditional PCs, where all eigenvalues, signifying variance explained, are positive, MULTISPATI PCA can have negative eigenvalues, which signify negative spatial autocorrelation. The PCs from MULTISPATI PCA with positive eigenvalues are also more spatially coherent than those from non-spatial PCA. For the CosMX and Xenium datasets on this website, the spatial coherence from MULTISPATI might not make a difference, but it might make a difference in this dataset where non-spatial PCs don't show as much spatial structure, at least at the larger scale over the entire tissue section. Voyager 1.2.0 (Bioconductor 3.17) has a faster implementation of MULTISPATI PCA than that of `adespatial`, and is demonstrated in this dataset in [another vignette](https://pachterlab.github.io/voyager/articles/multispati.html).
+PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have less spatial structure. While in the CosMX and Xenium datasets on this website, the top PCs have clear spatial structures despite the absence of spatial information in non-spatial PCA because of clear spatial compartments for some cell types, which does not seem to be the case in this dataset except for the blood vessels. We have seen above that some genes have strong spatial structures. There are some methods for spatially informed PCA, such as MULTISPATI PCA [@Dray2008-en] in the [`adespatial`](https://cran.r-project.org/web/packages/adespatial/index.html) package, which seeks to maximize both variance (as in non-spatial PCA) and Moran's I on each PC. Unlike traditional PCs, where all eigenvalues, signifying variance explained, are positive, MULTISPATI PCA can have negative eigenvalues, which signify negative spatial autocorrelation. The PCs from MULTISPATI PCA with positive eigenvalues are also more spatially coherent than those from non-spatial PCA. For the CosMX and Xenium datasets on this website, the spatial coherence from MULTISPATI might not make a difference, but it might make a difference in this dataset where non-spatial PCs don't show as much spatial structure, at least at the larger scale over the entire tissue section. Voyager 1.2.0 (Bioconductor release) has a faster implementation of MULTISPATI PCA than that of `adespatial`, and is demonstrated in this dataset in [another vignette](https://pachterlab.github.io/voyager/articles/multispati.html).
 
 While PC2 and PC3 don't seem to have large scale spatial structure, they may have more local spatial structure not obvious from plotting the entire section, so we zoom into the bounding box:
 ```{r, fig.width=9, fig.height=5}

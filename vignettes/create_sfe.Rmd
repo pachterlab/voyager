@@ -41,7 +41,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "release", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -97,7 +97,7 @@ fromJSON(file = file.path(samples[1], "spatial", "scalefactors_json.json"))
 
 The `tissue_positions_list.csv` file contains information for the spatial coordinates of the spots and whether each spot is in tissue as automatically detected by Space Ranger or manually annotated in the Loupe browser. If the polygon of the tissue boundary is available, whether from image processing or manual annotation, geometric operations as supported by the SFE package, which is based on the `sf` package, can be used to find which spots intersect with the tissue and which spots are contained in the tissue. Geometric operations can also find the polygons of the intersections between spots and the tissue, but the results can get messy since the intersections can have not only polygons but also points and lines. 
 
-Now we read in the toy data that is in the Space Ranger output format. Since Bioconductor version 3.17 (Voyager version 1.2.0), the image is read as a `SpatRaster` object with the [`terra`](https://rspatial.github.io/terra/index.html) package, so it is not loaded into memory unless necessary. When plotting a large image, it will be downsampled and thus not fully loaded into memory. The unit can be set with the `unit` argument, and can be either pixels in full resolution image or microns. The latter is calculated from the former based on spacing between spots, which is known to be 100 microns.
+Now we read in the toy data that is in the Space Ranger output format. Since Bioconductor version release (Voyager version 1.2.0), the image is read as a `SpatRaster` object with the [`terra`](https://rspatial.github.io/terra/index.html) package, so it is not loaded into memory unless necessary. When plotting a large image, it will be downsampled and thus not fully loaded into memory. The unit can be set with the `unit` argument, and can be either pixels in full resolution image or microns. The latter is calculated from the former based on spacing between spots, which is known to be 100 microns.
 
 ```{r}
 (sfe3 <- read10xVisiumSFE(samples, dirs = samples, sample_id = sample_ids, 
