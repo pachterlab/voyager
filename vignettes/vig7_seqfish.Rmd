@@ -42,7 +42,7 @@ system("apt-get install -y libfribidi-dev libcairo2-dev libmagick++-dev")
 
 # Install Voyager from Bioconductor:
 install.packages("BiocManager")
-BiocManager::install(version = "3.17", ask = FALSE, update = FALSE, Ncpus = 2)
+BiocManager::install(version = "release", ask = FALSE, update = FALSE, Ncpus = 2)
 BiocManager::install("scater")
 system.time(
   BiocManager::install("Voyager", dependencies = TRUE, Ncpus = 2, update = FALSE)
@@ -60,7 +60,7 @@ packageVersion("Voyager")
 # Dataset
 The data used in this vignette are described in [Integration of spatial and single-cell transcriptomic data elucidates mouse organogenesis](https://doi.org/10.1038/s41587-021-01006-2). Briefly, seqFISH was use to profile 351 genes in several mouse embryos at the 8-12 somite stage (ss). We will focus on a single biological replicate, embryo 3. The raw and processed counts and corresponding metadata are available to download from the [Marioni lab](https://content.cruk.cam.ac.uk/jmlab/SpatialMouseAtlas2020/). Expression matrices, segmentation data, and segmented cell vertices are provided as R objects that can be readily imported into an R environment. The data relevant to this vignette have been converted to a `SFE` object and are available to download [here](https://caltech.box.com/public/static/ulrqr1gk7oh21h9ejgua1xajs6dsbvrj) from Box.  
 
-The data have been added to the `SFEData` package on Bioconductor and will be available in the 3.17 release. 
+The data have been added to the `SFEData` package on Bioconductor and will be available in the release release. 
 
 We will begin by downloading the data and loading it in to R. 
 ```{r setup, message=FALSE}
@@ -86,7 +86,7 @@ theme_set(theme_bw())
 ```
 
 ```{r}
-# Only Bioc 3.17 and above
+# Only Bioc release and above
 sfe <- LohoffGastrulationData()
 ```
 
