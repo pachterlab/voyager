@@ -52,22 +52,6 @@ system.time(
 packageVersion("Voyager")
 ```
 
-For website when we submit the new Voyager paper:
-1. mouse OB and muscle for Visium*
-2. Xenium v2 (this dataset)*
-3. MERFISH*
-4. VisiumHD*
-5. Slide-seq v2
-6. CosMX
-7. seqFISH
-8. CODEX
-9. both Visium and metabolomics
-10. non-spatial, check in with Sina for updates
-
-Spatial methods for website:
-1. Univariate
-
-
 # Introduction
 
 This vignette introduces plotting functions relevant to exploring Xenium data, performs some Xenium-specific quality control (QC), and performs some exploratory spatial data analysis. QC here is part of data validation, which should be part of exploratory data analysis.
@@ -148,7 +132,7 @@ Plot cell density in space
 plotCellBin2D(sfe, binwidth = 50, hex = TRUE)
 ```
 
-There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures.
+There are clearly two different regions, one with high cell density, the other with lower density. They also seem to have very different spatial structures. Just like finding the study area in geography, e.g. a given metropolitan area, it may be interesting to perform spatial analyses on different regions of the tissue separately or use the different region annotations as covariates.
 
 Plot total transcript density
 
@@ -157,7 +141,7 @@ plotTxBin2D(data_dir = "xenium2_pancreas", tech = "Xenium", binwidth = 50,
             flip = TRUE, hex = TRUE)
 ```
 
-Cool, so the region with higher cell density also has higher transcript density, but in the sparse region, there are regions of higher transcript density but not higher cell density
+Cool, so the region with higher cell density also has higher transcript density, but in the sparse region, there are regions of higher transcript density but not higher cell density.
 
 Plot the images; the image has 4 channels, which are DAPI, ATP1A1/CD45/E-Cadherin, 18S, and AlphaSMA/Vimentin, in this order. The images are pyramids with multiple resolutions; some applications would not require the highest resolution. The file for each channel is around 370 MB. Only the metadata is read in R and only the relevant portion of the image at the highest resolution necessary is loaded into memory when needed, say when plotting. 
 
@@ -320,6 +304,10 @@ plotColDataHistogram(sfe, cols_use, bins = 20, ncol = 2) +
     annotation_logticks(sides = "l")
 ```
 
+```{r, include=FALSE}
+tx <- read_parquet("xenium2_pancreas/transcripts.parquet")
+```
+
 The counts are low, mostly zero, but there are some cells with up to 2 counts of all types aggregated. Then the outlier with 30% of counts from negative controls must have very low total real transcript counts to begin with. The negative controls indicate the prevalence of false positives. Here we have only about 2000 out of over 140,000 that have negative control spots detected. About `r format(sum(tx$feature_name %in% rownames(sfe)[is_any_neg])/nrow(tx)*100, digits = 3)`% are negative control spots, so false positive rate is low.
 
 ```{r}
@@ -345,7 +333,6 @@ Cells that have any negative control spots appear to be randomly distributed in 
 Where are negative control spots located?
 
 ```{r, fig.width=6, fig.height=2.5}
-tx <- read_parquet("xenium2_pancreas/transcripts.parquet")
 tx |> 
     filter(feature_name %in% rownames(sfe)[is_any_neg]) |> 
     ggplot(aes(x_location, -y_location)) +
@@ -790,20 +777,23 @@ plotRowData(sfe, x = "means", y = "moran_sample01", color_by = "is_neg") +
 
 Very highly expressed genes have higher Moran's I, but there are some less expressed genes with higher Moran's I as well.
 
+```{r}
+sfe <- sfe[rowData(sfe)$Type == "Gene Expression",]
+```
+
 # Non-spatial dimension reduction and clustering
 
 Here we run non-spatial PCA as for scRNA-seq data
 ```{r}
 set.seed(29)
-sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam(),
-              subset_row = !rowData(sfe)$is_neg)
+sfe <- runPCA(sfe, ncomponents = 30, scale = TRUE, BSPARAM = IrlbaParam(), ntop = Inf)
 ```
 
 ```{r}
 ElbowPlot(sfe, ndims = 30)
 ```
 
-```{r, fig.width=6, fig.height=6}
+```{r, fig.width=6, fig.height=7}
 plotDimLoadings(sfe, dims = 1:8)
 ```
 
@@ -818,7 +808,7 @@ spatialReducedDim(sfe, "PCA", components = 5:8, colGeometryName = "centroids",
                   ncol = 1, scattermore = TRUE, pointsize = 1.5)
 ```
 
-While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types.
+While spatial region is not explicitly used, the PC's highlight spatial regions due to spatial autocorrelation in gene expression and histological regions with different cell types. Since PCA finds linear combinations of genes that maximize variance explained, when the genes that explain more variance are spatially structured, their linear combinations are also spatially structured.
 
 Non-spatial clustering and locating the clusters in space
 ```{r}
@@ -841,7 +831,16 @@ plotSpatialFeature(sfe, "cluster", colGeometryName = "centroids", scattermore = 
                    pointsize = 1.2, size = 3)
 ```
 
-TODO: Zoom in to plot clusters in space. Try NMF. MULTISPATI isn't worth it in this case. Try concordex clustering
+```{r, fig.width=9, fig.height=4}
+plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg", bbox = bbox1) +
+    plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg", bbox = bbox2) +
+    plotSpatialFeature(sfe, "cluster", colGeometryName = "cellSeg", bbox = bbox8) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom", legend.byrow = TRUE) & 
+    guides(fill = guide_legend(nrow = 2))
+```
+
+Since the principal components are spatially structured, the clusters found from the PCs are spatially structured.
 
 # Differential expression
 Cluster marker genes are found with Wilcoxon rank sum test as commonly done for scRNA-seq.
@@ -881,7 +880,7 @@ Global Moran's I of these marker genes is shown below:
 setNames(rowData(sfe)[genes_use, "moran_sample01"], genes_use)
 ```
 
-All these marker genes have positive spatial autocorrelation, but some stronger than others.
+All these marker genes except for CRHBP have positive spatial autocorrelation, but some stronger than others.
 
 Local Moran's I of these marker genes is shown below:
 ```{r}
@@ -895,24 +894,30 @@ plotLocalResult(sfe, "localmoran", features = genes_use,
                 diverge_center = 0, scattermore = TRUE, pointsize = 0)
 ```
 
-It seems that some histological regions tend to be more spatially homogenous in gene expression than others. The epithelial region tends to be more homogenous. For some genes, regions with higher expression also have higher local Moran's I, such as FOXA1 and GATA3, while for some genes, this is not the case, such as FGL2 and LUM. 
+Here we don't see much local negative spatial autocorrelation compared to positive spatial autocorrelation.
 
-Finally, we assess local spatial heteroscdasticity (LOSH) for these marker genes to find local heterogeneity:
-```{r}
-sfe <- runUnivariate(sfe, "LOSH", features = genes_use, colGraphName = "knn5",
-                     BPPARAM = MulticoreParam(2))
+Also zoom into some of the regions
+```{r, fig.width=9, fig.height=9}
+plotLocalResult(sfe, "localmoran", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 3, divergent = TRUE,
+                diverge_center = 0, bbox = bbox1)
 ```
 
 ```{r, fig.width=9, fig.height=9}
-plotLocalResult(sfe, "LOSH", features = genes_use, 
-                colGeometryName = "centroids", ncol = 2, scattermore = TRUE, 
-                pointsize = 0)
+plotLocalResult(sfe, "localmoran", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 3, divergent = TRUE,
+                diverge_center = 0, bbox = bbox2)
 ```
 
-Again, just like in the [CosMX dataset](https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#local-spatial-statistics-of-marker-genes), LOSH is higher where the gene is more highly expressed in some (e.g. CD3E, LUM, TENT5C) but not all cases (e.g. FOXA1, GATA3). This may be due to spatial distribution of different cell types.
+```{r, fig.width=9, fig.height=9}
+plotLocalResult(sfe, "localmoran", features = genes_use, 
+                colGeometryName = "cellSeg", ncol = 3, divergent = TRUE,
+                diverge_center = 0, bbox = bbox8)
+```
 
-# Explore multiple length scales
-Here we perform spatial binning of the transcript spots with bins of different sizes to see how the spatial statistics change over length scales.
+Zooming in, it's interesting to see local negative spatial autocorrelation of some genes in some regions that don't seem like spatial outliers but seem more to be a pattern, such as VCAN.
+
+We can also compute and plot local Moran's I on dimension reduction components such as from PCA and NMF. Concordex does clustering on proportion of spatial neighbors from each non-spatial cluster label, which sounds a little like local Moran's I on the labels. It could be interesting to do clustering on local Moran's I on select genes or on NMF components.
 
 # Session info
 ```{r}
