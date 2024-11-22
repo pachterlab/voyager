@@ -5,105 +5,87 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="Voyager">
 <title>MERFISH mouse liver dataset and considerations of large data • Voyager</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="MERFISH mouse liver dataset and considerations of large data">
-<meta property="og:description" content="Voyager">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="MERFISH mouse liver dataset and considerations of large data">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.8.1</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../articles/install.html">Install</a>
+<li class="nav-item"><a class="nav-link" href="../articles/install.html">Install</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-technologies" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Technologies</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-technologies">
+<li><a class="dropdown-item" href="../articles/visium_landing.html">Visium</a></li>
+    <li><a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a></li>
+    <li><a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a></li>
+    <li><a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a></li>
+    <li><a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a></li>
+    <li><a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a></li>
+    <li><a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a></li>
+    <li><a class="dropdown-item" href="../articles/splitseq_landing.html">SPLiT-seq</a></li>
+    <li><a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a></li>
+    <li><a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a></li>
+    <li><a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a></li>
+    <li><a class="dropdown-item" href="../articles/10xatac_landing.html">10X Single Cell ATAC</a></li>
+    <li><a class="dropdown-item" href="../articles/10xmultiome_landing.html">10X Single Cell Multiome</a></li>
+  </ul>
 </li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
-    <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
-    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
-    <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
-    <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
-    <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
-    <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
-    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
-    <a class="dropdown-item" href="../articles/splitseq_landing.html">SPLiT-seq</a>
-    <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
-    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
-    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
-    <a class="dropdown-item" href="../articles/10xatac_landing.html">10X Single Cell ATAC</a>
-    <a class="dropdown-item" href="../articles/10xmultiome_landing.html">10X Single Cell Multiome</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-methods" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Methods</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-methods">
+<li><h6 class="dropdown-header" data-toc-skip>Univariate global</h6></li>
+    <li><a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a></li>
+    <li><a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a></li>
+    <li><a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a></li>
+    <li><a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Univariate local</h6></li>
+    <li><a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a></li>
+    <li><a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a></li>
+    <li><a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a></li>
+    <li><a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Bivariate</h6></li>
+    <li><a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a></li>
+    <li><a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Multivariate</h6></li>
+    <li><a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a></li>
+    <li><a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/sfemethod">Custom methods</a></li>
+  </ul>
 </li>
-<li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-methods">Methods</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-methods">
-    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
-    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
-    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
-    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
-    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
-    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
-    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
-    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
-    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
-    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
-    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
-    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
-    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
-  </div>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Functions</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -112,13 +94,14 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>MERFISH mouse liver dataset and considerations of large data</h1>
+
+      <h1>MERFISH mouse liver dataset and considerations of large data</h1>
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-05-18</h4>
+            <h4 data-toc-skip class="date">2024-11-22</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
     </div>
 
@@ -135,8 +118,7 @@ datasets with hundreds of thousands, sometimes over a million cells have
 already been produced and will soon be produced routinely. Among studies
 using smFISH-based spatial transcriptomics technologies that reported
 the number of cells per dataset, the number of cells per dataset has
-increased in the past years <span class="citation">(Moses and Pachter
-2022)</span>. <img src="https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png" alt="alt"></p>
+increased in the past years <span class="citation">(<strong>Moses2022-xz?</strong>)</span>. <img src="https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png" alt="alt"></p>
 <p>In anticipation of large datasets, this vignette was produced using
 limited GitHub Actions resources (MacOS), which are 14 GB of RAM with 3
 CPU cores and 14 GB of disk space, comparable to laptops. We therefore
@@ -207,7 +189,7 @@ available, we cannot yet work with such a large point dataset.</p>
 <p>There are 395,215 cells in this dataset. Plotting them all as
 polygons takes a while, but it isn’t too bad.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cellSeg"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-4-1.png" width="864"></p>
 <p>However, we do not wish to save this plot as PDF. To avoid this
 problem, we can either use the <code>scattermore = TRUE</code> argument
@@ -236,7 +218,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  17.854   0.713  18.569</span></span></code></pre>
+<span><span class="co">#&gt;  14.396   0.064  14.460</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -248,7 +230,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.413   0.153   1.568</span></span></code></pre>
+<span><span class="co">#&gt;   0.735   0.008   0.743</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -256,7 +238,7 @@ plotting cell centroid points should be fine.</p>
 pixelated when zoomed in.</p>
 <p>While interactive data visualization is useful for ESDA, there is a
 need for static figures in publications. As of Voyager 1.2.0
-(Bioconductor 3.17), a bounding box can be specified to zoom into the
+(Bioconductor release), a bounding box can be specified to zoom into the
 data.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">3000</span>, xmax <span class="op">=</span> <span class="fl">3500</span>, ymin <span class="op">=</span> <span class="fl">2500</span>, ymax <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span></span></code></pre></div>
@@ -271,9 +253,12 @@ cell size; larger cells seem to have more total counts.</p>
 <p>Interactive data visualization is currently beyond the scope of
 <code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
-<span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
-<span class="citation">(Behanova et al. 2023)</span>, <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
-<span class="citation">(Warchol et al. 2023)</span>, and the <a href="https://github.com/chaichontat/samui" class="external-link">samui broswer</a> <span class="citation">(Sriworarat et al. 2023)</span>.</p>
+<span class="citation">(<strong>Wang2020-sv?</strong>)</span> for
+MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
+<span class="citation">(<strong>Behanova2023-gl?</strong>)</span>, <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(<strong>Warchol2023-zw?</strong>)</span>, and
+the <a href="https://github.com/chaichontat/samui" class="external-link">samui broswer</a>
+<span class="citation">(<strong>Sriworarat2023-jl?</strong>)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be displayed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -518,7 +503,7 @@ outliers.</p>
 <span><span class="co">#&gt; metadata(0):</span></span>
 <span><span class="co">#&gt; assays(1): counts</span></span>
 <span><span class="co">#&gt; rownames(385): Comt Ldha ... Blank-36 Blank-37</span></span>
-<span><span class="co">#&gt; rowData names(3): means vars cv2</span></span>
+<span><span class="co">#&gt; rowData names(4): means vars cv2 subsets_blank</span></span>
 <span><span class="co">#&gt; colnames(390348): 10482024599960584593741782560798328923</span></span>
 <span><span class="co">#&gt;   111551578131181081835796893618918348842 ...</span></span>
 <span><span class="co">#&gt;   92389687374928708938472537234969690424</span></span>
@@ -564,8 +549,9 @@ colors:</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-37-1.png" width="700"></p>
-<p>The red line <span class="math inline">\(y = x\)</span> is expected
-when the data follows a Poisson distribution.</p>
+<p>The red line
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">y = x</annotation></semantics></math>
+is expected when the data follows a Poisson distribution.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">is_blank</span>,<span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">means</span>, <span class="va">vars</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -584,17 +570,17 @@ when the data follows a Poisson distribution.</p>
 <p>Again, we plot that zoomed in patch to visually inspect cell-cell
 contiguity:</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-39-1.png" width="700"></p>
 <p>There are quite a few cells that are not contiguous to any other
 cell, and cell segmentation is imperfect, so purely using
 <code><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb()</a></code> is problematic. In the next release, we might
 implement a way to blend a polygon contiguity graph with some other
 graph in case of singletons. For now, we use k nearest neighbors with
-<span class="math inline">\(k = 5\)</span>, which seems like a
-reasonable approximation of contiguity based on the visual
-inspection.</p>
-<p>As of Voyager 1.2.0 (Bioconductor 3.17),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k = 5</annotation></semantics></math>,
+which seems like a reasonable approximation of contiguity based on the
+visual inspection.</p>
+<p>As of Voyager 1.2.0 (Bioconductor release),
 <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors()</a></code> by default uses
 <code>BiocNeighbors</code> for k nearest neighbors and distance
 neighbors and saving the distances between neighbors. This bypasses the
@@ -608,7 +594,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  32.863   0.113  32.987</span></span></code></pre></div>
+<span><span class="co">#&gt;  28.852   0.000  28.853</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -652,7 +638,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  54.421   5.561  65.156</span></span></code></pre></div>
+<span><span class="co">#&gt;  47.944   2.028  51.689</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -747,6 +733,10 @@ neighborhoods. <code>zero.policy = TRUE</code> because there are some
 bins with no neighbors.</p>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/poly2nb.html" class="external-link">poly2nb</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in poly2nb(df_binned): some observations have no neighbours;</span></span>
+<span><span class="co">#&gt; if this seems unexpected, try increasing the snap argument.</span></span>
+<span><span class="co">#&gt; Warning in poly2nb(df_binned): neighbour object has 7 sub-graphs;</span></span>
+<span><span class="co">#&gt; if this sub-graph count seems unexpected, try increasing the snap argument.</span></span>
 <span><span class="va">listw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/nb2listw.html" class="external-link">nb2listw</a></span><span class="op">(</span><span class="va">nb</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/calculateUnivariate.html">calculateMoransI</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_drop_geometry</a></span><span class="op">(</span><span class="va">df_binned</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -788,19 +778,24 @@ an exploratory data analysis tool to find the length scale and
 anisotropy of spatial autocorrelation. One of the classic R packages in
 the geostatistical tradition is <a href="https://cran.r-project.org/web/packages/gstat/index.html" class="external-link"><code>gstat</code></a>,
 which we use here to find semivariograms, defined as</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>t</mi></msub><mo>−</mo><msub><mi>X</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \gamma(t) = \frac 1 2 \mathrm{Var}(X_t - X_0),
-\]</span></p>
-<p>where <span class="math inline">\(X\)</span> is the value such as
-gene expression, and <span class="math inline">\(t\)</span> is a spatial
-vector. <span class="math inline">\(X_0\)</span> is the value at a
-location of interest, and <span class="math inline">\(X_t\)</span> is
-the value lagged by <span class="math inline">\(t\)</span>. With
-positive spatial autocorrelation, the variance would be smaller among
-nearby values, so the variogram would increase with distance, eventually
-leveling off when the distance is beyond the length scale of spatial
-autocorrelation. The “semi” comes from the 1/2.</p>
-<p>The variogram is in Voyager v1.2.0 or higher (Bioconductor 3.17 or
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+is the value such as gene expression, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is a spatial vector.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mn>0</mn></msub><annotation encoding="application/x-tex">X_0</annotation></semantics></math>
+is the value at a location of interest, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mi>t</mi></msub><annotation encoding="application/x-tex">X_t</annotation></semantics></math>
+is the value lagged by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
+With positive spatial autocorrelation, the variance would be smaller
+among nearby values, so the variogram would increase with distance,
+eventually leveling off when the distance is beyond the length scale of
+spatial autocorrelation. The “semi” comes from the 1/2.</p>
+<p>The variogram is in Voyager v1.2.0 or higher (Bioconductor release or
 later) and can be computed with the same <code><a href="../reference/calculateUnivariate.html">runUnivariate()</a></code>
 function. See <a href="https://pachterlab.github.io/voyager/articles/variogram.html">vignette
 for variograms and variogram maps</a>.</p>
@@ -813,7 +808,7 @@ we use the defaults. The first argument is a formula; covariates can be
 specified, but is not done here.</p>
 <p>With different widths and cutoffs, the variogram can be estimated at
 different length scales. The <code>gstat</code> package can also fit a
-model to the empirical variogram. See <code><a href="https://rdrr.io/pkg/gstat/man/vgm.html" class="external-link">vgm()</a></code> for the
+model to the empirical variogram. See <code><a href="https://r-spatial.github.io/gstat/reference/vgm.html" class="external-link">vgm()</a></code> for the
 different types of models. The <a href="https://cran.r-project.org/web/packages/automap/" class="external-link"><code>automap</code></a>
 package can choose a model for the user, and is used here and in
 Voyager.</p>
@@ -837,7 +832,7 @@ appears closer to 1000 while the model somehow indicates 423.</p>
 <p>A variogram map can be made to see how spatial autocorrelation may
 differ in different directions, i.e. anisotropy</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">df_binned</span>, width <span class="op">=</span> <span class="fl">300</span>, cutoff <span class="op">=</span> <span class="fl">4500</span>, map <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/gstat/reference/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">df_binned</span>, width <span class="op">=</span> <span class="fl">300</span>, cutoff <span class="op">=</span> <span class="fl">4500</span>, map <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">v2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-56-1.png" width="700"></p>
 <p>Here apparently there’s no anisotropy at shorter length scales, but
@@ -849,8 +844,8 @@ the blood vessels seen in the previous plots.</p>
 <p>The variogram can also be calculated at specified angles, here
 selected as sides of the hexagon:</p>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">df_binned</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">v3_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/fit.variogram.html" class="external-link">fit.variogram</a></span><span class="op">(</span><span class="va">v3</span>, <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/vgm.html" class="external-link">vgm</a></span><span class="op">(</span><span class="st">"Ste"</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/gstat/reference/variogram.html" class="external-link">variogram</a></span><span class="op">(</span><span class="va">nCounts</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">df_binned</span>, alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">v3_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/gstat/reference/fit.variogram.html" class="external-link">fit.variogram</a></span><span class="op">(</span><span class="va">v3</span>, <span class="fu"><a href="https://r-spatial.github.io/gstat/reference/vgm.html" class="external-link">vgm</a></span><span class="op">(</span><span class="st">"Ste"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">v3</span>, <span class="va">v3_model</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-57-1.png" width="700"></p>
 <p>The variogram rises when going beyond 2000 at 30 and 90 degrees and
@@ -878,11 +873,11 @@ oldest archive on CRAN is from 2003. <code>spdep</code> is also really
 old; its oldest archive on CRAN is from 2002, but it’s still in active
 development. In using these time honored packages and methods (Moran’s I
 and Geary’s C themselves date back to the 1950s and their modern form
-date back to 1969 <span class="citation">(Cliff and Ord 1969; Bivand
-2013)</span>) on the cool new spatial transcriptomics dataset, we are
-participating in a glorious tradition, which we will further develop as
-a spatial analysis tradition forms around spatial -omics data
-analysis.</p>
+date back to 1969 <span class="citation">(<strong>Cliff1969-wp?</strong>;
+<strong>Bivand2013-jx?</strong>)</span>) on the cool new spatial
+transcriptomics dataset, we are participating in a glorious tradition,
+which we will further develop as a spatial analysis tradition forms
+around spatial -omics data analysis.</p>
 </div>
 </div>
 <div class="section level2">
@@ -909,25 +904,24 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  19.392   0.887  20.292</span></span></code></pre></div>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16757475  895.0   28070845 1499.2         NA  28070845 1499.2</span></span>
-<span><span class="co">#&gt; Vcells 252511832 1926.6  493471359 3764.9      16384 493470954 3764.9</span></span></code></pre></div>
+<span><span class="co">#&gt;  10.413   5.368   9.031</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;             used (Mb) gc trigger   (Mb)  max used   (Mb)</span></span>
+<span><span class="co">#&gt; Ncells  17112884  914   27226276 1454.1  27226276 1454.1</span></span>
+<span><span class="co">#&gt; Vcells 253089555 1931  494258960 3770.9 494205783 3770.5</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-59-1.png" width="700"></p>
 <p>Plot top gene loadings in each PC</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-60-1.png" width="700"></p>
 <p>Many of these genes seem to be related to the endothelium.</p>
 <p>Plot the first 4 PCs in space</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, <span class="fl">4</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-61-1.png" width="864"></p>
@@ -938,7 +932,7 @@ of spatial information in non-spatial PCA because of clear spatial
 compartments for some cell types, which does not seem to be the case in
 this dataset except for the blood vessels. We have seen above that some
 genes have strong spatial structures. There are some methods for
-spatially informed PCA, such as MULTISPATI PCA <span class="citation">(Dray, Saı̈d, and Débias 2008)</span> in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+spatially informed PCA, such as MULTISPATI PCA <span class="citation">(<strong>Dray2008-en?</strong>)</span> in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package, which seeks to maximize both variance (as in non-spatial PCA)
 and Moran’s I on each PC. Unlike traditional PCs, where all eigenvalues,
 signifying variance explained, are positive, MULTISPATI PCA can have
@@ -949,14 +943,14 @@ Xenium datasets on this website, the spatial coherence from MULTISPATI
 might not make a difference, but it might make a difference in this
 dataset where non-spatial PCs don’t show as much spatial structure, at
 least at the larger scale over the entire tissue section. Voyager 1.2.0
-(Bioconductor 3.17) has a faster implementation of MULTISPATI PCA than
-that of <code>adespatial</code>, and is demonstrated in this dataset in
-<a href="https://pachterlab.github.io/voyager/articles/multispati.html">another
+(Bioconductor release) has a faster implementation of MULTISPATI PCA
+than that of <code>adespatial</code>, and is demonstrated in this
+dataset in <a href="https://pachterlab.github.io/voyager/articles/multispati.html">another
 vignette</a>.</p>
 <p>While PC2 and PC3 don’t seem to have large scale spatial structure,
 they may have more local spatial structure not obvious from plotting the
 entire section, so we zoom into the bounding box:</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">3</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                  bbox <span class="op">=</span> <span class="va">bbox_use</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-62-1.png" width="864"></p>
@@ -964,16 +958,16 @@ entire section, so we zoom into the bounding box:</p>
 perhaps some negative spatial autocorrelation.</p>
 <p>Like global Moran’s I, PCA and MULTISPATI PCA return one result for
 the entire dataset. In contrast, <a href="https://rdrr.io/cran/GWmodel/man/gwpca.html" class="external-link">geographically
-weighted PCA (GWPCA)</a> <span class="citation">(Harris et al.
-2015)</span> can account for spatial heterogeneity. GWPCA runs PCA at
-each spatial location using only the nearby locations weighed by a
-kernel. The different locations can have different PCs, and the results
-can be visualized with “winning variables” in each PC, i.e. plotting
-which feature has the highest loading in each PC in space. This most
-likely doesn’t scale to 400,000 cells, but it would still be interesting
-when performed on spatially binned data. GWPCA might be added in
-Bioconductor 3.18 and would require some changes in the user interface,
-because GWPCA is about the features rather than cell embeddings.</p>
+weighted PCA (GWPCA)</a> <span class="citation">(<strong>Harris2015-sr?</strong>)</span> can account
+for spatial heterogeneity. GWPCA runs PCA at each spatial location using
+only the nearby locations weighed by a kernel. The different locations
+can have different PCs, and the results can be visualized with “winning
+variables” in each PC, i.e. plotting which feature has the highest
+loading in each PC in space. This most likely doesn’t scale to 400,000
+cells, but it would still be interesting when performed on spatially
+binned data. GWPCA might be added in Bioconductor 3.18 and would require
+some changes in the user interface, because GWPCA is about the features
+rather than cell embeddings.</p>
 </div>
 <div class="section level2">
 <h2 id="more-challenges-from-large-datasets">More challenges from large datasets<a class="anchor" aria-label="anchor" href="#more-challenges-from-large-datasets"></a>
@@ -1005,15 +999,16 @@ from the Allen Brain Atlas, but this isn’t available for all tissues.
 Also, with more single cell -omics data, the traditional ontologies can
 be improved.</p>
 <p>Furthermore, there are 3D thick section single cell resolution
-spatial transcriptomics data, such as from STARmap <span class="citation">(X. Wang et al. 2018)</span> and EASI-FISH <span class="citation">(Y. Wang et al. 2021)</span>, although the vast
-majority of spatial -omics data are from thin sections pretty much
-<em>de facto</em> 2D. As we mostly live on the surface of Earth, there
-are many more 2D geospatial resources than 3D. However, some methods can
-in principle be applied to 3D and the existing software primarily made
-for 2D data might work. For example, GEOS supports 3D data, so in
-principle 3D geometries in <code>sf</code> should work, although there’s
-little documentation on this. Also, k nearest neighbor, Moran’s I,
-variograms, and etc. should in principle work in 3D, and
+spatial transcriptomics data, such as from STARmap <span class="citation">(<strong>Wang2018-cv?</strong>)</span> and EASI-FISH
+<span class="citation">(<strong>Wang2021-fv?</strong>)</span>, although
+the vast majority of spatial -omics data are from thin sections pretty
+much <em>de facto</em> 2D. As we mostly live on the surface of Earth,
+there are many more 2D geospatial resources than 3D. However, some
+methods can in principle be applied to 3D and the existing software
+primarily made for 2D data might work. For example, GEOS supports 3D
+data, so in principle 3D geometries in <code>sf</code> should work,
+although there’s little documentation on this. Also, k nearest neighbor,
+Moran’s I, variograms, and etc. should in principle work in 3D, and
 <code>gstat</code> officially supports 3D. These are more challenges
 related to 3D data:</p>
 <ol style="list-style-type: decimal">
@@ -1036,191 +1031,133 @@ those are beyond the scope of this package.</p>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.4.0 (2024-04-24)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-apple-darwin20</span></span>
-<span><span class="co">#&gt; Running under: macOS Ventura 13.6.6</span></span>
+<span><span class="co">#&gt; R version 4.4.2 (2024-10-31)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib </span></span>
-<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt; [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; time zone: UTC</span></span>
-<span><span class="co">#&gt; tzcode source: internal</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats4    stats     graphics  grDevices utils     datasets  methods  </span></span>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] automap_1.1-9                  BiocNeighbors_1.22.0          </span></span>
-<span><span class="co">#&gt;  [3] gstat_2.1-1                    BiocSingular_1.20.0           </span></span>
-<span><span class="co">#&gt;  [5] BiocParallel_1.38.0            spdep_1.3-3                   </span></span>
-<span><span class="co">#&gt;  [7] sf_1.0-16                      spData_2.3.0                  </span></span>
-<span><span class="co">#&gt;  [9] stringr_1.5.1                  patchwork_1.2.0               </span></span>
-<span><span class="co">#&gt; [11] scater_1.32.0                  ggplot2_3.5.1                 </span></span>
-<span><span class="co">#&gt; [13] scuttle_1.14.0                 SpatialExperiment_1.14.0      </span></span>
-<span><span class="co">#&gt; [15] SingleCellExperiment_1.26.0    SummarizedExperiment_1.34.0   </span></span>
-<span><span class="co">#&gt; [17] Biobase_2.64.0                 GenomicRanges_1.56.0          </span></span>
-<span><span class="co">#&gt; [19] GenomeInfoDb_1.40.0            IRanges_2.38.0                </span></span>
-<span><span class="co">#&gt; [21] S4Vectors_0.42.0               BiocGenerics_0.50.0           </span></span>
-<span><span class="co">#&gt; [23] MatrixGenerics_1.16.0          matrixStats_1.3.0             </span></span>
-<span><span class="co">#&gt; [25] SFEData_1.6.0                  Voyager_1.6.0                 </span></span>
-<span><span class="co">#&gt; [27] SpatialFeatureExperiment_1.6.1</span></span>
+<span><span class="co">#&gt;  [1] automap_1.1-12                 BiocNeighbors_2.0.0           </span></span>
+<span><span class="co">#&gt;  [3] gstat_2.1-2                    BiocSingular_1.22.0           </span></span>
+<span><span class="co">#&gt;  [5] BiocParallel_1.40.0            spdep_1.3-6                   </span></span>
+<span><span class="co">#&gt;  [7] sf_1.0-19                      spData_2.3.3                  </span></span>
+<span><span class="co">#&gt;  [9] stringr_1.5.1                  patchwork_1.3.0               </span></span>
+<span><span class="co">#&gt; [11] scater_1.34.0                  ggplot2_3.5.1                 </span></span>
+<span><span class="co">#&gt; [13] scuttle_1.16.0                 SpatialExperiment_1.16.0      </span></span>
+<span><span class="co">#&gt; [15] SingleCellExperiment_1.28.1    SummarizedExperiment_1.36.0   </span></span>
+<span><span class="co">#&gt; [17] Biobase_2.66.0                 GenomicRanges_1.58.0          </span></span>
+<span><span class="co">#&gt; [19] GenomeInfoDb_1.42.0            IRanges_2.40.0                </span></span>
+<span><span class="co">#&gt; [21] S4Vectors_0.44.0               BiocGenerics_0.52.0           </span></span>
+<span><span class="co">#&gt; [23] MatrixGenerics_1.18.0          matrixStats_1.4.1             </span></span>
+<span><span class="co">#&gt; [25] SFEData_1.8.0                  Voyager_1.8.1                 </span></span>
+<span><span class="co">#&gt; [27] SpatialFeatureExperiment_1.9.4</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] bitops_1.0-7              filelock_1.0.3           </span></span>
-<span><span class="co">#&gt;   [3] tibble_3.2.1              R.oo_1.26.0              </span></span>
-<span><span class="co">#&gt;   [5] xts_0.13.2                lifecycle_1.0.4          </span></span>
-<span><span class="co">#&gt;   [7] edgeR_4.2.0               lattice_0.22-6           </span></span>
-<span><span class="co">#&gt;   [9] magrittr_2.0.3            limma_3.60.0             </span></span>
-<span><span class="co">#&gt;  [11] sass_0.4.9                rmarkdown_2.27           </span></span>
-<span><span class="co">#&gt;  [13] jquerylib_0.1.4           yaml_2.3.8               </span></span>
-<span><span class="co">#&gt;  [15] sp_2.1-4                  cowplot_1.1.3            </span></span>
-<span><span class="co">#&gt;  [17] RColorBrewer_1.1-3        DBI_1.2.2                </span></span>
-<span><span class="co">#&gt;  [19] abind_1.4-5               zlibbioc_1.50.0          </span></span>
-<span><span class="co">#&gt;  [21] purrr_1.0.2               R.utils_2.12.3           </span></span>
-<span><span class="co">#&gt;  [23] RCurl_1.98-1.14           rappdirs_0.3.3           </span></span>
-<span><span class="co">#&gt;  [25] GenomeInfoDbData_1.2.12   ggrepel_0.9.5            </span></span>
-<span><span class="co">#&gt;  [27] irlba_2.3.5.1             terra_1.7-71             </span></span>
-<span><span class="co">#&gt;  [29] units_0.8-5               RSpectra_0.16-1          </span></span>
-<span><span class="co">#&gt;  [31] dqrng_0.4.0               pkgdown_2.0.9            </span></span>
-<span><span class="co">#&gt;  [33] DelayedMatrixStats_1.26.0 codetools_0.2-20         </span></span>
-<span><span class="co">#&gt;  [35] DropletUtils_1.24.0       DelayedArray_0.30.1      </span></span>
-<span><span class="co">#&gt;  [37] tidyselect_1.2.1          farver_2.1.2             </span></span>
-<span><span class="co">#&gt;  [39] UCSC.utils_1.0.0          memuse_4.2-3             </span></span>
-<span><span class="co">#&gt;  [41] ScaledMatrix_1.12.0       viridis_0.6.5            </span></span>
-<span><span class="co">#&gt;  [43] BiocFileCache_2.12.0      jsonlite_1.8.8           </span></span>
-<span><span class="co">#&gt;  [45] e1071_1.7-14              systemfonts_1.1.0        </span></span>
-<span><span class="co">#&gt;  [47] tools_4.4.0               ggnewscale_0.4.10        </span></span>
-<span><span class="co">#&gt;  [49] ragg_1.3.2                Rcpp_1.0.12              </span></span>
-<span><span class="co">#&gt;  [51] glue_1.7.0                gridExtra_2.3            </span></span>
-<span><span class="co">#&gt;  [53] SparseArray_1.4.3         xfun_0.44                </span></span>
-<span><span class="co">#&gt;  [55] EBImage_4.46.0            dplyr_1.1.4              </span></span>
-<span><span class="co">#&gt;  [57] HDF5Array_1.32.0          withr_3.0.0              </span></span>
-<span><span class="co">#&gt;  [59] BiocManager_1.30.23       fastmap_1.2.0            </span></span>
-<span><span class="co">#&gt;  [61] boot_1.3-30               rhdf5filters_1.16.0      </span></span>
-<span><span class="co">#&gt;  [63] bluster_1.14.0            fansi_1.0.6              </span></span>
-<span><span class="co">#&gt;  [65] digest_0.6.35             rsvd_1.0.5               </span></span>
-<span><span class="co">#&gt;  [67] mime_0.12                 R6_2.5.1                 </span></span>
-<span><span class="co">#&gt;  [69] textshaping_0.3.7         colorspace_2.1-0         </span></span>
-<span><span class="co">#&gt;  [71] wk_0.9.1                  scattermore_1.2          </span></span>
-<span><span class="co">#&gt;  [73] jpeg_0.1-10               RSQLite_2.3.6            </span></span>
-<span><span class="co">#&gt;  [75] R.methodsS3_1.8.2         hexbin_1.28.3            </span></span>
-<span><span class="co">#&gt;  [77] intervals_0.15.4          utf8_1.2.4               </span></span>
-<span><span class="co">#&gt;  [79] generics_0.1.3            data.table_1.15.4        </span></span>
-<span><span class="co">#&gt;  [81] FNN_1.1.4                 class_7.3-22             </span></span>
-<span><span class="co">#&gt;  [83] httr_1.4.7                htmlwidgets_1.6.4        </span></span>
-<span><span class="co">#&gt;  [85] S4Arrays_1.4.0            pkgconfig_2.0.3          </span></span>
-<span><span class="co">#&gt;  [87] scico_1.5.0               gtable_0.3.5             </span></span>
-<span><span class="co">#&gt;  [89] blob_1.2.4                XVector_0.44.0           </span></span>
-<span><span class="co">#&gt;  [91] htmltools_0.5.8.1         fftwtools_0.9-11         </span></span>
-<span><span class="co">#&gt;  [93] scales_1.3.0              png_0.1-8                </span></span>
-<span><span class="co">#&gt;  [95] knitr_1.46                rjson_0.2.21             </span></span>
-<span><span class="co">#&gt;  [97] spacetime_1.3-1           curl_5.2.1               </span></span>
-<span><span class="co">#&gt;  [99] proxy_0.4-27              cachem_1.1.0             </span></span>
-<span><span class="co">#&gt; [101] zoo_1.8-12                rhdf5_2.48.0             </span></span>
-<span><span class="co">#&gt; [103] BiocVersion_3.19.1        KernSmooth_2.23-24       </span></span>
-<span><span class="co">#&gt; [105] parallel_4.4.0            vipor_0.4.7              </span></span>
-<span><span class="co">#&gt; [107] AnnotationDbi_1.66.0      desc_1.4.3               </span></span>
-<span><span class="co">#&gt; [109] s2_1.1.6                  reshape_0.8.9            </span></span>
-<span><span class="co">#&gt; [111] pillar_1.9.0              grid_4.4.0               </span></span>
-<span><span class="co">#&gt; [113] vctrs_0.6.5               dbplyr_2.5.0             </span></span>
-<span><span class="co">#&gt; [115] beachmat_2.20.0           sfheaders_0.4.4          </span></span>
-<span><span class="co">#&gt; [117] cluster_2.1.6             beeswarm_0.4.0           </span></span>
-<span><span class="co">#&gt; [119] evaluate_0.23             zeallot_0.1.0            </span></span>
-<span><span class="co">#&gt; [121] magick_2.8.3              cli_3.6.2                </span></span>
-<span><span class="co">#&gt; [123] locfit_1.5-9.9            compiler_4.4.0           </span></span>
-<span><span class="co">#&gt; [125] rlang_1.1.3               crayon_1.5.2             </span></span>
-<span><span class="co">#&gt; [127] labeling_0.4.3            classInt_0.4-10          </span></span>
-<span><span class="co">#&gt; [129] plyr_1.8.9                fs_1.6.4                 </span></span>
-<span><span class="co">#&gt; [131] ggbeeswarm_0.7.2          stringi_1.8.4            </span></span>
-<span><span class="co">#&gt; [133] stars_0.6-5               viridisLite_0.4.2        </span></span>
-<span><span class="co">#&gt; [135] deldir_2.0-4              munsell_0.5.1            </span></span>
-<span><span class="co">#&gt; [137] Biostrings_2.72.0         tiff_0.1-12              </span></span>
-<span><span class="co">#&gt; [139] Matrix_1.7-0              ExperimentHub_2.12.0     </span></span>
-<span><span class="co">#&gt; [141] sparseMatrixStats_1.16.0  bit64_4.0.5              </span></span>
-<span><span class="co">#&gt; [143] Rhdf5lib_1.26.0           KEGGREST_1.44.0          </span></span>
-<span><span class="co">#&gt; [145] statmod_1.5.0             highr_0.10               </span></span>
-<span><span class="co">#&gt; [147] AnnotationHub_3.12.0      igraph_2.0.3             </span></span>
-<span><span class="co">#&gt; [149] memoise_2.0.1             bslib_0.7.0              </span></span>
-<span><span class="co">#&gt; [151] bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;   [1] splines_4.4.2             bitops_1.0-9             </span></span>
+<span><span class="co">#&gt;   [3] filelock_1.0.3            tibble_3.2.1             </span></span>
+<span><span class="co">#&gt;   [5] R.oo_1.27.0               xts_0.14.1               </span></span>
+<span><span class="co">#&gt;   [7] lifecycle_1.0.4           edgeR_4.4.0              </span></span>
+<span><span class="co">#&gt;   [9] lattice_0.22-6            MASS_7.3-61              </span></span>
+<span><span class="co">#&gt;  [11] magrittr_2.0.3            limma_3.62.1             </span></span>
+<span><span class="co">#&gt;  [13] sass_0.4.9                rmarkdown_2.29           </span></span>
+<span><span class="co">#&gt;  [15] jquerylib_0.1.4           yaml_2.3.10              </span></span>
+<span><span class="co">#&gt;  [17] sp_2.1-4                  cowplot_1.1.3            </span></span>
+<span><span class="co">#&gt;  [19] RColorBrewer_1.1-3        DBI_1.2.3                </span></span>
+<span><span class="co">#&gt;  [21] multcomp_1.4-26           abind_1.4-8              </span></span>
+<span><span class="co">#&gt;  [23] spatialreg_1.3-5          zlibbioc_1.52.0          </span></span>
+<span><span class="co">#&gt;  [25] purrr_1.0.2               R.utils_2.12.3           </span></span>
+<span><span class="co">#&gt;  [27] RCurl_1.98-1.16           TH.data_1.1-2            </span></span>
+<span><span class="co">#&gt;  [29] rappdirs_0.3.3            sandwich_3.1-1           </span></span>
+<span><span class="co">#&gt;  [31] GenomeInfoDbData_1.2.13   ggrepel_0.9.6            </span></span>
+<span><span class="co">#&gt;  [33] irlba_2.3.5.1             terra_1.7-83             </span></span>
+<span><span class="co">#&gt;  [35] units_0.8-5               RSpectra_0.16-2          </span></span>
+<span><span class="co">#&gt;  [37] dqrng_0.4.1               pkgdown_2.1.1            </span></span>
+<span><span class="co">#&gt;  [39] DelayedMatrixStats_1.28.0 codetools_0.2-20         </span></span>
+<span><span class="co">#&gt;  [41] DropletUtils_1.26.0       DelayedArray_0.32.0      </span></span>
+<span><span class="co">#&gt;  [43] tidyselect_1.2.1          UCSC.utils_1.2.0         </span></span>
+<span><span class="co">#&gt;  [45] memuse_4.2-3              farver_2.1.2             </span></span>
+<span><span class="co">#&gt;  [47] viridis_0.6.5             ScaledMatrix_1.14.0      </span></span>
+<span><span class="co">#&gt;  [49] BiocFileCache_2.14.0      jsonlite_1.8.9           </span></span>
+<span><span class="co">#&gt;  [51] e1071_1.7-16              survival_3.7-0           </span></span>
+<span><span class="co">#&gt;  [53] systemfonts_1.1.0         tools_4.4.2              </span></span>
+<span><span class="co">#&gt;  [55] ggnewscale_0.5.0          ragg_1.3.3               </span></span>
+<span><span class="co">#&gt;  [57] Rcpp_1.0.13-1             glue_1.8.0               </span></span>
+<span><span class="co">#&gt;  [59] gridExtra_2.3             SparseArray_1.6.0        </span></span>
+<span><span class="co">#&gt;  [61] xfun_0.49                 EBImage_4.48.0           </span></span>
+<span><span class="co">#&gt;  [63] dplyr_1.1.4               HDF5Array_1.34.0         </span></span>
+<span><span class="co">#&gt;  [65] withr_3.0.2               BiocManager_1.30.25      </span></span>
+<span><span class="co">#&gt;  [67] fastmap_1.2.0             boot_1.3-31              </span></span>
+<span><span class="co">#&gt;  [69] rhdf5filters_1.18.0       bluster_1.16.0           </span></span>
+<span><span class="co">#&gt;  [71] fansi_1.0.6               digest_0.6.37            </span></span>
+<span><span class="co">#&gt;  [73] rsvd_1.0.5                mime_0.12                </span></span>
+<span><span class="co">#&gt;  [75] R6_2.5.1                  textshaping_0.4.0        </span></span>
+<span><span class="co">#&gt;  [77] colorspace_2.1-1          wk_0.9.4                 </span></span>
+<span><span class="co">#&gt;  [79] scattermore_1.2           LearnBayes_2.15.1        </span></span>
+<span><span class="co">#&gt;  [81] jpeg_0.1-10               RSQLite_2.3.8            </span></span>
+<span><span class="co">#&gt;  [83] R.methodsS3_1.8.2         hexbin_1.28.5            </span></span>
+<span><span class="co">#&gt;  [85] intervals_0.15.5          utf8_1.2.4               </span></span>
+<span><span class="co">#&gt;  [87] generics_0.1.3            data.table_1.16.2        </span></span>
+<span><span class="co">#&gt;  [89] FNN_1.1.4.1               class_7.3-22             </span></span>
+<span><span class="co">#&gt;  [91] httr_1.4.7                htmlwidgets_1.6.4        </span></span>
+<span><span class="co">#&gt;  [93] S4Arrays_1.6.0            pkgconfig_2.0.3          </span></span>
+<span><span class="co">#&gt;  [95] scico_1.5.0               gtable_0.3.6             </span></span>
+<span><span class="co">#&gt;  [97] blob_1.2.4                XVector_0.46.0           </span></span>
+<span><span class="co">#&gt;  [99] htmltools_0.5.8.1         fftwtools_0.9-11         </span></span>
+<span><span class="co">#&gt; [101] scales_1.3.0              png_0.1-8                </span></span>
+<span><span class="co">#&gt; [103] knitr_1.49                rjson_0.2.23             </span></span>
+<span><span class="co">#&gt; [105] spacetime_1.3-2           coda_0.19-4.1            </span></span>
+<span><span class="co">#&gt; [107] nlme_3.1-166              curl_6.0.1               </span></span>
+<span><span class="co">#&gt; [109] proxy_0.4-27              cachem_1.1.0             </span></span>
+<span><span class="co">#&gt; [111] zoo_1.8-12                rhdf5_2.50.0             </span></span>
+<span><span class="co">#&gt; [113] BiocVersion_3.20.0        KernSmooth_2.23-24       </span></span>
+<span><span class="co">#&gt; [115] vipor_0.4.7               parallel_4.4.2           </span></span>
+<span><span class="co">#&gt; [117] AnnotationDbi_1.68.0      desc_1.4.3               </span></span>
+<span><span class="co">#&gt; [119] s2_1.1.7                  reshape_0.8.9            </span></span>
+<span><span class="co">#&gt; [121] pillar_1.9.0              grid_4.4.2               </span></span>
+<span><span class="co">#&gt; [123] vctrs_0.6.5               dbplyr_2.5.0             </span></span>
+<span><span class="co">#&gt; [125] beachmat_2.22.0           sfheaders_0.4.4          </span></span>
+<span><span class="co">#&gt; [127] cluster_2.1.6             beeswarm_0.4.0           </span></span>
+<span><span class="co">#&gt; [129] evaluate_1.0.1            zeallot_0.1.0            </span></span>
+<span><span class="co">#&gt; [131] magick_2.8.5              mvtnorm_1.3-2            </span></span>
+<span><span class="co">#&gt; [133] cli_3.6.3                 locfit_1.5-9.10          </span></span>
+<span><span class="co">#&gt; [135] compiler_4.4.2            rlang_1.1.4              </span></span>
+<span><span class="co">#&gt; [137] crayon_1.5.3              labeling_0.4.3           </span></span>
+<span><span class="co">#&gt; [139] classInt_0.4-10           plyr_1.8.9               </span></span>
+<span><span class="co">#&gt; [141] ggbeeswarm_0.7.2          fs_1.6.5                 </span></span>
+<span><span class="co">#&gt; [143] stringi_1.8.4             stars_0.6-7              </span></span>
+<span><span class="co">#&gt; [145] viridisLite_0.4.2         deldir_2.0-4             </span></span>
+<span><span class="co">#&gt; [147] munsell_0.5.1             Biostrings_2.74.0        </span></span>
+<span><span class="co">#&gt; [149] tiff_0.1-12               Matrix_1.7-1             </span></span>
+<span><span class="co">#&gt; [151] ExperimentHub_2.14.0      sparseMatrixStats_1.18.0 </span></span>
+<span><span class="co">#&gt; [153] bit64_4.5.2               Rhdf5lib_1.28.0          </span></span>
+<span><span class="co">#&gt; [155] KEGGREST_1.46.0           statmod_1.5.0            </span></span>
+<span><span class="co">#&gt; [157] AnnotationHub_3.14.0      igraph_2.1.1             </span></span>
+<span><span class="co">#&gt; [159] memoise_2.0.1             bslib_0.8.0              </span></span>
+<span><span class="co">#&gt; [161] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
-<div id="ref-Behanova2023-gl" class="csl-entry">
-Behanova, Andrea, Christophe Avenel, Axel Andersson, Eduard Chelebian,
-Anna Klemm, Lina Wik, Arne Östman, and Carolina Wählby. 2023.
-<span>“Visualization and Quality Control Tools for Large-Scale Multiplex
-Tissue Analysis in <span>TissUUmaps3</span>.”</span> <em>Biological
-Imaging</em> 3: e6.
 </div>
-<div id="ref-Bivand2013-jx" class="csl-entry">
-Bivand, Roger. 2013. <span>“<span>‘The Problem of Spatial
-Autocorrelation:’</span> Forty Years On.”</span> <a href="http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf" class="external-link uri">http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf</a>.
-</div>
-<div id="ref-Cliff1969-wp" class="csl-entry">
-Cliff, Andrew David, and J K Ord. 1969. <span>“The Problem of Spatial
-Autocorrelation.”</span> In <em>London Papers in Regional Science 1,
-Studies in Regional Science</em>, edited by A J Scott, 25–55. London:
-Pion.
-</div>
-<div id="ref-Dray2008-en" class="csl-entry">
-Dray, Stéphane, Sonia Saı̈d, and Françis Débias. 2008. <span>“Spatial
-Ordination of Vegetation Data Using a Generalization of Wartenberg’s
-Multivariate Spatial Correlation.”</span> <em>J. Veg. Sci.</em> 19 (1):
-45–56.
-</div>
-<div id="ref-Harris2015-sr" class="csl-entry">
-Harris, Paul, Annemarie Clarke, Steve Juggins, Chris Brunsdon, and
-Martin Charlton. 2015. <span>“Enhancements to a Geographically Weighted
-Principal Component Analysis in the Context of an Application to an
-Environmental Data Set.”</span> <em>Geogr. Anal.</em> 47 (2): 146–72.
-</div>
-<div id="ref-Moses2022-xz" class="csl-entry">
-Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
-Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
-628.
-</div>
-<div id="ref-Sriworarat2023-jl" class="csl-entry">
-Sriworarat, Chaichontat, Annie Nguyen, Nicholas J Eagles, Leonardo
-Collado-Torres, Keri Martinowich, Kristen R Maynard, and Stephanie C
-Hicks. 2023. <span>“Performant Web-Based Interactive Visualization Tool
-for Spatially-Resolved Transcriptomics Experiments.”</span>
-<em>Biological Imaging</em> 3 (January): e15.
-</div>
-<div id="ref-Wang2020-sv" class="csl-entry">
-Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
-Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
-Transcriptome in Individual Neurons.”</span> <em>bioRxiv</em>. bioRxiv.
-</div>
-<div id="ref-Wang2018-cv" class="csl-entry">
-Wang, Xiao, William E Allen, Matthew A Wright, Emily L Sylwestrak,
-Nikolay Samusik, Sam Vesuna, Kathryn Evans, et al. 2018.
-<span>“Three-Dimensional Intact-Tissue Sequencing of Single-Cell
-Transcriptional States.”</span> <em>Science</em> 361 (6400).
-</div>
-<div id="ref-Wang2021-fv" class="csl-entry">
-Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
-Tim Wang, Konrad Rokicki, et al. 2021. <span>“<span>EASI-FISH</span> for
-Thick Tissue Defines Lateral Hypothalamus Spatio-Molecular
-Organization.”</span> <em>Cell</em> 184 (26): 6361–6377.e24.
-</div>
-<div id="ref-Warchol2023-zw" class="csl-entry">
-Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
-Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2023. <span>“Visinity:
-Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
-Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> 29 (1): 106–16.
-</div>
-</div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -1231,15 +1168,15 @@ Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> 29 (1): 106–16.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

@@ -5,105 +5,87 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="Voyager">
 <title>MULTISPATI PCA and negative spatial autocorrelation • Voyager</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="MULTISPATI PCA and negative spatial autocorrelation">
-<meta property="og:description" content="Voyager">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="MULTISPATI PCA and negative spatial autocorrelation">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">Voyager</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.8.1</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../articles/install.html">Install</a>
+<li class="nav-item"><a class="nav-link" href="../articles/install.html">Install</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-technologies" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Technologies</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-technologies">
+<li><a class="dropdown-item" href="../articles/visium_landing.html">Visium</a></li>
+    <li><a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a></li>
+    <li><a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a></li>
+    <li><a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a></li>
+    <li><a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a></li>
+    <li><a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a></li>
+    <li><a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a></li>
+    <li><a class="dropdown-item" href="../articles/splitseq_landing.html">SPLiT-seq</a></li>
+    <li><a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a></li>
+    <li><a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a></li>
+    <li><a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a></li>
+    <li><a class="dropdown-item" href="../articles/10xatac_landing.html">10X Single Cell ATAC</a></li>
+    <li><a class="dropdown-item" href="../articles/10xmultiome_landing.html">10X Single Cell Multiome</a></li>
+  </ul>
 </li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-technologies">Technologies</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-technologies">
-    <a class="dropdown-item" href="../articles/visium_landing.html">Visium</a>
-    <a class="dropdown-item" href="../articles/slideseqV2_landing.html">Slide-seq v2</a>
-    <a class="dropdown-item" href="../articles/cosmx_landing.html">CosMX</a>
-    <a class="dropdown-item" href="../articles/xenium_landing.html">Xenium</a>
-    <a class="dropdown-item" href="../articles/merfish_landing.html">MERFISH</a>
-    <a class="dropdown-item" href="../articles/seqfish_landing.html">seqFISH</a>
-    <a class="dropdown-item" href="../articles/codex_landing.html">CODEX/PhenoCycler</a>
-    <a class="dropdown-item" href="../articles/splitseq_landing.html">SPLiT-seq</a>
-    <a class="dropdown-item" href="../articles/chromium_landing.html">10X Chromium V3</a>
-    <a class="dropdown-item" href="../articles/10xnuclei_landing.html">10X Chromium Nuclei Isolation</a>
-    <a class="dropdown-item" href="../articles/10xcrispr_landing.html">10X Chromium Single Cell CRISPR</a>
-    <a class="dropdown-item" href="../articles/10xatac_landing.html">10X Single Cell ATAC</a>
-    <a class="dropdown-item" href="../articles/10xmultiome_landing.html">10X Single Cell Multiome</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-methods" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Methods</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-methods">
+<li><h6 class="dropdown-header" data-toc-skip>Univariate global</h6></li>
+    <li><a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a></li>
+    <li><a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a></li>
+    <li><a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a></li>
+    <li><a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Univariate local</h6></li>
+    <li><a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a></li>
+    <li><a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a></li>
+    <li><a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a></li>
+    <li><a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Bivariate</h6></li>
+    <li><a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a></li>
+    <li><a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Multivariate</h6></li>
+    <li><a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a></li>
+    <li><a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/sfemethod">Custom methods</a></li>
+  </ul>
 </li>
-<li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-methods">Methods</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-methods">
-    <h6 class="dropdown-header" data-toc-skip>Univariate global</h6>
-    <a class="dropdown-item" href="../articles/moran_landing.html">Moran's I</a>
-    <a class="dropdown-item" href="../articles/geary_landing.html">Geary's C</a>
-    <a class="dropdown-item" href="../articles/correlogram_landing.html">Correlogram</a>
-    <a class="dropdown-item" href="../articles/variogram_landing.html">Variogram</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Univariate local</h6>
-    <a class="dropdown-item" href="../articles/moranplot_landing.html">Moran scatter plot</a>
-    <a class="dropdown-item" href="../articles/localmoran_landing.html">Local Moran's I</a>
-    <a class="dropdown-item" href="../articles/losh_landing.html">Local spatial heteroscedasticity</a>
-    <a class="dropdown-item" href="../articles/getisord_landing.html">Getis-Ord Gi*</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Bivariate</h6>
-    <a class="dropdown-item" href="../articles/lee_landing.html">Lee's L</a>
-    <a class="dropdown-item" href="../articles/crossvariogram_landing.html">Cross variogram</a>
-    <div class="dropdown-divider"></div>
-    <h6 class="dropdown-header" data-toc-skip>Multivariate</h6>
-    <a class="dropdown-item" href="../articles/multispati_landing.html">MULTISPATI PCA</a>
-    <a class="dropdown-item" href="../articles/localc_landing.html">Multivariate local Geary's C</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/sfemethod">Custom methods</a>
-  </div>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Functions</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/pachterlab/voyager/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -112,13 +94,14 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>MULTISPATI PCA and negative spatial autocorrelation</h1>
+
+      <h1>MULTISPATI PCA and negative spatial autocorrelation</h1>
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-05-17</h4>
+            <h4 data-toc-skip class="date">2024-11-22</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/HEAD/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
     </div>
 
@@ -138,23 +121,24 @@ so on.</p>
 old principal component analysis (PCA), tSNE, and UMAP, don’t use
 spatial information. With the rise of spatial transcriptomics, some
 dimension reduction methods that take spatial dependence into account
-have been written. Some, such as <code>SpatialPCA</code> <span class="citation">(Shang and Zhou 2022)</span>, <code>NSF</code> <span class="citation">(Townes and Engelhardt 2023)</span>, and
-<code>MEFISTO</code> <span class="citation">(Velten et al. 2022)</span>
-use factor analysis or probabilistic PCA which is related to factor
-analysis, and model the factors as Gaussian processes, with a spatial
-kernel for the covariance matrix, so the factors have positive spatial
-autocorrelation and can be used for downstream clustering where the
-clusters can be more spatially coherent. Some use graph convolution
-networks on a spatial neighborhood graph to find spatially informed
-embeddings of the cells, such as <code>conST</code> <span class="citation">(Zong et al. 2022)</span> and <code>SpaceFlow</code>
-<span class="citation">(Ren et al. 2022)</span>. <code>SpaSRL</code>
-<span class="citation">(Zhang et al. 2023)</span> finds a low dimension
-projection of spatial neighborhood augmented data.</p>
+have been written. Some, such as <code>SpatialPCA</code> <span class="citation">(<strong>Shang2022-qy?</strong>)</span>,
+<code>NSF</code> <span class="citation">(<strong>Townes2023-bi?</strong>)</span>, and
+<code>MEFISTO</code> <span class="citation">(<strong>Velten2022-gv?</strong>)</span> use factor
+analysis or probabilistic PCA which is related to factor analysis, and
+model the factors as Gaussian processes, with a spatial kernel for the
+covariance matrix, so the factors have positive spatial autocorrelation
+and can be used for downstream clustering where the clusters can be more
+spatially coherent. Some use graph convolution networks on a spatial
+neighborhood graph to find spatially informed embeddings of the cells,
+such as <code>conST</code> <span class="citation">(<strong>Zong2022-tb?</strong>)</span> and
+<code>SpaceFlow</code> <span class="citation">(<strong>Ren2022-qx?</strong>)</span>.
+<code>SpaSRL</code> <span class="citation">(<strong>Zhang2023-kf?</strong>)</span> finds a low
+dimension projection of spatial neighborhood augmented data.</p>
 <p>Spatially informed dimension reduction is actually not new, and dates
 back to at least 1985, with Wartenberg’s crossover of Moran’s I and PCA
-<span class="citation">(Wartenberg 1985)</span>, which was generalized
-and further developed as MULTISPATI PCA <span class="citation">(Dray,
-Saı̈d, and Débias 2008)</span>, implemented in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+<span class="citation">(<strong>Wartenberg1985-fk?</strong>)</span>,
+which was generalized and further developed as MULTISPATI PCA <span class="citation">(<strong>Dray2008-en?</strong>)</span>, implemented in
+the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package on CRAN. In short, while PCA tries to maximize the variance
 explained by each PC, MULTISPATI maximizes the product of Moran’s I and
 variance explained. Also, while all the eigenvalues from PCA are
@@ -162,21 +146,29 @@ non-negative, because the covariance matrix is positive semidefinite,
 MULTISPATI can give negative eigenvalues, which represent negative
 spatial autocorrelation, which can be present and interesting but is not
 as common as positive spatial autocorrelation and is often masked by the
-latter <span class="citation">(Griffith 2019)</span>.</p>
-<p>In single cell -omics conventions, let <span class="math inline">\(X\)</span> denote a gene count matrix whose
-columns are cells or Visium spots and whose rows are genes, with <span class="math inline">\(n\)</span> columns. Let <span class="math inline">\(W\)</span> denote the row normalized <span class="math inline">\(n\times n\)</span> adjacency matrix of the spatial
-neighborhood graph of the cells or Visium spots, which does not have to
-be symmetric. MULTISPATI diagonalizes a symmetric matrix</p>
-<p><span class="math display">\[
+latter <span class="citation">(<strong>Griffith2019-bo?</strong>)</span>.</p>
+<p>In single cell -omics conventions, let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+denote a gene count matrix whose columns are cells or Visium spots and
+whose rows are genes, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+columns. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+denote the row normalized
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n\times n</annotation></semantics></math>
+adjacency matrix of the spatial neighborhood graph of the cells or
+Visium spots, which does not have to be symmetric. MULTISPATI
+diagonalizes a symmetric matrix</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mn>2</mn><mi>n</mi></mrow></mfrac><mi>X</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mi>t</mi></msup><mo>+</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>X</mi><mi>t</mi></msup></mrow><annotation encoding="application/x-tex">
 H = \frac 1 {2n} X(W^t+W)X^t
-\]</span></p>
+</annotation></semantics></math></p>
 <p>However, the implementation in <code>adespatial</code> is more
 general and can be used for other multivariate analyses in the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3265363/" class="external-link">duality
 diagram</a> paradigm, such as correspondence analysis; the equation
 above is simplified just for PCA, without having to introduce the
 duality diagram here.</p>
-<p>Voyager 1.2.0 (Bioconductor 3.17) has a much faster implementation of
-MULTISPATI PCA based on <a href="https://cran.r-project.org/web/packages/RSpectra/index.html" class="external-link"><code>RSpectra</code></a>.
+<p>Voyager 1.2.0 (Bioconductor release) has a much faster implementation
+of MULTISPATI PCA based on <a href="https://cran.r-project.org/web/packages/RSpectra/index.html" class="external-link"><code>RSpectra</code></a>.
 See benchmark <a href="https://lambdamoses.github.io/thevoyages/posts/2023-03-25-multispati-part-2/" class="external-link">here</a>.</p>
 <p>In this vignette, we perform MULTISPATI PCA on the MERFISH mouse
 liver dataset. See the first vignette using this dataset <a href="https://pachterlab.github.io/voyager/articles/vig6_merfish.html">here</a>.</p>
@@ -186,7 +178,7 @@ liver dataset. See the first vignette using this dataset <a href="https://pachte
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SFEData" class="external-link">SFEData</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pachterlab/SpatialFeatureExperiment" class="external-link">SpatialFeatureExperiment</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://bioconductor.org/packages/scater/" class="external-link">scater</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scran</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/MarioniLab/scran/" class="external-link">scran</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">scuttle</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
@@ -197,6 +189,8 @@ liver dataset. See the first vignette using this dataset <a href="https://pachte
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Bioconductor/BiocParallel" class="external-link">BiocParallel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/" class="external-link">spdep</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://r-spatial.github.io/spdep/reference/set.spChkOption.html" class="external-link">set.ZeroPolicyOption</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SFEData/man/VizgenLiverData.html" class="external-link">VizgenLiverData</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -274,7 +268,7 @@ more details.</p>
 <span><span class="co">#&gt; metadata(0):</span></span>
 <span><span class="co">#&gt; assays(1): counts</span></span>
 <span><span class="co">#&gt; rownames(385): Comt Ldha ... Blank-36 Blank-37</span></span>
-<span><span class="co">#&gt; rowData names(3): means vars cv2</span></span>
+<span><span class="co">#&gt; rowData names(4): means vars cv2 subsets_blank</span></span>
 <span><span class="co">#&gt; colnames(390348): 10482024599960584593741782560798328923</span></span>
 <span><span class="co">#&gt;   111551578131181081835796893618918348842 ...</span></span>
 <span><span class="co">#&gt;   92389687374928708938472537234969690424</span></span>
@@ -300,10 +294,10 @@ neighborhood graph:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn5"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>, </span>
 <span>                                                  dist_type <span class="op">=</span> <span class="st">"idw"</span>, k <span class="op">=</span> <span class="fl">5</span>, </span>
-<span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
+<span>                                                  style <span class="op">=</span> <span class="st">"W"</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  32.799   0.168  32.986</span></span></code></pre></div>
+<span><span class="co">#&gt;  28.583   0.123  28.762</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -326,23 +320,50 @@ given that this tissue appears quite homogeneous in space.</p>
 <code class="sourceCode R"><span><span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">6000</span>, xmax <span class="op">=</span> <span class="fl">7000</span>, ymin <span class="op">=</span> <span class="fl">4000</span>, ymax <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span>
 <span><span class="va">inds2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_pred.html" class="external-link">st_intersects</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colGeometries.html" class="external-link">cellSeg</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span>, <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html" class="external-link">st_as_sfc</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">bbox_use</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>                       sparse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span>
-<span><span class="va">sfe_sub</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="va">inds2</span><span class="op">]</span></span></code></pre></div>
+<span><span class="va">sfe_sub</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="va">inds2</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Warning in sn2listw(df, style = style, zero.policy = zero.policy, from_mat2listw = TRUE): no-neighbour observations found, set zero.policy to TRUE;</span></span>
+<span><span class="co">#&gt; this warning will soon become an error</span></span></code></pre></div>
+<p>Note that since SpatialFeatureExperiment v1.8, the sptial graphs are
+subsetted rather than reconstructed when the SFE object is subsetted
+because reconstruction tends to be more time consuming and the BPPARAM
+and BNPARAM arguments can’t be stored and saved by
+<code>alabaster.sfe</code>. Subsetting removes some of the neighbors of
+cells near the boundary of this bounding box but the vast majority of
+cells still have all 5 nearest neighbors.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/spdep/reference/card.html" class="external-link">card</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_sub</span>, <span class="st">"knn5"</span><span class="op">)</span><span class="op">$</span><span class="va">neighbours</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;    0    1    2    3    4    5 </span></span>
+<span><span class="co">#&gt;    1    7   54   99  120 5405</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">mb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/moranBounds.html">moranBounds</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_sub</span>, <span class="st">"knn5"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       Imin       Imax </span></span>
+<span><span class="co">#&gt; -0.9623209  1.0779488</span></span></code></pre></div>
+<p>The lower bound is quite different from if we reconstruct the knn
+graph on the subset</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_sub</span>, <span class="st">"knn5_reconst"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe_sub</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>, </span>
+<span>                                                          k <span class="op">=</span> <span class="fl">5L</span>, dist_type <span class="op">=</span> <span class="st">"idw"</span>,</span>
+<span>                                                          style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">mb2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/moranBounds.html">moranBounds</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_sub</span>, <span class="st">"knn5_reconst"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       Imin       Imax </span></span>
 <span><span class="co">#&gt; -0.6079436  1.0608389</span></span></code></pre></div>
-<p>So considering the bounds, the MOran’s I values of the QC metrics are
+<p>It would be cool to systematically investigate the effects of
+perturbations to the spatial neighborhood graph on Moran’s I and other
+spatial statistics.</p>
+<p>So considering the bounds, the Moran’s I values of the QC metrics are
 more like</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colFeatureData.html" class="external-link">colFeatureData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span>, </span>
-<span>                             <span class="st">"moran.mc_statistic_sample01"</span><span class="op">]</span> <span class="op">/</span> <span class="va">mb</span><span class="op">[</span><span class="st">"Imin"</span><span class="op">]</span>,</span>
+<span>                             <span class="st">"moran.mc_statistic_sample01"</span><span class="op">]</span> <span class="op">/</span> <span class="va">mb2</span><span class="op">[</span><span class="st">"Imin"</span><span class="op">]</span>,</span>
 <span>         <span class="va">features_use</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    nCounts     nGenes     volume </span></span>
 <span><span class="co">#&gt; 0.17839356 0.15168017 0.03211427</span></span></code></pre></div>
 <p>whose magnitudes seem more substantial for <code>nCounts</code> and
 <code>nGenes</code> if it’s positive spatial autocorrelation. So there
 may be mild to moderate negative spatial autocorrelation.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Normalize data</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -352,7 +373,7 @@ may be mild to moderate negative spatial autocorrelation.</p>
 <p>This dataset comes from a relatively large piece of tissue and we
 need to zoom into a smaller region to better see the local structures.
 Here we specify a bounding box.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbox_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">6100</span>, xmax <span class="op">=</span> <span class="fl">7100</span>, ymin <span class="op">=</span> <span class="fl">7500</span>, ymax <span class="op">=</span> <span class="fl">8500</span><span class="op">)</span></span></code></pre></div>
 <p>A portal triad is shown near the top right of this bounding box. The
 two large vessels on the left and bottom right are central veins. The
@@ -361,26 +382,26 @@ blood from the intestine, and bile duct, so it’s more oxygenated. The
 regions around the central vein is more deoxygenated. The different
 oxygen and nutrient contents mean that hepatocytes play different
 metabolic roles in the zones between the portal triad and the central
-vein. Here we plot some zonation marker genes from <span class="citation">(Halpern et al. 2017)</span>.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+vein. Here we plot some zonation marker genes from <span class="citation">(<strong>Halpern2017-lq?</strong>)</span>.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Axin2"</span>, <span class="st">"Cyp1a2"</span>, <span class="st">"Gstm3"</span>, <span class="st">"Psmd4"</span>, <span class="co"># Pericentral</span></span>
 <span>             <span class="st">"Cyp2e1"</span>, <span class="st">"Asl"</span>, <span class="st">"Alb"</span>, <span class="st">"Ass1"</span>, <span class="co"># Monotonic but has intermediate</span></span>
 <span>             <span class="st">"Hamp"</span>, <span class="st">"Igfbp2"</span>, <span class="st">"Cyp8b1"</span>, <span class="st">"Mup3"</span>, <span class="co"># Non-monotonic</span></span>
 <span>             <span class="st">"Arg1"</span>, <span class="st">"Pck1"</span>, <span class="st">"C2"</span>, <span class="st">"Sdhd"</span><span class="op">)</span> <span class="co"># Periportal</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">inds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">markers</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  1  2 14</span></span></code></pre></div>
 <p>Only 3 of these marker genes are present in this dataset. The first
 two are pericentral (near the central vein), and the last one is
 periportal (near the portal triad).</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">markers</span><span class="op">[</span><span class="va">inds</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   ncol <span class="op">=</span> <span class="fl">3</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-19-1.png" width="864"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-22-1.png" width="864"></p>
 <p>Besides hepatocytes, the liver also has many endothelial cells and
-Kupffer cells (macrophages). Marker genes of these cells from <span class="citation">(Bonnardel et al. 2019)</span> are plotted to visualize
-these cell types in space:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+Kupffer cells (macrophages). Marker genes of these cells from <span class="citation">(<strong>Bonnardel2019-le?</strong>)</span> are plotted
+to visualize these cell types in space:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Kuppfer cells</span></span>
 <span><span class="va">kc_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Timd4"</span>, <span class="st">"Vsig4"</span>, <span class="st">"Clec4f"</span>, <span class="st">"Clec1b"</span>, <span class="st">"Il18bp"</span>, <span class="st">"C6"</span>, <span class="st">"Irf7"</span>,</span>
 <span>              <span class="st">"Slc40a1"</span>, <span class="st">"Cdh5"</span>, <span class="st">"Nr1h3"</span>, <span class="st">"Dmpk"</span>, <span class="st">"Paqr9"</span>, <span class="st">"Pcolce2"</span>, <span class="st">"Kcna2"</span>,</span>
@@ -390,22 +411,22 @@ these cell types in space:</p>
 <span><span class="co">#&gt; [1] 9</span></span></code></pre></div>
 <p>Only one of the Kupffer cell markers is available in this
 dataset.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">kc_genes</span><span class="op">[</span><span class="fl">9</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
 <p>Expression of this gene does not seem very spatially coherent.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Endothelial cells</span></span>
 <span><span class="va">lec_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Rspo3"</span>, <span class="st">"Wnt2"</span>, <span class="st">"Wnt9b"</span>, <span class="st">"Pcdhgc5"</span>, <span class="st">"Ecm1"</span>, <span class="st">"Ltbp4"</span>, <span class="st">"Efnb2"</span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">inds_lec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">lec_genes</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2 6 7</span></span></code></pre></div>
 <p>Only 3 of these endothelial cell marker genes are available in this
 dataset.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">lec_genes</span><span class="op">[</span><span class="va">inds_lec</span><span class="op">]</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   bbox <span class="op">=</span> <span class="va">bbox_use</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-23-1.png" width="864"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-26-1.png" width="864"></p>
 <p>Wnt2 seems to be more pericentral, while Ltbp4 and Efnb2 seem more
 periportal.</p>
 <p>Some of these marker genes will show up in the top PC loadings
@@ -415,7 +436,7 @@ non-spatial and spatial PCA.</p>
 <h2 id="non-spatial-pca">Non-spatial PCA<a class="anchor" aria-label="anchor" href="#non-spatial-pca"></a>
 </h2>
 <p>First we run non-spatial PCA, to compare to MULTISPATI.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">20</span>, subset_row <span class="op">=</span> <span class="op">!</span><span class="va">is_blank</span>,</span>
@@ -423,30 +444,29 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  19.039   1.185  22.134</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16157477  863.0   29629968 1582.5         NA  29629968 1582.5</span></span>
-<span><span class="co">#&gt; Vcells 241455186 1842.2  532923388 4065.9      16384 532363519 4061.7</span></span></code></pre></div>
+<span><span class="co">#&gt;  13.937   6.219  13.198</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb)  max used   (Mb)</span></span>
+<span><span class="co">#&gt; Ncells  16563117  884.6   26419641 1411.0  26419641 1411.0</span></span>
+<span><span class="co">#&gt; Vcells 242231178 1848.1  540607302 4124.6 540592370 4124.4</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 <p>Plot top gene loadings in each PC</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
 <p>Many of these genes seem to be related to the endothelium. PC1 and
 PC4 concern the Kupffer cells as well, as the Kupffer cell marker gene
 Cdh5 has high loading.</p>
 <p>Plot the first 4 PCs in space</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, <span class="fl">4</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-27-1.png" width="864"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-30-1.png" width="864"></p>
 <p>PC1 and PC4 highlight the major blood vessels, while PC2 and PC3 have
 less spatial structure. While in the CosMX and Xenium datasets on this
 website, the top PCs have clear spatial structures despite the absence
@@ -458,25 +478,32 @@ genes have strong spatial structures.</p>
 they may have more local spatial structure not obvious from plotting the
 entire section, so we zoom into a bounding box which shows hepatic
 zonation.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                  bbox <span class="op">=</span> <span class="va">bbox_use</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-28-1.png" width="864"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-31-1.png" width="864"></p>
 <p>There’s some spatial structure at a smaller scale, perhaps some
 negative spatial autocorrelation.</p>
 </div>
 <div class="section level2">
 <h2 id="multispati-pca">MULTISPATI PCA<a class="anchor" aria-label="anchor" href="#multispati-pca"></a>
 </h2>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateMultivariate.html">runMultivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"multispati"</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, nfposi <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>                       nfnega <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in asMethod(object): sparse-&gt;dense coercion: allocating vector of size</span></span>
 <span><span class="co">#&gt; 1.1 GiB</span></span>
+<span><span class="co">#&gt; Warning: `listw2sparse()` was deprecated in SpatialFeatureExperiment 1.9.0.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `spatialreg::as_dgRMatrix_listw()` instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">Voyager</span> package.</span></span>
+<span><span class="co">#&gt;   Please report the issue at <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/pachterlab/voyager/issues&gt;</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 170.236  17.216 200.660</span></span></code></pre></div>
+<span><span class="co">#&gt;  14.801   5.228  18.961</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -484,9 +511,9 @@ eigenvalues correspond to eigenvectors that simultaneously explain more
 variance and have large positive Moran’s I. The most negative
 eigenvalues correspond to eigenvectors that simultaneously explain more
 variance and have negative Moran’s I.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe</span>, nfnega <span class="op">=</span> <span class="fl">20</span>, reduction <span class="op">=</span> <span class="st">"multispati"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
 <p>Here the positive eigenvalues drop sharply from PC1 to PC4, and there
 is only one very negative eigenvalue which might be interesting, which
 is unsurprising given the moderately negative Moran’s I for
@@ -505,17 +532,17 @@ from each other as much as possible according to expression of the
 highly variable genes, so in theory, clustering with positive MULTISPATI
 components should give more spatially coherent clusters. Because of the
 spatial coherence, MULTISPATI might be more robust to outliers.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe</span>, dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">40</span><span class="op">)</span>, reduction <span class="op">=</span> <span class="st">"multispati"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 <p>From gene loadings, PC40 seems to separate endothelial cells and
 Kupffer cells from hepatocytes.</p>
 <p>Plot the these PCs:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"multispati"</span>, components <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">40</span><span class="op">)</span>, </span>
 <span>                  colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span>,</span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-32-1.png" width="864"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-35-1.png" width="864"></p>
 <p>The first two PCs pick up zoning. PC3 seems to have smaller scale
 spatial structure. PC”40” (should really be 300 something) is an example
 of negative spatial autocorrelation in biology. That Kupffer cells and
@@ -536,14 +563,14 @@ depend on the questions asked in the further downstream analyses.</p>
 </h3>
 <p>Here we compare Moran’s I for cell embeddings in each non-spatial and
 MULTISPATI PC:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># non-spatial</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">reducedDimMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, dimred <span class="op">=</span> <span class="st">"PCA"</span>, components <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,</span>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># spatial</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">reducedDimMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, dimred <span class="op">=</span> <span class="st">"multispati"</span>, components <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">40</span>,</span>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>PCA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colFeatureData.html" class="external-link">reducedDimFeatureData</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span>,</span>
 <span>                   MULTISPATI_pos <span class="op">=</span> </span>
 <span>                       <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colFeatureData.html" class="external-link">reducedDimFeatureData</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"multispati"</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span>,</span>
@@ -551,41 +578,41 @@ MULTISPATI PC:</p>
 <span>                       <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colFeatureData.html" class="external-link">reducedDimFeatureData</a></span><span class="op">(</span><span class="va">sfe</span>,<span class="st">"multispati"</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span><span class="op">[</span><span class="fl">21</span><span class="op">:</span><span class="fl">40</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
 <span>                       <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                   index <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ditto_colors"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_moran</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">index</span>, values_to <span class="op">=</span> <span class="st">"value"</span>, names_to <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">index</span>, <span class="va">value</span>, color <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">ditto_colors</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"gray"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="va">mb</span>, linetype <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="st">"gray"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="va">mb2</span>, linetype <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="st">"gray"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/breaks_pretty.html" class="external-link">breaks_pretty</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/breaks_width.html" class="external-link">breaks_width</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Moran's I"</span>, color <span class="op">=</span> <span class="st">"Type"</span>, x <span class="op">=</span> <span class="st">"Component"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-39-1.png" width="700"></p>
 <p>In MULTISPATI, Moran’s I is high in PC1 and PC2, but then sharply
 drops. Moran’s I for the PC with the most negative eigenvalues is not
 very negative, which means the large magnitude of that eigenvalue comes
 from explaining more variance. However, considering the lower bound of
 Moran’s I that is around -0.6 instead of -1, the magnitude of Moran’s I
 for the PC with the most negative eigenvalue is not trivial.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">df_moran</span><span class="op">$</span><span class="va">MULTISPATI_neg</span><span class="op">)</span> <span class="op">/</span> <span class="va">mb</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">df_moran</span><span class="op">$</span><span class="va">MULTISPATI_neg</span><span class="op">)</span> <span class="op">/</span> <span class="va">mb2</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#&gt;      Imin </span></span>
 <span><span class="co">#&gt; 0.1374483</span></span></code></pre></div>
 <p>Non-spatial PCs are not sorted by Moran’s I; PC5 has surprising large
 Moran’s I.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, component <span class="op">=</span> <span class="fl">5</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, </span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-41-1.png" width="700"></p>
 <p>PC5 must be about zonation. Also show a larger scale:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, components <span class="op">=</span> <span class="fl">5</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, </span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-39-1.png" width="700"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-42-1.png" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="moran-scatter-plot">Moran scatter plot<a class="anchor" aria-label="anchor" href="#moran-scatter-plot"></a>
@@ -594,39 +621,39 @@ Moran’s I.</p>
 in global Moran’s I. From the zoomed in plots and gene loadings above,
 some PCs are about endothelial cells. The Moran scatter plot can help
 discovering more local heterogeneity.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">reducedDimUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.plot"</span>, dimred <span class="op">=</span> <span class="st">"PCA"</span>, components <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"PC"</span>, <span class="va">i</span><span class="op">)</span>, binned <span class="op">=</span> <span class="cn">TRUE</span>, hex <span class="op">=</span> <span class="cn">TRUE</span>, plot_influential <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">plts</span>, widths <span class="op">=</span> <span class="fl">1</span>, heights <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"1"</span>, </span>
 <span>                    title <span class="op">=</span> <span class="st">"Moran scatter plot for non-spatial PCs"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-42-1.png" width="960"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-45-1.png" width="960"></p>
 <p>PCs 1-3 have some fainter clusters outside the main cluster,
 indicating heterogeneous spatial autocorrelation. Also make Moran
 scatter plots for MULTISPATI</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">reducedDimUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.plot"</span>, dimred <span class="op">=</span> <span class="st">"multispati"</span>, </span>
 <span>                            components <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">40</span><span class="op">)</span>, </span>
 <span>                            <span class="co"># Not to overwrite non-spatial PCA moran plots</span></span>
 <span>                            name <span class="op">=</span> <span class="st">"moran.plot2"</span><span class="op">)</span> </span></code></pre></div>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plts2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">40</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"PC"</span>, <span class="va">i</span><span class="op">)</span>, binned <span class="op">=</span> <span class="cn">TRUE</span>, hex <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>              plot_influential <span class="op">=</span> <span class="cn">FALSE</span>, name <span class="op">=</span> <span class="st">"moran.plot2"</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">plts2</span>, widths <span class="op">=</span> <span class="fl">1</span>, heights <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"1"</span>,</span>
 <span>                    title <span class="op">=</span> <span class="st">"Moran scatter plot for MULTISPATI PCs"</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-45-1.png" width="960"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-48-1.png" width="960"></p>
 <p>There are some interesting clusters.</p>
 </div>
 </div>
@@ -638,10 +665,10 @@ neighbor graph is found in the PCA space, which is then used for graph
 based clustering such as Louvain and Leiden, which is used to perform
 differential expression. Spatial dimension reductions can similarly be
 used to perform clustering, to identify spatial regions in the tissue,
-as done in <span class="citation">(Shang and Zhou 2022; Ren et al. 2022;
-Zhang et al. 2023)</span>. This type of studies often use a manual
-segmentation as ground truth to compare different methods that identify
-spatial regions.</p>
+as done in <span class="citation">(<strong>Shang2022-qy?</strong>;
+<strong>Ren2022-qx?</strong>; <strong>Zhang2023-kf?</strong>)</span>.
+This type of studies often use a manual segmentation as ground truth to
+compare different methods that identify spatial regions.</p>
 <p>The problem with this is that spatial region methods are meant to
 help us to identify novel spatial regions based on new -omics data,
 which might reveal what’s previously unknown from manual annotations. If
@@ -655,7 +682,7 @@ formation. Which one is relevant depends on the questions asked.</p>
 <p>Here we perform Leiden clustering with non-spatial and MULTISPATI PCA
 and compare the results. For the k nearest neighbor graph, I used the
 default k = 10.</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span>    <span class="va">sfe</span><span class="op">$</span><span class="va">clusts_nonspatial</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/clusterCells.html" class="external-link">clusterCells</a></span><span class="op">(</span><span class="va">sfe</span>, use.dimred <span class="op">=</span> <span class="st">"PCA"</span>, </span>
@@ -667,13 +694,11 @@ default k = 10.</p>
 <span>                                              <span class="op">)</span></span>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
-<span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 513.777   4.158 520.151</span></span></code></pre></div>
+<span><span class="co">#&gt; 343.171   0.289 343.483</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span>    <span class="va">sfe</span><span class="op">$</span><span class="va">clusts_multispati</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/clusterRows.html" class="external-link">clusterRows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"multispati"</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span>, </span>
@@ -685,25 +710,23 @@ spatially coherent clusters</p>
 <span>                                              <span class="op">)</span></span>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (to_check, X, clust_centers, clust_info, dtype, nn, :</span></span>
-<span><span class="co">#&gt; detected tied distances to neighbors, see ?'BiocNeighbors-ties'</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 653.125   5.643 661.340</span></span></code></pre></div>
+<span><span class="co">#&gt; 443.714   0.340 444.101</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
 <span>                   colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
 <span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>override.aes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-48-1.png" width="1056"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-51-1.png" width="1056"></p>
 <p>The MULTISPATI clusters do look somewhat more spatially structured
 than clusters from non-spatial PCA. Also zoom into a small area:</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
 <span>                   colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="multispati_files/figure-html/unnamed-chunk-49-1.png" width="1056"></p>
+<p><img src="multispati_files/figure-html/unnamed-chunk-52-1.png" width="1056"></p>
 <p>What do these clusters mean? Clusters are supposed to be groups of
 different spots that are more similar within a group, sharing some
 characteristics. Non-spatial and MULTISPATI PCA use different
@@ -733,187 +756,130 @@ spatial clustering.</p>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.4.0 (2024-04-24)</span></span>
-<span><span class="co">#&gt; Platform: x86_64-apple-darwin20</span></span>
-<span><span class="co">#&gt; Running under: macOS Ventura 13.6.6</span></span>
+<span><span class="co">#&gt; R version 4.4.2 (2024-10-31)</span></span>
+<span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt; Running under: Ubuntu 22.04.5 LTS</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Matrix products: default</span></span>
-<span><span class="co">#&gt; BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib </span></span>
-<span><span class="co">#&gt; LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt; BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt; [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; time zone: UTC</span></span>
-<span><span class="co">#&gt; tzcode source: internal</span></span>
+<span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attached base packages:</span></span>
 <span><span class="co">#&gt; [1] stats4    stats     graphics  grDevices utils     datasets  methods  </span></span>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] patchwork_1.2.0                sf_1.0-16                     </span></span>
-<span><span class="co">#&gt;  [3] BiocParallel_1.38.0            BiocSingular_1.20.0           </span></span>
-<span><span class="co">#&gt;  [5] bluster_1.14.0                 tibble_3.2.1                  </span></span>
-<span><span class="co">#&gt;  [7] tidyr_1.3.1                    stringr_1.5.1                 </span></span>
-<span><span class="co">#&gt;  [9] scran_1.32.0                   scater_1.32.0                 </span></span>
-<span><span class="co">#&gt; [11] ggplot2_3.5.1                  scuttle_1.14.0                </span></span>
-<span><span class="co">#&gt; [13] SingleCellExperiment_1.26.0    SummarizedExperiment_1.34.0   </span></span>
-<span><span class="co">#&gt; [15] Biobase_2.64.0                 GenomicRanges_1.56.0          </span></span>
-<span><span class="co">#&gt; [17] GenomeInfoDb_1.40.0            IRanges_2.38.0                </span></span>
-<span><span class="co">#&gt; [19] S4Vectors_0.42.0               BiocGenerics_0.50.0           </span></span>
-<span><span class="co">#&gt; [21] MatrixGenerics_1.16.0          matrixStats_1.3.0             </span></span>
-<span><span class="co">#&gt; [23] SFEData_1.6.0                  Voyager_1.6.0                 </span></span>
-<span><span class="co">#&gt; [25] SpatialFeatureExperiment_1.6.1</span></span>
+<span><span class="co">#&gt;  [1] spdep_1.3-6                    spData_2.3.3                  </span></span>
+<span><span class="co">#&gt;  [3] patchwork_1.3.0                sf_1.0-19                     </span></span>
+<span><span class="co">#&gt;  [5] BiocParallel_1.40.0            BiocSingular_1.22.0           </span></span>
+<span><span class="co">#&gt;  [7] bluster_1.16.0                 tibble_3.2.1                  </span></span>
+<span><span class="co">#&gt;  [9] tidyr_1.3.1                    stringr_1.5.1                 </span></span>
+<span><span class="co">#&gt; [11] scran_1.34.0                   scater_1.34.0                 </span></span>
+<span><span class="co">#&gt; [13] ggplot2_3.5.1                  scuttle_1.16.0                </span></span>
+<span><span class="co">#&gt; [15] SingleCellExperiment_1.28.1    SummarizedExperiment_1.36.0   </span></span>
+<span><span class="co">#&gt; [17] Biobase_2.66.0                 GenomicRanges_1.58.0          </span></span>
+<span><span class="co">#&gt; [19] GenomeInfoDb_1.42.0            IRanges_2.40.0                </span></span>
+<span><span class="co">#&gt; [21] S4Vectors_0.44.0               BiocGenerics_0.52.0           </span></span>
+<span><span class="co">#&gt; [23] MatrixGenerics_1.18.0          matrixStats_1.4.1             </span></span>
+<span><span class="co">#&gt; [25] SFEData_1.8.0                  Voyager_1.8.1                 </span></span>
+<span><span class="co">#&gt; [27] SpatialFeatureExperiment_1.9.4</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] splines_4.4.0             bitops_1.0-7             </span></span>
-<span><span class="co">#&gt;   [3] filelock_1.0.3            R.oo_1.26.0              </span></span>
-<span><span class="co">#&gt;   [5] lifecycle_1.0.4           edgeR_4.2.0              </span></span>
-<span><span class="co">#&gt;   [7] lattice_0.22-6            magrittr_2.0.3           </span></span>
-<span><span class="co">#&gt;   [9] limma_3.60.0              sass_0.4.9               </span></span>
-<span><span class="co">#&gt;  [11] rmarkdown_2.27            jquerylib_0.1.4          </span></span>
-<span><span class="co">#&gt;  [13] yaml_2.3.8                metapod_1.12.0           </span></span>
-<span><span class="co">#&gt;  [15] sp_2.1-4                  RColorBrewer_1.1-3       </span></span>
-<span><span class="co">#&gt;  [17] DBI_1.2.2                 abind_1.4-5              </span></span>
-<span><span class="co">#&gt;  [19] zlibbioc_1.50.0           purrr_1.0.2              </span></span>
-<span><span class="co">#&gt;  [21] R.utils_2.12.3            RCurl_1.98-1.14          </span></span>
-<span><span class="co">#&gt;  [23] rappdirs_0.3.3            GenomeInfoDbData_1.2.12  </span></span>
-<span><span class="co">#&gt;  [25] ggrepel_0.9.5             irlba_2.3.5.1            </span></span>
-<span><span class="co">#&gt;  [27] terra_1.7-71              units_0.8-5              </span></span>
-<span><span class="co">#&gt;  [29] RSpectra_0.16-1           dqrng_0.4.0              </span></span>
-<span><span class="co">#&gt;  [31] pkgdown_2.0.9             DelayedMatrixStats_1.26.0</span></span>
-<span><span class="co">#&gt;  [33] codetools_0.2-20          DropletUtils_1.24.0      </span></span>
-<span><span class="co">#&gt;  [35] DelayedArray_0.30.1       tidyselect_1.2.1         </span></span>
-<span><span class="co">#&gt;  [37] farver_2.1.2              UCSC.utils_1.0.0         </span></span>
-<span><span class="co">#&gt;  [39] memuse_4.2-3              ScaledMatrix_1.12.0      </span></span>
-<span><span class="co">#&gt;  [41] viridis_0.6.5             BiocFileCache_2.12.0     </span></span>
-<span><span class="co">#&gt;  [43] jsonlite_1.8.8            BiocNeighbors_1.22.0     </span></span>
-<span><span class="co">#&gt;  [45] e1071_1.7-14              systemfonts_1.1.0        </span></span>
-<span><span class="co">#&gt;  [47] tools_4.4.0               ggnewscale_0.4.10        </span></span>
-<span><span class="co">#&gt;  [49] ragg_1.3.2                Rcpp_1.0.12              </span></span>
-<span><span class="co">#&gt;  [51] glue_1.7.0                gridExtra_2.3            </span></span>
-<span><span class="co">#&gt;  [53] SparseArray_1.4.3         mgcv_1.9-1               </span></span>
-<span><span class="co">#&gt;  [55] xfun_0.44                 EBImage_4.46.0           </span></span>
-<span><span class="co">#&gt;  [57] dplyr_1.1.4               HDF5Array_1.32.0         </span></span>
-<span><span class="co">#&gt;  [59] withr_3.0.0               BiocManager_1.30.23      </span></span>
-<span><span class="co">#&gt;  [61] fastmap_1.2.0             boot_1.3-30              </span></span>
-<span><span class="co">#&gt;  [63] rhdf5filters_1.16.0       fansi_1.0.6              </span></span>
-<span><span class="co">#&gt;  [65] spData_2.3.0              digest_0.6.35            </span></span>
-<span><span class="co">#&gt;  [67] rsvd_1.0.5                mime_0.12                </span></span>
-<span><span class="co">#&gt;  [69] R6_2.5.1                  textshaping_0.3.7        </span></span>
-<span><span class="co">#&gt;  [71] colorspace_2.1-0          wk_0.9.1                 </span></span>
-<span><span class="co">#&gt;  [73] scattermore_1.2           jpeg_0.1-10              </span></span>
-<span><span class="co">#&gt;  [75] RSQLite_2.3.6             R.methodsS3_1.8.2        </span></span>
-<span><span class="co">#&gt;  [77] hexbin_1.28.3             utf8_1.2.4               </span></span>
-<span><span class="co">#&gt;  [79] generics_0.1.3            data.table_1.15.4        </span></span>
-<span><span class="co">#&gt;  [81] class_7.3-22              httr_1.4.7               </span></span>
-<span><span class="co">#&gt;  [83] htmlwidgets_1.6.4         S4Arrays_1.4.0           </span></span>
-<span><span class="co">#&gt;  [85] spdep_1.3-3               pkgconfig_2.0.3          </span></span>
-<span><span class="co">#&gt;  [87] scico_1.5.0               gtable_0.3.5             </span></span>
-<span><span class="co">#&gt;  [89] blob_1.2.4                XVector_0.44.0           </span></span>
-<span><span class="co">#&gt;  [91] htmltools_0.5.8.1         fftwtools_0.9-11         </span></span>
-<span><span class="co">#&gt;  [93] scales_1.3.0              png_0.1-8                </span></span>
-<span><span class="co">#&gt;  [95] SpatialExperiment_1.14.0  knitr_1.46               </span></span>
-<span><span class="co">#&gt;  [97] rjson_0.2.21              nlme_3.1-164             </span></span>
-<span><span class="co">#&gt;  [99] curl_5.2.1                proxy_0.4-27             </span></span>
-<span><span class="co">#&gt; [101] cachem_1.1.0              rhdf5_2.48.0             </span></span>
-<span><span class="co">#&gt; [103] BiocVersion_3.19.1        KernSmooth_2.23-24       </span></span>
-<span><span class="co">#&gt; [105] parallel_4.4.0            vipor_0.4.7              </span></span>
-<span><span class="co">#&gt; [107] AnnotationDbi_1.66.0      desc_1.4.3               </span></span>
-<span><span class="co">#&gt; [109] s2_1.1.6                  pillar_1.9.0             </span></span>
-<span><span class="co">#&gt; [111] grid_4.4.0                vctrs_0.6.5              </span></span>
-<span><span class="co">#&gt; [113] dbplyr_2.5.0              beachmat_2.20.0          </span></span>
-<span><span class="co">#&gt; [115] sfheaders_0.4.4           cluster_2.1.6            </span></span>
-<span><span class="co">#&gt; [117] beeswarm_0.4.0            evaluate_0.23            </span></span>
-<span><span class="co">#&gt; [119] zeallot_0.1.0             magick_2.8.3             </span></span>
-<span><span class="co">#&gt; [121] cli_3.6.2                 locfit_1.5-9.9           </span></span>
-<span><span class="co">#&gt; [123] compiler_4.4.0            rlang_1.1.3              </span></span>
-<span><span class="co">#&gt; [125] crayon_1.5.2              labeling_0.4.3           </span></span>
-<span><span class="co">#&gt; [127] classInt_0.4-10           fs_1.6.4                 </span></span>
-<span><span class="co">#&gt; [129] ggbeeswarm_0.7.2          stringi_1.8.4            </span></span>
-<span><span class="co">#&gt; [131] viridisLite_0.4.2         deldir_2.0-4             </span></span>
-<span><span class="co">#&gt; [133] munsell_0.5.1             Biostrings_2.72.0        </span></span>
-<span><span class="co">#&gt; [135] tiff_0.1-12               Matrix_1.7-0             </span></span>
-<span><span class="co">#&gt; [137] ExperimentHub_2.12.0      sparseMatrixStats_1.16.0 </span></span>
-<span><span class="co">#&gt; [139] bit64_4.0.5               Rhdf5lib_1.26.0          </span></span>
-<span><span class="co">#&gt; [141] KEGGREST_1.44.0           statmod_1.5.0            </span></span>
-<span><span class="co">#&gt; [143] highr_0.10                AnnotationHub_3.12.0     </span></span>
-<span><span class="co">#&gt; [145] igraph_2.0.3              memoise_2.0.1            </span></span>
-<span><span class="co">#&gt; [147] bslib_0.7.0               bit_4.0.5</span></span></code></pre></div>
+<span><span class="co">#&gt;   [1] splines_4.4.2             bitops_1.0-9             </span></span>
+<span><span class="co">#&gt;   [3] filelock_1.0.3            R.oo_1.27.0              </span></span>
+<span><span class="co">#&gt;   [5] lifecycle_1.0.4           edgeR_4.4.0              </span></span>
+<span><span class="co">#&gt;   [7] lattice_0.22-6            MASS_7.3-61              </span></span>
+<span><span class="co">#&gt;   [9] magrittr_2.0.3            limma_3.62.1             </span></span>
+<span><span class="co">#&gt;  [11] sass_0.4.9                rmarkdown_2.29           </span></span>
+<span><span class="co">#&gt;  [13] jquerylib_0.1.4           yaml_2.3.10              </span></span>
+<span><span class="co">#&gt;  [15] metapod_1.14.0            sp_2.1-4                 </span></span>
+<span><span class="co">#&gt;  [17] RColorBrewer_1.1-3        DBI_1.2.3                </span></span>
+<span><span class="co">#&gt;  [19] multcomp_1.4-26           abind_1.4-8              </span></span>
+<span><span class="co">#&gt;  [21] spatialreg_1.3-5          zlibbioc_1.52.0          </span></span>
+<span><span class="co">#&gt;  [23] purrr_1.0.2               R.utils_2.12.3           </span></span>
+<span><span class="co">#&gt;  [25] RCurl_1.98-1.16           TH.data_1.1-2            </span></span>
+<span><span class="co">#&gt;  [27] rappdirs_0.3.3            sandwich_3.1-1           </span></span>
+<span><span class="co">#&gt;  [29] GenomeInfoDbData_1.2.13   ggrepel_0.9.6            </span></span>
+<span><span class="co">#&gt;  [31] irlba_2.3.5.1             terra_1.7-83             </span></span>
+<span><span class="co">#&gt;  [33] units_0.8-5               RSpectra_0.16-2          </span></span>
+<span><span class="co">#&gt;  [35] dqrng_0.4.1               pkgdown_2.1.1            </span></span>
+<span><span class="co">#&gt;  [37] DelayedMatrixStats_1.28.0 codetools_0.2-20         </span></span>
+<span><span class="co">#&gt;  [39] DropletUtils_1.26.0       DelayedArray_0.32.0      </span></span>
+<span><span class="co">#&gt;  [41] tidyselect_1.2.1          UCSC.utils_1.2.0         </span></span>
+<span><span class="co">#&gt;  [43] memuse_4.2-3              farver_2.1.2             </span></span>
+<span><span class="co">#&gt;  [45] viridis_0.6.5             ScaledMatrix_1.14.0      </span></span>
+<span><span class="co">#&gt;  [47] BiocFileCache_2.14.0      jsonlite_1.8.9           </span></span>
+<span><span class="co">#&gt;  [49] BiocNeighbors_2.0.0       e1071_1.7-16             </span></span>
+<span><span class="co">#&gt;  [51] survival_3.7-0            systemfonts_1.1.0        </span></span>
+<span><span class="co">#&gt;  [53] tools_4.4.2               ggnewscale_0.5.0         </span></span>
+<span><span class="co">#&gt;  [55] ragg_1.3.3                Rcpp_1.0.13-1            </span></span>
+<span><span class="co">#&gt;  [57] glue_1.8.0                gridExtra_2.3            </span></span>
+<span><span class="co">#&gt;  [59] SparseArray_1.6.0         mgcv_1.9-1               </span></span>
+<span><span class="co">#&gt;  [61] xfun_0.49                 EBImage_4.48.0           </span></span>
+<span><span class="co">#&gt;  [63] dplyr_1.1.4               HDF5Array_1.34.0         </span></span>
+<span><span class="co">#&gt;  [65] withr_3.0.2               BiocManager_1.30.25      </span></span>
+<span><span class="co">#&gt;  [67] fastmap_1.2.0             boot_1.3-31              </span></span>
+<span><span class="co">#&gt;  [69] rhdf5filters_1.18.0       fansi_1.0.6              </span></span>
+<span><span class="co">#&gt;  [71] digest_0.6.37             rsvd_1.0.5               </span></span>
+<span><span class="co">#&gt;  [73] mime_0.12                 R6_2.5.1                 </span></span>
+<span><span class="co">#&gt;  [75] textshaping_0.4.0         colorspace_2.1-1         </span></span>
+<span><span class="co">#&gt;  [77] wk_0.9.4                  scattermore_1.2          </span></span>
+<span><span class="co">#&gt;  [79] LearnBayes_2.15.1         jpeg_0.1-10              </span></span>
+<span><span class="co">#&gt;  [81] RSQLite_2.3.8             R.methodsS3_1.8.2        </span></span>
+<span><span class="co">#&gt;  [83] hexbin_1.28.5             utf8_1.2.4               </span></span>
+<span><span class="co">#&gt;  [85] generics_0.1.3            data.table_1.16.2        </span></span>
+<span><span class="co">#&gt;  [87] class_7.3-22              httr_1.4.7               </span></span>
+<span><span class="co">#&gt;  [89] htmlwidgets_1.6.4         S4Arrays_1.6.0           </span></span>
+<span><span class="co">#&gt;  [91] pkgconfig_2.0.3           scico_1.5.0              </span></span>
+<span><span class="co">#&gt;  [93] gtable_0.3.6              blob_1.2.4               </span></span>
+<span><span class="co">#&gt;  [95] XVector_0.46.0            htmltools_0.5.8.1        </span></span>
+<span><span class="co">#&gt;  [97] fftwtools_0.9-11          scales_1.3.0             </span></span>
+<span><span class="co">#&gt;  [99] png_0.1-8                 SpatialExperiment_1.16.0 </span></span>
+<span><span class="co">#&gt; [101] knitr_1.49                rjson_0.2.23             </span></span>
+<span><span class="co">#&gt; [103] coda_0.19-4.1             nlme_3.1-166             </span></span>
+<span><span class="co">#&gt; [105] curl_6.0.1                proxy_0.4-27             </span></span>
+<span><span class="co">#&gt; [107] cachem_1.1.0              zoo_1.8-12               </span></span>
+<span><span class="co">#&gt; [109] rhdf5_2.50.0              BiocVersion_3.20.0       </span></span>
+<span><span class="co">#&gt; [111] KernSmooth_2.23-24        vipor_0.4.7              </span></span>
+<span><span class="co">#&gt; [113] parallel_4.4.2            AnnotationDbi_1.68.0     </span></span>
+<span><span class="co">#&gt; [115] desc_1.4.3                s2_1.1.7                 </span></span>
+<span><span class="co">#&gt; [117] pillar_1.9.0              grid_4.4.2               </span></span>
+<span><span class="co">#&gt; [119] vctrs_0.6.5               dbplyr_2.5.0             </span></span>
+<span><span class="co">#&gt; [121] beachmat_2.22.0           sfheaders_0.4.4          </span></span>
+<span><span class="co">#&gt; [123] cluster_2.1.6             beeswarm_0.4.0           </span></span>
+<span><span class="co">#&gt; [125] evaluate_1.0.1            zeallot_0.1.0            </span></span>
+<span><span class="co">#&gt; [127] magick_2.8.5              mvtnorm_1.3-2            </span></span>
+<span><span class="co">#&gt; [129] cli_3.6.3                 locfit_1.5-9.10          </span></span>
+<span><span class="co">#&gt; [131] compiler_4.4.2            rlang_1.1.4              </span></span>
+<span><span class="co">#&gt; [133] crayon_1.5.3              labeling_0.4.3           </span></span>
+<span><span class="co">#&gt; [135] classInt_0.4-10           ggbeeswarm_0.7.2         </span></span>
+<span><span class="co">#&gt; [137] fs_1.6.5                  stringi_1.8.4            </span></span>
+<span><span class="co">#&gt; [139] viridisLite_0.4.2         deldir_2.0-4             </span></span>
+<span><span class="co">#&gt; [141] munsell_0.5.1             Biostrings_2.74.0        </span></span>
+<span><span class="co">#&gt; [143] tiff_0.1-12               Matrix_1.7-1             </span></span>
+<span><span class="co">#&gt; [145] ExperimentHub_2.14.0      sparseMatrixStats_1.18.0 </span></span>
+<span><span class="co">#&gt; [147] bit64_4.5.2               Rhdf5lib_1.28.0          </span></span>
+<span><span class="co">#&gt; [149] KEGGREST_1.46.0           statmod_1.5.0            </span></span>
+<span><span class="co">#&gt; [151] AnnotationHub_3.14.0      igraph_2.1.1             </span></span>
+<span><span class="co">#&gt; [153] memoise_2.0.1             bslib_0.8.0              </span></span>
+<span><span class="co">#&gt; [155] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
-<div id="ref-Bonnardel2019-le" class="csl-entry">
-Bonnardel, Johnny, Wouter T’Jonck, Djoere Gaublomme, Robin Browaeys,
-Charlotte L Scott, Liesbet Martens, Bavo Vanneste, et al. 2019.
-<span>“Stellate Cells, Hepatocytes, and Endothelial Cells Imprint the
-Kupffer Cell Identity on Monocytes Colonizing the Liver Macrophage
-Niche.”</span> <em>Immunity</em> 51 (4): 638–654.e9.
 </div>
-<div id="ref-Dray2008-en" class="csl-entry">
-Dray, Stéphane, Sonia Saı̈d, and Françis Débias. 2008. <span>“Spatial
-Ordination of Vegetation Data Using a Generalization of Wartenberg’s
-Multivariate Spatial Correlation.”</span> <em>J. Veg. Sci.</em> 19 (1):
-45–56.
-</div>
-<div id="ref-Griffith2019-bo" class="csl-entry">
-Griffith, Daniel A. 2019. <span>“Negative Spatial Autocorrelation: One
-of the Most Neglected Concepts in Spatial Statistics.”</span>
-<em>Stats</em> 2 (3): 388–415.
-</div>
-<div id="ref-Halpern2017-lq" class="csl-entry">
-Halpern, Keren Bahar, Rom Shenhav, Orit Matcovitch-Natan, Beata Toth,
-Doron Lemze, Matan Golan, Efi E Massasa, et al. 2017. <span>“Single-Cell
-Spatial Reconstruction Reveals Global Division of Labour in the
-Mammalian Liver.”</span> <em>Nature</em> 542 (7641): 352–56.
-</div>
-<div id="ref-Ren2022-qx" class="csl-entry">
-Ren, Honglei, Benjamin L Walker, Zixuan Cang, and Qing Nie. 2022.
-<span>“Identifying Multicellular Spatiotemporal Organization of Cells
-with <span>SpaceFlow</span>.”</span> <em>Nat. Commun.</em> 13 (1): 4076.
-</div>
-<div id="ref-Shang2022-qy" class="csl-entry">
-Shang, Lulu, and Xiang Zhou. 2022. <span>“Spatially Aware Dimension
-Reduction for Spatial Transcriptomics.”</span> <em>Nat. Commun.</em> 13
-(1): 7203.
-</div>
-<div id="ref-Townes2023-bi" class="csl-entry">
-Townes, F William, and Barbara E Engelhardt. 2023. <span>“Nonnegative
-Spatial Factorization Applied to Spatial Genomics.”</span> <em>Nat.
-Methods</em> 20 (2): 229–38.
-</div>
-<div id="ref-Velten2022-gv" class="csl-entry">
-Velten, Britta, Jana M Braunger, Ricard Argelaguet, Damien Arnol, Jakob
-Wirbel, Danila Bredikhin, Georg Zeller, and Oliver Stegle. 2022.
-<span>“Identifying Temporal and Spatial Patterns of Variation from
-Multimodal Data Using <span>MEFISTO</span>.”</span> <em>Nat.
-Methods</em> 19 (2): 179–86.
-</div>
-<div id="ref-Wartenberg1985-fk" class="csl-entry">
-Wartenberg, Daniel. 1985. <span>“Multivariate Spatial Correlation: A
-Method for Exploratory Geographical Analysis.”</span> <em>Geogr.
-Anal.</em> 17 (4): 263–83.
-</div>
-<div id="ref-Zhang2023-kf" class="csl-entry">
-Zhang, Chuanchao, Xinxing Li, Wendong Huang, Lequn Wang, and Qianqian
-Shi. 2023. <span>“Spatially Aware Self-Representation Learning for
-Tissue Structure Characterization and Spatial Functional Genes
-Identification.”</span> <em>bioRxiv</em>.
-</div>
-<div id="ref-Zong2022-tb" class="csl-entry">
-Zong, Yongshuo, Tingyang Yu, Xuesong Wang, Yixuan Wang, Zhihang Hu, and
-Yu Li. 2022. <span>“<span class="nocase">conST</span>: An Interpretable
-Multi-Modal Contrastive Learning Framework for Spatial
-Transcriptomics.”</span> <em>bioRxiv</em>.
-</div>
-</div>
-</div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -924,15 +890,15 @@ Transcriptomics.”</span> <em>bioRxiv</em>.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
