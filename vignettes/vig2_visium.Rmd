@@ -91,7 +91,7 @@ gget <- import("gget")
 
 
 # Dataset
-The dataset used in this vignette is from the paper [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x) [@McKellar2021-ek]. Notexin was injected into the tibialis anterior muscle of mice to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium analysis. The dataset in this vignette is from the timepoint at day 2. The vignette starts with a `SpatialFeatureExperiment` (SFE) object.
+The dataset used in this vignette is from the paper [Large-scale integration of single-cell transcriptomic data captures transitional progenitor states in mouse skeletal muscle regeneration](https://doi.org/10.1038/s42003-021-02810-x) [@McKellar2021-az]. Notexin was injected into the tibialis anterior muscle of mice to induce injury, and the healing muscle was collected 2, 5, and 7 days post injury for Visium analysis. The dataset in this vignette is from the timepoint at day 2. The vignette starts with a `SpatialFeatureExperiment` (SFE) object.
 
 The gene count matrix was directly downloaded [from GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM4904759). All 4992 spots, whether in tissue or not, are included. The H&E image was used for nuclei and myofiber segmentation. A subset of nuclei from randomly selected regions from all 3 timepoints were manually annotated to train a StarDist model to segment the rest of the nuclei, and the myofibers were all manually segmented. The tissue boundary was found by thresholding in OpenCV, and small polygons were removed as they are likely to be debris. Spot polygons were constructed with the spot centroid coordinates and diameter in the Space Ranger output. The `in_tissue` column in `colData` indicates which spot polygons intersect the tissue polygons, and is based on `st_intersects()`.
 
@@ -130,7 +130,7 @@ Total UMI counts (`nCounts`), number of genes detected per spot (`nGenes`), and 
 
 The tissue boundary was found by thresholding the H&E image and removing small polygons that are most likely debris. The `in_tissue` column of `colData(sfe)` indicates which Visium spot polygon intersects the tissue polygon; this can be found with `SpatialFeatureExperiment::annotPred()`.
 
-We demonstrate the use of `scran` [@Lun2016-yq] for normalization below, although we note that it is not necessarily the best approach to normalizing spatial transcriptomics data. The problem of when and how to normalize spatial transcriptomics data is non-trivial because, as the `nCounts` plot in space shows above, spatial autocorrelation is evident. Furthemrore, in Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Artifacts may be subsequently introduced from the amplification step, and these would not be associated with spatial origin. Spatial artifacts may arise from the diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. In other words, the issue of normalization for spatial transcriptomics data, and Visium in particular, is complex and is currently unsolved. 
+We demonstrate the use of `scran` [@Lun2016-fb] for normalization below, although we note that it is not necessarily the best approach to normalizing spatial transcriptomics data. The problem of when and how to normalize spatial transcriptomics data is non-trivial because, as the `nCounts` plot in space shows above, spatial autocorrelation is evident. Furthemrore, in Visium, reverse transcription occurs in situ on the spots, but PCR amplification occurs after the cDNA is dissociated from the spots. Artifacts may be subsequently introduced from the amplification step, and these would not be associated with spatial origin. Spatial artifacts may arise from the diffusion of transcripts and tissue permeablization. However, given how the total counts seem to correspond to histological regions, the total counts may have a biological component and hence should not be treated as a technical artifact to be normalized away as in scRNA-seq data normalization methods. In other words, the issue of normalization for spatial transcriptomics data, and Visium in particular, is complex and is currently unsolved. 
 ```{r}
 sfe_tissue <- sfe[,colData(sfe)$in_tissue]
 sfe_tissue <- sfe_tissue[rowSums(counts(sfe_tissue)) > 0,]
@@ -203,7 +203,7 @@ plotColData(sfe_tissue, x = "nCounts", y = "prop_mito", colour_by = "mean_myofib
 ```
 
 ### Myofiber types
-Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic), Myh1 (Type IIx, fast twitch, anaerobic), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/) [@Wang2017-li]
+Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa, fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic), Myh1 (Type IIx, fast twitch, anaerobic), from [this protocol](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/) [@Wang2017-fn]
 ```{r}
 markers <- c(I = "Myh7", IIa = "Myh2", IIb = "Myh4", IIx = "Myh1")
 ```
@@ -416,7 +416,7 @@ By default, the colorblind friendly palette from [`dittoSeq`](https://bioconduct
 
 Use `type = "geary.mc"` for permutation testing for Geary's C.
 
-The `spdep` package can also compute p-values of Moran's I analytically, but the theory behind the mean and variance of the null distribution of Moran's I assumes normal distribution of the data, while gene expression data is generally non-normal. However, according to [@Griffith2010-uy], with large sample size ("preferably at least 100"), mean and variance of Moran's I of several iid non-normal simulated datasets (including negative binomial, which is commonly used to model gene expression data) don't seem to deviate much from the values expected from normally distributed data. Spatial transcriptomics datasets typically have thousands or more spots or cells, so sample size is most likely large enough. Hence using the analytical test on non-normal data might not be too bad. However, with large sample size, a minuscule difference can create very significant p-values. Here we perform the analytical test for Moran's I:
+The `spdep` package can also compute p-values of Moran's I analytically, but the theory behind the mean and variance of the null distribution of Moran's I assumes normal distribution of the data, while gene expression data is generally non-normal. However, according to [@Griffith2010-lm], with large sample size ("preferably at least 100"), mean and variance of Moran's I of several iid non-normal simulated datasets (including negative binomial, which is commonly used to model gene expression data) don't seem to deviate much from the values expected from normally distributed data. Spatial transcriptomics datasets typically have thousands or more spots or cells, so sample size is most likely large enough. Hence using the analytical test on non-normal data might not be too bad. However, with large sample size, a minuscule difference can create very significant p-values. Here we perform the analytical test for Moran's I:
 
 ```{r}
 sfe_tissue <- colDataUnivariate(sfe_tissue, features = c("nCounts", "nGenes"), 
@@ -433,7 +433,7 @@ colFeatureData(sfe_tissue)[c("nCounts", "nGenes"), c("moran.mc_p.value_Vis5A", "
 
 The p-values from permutation are limited by the number of permutations (1000 here). Either way, both permutation and analytical tests indicate very significant positive spatial autocorrelation.
 
-A limitation of permutation testing of Moran's I is that it assumes that each permutation of the values among the locations is equally likely, which is not necessarily true. For instance, in epidemiology, disease rate in regions with small population more likely assumes more extreme values [@Assuncao1999-xu], which is analogous to rare cell types and lowly expressed genes in histological space given that we divide by total UMI counts per spot. The extent this happens may depend on tissue, gene of interest, technology, and data normalization method.
+A limitation of permutation testing of Moran's I is that it assumes that each permutation of the values among the locations is equally likely, which is not necessarily true. For instance, in epidemiology, disease rate in regions with small population more likely assumes more extreme values [@Assuncao1999-ez], which is analogous to rare cell types and lowly expressed genes in histological space given that we divide by total UMI counts per spot. The extent this happens may depend on tissue, gene of interest, technology, and data normalization method.
 
 ## Correlogram
 In a correlogram, spatial autocorrelation of higher orders of neighbors (e.g. second order neighbors are neighbors of neighbors) is calculated to see how it decays over the orders. In Visium, with the regular hexagonal grid, order of neighbors is a proxy for distance. For more irregular patterns such as single cells, different methods to find the spatial neighbors may give different results. 
@@ -454,7 +454,7 @@ The error bars are twice the standard deviation of the Moran's I value. The stan
 Again, this can be done for Geary's C, `colData`, `annotGeometry`, and etc.
 
 # Univariate local
-Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. See [@Fotheringham2009-ak] for an interesting discussion of relationships between global and local spatial statistics. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
+Local statistics yield a result at each location rather than the whole dataset, while global statistics may obscure local heterogeneity. See [@Fotheringham2009-xn] for an interesting discussion of relationships between global and local spatial statistics. Local statistics are stored in the `localResults` field of the SFE object, which can be accessed by the `localResult()` or `localResults()` functions in the `SpatialFeatureExperiment` package.
 
 All univariate local methods in `Voyager` are listed here:
 ```{r}
@@ -513,7 +513,7 @@ $$
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
 $$
 
-Local Moran's I [@Anselin1995-cs] is defined as
+Local Moran's I [@Anselin1995-wg] is defined as
 
 $$
 I_i = (n-1)\frac{(x_i - \bar{x})\sum_{j=1}^n w_{ij} (x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
@@ -579,7 +579,7 @@ plotLocalResult(sfe_tissue, "localmoran", features = "Myh2",
 ```
 
 ## Getis-Ord Gi\*
-Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij} x_j$), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fr], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-we] and derived in [@Getis1992-fr].
+Getis-Ord Gi\* is used to find hotspots and coldspots of a feature in space. A hotspot is a cluster of high values in space, and a coldspot is a cluster of low values in space. Getis-Ord Gi\* is essentially the z-score of the spatially lagged value of the feature at each location $i$ ($\sum_j w_{ij} x_j$), where $w_{ij}$ is the spatial weight. In the [original publication for Getis-Ord Gi\* from 1992](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x) [@Getis1992-fh], the spatial weight is a distance-based binary weight indicating whether another location is within a certain distance from each location $i$. Getis-Ord Gi excludes the location $i$ itself in the computation of mean and variance of the lagged value, while Gi\* includes the location $i$ itself. Usually Gi and Gi\* yield similar results. The mean and variance used in the z-score differ in Gi and Gi\* and is described in [this paper from 1995](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x) [@Ord1995-bv] and derived in [@Getis1992-fh].
 
 Binary weights are recommended for Getis-Ord Gi\*.
 ```{r}
@@ -646,7 +646,7 @@ plotLocalResult(sfe_tissue, "localG_perm", "area",
 The hotspots and coldspots are as expected. Warm color indicates adjusted $p < 0.05$.
 
 ## Local spatial heteroscedasticity (LOSH)
-LOSH [@Ord2012-qi] is defined as
+LOSH [@Ord2012-nk] is defined as
 
 $$
 H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
@@ -658,7 +658,7 @@ $$
 \bar{x}_j = \frac{\sum_j w_{jk}x_k}{\sum_j w_{jk}}.
 $$
 
-By default, $a = 2$ so LOSH is like a local variance. See [@Ord2012-qi] for more details and interpretation. 
+By default, $a = 2$ so LOSH is like a local variance. See [@Ord2012-nk] for more details and interpretation. 
 ```{r}
 sfe_tissue <- runUnivariate(sfe_tissue, "LOSH.cs", "Myh2", 
                             colGraphName = "visium", swap_rownames = "symbol")
