@@ -110,7 +110,7 @@ colGraph(sfe_tissue, "visium") <- findVisiumGraph(sfe_tissue)
 
 # Lee's L
 
-Lee's L [@Lee2001-tm] was developed from relating Moran's I to Pearson correlation, and is defined as
+Lee's L [@Lee2001-wk] was developed from relating Moran's I to Pearson correlation, and is defined as
 
 $$
 L_{X,Y} = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \left[ \sum_{j=1}^n w_{ij}  (x_j - \bar{x}) \right] \left[ \sum_{j=1}^n w_{ij} (y_j - \bar{y}) \right]}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} },
@@ -152,7 +152,7 @@ $$
 I \approx \mathrm{SSS}_X \cdot \rho_{X, \tilde X}
 $$
 
-Similarly for Lee's L, as shown in [@Lee2001-tm],
+Similarly for Lee's L, as shown in [@Lee2001-wk],
 
 $$
 L_{X, Y} = \sqrt{\mathrm{SSS}_X}\sqrt{\mathrm{SSS}_Y} \cdot \rho_{\tilde X, \tilde Y}
@@ -160,11 +160,11 @@ $$
 
 With more spatial clustering, the variance is less reduced by the spatial lag, leading to a larger SSS. Hence when both $X$ and $Y$ are spatially distributed like salt and pepper while strongly correlated, Lee's L will be low because the lack of spatial autocorrelation leads to a small SSS. 
 
-Weighted correlation network analysis (WGCNA) [@Langfelder2008-fs] is a time honored method to find gene co-expression modules, and it can take any correlation matrix. Then it would be interesting to apply WGCNA to the Lee's L matrix to identify spatially informed gene co-expression modules.
+Weighted correlation network analysis (WGCNA) [@Langfelder2008-xx] is a time honored method to find gene co-expression modules, and it can take any correlation matrix. Then it would be interesting to apply WGCNA to the Lee's L matrix to identify spatially informed gene co-expression modules.
 
 # Local Lee
 
-Local Lee's L [@Lee2001-tm] is defined as
+Local Lee's L [@Lee2001-wk] is defined as
 
 $$
 L_i = \frac{n\left[ \sum_{j=1}^n w_{ij}  (x_j - \bar{x}) \right] \left[ \sum_{j=1}^n w_{ij} (y_j - \bar{y}) \right]}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} }
@@ -273,13 +273,13 @@ plotLocalResult(sfe_tissue, "localmoran_bv", c("Myh1__Myh2", "Myh2__Ftl1", "Myh1
                 divergent = TRUE, diverge_center = -log10(0.05))
 ```
 
-Note that the p-values are asymetric, because according to the source code of `localmoran_bv()`, $y$ is permuted, but not $x$. It's also related to Wartenberg's spatial PCA [@Wartenberg1985-fk], where Moran's I is expressed in matrix form:
+Note that the p-values are asymetric, because according to the source code of `localmoran_bv()`, $y$ is permuted, but not $x$. It's also related to Wartenberg's spatial PCA [@Wartenberg1985-re], where Moran's I is expressed in matrix form:
 
 $$
 \mathbf{I} = \frac{\mathbf{Z}^T\mathbf{WZ}}{\mathbf 1^T \mathbf{W1}},
 $$
 
-where $\mathbf Z$ is the data matrix with scaled and centered variables in columns, $\mathbf W$ is the spatial weights matrix, and $\mathbf 1$ is a vector of all 1's, so the denominator is in effect $\sum_{i=1}^n \sum_{j=1}^n w_{ij}$. The diagonal entries are Moran's I's for the variables, and the off diagonal entries are the global versions of what we computed here that sum the bivariate local Moran's I's and divide by the sum of all spatial weights. Because $\mathbf W$ doesn't have to be symmetric, this matrix may not be symmetric. Wartenberg diagonalized this matrix in place of the covariance matrix for spatial PCA. When using scaled and centered data and row normalized spatial weights matrix, MULTISPATI PCA is equivalent to Wartenberg's approach [@Dray2008-en]. Lee considered this asymmetry an inadequacy of Wartenberg's approach as a bivariate association measure [@Lee2001-tm]. While I'm not sure how bivariate local Moran's I helps with data analysis, it is an interesting piece of history. 
+where $\mathbf Z$ is the data matrix with scaled and centered variables in columns, $\mathbf W$ is the spatial weights matrix, and $\mathbf 1$ is a vector of all 1's, so the denominator is in effect $\sum_{i=1}^n \sum_{j=1}^n w_{ij}$. The diagonal entries are Moran's I's for the variables, and the off diagonal entries are the global versions of what we computed here that sum the bivariate local Moran's I's and divide by the sum of all spatial weights. Because $\mathbf W$ doesn't have to be symmetric, this matrix may not be symmetric. Wartenberg diagonalized this matrix in place of the covariance matrix for spatial PCA. When using scaled and centered data and row normalized spatial weights matrix, MULTISPATI PCA is equivalent to Wartenberg's approach [@Dray2008-cg]. Lee considered this asymmetry an inadequacy of Wartenberg's approach as a bivariate association measure [@Lee2001-wk]. While I'm not sure how bivariate local Moran's I helps with data analysis, it is an interesting piece of history. 
 
 # Session info
 ```{r}
