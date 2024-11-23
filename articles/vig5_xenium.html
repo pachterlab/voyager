@@ -478,6 +478,8 @@ counts per cell:</p>
 <span><span class="co">#&gt; Warning: Removed 69 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_bar()`).</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-33-1.png" width="700" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">read_parquet</a></span><span class="op">(</span><span class="st">"xenium2_pancreas/transcripts.parquet"</span><span class="op">)</span></span></code></pre></div>
 <p>The counts are low, mostly zero, but there are some cells with up to
 2 counts of all types aggregated. Then the outlier with 30% of counts
 from negative controls must have very low total real transcript counts
@@ -485,7 +487,7 @@ to begin with. The negative controls indicate the prevalence of false
 positives. Here we have only about 2000 out of over 140,000 that have
 negative control spots detected. About 0.338% are negative control
 spots, so false positive rate is low.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "transcript_counts"            "control_probe_counts"        </span></span>
 <span><span class="co">#&gt;  [3] "control_codeword_counts"      "unassigned_codeword_counts"  </span></span>
@@ -502,9 +504,9 @@ spots, so false positive rate is low.</p>
 <p>Where are cells with higher proportion of negative control spots
 (i.e. low total counts and have negative control spots detected, &gt;10%
 here) located in space?</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ditto_colors"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ditto_colors"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">more_neg</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">subsets_any_neg_percent</span> <span class="op">&gt;</span> <span class="fl">10</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"subsets_any_neg_sum"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   show_axes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
@@ -518,7 +520,7 @@ control seem to be few and over-represented in the less dense area,
 because the proportion is higher when total transcript counts are lower
 to begin with.</p>
 <p>Where are negative control spots located?</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tx</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">feature_name</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">is_any_neg</span><span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x_location</span>, <span class="op">-</span><span class="va">y_location</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -534,7 +536,7 @@ transcript density. In contrast, the first Xenium preview data from 2022
 has a region in the top left corner with more negative control probes
 detected that seems like an artifact (see
 <code><a href="https://rdrr.io/pkg/SFEData/man/JanesickBreastData.html" class="external-link">JanesickBreastData()</a></code>).</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">tx</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -542,7 +544,7 @@ detected that seems like an artifact (see
 </h3>
 <p>Some QC metrics are precomputed and are stored in
 <code>colData</code></p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "transcript_counts"            "control_probe_counts"        </span></span>
 <span><span class="co">#&gt;  [3] "control_codeword_counts"      "unassigned_codeword_counts"  </span></span>
@@ -560,7 +562,7 @@ detected that seems like an artifact (see
 <p>Since there’re more cells, it would be better to plot the tissue
 larger, so we’ll plot the histogram of QC metrics and the spatial plots
 separately, unlike in the CosMx vignette.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_panel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">is_any_neg</span><span class="op">)</span></span>
 <span><span class="va">sfe</span><span class="op">$</span><span class="va">nCounts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">colSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="va">is_any_neg</span>,<span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">sfe</span><span class="op">$</span><span class="va">nGenes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">colSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="va">is_any_neg</span>,<span class="op">]</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
@@ -570,12 +572,12 @@ separately, unlike in the CosMx vignette.</p>
 from genes (<code>nCounts</code>) and the number of genes detected
 (<code>nGenes</code>) by the total number of genes probed, so this
 histogram is comparable to those from other smFISH-based datasets.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-42-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>There’re weirdly some discrete values of the number of genes
 detected, which excludes negative controls.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts_normed"</span>, <span class="st">"nGenes_normed"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-43-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Compared to the <a href="https://pachterlab.github.io/voyager/articles/vig4_cosmx.html#cells">FFPE
@@ -588,24 +590,24 @@ better detection efficiency than CosMX. See <span class="citation">(Wang
 et al. 2023; Cook et al. 2023; Rademacher et al. 2024)</span> for
 systematic comparisons of different imaging based technologies with the
 same tissue.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-44-1.png" width="576" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nGenes"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-45-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>These plots clearly show that nCounts and nGenes are spatially
 structured and may be biologically relevant.</p>
 <p>A standard examination is to look at the relationship between nCounts
 and nGenes:</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"nCounts"</span>, y<span class="op">=</span><span class="st">"nGenes"</span>, bins <span class="op">=</span> <span class="fl">70</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_distiller</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Scale for <span style="color: #00BB00;">fill</span> is already present.</span></span>
 <span><span class="co">#&gt; Adding another scale for <span style="color: #00BB00;">fill</span>, which will replace the existing scale.</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-46-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Here we plot the distribution of cell area</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 4171 rows containing non-finite outside the scale range</span></span>
 <span><span class="co">#&gt; (`stat_bin()`).</span></span></code></pre></div>
@@ -613,7 +615,7 @@ and nGenes:</p>
 <p>There’s a very long tail. The nuclei are much smaller than the
 cells.</p>
 <p>How is cell area distributed in space?</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cell_area"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, </span>
 <span>                   show_axes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-48-1.png" width="576" style="display: block; margin: auto;"></p>
@@ -622,21 +624,21 @@ biological or an artifact of the cell segmentation algorithm or
 both.</p>
 <p>Here the nuclei segmentations are plotted instead of cell
 segmentation.</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nucleus_area"</span>, colGeometryName <span class="op">=</span> <span class="st">"nucSeg"</span>,</span>
 <span>                   show_axes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-49-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>Zoom into smaller regions to see the nature of the very large
 cells</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbox3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">1350</span>, xmax <span class="op">=</span> <span class="fl">1550</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">1750</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">1550</span><span class="op">)</span></span>
 <span><span class="va">bbox4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">3400</span>, xmax <span class="op">=</span> <span class="fl">3600</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">2900</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">2700</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellSeg"</span>, <span class="st">"nucSeg"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>             dark <span class="op">=</span> <span class="cn">TRUE</span>, image_id <span class="op">=</span> <span class="st">"morphology_focus"</span>, </span>
 <span>             channel <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">1</span>, bbox <span class="op">=</span> <span class="va">bbox3</span>, normalize_channels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-51-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellSeg"</span>, <span class="st">"nucSeg"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>             dark <span class="op">=</span> <span class="cn">TRUE</span>, image_id <span class="op">=</span> <span class="st">"morphology_focus"</span>, </span>
 <span>             channel <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">1</span>, bbox <span class="op">=</span> <span class="va">bbox4</span>, normalize_channels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -650,13 +652,13 @@ positives, and maybe some false negatives in regions with fluorescence
 and seemingly nuclei but not cell segmentation.</p>
 <p>Next we calculate the proportion of cell in this z-plane taken up by
 the nucleus, and examine the distribution:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">prop_nuc</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span> <span class="op">/</span> <span class="va">sfe</span><span class="op">$</span><span class="va">cell_area</span></span></code></pre></div>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">prop_nuc</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span> <span class="op">/</span> <span class="va">sfe</span><span class="op">$</span><span class="va">cell_area</span></span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">prop_nuc</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's </span></span>
 <span><span class="co">#&gt;   0.029   0.318   0.435   0.451   0.564   1.000    4171</span></span></code></pre></div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"prop_nuc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 4171 rows containing non-finite outside the scale range</span></span>
 <span><span class="co">#&gt; (`stat_bin()`).</span></span></code></pre></div>
@@ -665,7 +667,7 @@ the nucleus, and examine the distribution:</p>
 nearly 2500 cells entirely taken up the their nuclei, which may be due
 to cell type or false negative in segmenting the rest of the cell.</p>
 <p>Here we plot the nuclei proportion in space:</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"prop_nuc"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-56-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>Cells in some histological regions have larger proportions occupied
@@ -679,10 +681,10 @@ cell.</p>
 proportion of area taken up by nucleus, and so on? Here we plot how each
 pair of variables relate to each other in a matrix plot using the <a href="https://ggforce.data-imaginist.com/" class="external-link"><code>ggforce</code></a>
 package.</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cols_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span>, <span class="st">"prop_nuc"</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span>,<span class="va">cols_use</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin2d</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">.panel_x</span>, y <span class="op">=</span> <span class="va">.panel_y</span><span class="op">)</span>, bins <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggforce.data-imaginist.com/reference/geom_autohistogram.html" class="external-link">geom_autodensity</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"gray90"</span>, color <span class="op">=</span> <span class="st">"gray70"</span>, linewidth <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
@@ -697,7 +699,7 @@ package.</p>
 area, and nucleus area positively correlate with each other, but the
 proportion of cell area taken up by the nucleus doesn’t seem to
 correlate with the other variables.</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">has_nuclei</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotColData.html" class="external-link">plotColData</a></span><span class="op">(</span><span class="va">sfe</span>, y <span class="op">=</span> <span class="st">"has_nuclei"</span>, x <span class="op">=</span> <span class="st">"cell_area"</span>, </span>
 <span>            point_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -706,7 +708,7 @@ correlate with the other variables.</p>
 smaller, probably because less of them are captured in this tissue
 section when their nuclei are not in this section. Where are the cells
 without nuclei distributed in space?</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"has_nuclei"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   show_axes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="co"># To highlight the cells that don't have nuclei</span></span>
@@ -717,21 +719,21 @@ without nuclei distributed in space?</p>
 higher cell density; would be interesting to do spatial point process
 analysis. Zoom into a smaller region to inspect, especially the cells
 outside the main piece of tissue:</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbox5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">6400</span>, xmax <span class="op">=</span> <span class="fl">6800</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">300</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">50</span><span class="op">)</span></span>
 <span><span class="va">bbox6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">600</span>, xmax <span class="op">=</span> <span class="fl">1000</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">600</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">300</span><span class="op">)</span></span>
 <span><span class="va">bbox7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">6800</span>, xmax <span class="op">=</span> <span class="fl">7200</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">2900</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">2500</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellSeg"</span>, <span class="st">"nucSeg"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>             dark <span class="op">=</span> <span class="cn">TRUE</span>, image_id <span class="op">=</span> <span class="st">"morphology_focus"</span>, show_axes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             channel <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">1</span>, bbox <span class="op">=</span> <span class="va">bbox5</span>, normalize_channels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-62-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellSeg"</span>, <span class="st">"nucSeg"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>             dark <span class="op">=</span> <span class="cn">TRUE</span>, image_id <span class="op">=</span> <span class="st">"morphology_focus"</span>, show_axes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             channel <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">1</span>, bbox <span class="op">=</span> <span class="va">bbox6</span>, normalize_channels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-63-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotGeometry.html">plotGeometry</a></span><span class="op">(</span><span class="va">sfe</span>, colGeometryName <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellSeg"</span>, <span class="st">"nucSeg"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>             dark <span class="op">=</span> <span class="cn">TRUE</span>, image_id <span class="op">=</span> <span class="st">"morphology_focus"</span>, show_axes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             channel <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">1</span>, bbox <span class="op">=</span> <span class="va">bbox7</span>, normalize_channels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -744,9 +746,9 @@ nearest neighbor graph, these cells will also affect spatial analysis.
 So here we remove those cells. Here we compute a k nearest neighbor
 graph with k = 5 and remove cells with neighbors that are too far
 away.</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/findKNN.html" class="external-link">findKNN</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoords</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, k <span class="op">=</span> <span class="fl">5</span>, BNPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/AnnoyParam.html" class="external-link">AnnoyParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/findKNN.html" class="external-link">findKNN</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SpatialExperiment/man/SpatialExperiment-methods.html" class="external-link">spatialCoords</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, k <span class="op">=</span> <span class="fl">5</span>, BNPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocNeighbors/man/AnnoyParam.html" class="external-link">AnnoyParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">max_dist</span> <span class="op">&lt;-</span> <span class="fu">rowMaxs</span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">distance</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>max_dist <span class="op">=</span> <span class="va">max_dist</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">max_dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -757,7 +759,7 @@ away.</p>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-66-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Also look at minimum distance between the neighbors to find outlying
 single cells that may be less far from the tissue</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">min_dist</span> <span class="op">&lt;-</span> <span class="fu">rowMins</span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">distance</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>min_dist <span class="op">=</span> <span class="va">min_dist</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">min_dist</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -769,9 +771,9 @@ single cells that may be less far from the tissue</p>
 <p>There’s a long tail, which must be the small clusters of cells away
 from the tissue. Say use a cutoff of 60 microns, and see where those
 cells are.</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">main_tissue</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="op">(</span><span class="va">max_dist</span> <span class="op">&gt;</span> <span class="fl">60</span> <span class="op">|</span> <span class="va">min_dist</span> <span class="op">&gt;</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">main_tissue</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="op">(</span><span class="va">max_dist</span> <span class="op">&gt;</span> <span class="fl">60</span> <span class="op">|</span> <span class="va">min_dist</span> <span class="op">&gt;</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"main_tissue"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>,</span>
 <span>                   show_axes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="co"># To highlight the outliers</span></span>
@@ -785,7 +787,7 @@ image to remove cells that lack fluorescent signals. Here we remove the
 cells away from the main tissue, cells that have very low total gene
 expression, cells that are too small to make sense, and genes that are
 not detected.</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotColDataHistogram.html">plotColDataHistogram</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"cell_area"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span>sides <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span>
@@ -797,7 +799,7 @@ not detected.</p>
 <p>The x axis is log transformed to better see the small values, and
 there’s no obvious outlier. Say use an arbitrary cutoff of 5 for
 nCounts</p>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="va">sfe</span><span class="op">$</span><span class="va">main_tissue</span> <span class="op">&amp;</span> <span class="va">sfe</span><span class="op">$</span><span class="va">nCounts</span> <span class="op">&gt;</span> <span class="fl">5</span><span class="op">]</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span></span>
@@ -807,12 +809,12 @@ nCounts</p>
 <h3 id="genes">Genes<a class="anchor" aria-label="anchor" href="#genes"></a>
 </h3>
 <p>Here we look at the mean and variance of each gene</p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">means</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu">rowVars</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Real genes generally have higher mean expression across cells than
 negative controls. This is the mean of each gene across cells.</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">is_neg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">Type</span> <span class="op">!=</span> <span class="st">"Gene Expression"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"is_neg"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -820,7 +822,7 @@ negative controls. This is the mean of each gene across cells.</p>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-73-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Here the real genes and negative controls are plotted in different
 colors</p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x<span class="op">=</span><span class="st">"means"</span>, y<span class="op">=</span><span class="st">"vars"</span>, color_by <span class="op">=</span> <span class="st">"is_neg"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>slope <span class="op">=</span> <span class="fl">1</span>, intercept <span class="op">=</span> <span class="fl">0</span>, color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -859,18 +861,18 @@ compartments if the distance cutoff is not long enough.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k = 5</annotation></semantics></math>,
 with inverse distance weighting. Note that using more neighbors leads to
 longer computation time of spatial autocorrelation metrics.</p>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"knn5"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findSpatialNeighbors-SpatialFeatureExperiment-method.html" class="external-link">findSpatialNeighbors</a></span><span class="op">(</span><span class="va">sfe</span>, method <span class="op">=</span> <span class="st">"knearneigh"</span>, </span>
 <span>                                              dist_type <span class="op">=</span> <span class="st">"idw"</span>, k <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                                              style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span></code></pre></div>
 <p>I think it makes sense to replace NA with 0 for nucleus area here
 though generally 0 is not an appropriate substitute for NA.</p>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">sfe</span><span class="op">$</span><span class="va">nucleus_area</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                      colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/colFeatureData.html" class="external-link">colFeatureData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,<span class="op">]</span></span>
 <span><span class="co">#&gt; DataFrame with 4 rows and 2 columns</span></span>
 <span><span class="co">#&gt;              moran_sample01 K_sample01</span></span>
@@ -886,7 +888,7 @@ with k = 5. From earlier plots of these metrics, there may be stronger
 spatial autocorrelation at a longer length scale. As the strength of
 spatial autocorrelation can vary spatially, we also run local Moran’s
 I.</p>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, type <span class="op">=</span> <span class="st">"localmoran"</span>, </span>
 <span>                         features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, </span>
 <span>                                      <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
@@ -898,7 +900,7 @@ increase <code>pointsize</code>. We would still plot the polygons in
 larger single panel plots, but use <code>scattermore</code> in
 multi-panel plots where the polygons in each panel are invisible anyway
 due to the small size to save some time.</p>
-<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -925,30 +927,30 @@ section. It would be cool to have a method to better determine areas in
 the tissue for spatial analysis that can best answer the questions of
 interest. It might make sense to analyze the sparse and dense regions
 separately at some point.</p>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResultAttrs</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, <span class="st">"nCounts"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "Ii"             "E.Ii"           "Var.Ii"         "Z.Ii"          </span></span>
 <span><span class="co">#&gt;  [5] "Pr(z != E(Ii))" "mean"           "median"         "pysal"         </span></span>
 <span><span class="co">#&gt;  [9] "-log10p"        "-log10p_adj"</span></span></code></pre></div>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, attribute <span class="op">=</span> <span class="st">"pysal"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>                ncol <span class="op">=</span> <span class="fl">1</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-82-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>It’s hard to see without zooming in.</p>
-<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                ncol <span class="op">=</span> <span class="fl">2</span>, bbox <span class="op">=</span> <span class="va">bbox1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-83-1.png" width="768" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, attribute <span class="op">=</span> <span class="st">"pysal"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox1</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-84-1.png" width="768" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, attribute <span class="op">=</span> <span class="st">"-log10p_adj"</span>, </span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
@@ -962,18 +964,18 @@ and the p-values have been corrected for multiple testing (see
 and cool color indicates “not significant” based on this conventional
 threshold. Here in this dense region, for these metrics, local Moran’s I
 is generally not significant.</p>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                ncol <span class="op">=</span> <span class="fl">2</span>, bbox <span class="op">=</span> <span class="va">bbox2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-86-1.png" width="768" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, attribute <span class="op">=</span> <span class="st">"pysal"</span>,</span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox2</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-87-1.png" width="768" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, attribute <span class="op">=</span> <span class="st">"-log10p_adj"</span>, </span>
 <span>                features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"cell_area"</span>, <span class="st">"nucleus_area"</span><span class="op">)</span>,</span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>, </span>
@@ -987,9 +989,9 @@ most part local Moran’s I is not statistically significant and the
 significant parts are in the high-high regions. What to make of
 this?</p>
 <p>Moran plot for nCounts</p>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.plot"</span>, <span class="st">"nCounts"</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.plot"</span>, <span class="st">"nCounts"</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/moranPlot.html">moranPlot</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"nCounts"</span>, binned <span class="op">=</span> <span class="cn">TRUE</span>, plot_influential <span class="op">=</span> <span class="cn">FALSE</span>, bins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-90-1.png" width="576" style="display: block; margin: auto;"></p>
 <p>There are no obvious clusters here based on the 2D histogram showing
@@ -1037,25 +1039,25 @@ segmentations that look like Voroni tessellation doesn’t seem reliable,
 with multiple fluorescent stains in XOA v2, it seems much better, so
 we’ll normalize with cell area here while noting the caveat that cell
 area can be biologically relevant.</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span>, size.factor <span class="op">=</span> <span class="va">sfe</span><span class="op">$</span><span class="va">cell_area</span><span class="op">)</span></span></code></pre></div>
 <p>Use more cores if available to speed this up. It’s slower here
 because the gene count matrix is actually on disk thanks to
 <code>DelayedArray</code> and not loaded into memory.</p>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt; 1112.985    2.679 1115.532</span></span></code></pre></div>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; 1112.186    2.539 1127.881</span></span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"moran_sample01"</span>, y <span class="op">=</span> <span class="st">"is_neg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-93-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>As expected, generally the negative controls are tightly clustered
 around 0, while the real genes have positive Moran’s I, which means
 there is generally no technical artifact spatial trend.</p>
 <p>What are the genes with the highest Moran’s I?</p>
-<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top_moran</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
 <span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">1.5</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
@@ -1066,13 +1068,13 @@ creatine biosynthesis. So the dense area have exocrine acini making
 digestive enzymes and the endocrine Langerhan’s islets making insulin
 and glucagon. These are very spatially structured. Zoom into a smaller
 area</p>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bbox8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">4950</span>, xmax <span class="op">=</span> <span class="fl">5450</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">1000</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">500</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bbox8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fl">4950</span>, xmax <span class="op">=</span> <span class="fl">5450</span>, ymin <span class="op">=</span> <span class="op">-</span><span class="fl">1000</span>, ymax <span class="op">=</span> <span class="op">-</span><span class="fl">500</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                   bbox <span class="op">=</span> <span class="va">bbox8</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-96-1.png" width="768" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top_moran2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">moran_sample01</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran2</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>,</span>
 <span>                   scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">1.5</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
@@ -1085,38 +1087,38 @@ causes cystic fibrosis. DMBT1 stands for deleted in malignant brain
 tumors 1. “Loss of sequences from human chromosome 10q has been
 associated with the progression of human cancers”, according to RefSeq.
 So the sparse region is probably cancerous. Zoom into a smaller area</p>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">top_moran2</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                   bbox <span class="op">=</span> <span class="va">bbox2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-98-1.png" width="768" style="display: block; margin: auto;"></p>
 <p>How does Moran’s I relate to gene expression level?</p>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"means"</span>, y <span class="op">=</span> <span class="st">"moran_sample01"</span>, color_by <span class="op">=</span> <span class="st">"is_neg"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/annotation_logticks.html" class="external-link">annotation_logticks</a></span><span class="op">(</span>sides <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-99-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>Very highly expressed genes have higher Moran’s I, but there are some
 less expressed genes with higher Moran’s I as well.</p>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">Type</span> <span class="op">==</span> <span class="st">"Gene Expression"</span>,<span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="non-spatial-dimension-reduction-and-clustering">Non-spatial dimension reduction and clustering<a class="anchor" aria-label="anchor" href="#non-spatial-dimension-reduction-and-clustering"></a>
 </h2>
 <p>Here we run non-spatial PCA as for scRNA-seq data</p>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">30</span>, scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span>, ntop <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ElbowPlot.html">ElbowPlot</a></span><span class="op">(</span><span class="va">sfe</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-102-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotDimLoadings.html">plotDimLoadings</a></span><span class="op">(</span><span class="va">sfe</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-103-1.png" width="576" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, <span class="fl">4</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                  diverge_center <span class="op">=</span> <span class="fl">0</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-104-1.png" width="576" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/spatialReducedDim.html">spatialReducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span>, components <span class="op">=</span> <span class="fl">5</span><span class="op">:</span><span class="fl">8</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, </span>
 <span>                  divergent <span class="op">=</span> <span class="cn">TRUE</span>, diverge_center <span class="op">=</span> <span class="fl">0</span>, </span>
 <span>                  ncol <span class="op">=</span> <span class="fl">1</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span></code></pre></div>
@@ -1128,7 +1130,7 @@ combinations of genes that maximize variance explained, when the genes
 that explain more variance are spatially structured, their linear
 combinations are also spatially structured.</p>
 <p>Non-spatial clustering and locating the clusters in space</p>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/clusterRows.html" class="external-link">clusterRows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"PCA"</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">15</span><span class="op">]</span>,</span>
 <span>                                    BLUSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/bluster/man/NNGraphParam-class.html" class="external-link">SNNGraphParam</a></span><span class="op">(</span></span>
 <span>                                        cluster.fun <span class="op">=</span> <span class="st">"leiden"</span>,</span>
@@ -1139,15 +1141,15 @@ combinations are also spatially structured.</p>
 points with the <code>rasterise</code> argument, but with a different
 mechanism from <code>scattermore</code> that requires more system
 dependencies.</p>
-<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/plotPCA.html" class="external-link">plotPCA</a></span><span class="op">(</span><span class="va">sfe</span>, ncomponents <span class="op">=</span> <span class="fl">4</span>, colour_by <span class="op">=</span> <span class="st">"cluster"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-107-1.png" width="768" style="display: block; margin: auto;"></p>
 <p>Plot the location of the clusters in space</p>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                   pointsize <span class="op">=</span> <span class="fl">1.2</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-108-1.png" width="700" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"cluster"</span>, colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, bbox <span class="op">=</span> <span class="va">bbox8</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1163,11 +1165,11 @@ found from the PCs are spatially structured.</p>
 </h2>
 <p>Cluster marker genes are found with Wilcoxon rank sum test as
 commonly done for scRNA-seq.</p>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scran/man/findMarkers.html" class="external-link">findMarkers</a></span><span class="op">(</span><span class="va">sfe</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span>,</span>
 <span>                       test.type <span class="op">=</span> <span class="st">"wilcox"</span>, pval.type <span class="op">=</span> <span class="st">"all"</span>, direction <span class="op">=</span> <span class="st">"up"</span><span class="op">)</span></span></code></pre></div>
 <p>It’s already sorted by p-values:</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span><span class="op">[[</span><span class="fl">6</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="co">#&gt; DataFrame with 377 rows and 14 columns</span></span>
 <span><span class="co">#&gt;             p.value          FDR summary.AUC     AUC.1     AUC.2     AUC.3</span></span>
@@ -1210,12 +1212,12 @@ commonly done for scRNA-seq.</p>
 <span><span class="co">#&gt; UBE2C   0.498117</span></span>
 <span><span class="co">#&gt; VCAN    0.204336</span></span></code></pre></div>
 <p>The code below extracts the significant markers for each cluster:</p>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotExpression.html" class="external-link">plotExpression</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">genes_use</span>, x <span class="op">=</span> <span class="st">"cluster"</span>, point_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-112-1.png" width="700" style="display: block; margin: auto;"></p>
 <p>This allows for plotting more top marker genes in a heatmap:</p>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes_use2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">markers</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotGroupedHeatmap.html" class="external-link">plotGroupedHeatmap</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">genes_use2</span>, group <span class="op">=</span> <span class="st">"cluster"</span>, colour <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pal_viridis.html" class="external-link">viridis_pal</a></span><span class="op">(</span><span class="op">)</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-113-1.png" width="576" style="display: block; margin: auto;"></p>
@@ -1224,12 +1226,12 @@ commonly done for scRNA-seq.</p>
 <h2 id="local-spatial-statistics-of-marker-genes">Local spatial statistics of marker genes<a class="anchor" aria-label="anchor" href="#local-spatial-statistics-of-marker-genes"></a>
 </h2>
 <p>First we plot those genes in space as a reference</p>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="va">genes_use</span>, colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, ncol <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>                   pointsize <span class="op">=</span> <span class="fl">0</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-114-1.png" width="864" style="display: block; margin: auto;"></p>
 <p>Global Moran’s I of these marker genes is shown below:</p>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[</span><span class="va">genes_use</span>, <span class="st">"moran_sample01"</span><span class="op">]</span>, <span class="va">genes_use</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        GPRC5A         CRHBP          IL7R          CPA3          CFTR </span></span>
 <span><span class="co">#&gt;  0.7452986745 -0.0005381635  0.2475148484  0.1978744218  0.6687634585 </span></span>
@@ -1240,10 +1242,10 @@ commonly done for scRNA-seq.</p>
 <p>All these marker genes except for CRHBP have positive spatial
 autocorrelation, but some stronger than others.</p>
 <p>Local Moran’s I of these marker genes is shown below:</p>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>,</span>
 <span>                     BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"centroids"</span>, ncol <span class="op">=</span> <span class="fl">2</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span>, scattermore <span class="op">=</span> <span class="cn">TRUE</span>, pointsize <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
@@ -1251,17 +1253,17 @@ autocorrelation, but some stronger than others.</p>
 <p>Here we don’t see much local negative spatial autocorrelation
 compared to positive spatial autocorrelation.</p>
 <p>Also zoom into some of the regions</p>
-<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">3</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span>, bbox <span class="op">=</span> <span class="va">bbox1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-118-1.png" width="864" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">3</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span>, bbox <span class="op">=</span> <span class="va">bbox2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-119-1.png" width="864" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLocalResult.html">plotLocalResult</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"localmoran"</span>, features <span class="op">=</span> <span class="va">genes_use</span>, </span>
 <span>                colGeometryName <span class="op">=</span> <span class="st">"cellSeg"</span>, ncol <span class="op">=</span> <span class="fl">3</span>, divergent <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                diverge_center <span class="op">=</span> <span class="fl">0</span>, bbox <span class="op">=</span> <span class="va">bbox8</span><span class="op">)</span></span></code></pre></div>
@@ -1279,7 +1281,7 @@ NMF components.</p>
 <div class="section level2">
 <h2 id="session-info">Session info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.4.2 (2024-10-31)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>

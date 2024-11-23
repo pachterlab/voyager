@@ -297,7 +297,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  28.789   0.126  28.935</span></span></code></pre></div>
+<span><span class="co">#&gt;  28.869   0.100  28.988</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -444,11 +444,11 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  14.334   6.036  13.312</span></span>
+<span><span class="co">#&gt;  13.947   5.977  12.990</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb)  max used   (Mb)</span></span>
 <span><span class="co">#&gt; Ncells  16563261  884.6   26419770 1411.0  26419770 1411.0</span></span>
-<span><span class="co">#&gt; Vcells 242231190 1848.1  540607319 4124.6 540592382 4124.4</span></span></code></pre></div>
+<span><span class="co">#&gt; Vcells 242231194 1848.1  540607325 4124.6 540592386 4124.4</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -503,7 +503,7 @@ negative spatial autocorrelation.</p>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  15.061   4.242  17.965</span></span></code></pre></div>
+<span><span class="co">#&gt;  14.723   4.987  18.651</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -695,7 +695,7 @@ default k = 10.</p>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 353.800   0.360 354.202</span></span></code></pre></div>
+<span><span class="co">#&gt; 346.860   0.355 347.243</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
@@ -711,7 +711,7 @@ spatially coherent clusters</p>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 455.281   0.358 455.687</span></span></code></pre></div>
+<span><span class="co">#&gt; 449.761   0.295 450.072</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
