@@ -99,7 +99,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig6_merfish.Rmd" class="external-link"><code>vignettes/vig6_merfish.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_merfish.Rmd</code></div>
@@ -118,7 +118,8 @@ datasets with hundreds of thousands, sometimes over a million cells have
 already been produced and will soon be produced routinely. Among studies
 using smFISH-based spatial transcriptomics technologies that reported
 the number of cells per dataset, the number of cells per dataset has
-increased in the past years <span class="citation">(<strong>Moses2022-xz?</strong>)</span>. <img src="https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png" alt="alt"></p>
+increased in the past years <span class="citation">(Moses and Pachter
+2022)</span>. <img src="https://pachterlab.github.io/LP_2021/05-current-techs_files/figure-html/smfish-lm-cell-1.png" alt="alt"></p>
 <p>In anticipation of large datasets, this vignette was produced using
 limited GitHub Actions resources (MacOS), which are 14 GB of RAM with 3
 CPU cores and 14 GB of disk space, comparable to laptops. We therefore
@@ -218,7 +219,7 @@ vessels.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  14.396   0.064  14.460</span></span></code></pre>
+<span><span class="co">#&gt;  14.653   0.064  14.724</span></span></code></pre>
 <p>Here nCounts kind of looks like salt and pepper. Using the <a href="https://github.com/exaexa/scattermore" class="external-link"><code>scattermore</code></a>
 package can speed up plotting a large number of points. In this
 non-interactive plot, the cell polygons are too small to see anyway, so
@@ -230,7 +231,7 @@ plotting cell centroid points should be fine.</p>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig6_merfish_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.735   0.008   0.743</span></span></code></pre>
+<span><span class="co">#&gt;   0.756   0.020   0.775</span></span></code></pre>
 <p>When run on our server, plotting almost 400,000 polygons took around
 23 seconds, while using <code>geom_scattermore()</code>
 (<code>scattermore = TRUE</code>) took about 2 seconds. Since
@@ -253,12 +254,9 @@ cell size; larger cells seem to have more total counts.</p>
 <p>Interactive data visualization is currently beyond the scope of
 <code>Voyager</code> or this vignette. There are existing tools for
 interactive visualization of highly multiplexed imaging data, such as <a href="https://github.com/JEFworks-Lab/MERmaid" class="external-link"><code>MERmaid</code></a>
-<span class="citation">(<strong>Wang2020-sv?</strong>)</span> for
-MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
-<span class="citation">(<strong>Behanova2023-gl?</strong>)</span>, <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
-<span class="citation">(<strong>Warchol2023-zw?</strong>)</span>, and
-the <a href="https://github.com/chaichontat/samui" class="external-link">samui broswer</a>
-<span class="citation">(<strong>Sriworarat2023-jl?</strong>)</span>.</p>
+<span class="citation">(G. Wang et al. 2020)</span> for MERFISH data, <a href="https://github.com/TissUUmaps/TissUUmapsCore" class="external-link"><code>TissUUmaps</code></a>
+<span class="citation">(Behanova et al. 2023)</span>, <a href="https://github.com/labsyspharm/visinity" class="external-link"><code>Visinity</code></a>
+<span class="citation">(Warchol et al. 2023)</span>, and the <a href="https://github.com/chaichontat/samui" class="external-link">samui broswer</a> <span class="citation">(Sriworarat et al. 2023)</span>.</p>
 <p>Since there aren’t too many genes, all genes and negative control
 probes can be displayed:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -594,7 +592,7 @@ up computation.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  28.852   0.000  28.853</span></span></code></pre></div>
+<span><span class="co">#&gt;  29.619   0.000  29.619</span></span></code></pre></div>
 <p>With the spatial neighborhood graph, we can compute Moran’s I for QC
 metrics.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -638,7 +636,7 @@ more homogeneous endothelial cells compared to hepatocytes.</p>
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  47.944   2.028  51.689</span></span></code></pre></div>
+<span><span class="co">#&gt;  49.307   1.908  52.277</span></span></code></pre></div>
 <p>It’s actually not as slow as I thought for almost 400,000 cells. How
 are Moran’s I’s distributed for real genes and blank probes?</p>
 <div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
@@ -873,11 +871,11 @@ oldest archive on CRAN is from 2003. <code>spdep</code> is also really
 old; its oldest archive on CRAN is from 2002, but it’s still in active
 development. In using these time honored packages and methods (Moran’s I
 and Geary’s C themselves date back to the 1950s and their modern form
-date back to 1969 <span class="citation">(<strong>Cliff1969-wp?</strong>;
-<strong>Bivand2013-jx?</strong>)</span>) on the cool new spatial
-transcriptomics dataset, we are participating in a glorious tradition,
-which we will further develop as a spatial analysis tradition forms
-around spatial -omics data analysis.</p>
+date back to 1969 <span class="citation">(Cliff and Ord 1969; Bivand
+2013)</span>) on the cool new spatial transcriptomics dataset, we are
+participating in a glorious tradition, which we will further develop as
+a spatial analysis tradition forms around spatial -omics data
+analysis.</p>
 </div>
 </div>
 <div class="section level2">
@@ -904,11 +902,11 @@ to do it</a>), which will speed up matrix multiplication.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  10.413   5.368   9.031</span></span>
+<span><span class="co">#&gt;  10.421   5.460   9.080</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used (Mb) gc trigger   (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  17112884  914   27226276 1454.1  27226276 1454.1</span></span>
-<span><span class="co">#&gt; Vcells 253089555 1931  494258960 3770.9 494205783 3770.5</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  17113029  914   27226164 1454.1  27226164 1454.1</span></span>
+<span><span class="co">#&gt; Vcells 253089575 1931  494258988 3770.9 494205938 3770.5</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -932,7 +930,7 @@ of spatial information in non-spatial PCA because of clear spatial
 compartments for some cell types, which does not seem to be the case in
 this dataset except for the blood vessels. We have seen above that some
 genes have strong spatial structures. There are some methods for
-spatially informed PCA, such as MULTISPATI PCA <span class="citation">(<strong>Dray2008-en?</strong>)</span> in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+spatially informed PCA, such as MULTISPATI PCA <span class="citation">(Dray, Saïd, and Débias 2008)</span> in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package, which seeks to maximize both variance (as in non-spatial PCA)
 and Moran’s I on each PC. Unlike traditional PCs, where all eigenvalues,
 signifying variance explained, are positive, MULTISPATI PCA can have
@@ -958,16 +956,16 @@ entire section, so we zoom into the bounding box:</p>
 perhaps some negative spatial autocorrelation.</p>
 <p>Like global Moran’s I, PCA and MULTISPATI PCA return one result for
 the entire dataset. In contrast, <a href="https://rdrr.io/cran/GWmodel/man/gwpca.html" class="external-link">geographically
-weighted PCA (GWPCA)</a> <span class="citation">(<strong>Harris2015-sr?</strong>)</span> can account
-for spatial heterogeneity. GWPCA runs PCA at each spatial location using
-only the nearby locations weighed by a kernel. The different locations
-can have different PCs, and the results can be visualized with “winning
-variables” in each PC, i.e. plotting which feature has the highest
-loading in each PC in space. This most likely doesn’t scale to 400,000
-cells, but it would still be interesting when performed on spatially
-binned data. GWPCA might be added in Bioconductor 3.18 and would require
-some changes in the user interface, because GWPCA is about the features
-rather than cell embeddings.</p>
+weighted PCA (GWPCA)</a> <span class="citation">(Harris et al.
+2015)</span> can account for spatial heterogeneity. GWPCA runs PCA at
+each spatial location using only the nearby locations weighed by a
+kernel. The different locations can have different PCs, and the results
+can be visualized with “winning variables” in each PC, i.e. plotting
+which feature has the highest loading in each PC in space. This most
+likely doesn’t scale to 400,000 cells, but it would still be interesting
+when performed on spatially binned data. GWPCA might be added in
+Bioconductor 3.18 and would require some changes in the user interface,
+because GWPCA is about the features rather than cell embeddings.</p>
 </div>
 <div class="section level2">
 <h2 id="more-challenges-from-large-datasets">More challenges from large datasets<a class="anchor" aria-label="anchor" href="#more-challenges-from-large-datasets"></a>
@@ -999,16 +997,15 @@ from the Allen Brain Atlas, but this isn’t available for all tissues.
 Also, with more single cell -omics data, the traditional ontologies can
 be improved.</p>
 <p>Furthermore, there are 3D thick section single cell resolution
-spatial transcriptomics data, such as from STARmap <span class="citation">(<strong>Wang2018-cv?</strong>)</span> and EASI-FISH
-<span class="citation">(<strong>Wang2021-fv?</strong>)</span>, although
-the vast majority of spatial -omics data are from thin sections pretty
-much <em>de facto</em> 2D. As we mostly live on the surface of Earth,
-there are many more 2D geospatial resources than 3D. However, some
-methods can in principle be applied to 3D and the existing software
-primarily made for 2D data might work. For example, GEOS supports 3D
-data, so in principle 3D geometries in <code>sf</code> should work,
-although there’s little documentation on this. Also, k nearest neighbor,
-Moran’s I, variograms, and etc. should in principle work in 3D, and
+spatial transcriptomics data, such as from STARmap <span class="citation">(X. Wang et al. 2018)</span> and EASI-FISH <span class="citation">(Y. Wang et al. 2021)</span>, although the vast
+majority of spatial -omics data are from thin sections pretty much
+<em>de facto</em> 2D. As we mostly live on the surface of Earth, there
+are many more 2D geospatial resources than 3D. However, some methods can
+in principle be applied to 3D and the existing software primarily made
+for 2D data might work. For example, GEOS supports 3D data, so in
+principle 3D geometries in <code>sf</code> should work, although there’s
+little documentation on this. Also, k nearest neighbor, Moran’s I,
+variograms, and etc. should in principle work in 3D, and
 <code>gstat</code> officially supports 3D. These are more challenges
 related to 3D data:</p>
 <ol style="list-style-type: decimal">
@@ -1154,8 +1151,75 @@ those are beyond the scope of this package.</p>
 <span><span class="co">#&gt; [161] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Behanova2023-qw" class="csl-entry">
+Behanova, Andrea, Christophe Avenel, Axel Andersson, Eduard Chelebian,
+Anna Klemm, Lina Wik, Arne Östman, and Carolina Wählby. 2023.
+<span>“Visualization and Quality Control Tools for Large-Scale Multiplex
+Tissue Analysis in <span>TissUUmaps3</span>.”</span> <em>Biol.
+Imaging</em> 3: e6.
+</div>
+<div id="ref-Bivand2013-wo" class="csl-entry">
+Bivand, Roger. 2013. <span>“<span>‘The Problem of Spatial
+Autocorrelation:’</span> Forty Years On.”</span> <a href="http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf" class="external-link uri">http://www2.uaem.mx/r-mirror/web/packages/spdep/vignettes/CO69.pdf</a>.
+</div>
+<div id="ref-Cliff1969-jz" class="csl-entry">
+Cliff, Andrew David, and J K Ord. 1969. <span>“The Problem of Spatial
+Autocorrelation.”</span> In <em>London Papers in Regional Science 1,
+Studies in Regional Science</em>, edited by A J Scott, 25–55. London:
+Pion.
+</div>
+<div id="ref-Dray2008-cg" class="csl-entry">
+Dray, Stéphane, Sonia Saïd, and Françis Débias. 2008. <span>“Spatial
+Ordination of Vegetation Data Using a Generalization of Wartenberg’s
+Multivariate Spatial Correlation.”</span> <em>J. Veg. Sci.</em> 19 (1):
+45–56.
+</div>
+<div id="ref-Harris2015-jz" class="csl-entry">
+Harris, Paul, Annemarie Clarke, Steve Juggins, Chris Brunsdon, and
+Martin Charlton. 2015. <span>“Enhancements to a Geographically Weighted
+Principal Component Analysis in the Context of an Application to an
+Environmental Data Set.”</span> <em>Geogr. Anal.</em> 47 (2): 146–72.
+</div>
+<div id="ref-Moses2022-rs" class="csl-entry">
+Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
+Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
+628.
+</div>
+<div id="ref-Sriworarat2023-vq" class="csl-entry">
+Sriworarat, Chaichontat, Annie Nguyen, Nicholas J Eagles, Leonardo
+Collado-Torres, Keri Martinowich, Kristen R Maynard, and Stephanie C
+Hicks. 2023. <span>“Performant Web-Based Interactive Visualization Tool
+for Spatially-Resolved Transcriptomics Experiments.”</span> <em>Biol.
+Imaging</em> 3 (January): e15.
+</div>
+<div id="ref-Wang2020-ex" class="csl-entry">
+Wang, Guiping, Cheen-Euong Ang, Jean Fan, Andrew Wang, Jeffrey R
+Moffitt, and Xiaowei Zhuang. 2020. <span>“Spatial Organization of the
+Transcriptome in Individual Neurons.”</span>
+</div>
+<div id="ref-Wang2018-vz" class="csl-entry">
+Wang, Xiao, William E Allen, Matthew A Wright, Emily L Sylwestrak,
+Nikolay Samusik, Sam Vesuna, Kathryn Evans, et al. 2018.
+<span>“Three-Dimensional Intact-Tissue Sequencing of Single-Cell
+Transcriptional States.”</span> <em>Science</em> 361 (6400).
+</div>
+<div id="ref-Wang2021-jd" class="csl-entry">
+Wang, Yuhan, Mark Eddison, Greg Fleishman, Martin Weigert, Shengjin Xu,
+Tim Wang, Konrad Rokicki, et al. 2021.
+<span>“<span>EASI-<span>FISH</span></span> for Thick Tissue Defines
+Lateral Hypothalamus Spatio-Molecular Organization.”</span>
+<em>Cell</em> 184 (26): 6361–6377.e24.
+</div>
+<div id="ref-Warchol2023-qk" class="csl-entry">
+Warchol, Simon, Robert Krueger, Ajit Johnson Nirmal, Giorgio Gaglia,
+Jared Jessup, Cecily C Ritch, John Hoffer, et al. 2023. <span>“Visinity:
+Visual Spatial Neighborhood Analysis for Multiplexed Tissue Imaging
+Data.”</span> <em>IEEE Trans. Vis. Comput. Graph.</em> 29 (1): 106–16.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

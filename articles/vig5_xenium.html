@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Xenium breast cancer dataset • Voyager</title>
+<title>Xenium pancreatic cancer dataset • Voyager</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Xenium breast cancer dataset">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Xenium pancreatic cancer dataset">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -95,11 +95,11 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Xenium breast cancer dataset</h1>
+      <h1>Xenium pancreatic cancer dataset</h1>
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig5_xenium.Rmd" class="external-link"><code>vignettes/vig5_xenium.Rmd</code></a></small>
       <div class="d-none name"><code>vig5_xenium.Rmd</code></div>
@@ -1015,7 +1015,8 @@ hundred genes targeting certain cell types of interest is used, while
 scRNA-seq is usually untargeted and transcriptome wide. Due to the
 skewed gene panel, nCounts is biologically skewed as well so using it to
 normalize data can lead to false negatives in finding spatially variable
-genes and differential expression <span class="citation">(<strong>Atta2024-tl?</strong>)</span>.</p>
+genes and differential expression <span class="citation">(Atta et al.
+2024)</span>.</p>
 <p>Sometimes cell area is used when normalizing imaging based data,
 which makes sense when larger cells have more room for more transcripts
 and as seen above in the matrix plot, cell area does positively
@@ -1025,17 +1026,17 @@ relevant because cells of some types tend to be larger than cells of
 some other types, though its global Moran’s I is a bit weaker than that
 of nCounts. Often some cells are larger because more of them get
 captured in this section and some cells are smaller because less of them
-are in this section, so there still is a technical component. In <span class="citation">(<strong>Atta2024-tl?</strong>)</span>, normalizing by
-cell area and not normalizing are also examined; here SVG and DE results
-are more comparable to when using a more representative gene panel, with
-fewer false positives and false negatives compared to normalizing by
-nCounts. Due to the technical effect of partial capture of cells in the
-section, <span class="citation">(<strong>Atta2024-tl?</strong>)</span>
-recommends normalizing with cell area if it’s reliable. While cell area
-from XOA v1 with cell segmentations that look like Voroni tessellation
-doesn’t seem reliable, with multiple fluorescent stains in XOA v2, it
-seems much better, so we’ll normalize with cell area here while noting
-the caveat that cell area can be biologically relevant.</p>
+are in this section, so there still is a technical component. In <span class="citation">(Atta et al. 2024)</span>, normalizing by cell area and
+not normalizing are also examined; here SVG and DE results are more
+comparable to when using a more representative gene panel, with fewer
+false positives and false negatives compared to normalizing by nCounts.
+Due to the technical effect of partial capture of cells in the section,
+<span class="citation">(Atta et al. 2024)</span> recommends normalizing
+with cell area if it’s reliable. While cell area from XOA v1 with cell
+segmentations that look like Voroni tessellation doesn’t seem reliable,
+with multiple fluorescent stains in XOA v2, it seems much better, so
+we’ll normalize with cell area here while noting the caveat that cell
+area can be biologically relevant.</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sfe</span>, size.factor <span class="op">=</span> <span class="va">sfe</span><span class="op">$</span><span class="va">cell_area</span><span class="op">)</span></span></code></pre></div>
 <p>Use more cores if available to speed this up. It’s slower here
@@ -1046,7 +1047,7 @@ because the gene count matrix is actually on disk thanks to
 <span>    <span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runMoransI</a></span><span class="op">(</span><span class="va">sfe</span>, colGraphName <span class="op">=</span> <span class="st">"knn5"</span>, BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;     user   system  elapsed </span></span>
-<span><span class="co">#&gt; 1109.596    2.593 1125.600</span></span></code></pre></div>
+<span><span class="co">#&gt; 1112.985    2.679 1115.532</span></span></code></pre></div>
 <div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/scater/man/plotRowData.html" class="external-link">plotRowData</a></span><span class="op">(</span><span class="va">sfe</span>, x <span class="op">=</span> <span class="st">"moran_sample01"</span>, y <span class="op">=</span> <span class="st">"is_neg"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig5_xenium_files/figure-html/unnamed-chunk-93-1.png" width="700" style="display: block; margin: auto;"></p>
@@ -1407,6 +1408,11 @@ NMF components.</p>
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Atta2024-nw" class="csl-entry">
+Atta, Lyla, Kalen Clifton, Manjari Anant, Gohta Aihara, and Jean Fan.
+2024. <span>“Gene Count Normalization in Single-Cell Imaging-Based
+Spatially Resolved Transcriptomics.”</span> <em>bioRxivorg</em>, March.
+</div>
 <div id="ref-Cook2023-pj" class="csl-entry">
 Cook, David P, Kirk B Jensen, Kellie Wise, Michael J Roach, Felipe
 Segato Dezem, Natalie K Ryan, Michel Zamojski, et al. 2023. <span>“A

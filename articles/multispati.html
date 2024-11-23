@@ -99,7 +99,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/multispati.Rmd" class="external-link"><code>vignettes/multispati.Rmd</code></a></small>
       <div class="d-none name"><code>multispati.Rmd</code></div>
@@ -121,8 +121,7 @@ so on.</p>
 old principal component analysis (PCA), tSNE, and UMAP, don’t use
 spatial information. With the rise of spatial transcriptomics, some
 dimension reduction methods that take spatial dependence into account
-have been written. Some, such as <code>SpatialPCA</code> <span class="citation">(<strong>Shang2022-qy?</strong>)</span>,
-<code>NSF</code> <span class="citation">(<strong>Townes2023-bi?</strong>)</span>, and
+have been written. Some, such as <code>SpatialPCA</code> <span class="citation">(Shang and Zhou 2022)</span>, <code>NSF</code> <span class="citation">(<strong>Townes2023-bi?</strong>)</span>, and
 <code>MEFISTO</code> <span class="citation">(<strong>Velten2022-gv?</strong>)</span> use factor
 analysis or probabilistic PCA which is related to factor analysis, and
 model the factors as Gaussian processes, with a spatial kernel for the
@@ -131,14 +130,15 @@ and can be used for downstream clustering where the clusters can be more
 spatially coherent. Some use graph convolution networks on a spatial
 neighborhood graph to find spatially informed embeddings of the cells,
 such as <code>conST</code> <span class="citation">(<strong>Zong2022-tb?</strong>)</span> and
-<code>SpaceFlow</code> <span class="citation">(<strong>Ren2022-qx?</strong>)</span>.
-<code>SpaSRL</code> <span class="citation">(<strong>Zhang2023-kf?</strong>)</span> finds a low
-dimension projection of spatial neighborhood augmented data.</p>
+<code>SpaceFlow</code> <span class="citation">(Ren et al. 2022)</span>.
+<code>SpaSRL</code> <span class="citation">(Zhang et al. 2023)</span>
+finds a low dimension projection of spatial neighborhood augmented
+data.</p>
 <p>Spatially informed dimension reduction is actually not new, and dates
 back to at least 1985, with Wartenberg’s crossover of Moran’s I and PCA
-<span class="citation">(<strong>Wartenberg1985-fk?</strong>)</span>,
-which was generalized and further developed as MULTISPATI PCA <span class="citation">(<strong>Dray2008-en?</strong>)</span>, implemented in
-the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
+<span class="citation">(Wartenberg 1985)</span>, which was generalized
+and further developed as MULTISPATI PCA <span class="citation">(Dray,
+Saïd, and Débias 2008)</span>, implemented in the <a href="https://cran.r-project.org/web/packages/adespatial/index.html" class="external-link"><code>adespatial</code></a>
 package on CRAN. In short, while PCA tries to maximize the variance
 explained by each PC, MULTISPATI maximizes the product of Moran’s I and
 variance explained. Also, while all the eigenvalues from PCA are
@@ -146,7 +146,7 @@ non-negative, because the covariance matrix is positive semidefinite,
 MULTISPATI can give negative eigenvalues, which represent negative
 spatial autocorrelation, which can be present and interesting but is not
 as common as positive spatial autocorrelation and is often masked by the
-latter <span class="citation">(<strong>Griffith2019-bo?</strong>)</span>.</p>
+latter <span class="citation">(Griffith 2019)</span>.</p>
 <p>In single cell -omics conventions, let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
 denote a gene count matrix whose columns are cells or Visium spots and
@@ -297,7 +297,7 @@ neighborhood graph:</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span>, zero.policy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  28.583   0.123  28.762</span></span></code></pre></div>
+<span><span class="co">#&gt;  28.789   0.126  28.935</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"volume"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"moran.mc"</span>, <span class="va">features_use</span>, </span>
@@ -382,7 +382,7 @@ blood from the intestine, and bile duct, so it’s more oxygenated. The
 regions around the central vein is more deoxygenated. The different
 oxygen and nutrient contents mean that hepatocytes play different
 metabolic roles in the zones between the portal triad and the central
-vein. Here we plot some zonation marker genes from <span class="citation">(<strong>Halpern2017-lq?</strong>)</span>.</p>
+vein. Here we plot some zonation marker genes from <span class="citation">(Halpern et al. 2017)</span>.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Axin2"</span>, <span class="st">"Cyp1a2"</span>, <span class="st">"Gstm3"</span>, <span class="st">"Psmd4"</span>, <span class="co"># Pericentral</span></span>
 <span>             <span class="st">"Cyp2e1"</span>, <span class="st">"Asl"</span>, <span class="st">"Alb"</span>, <span class="st">"Ass1"</span>, <span class="co"># Monotonic but has intermediate</span></span>
@@ -399,8 +399,8 @@ periportal (near the portal triad).</p>
 <span>                   ncol <span class="op">=</span> <span class="fl">3</span>, bbox <span class="op">=</span> <span class="va">bbox_use</span><span class="op">)</span></span></code></pre></div>
 <p><img src="multispati_files/figure-html/unnamed-chunk-22-1.png" width="864"></p>
 <p>Besides hepatocytes, the liver also has many endothelial cells and
-Kupffer cells (macrophages). Marker genes of these cells from <span class="citation">(<strong>Bonnardel2019-le?</strong>)</span> are plotted
-to visualize these cell types in space:</p>
+Kupffer cells (macrophages). Marker genes of these cells from <span class="citation">(Bonnardel et al. 2019)</span> are plotted to visualize
+these cell types in space:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Kuppfer cells</span></span>
 <span><span class="va">kc_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Timd4"</span>, <span class="st">"Vsig4"</span>, <span class="st">"Clec4f"</span>, <span class="st">"Clec1b"</span>, <span class="st">"Il18bp"</span>, <span class="st">"C6"</span>, <span class="st">"Irf7"</span>,</span>
@@ -444,11 +444,11 @@ non-spatial and spatial PCA.</p>
 <span>                  scale <span class="op">=</span> <span class="cn">TRUE</span>, BSPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/BiocSingularParam.html" class="external-link">IrlbaParam</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  13.937   6.219  13.198</span></span>
+<span><span class="co">#&gt;  14.334   6.036  13.312</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             used   (Mb) gc trigger   (Mb)  max used   (Mb)</span></span>
-<span><span class="co">#&gt; Ncells  16563117  884.6   26419641 1411.0  26419641 1411.0</span></span>
-<span><span class="co">#&gt; Vcells 242231178 1848.1  540607302 4124.6 540592370 4124.4</span></span></code></pre></div>
+<span><span class="co">#&gt; Ncells  16563261  884.6   26419770 1411.0  26419770 1411.0</span></span>
+<span><span class="co">#&gt; Vcells 242231190 1848.1  540607319 4124.6 540592382 4124.4</span></span></code></pre></div>
 <p>That’s pretty quick for almost 400,000 cells, but there aren’t that
 many genes here. Use the elbow plot to see variance explained by each
 PC:</p>
@@ -503,7 +503,7 @@ negative spatial autocorrelation.</p>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  14.801   5.228  18.961</span></span></code></pre></div>
+<span><span class="co">#&gt;  15.061   4.242  17.965</span></span></code></pre></div>
 <p>Then plot the most positive and most negative eigenvalues. Note that
 the eigenvalues here are not variance explained. Instead, they are the
 product of variance explained and Moran’s I. So the most positive
@@ -665,10 +665,10 @@ neighbor graph is found in the PCA space, which is then used for graph
 based clustering such as Louvain and Leiden, which is used to perform
 differential expression. Spatial dimension reductions can similarly be
 used to perform clustering, to identify spatial regions in the tissue,
-as done in <span class="citation">(<strong>Shang2022-qy?</strong>;
-<strong>Ren2022-qx?</strong>; <strong>Zhang2023-kf?</strong>)</span>.
-This type of studies often use a manual segmentation as ground truth to
-compare different methods that identify spatial regions.</p>
+as done in <span class="citation">(Shang and Zhou 2022; Ren et al. 2022;
+Zhang et al. 2023)</span>. This type of studies often use a manual
+segmentation as ground truth to compare different methods that identify
+spatial regions.</p>
 <p>The problem with this is that spatial region methods are meant to
 help us to identify novel spatial regions based on new -omics data,
 which might reveal what’s previously unknown from manual annotations. If
@@ -695,7 +695,7 @@ default k = 10.</p>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 343.171   0.289 343.483</span></span></code></pre></div>
+<span><span class="co">#&gt; 353.800   0.360 354.202</span></span></code></pre></div>
 <p>See if clustering with the positive MULTISPATI PCs give more
 spatially coherent clusters</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
@@ -711,7 +711,7 @@ spatially coherent clusters</p>
 <span>                                          <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 443.714   0.340 444.101</span></span></code></pre></div>
+<span><span class="co">#&gt; 455.281   0.358 455.687</span></span></code></pre></div>
 <p>Plot the clusters in space:</p>
 <div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotSpatialFeature.html">plotSpatialFeature</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clusts_nonspatial"</span>, <span class="st">"clusts_multispati"</span><span class="op">)</span>, </span>
@@ -876,8 +876,55 @@ spatial clustering.</p>
 <span><span class="co">#&gt; [155] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Bonnardel2019-sq" class="csl-entry">
+Bonnardel, Johnny, Wouter T’Jonck, Djoere Gaublomme, Robin Browaeys,
+Charlotte L Scott, Liesbet Martens, Bavo Vanneste, et al. 2019.
+<span>“Stellate Cells, Hepatocytes, and Endothelial Cells Imprint the
+Kupffer Cell Identity on Monocytes Colonizing the Liver Macrophage
+Niche.”</span> <em>Immunity</em> 51 (4): 638–654.e9.
+</div>
+<div id="ref-Dray2008-cg" class="csl-entry">
+Dray, Stéphane, Sonia Saïd, and Françis Débias. 2008. <span>“Spatial
+Ordination of Vegetation Data Using a Generalization of Wartenberg’s
+Multivariate Spatial Correlation.”</span> <em>J. Veg. Sci.</em> 19 (1):
+45–56.
+</div>
+<div id="ref-Griffith2019-sj" class="csl-entry">
+Griffith, Daniel A. 2019. <span>“Negative Spatial Autocorrelation: One
+of the Most Neglected Concepts in Spatial Statistics.”</span>
+<em>Stats</em> 2 (3): 388–415.
+</div>
+<div id="ref-Halpern2017-ey" class="csl-entry">
+Halpern, Keren Bahar, Rom Shenhav, Orit Matcovitch-Natan, Beata Toth,
+Doron Lemze, Matan Golan, Efi E Massasa, et al. 2017. <span>“Single-Cell
+Spatial Reconstruction Reveals Global Division of Labour in the
+Mammalian Liver.”</span> <em>Nature</em> 542 (7641): 352–56.
+</div>
+<div id="ref-Ren2022-xt" class="csl-entry">
+Ren, Honglei, Benjamin L Walker, Zixuan Cang, and Qing Nie. 2022.
+<span>“Identifying Multicellular Spatiotemporal Organization of Cells
+with <span>SpaceFlow</span>.”</span> <em>Nat. Commun.</em> 13 (1): 4076.
+</div>
+<div id="ref-Shang2022-wq" class="csl-entry">
+Shang, Lulu, and Xiang Zhou. 2022. <span>“Spatially Aware Dimension
+Reduction for Spatial Transcriptomics.”</span> <em>Nat. Commun.</em> 13
+(1): 7203.
+</div>
+<div id="ref-Wartenberg1985-re" class="csl-entry">
+Wartenberg, Daniel. 1985. <span>“Multivariate Spatial Correlation: A
+Method for Exploratory Geographical Analysis.”</span> <em>Geogr.
+Anal.</em> 17 (4): 263–83.
+</div>
+<div id="ref-Zhang2023-mm" class="csl-entry">
+Zhang, Chuanchao, Xinxing Li, Wendong Huang, Lequn Wang, and Qianqian
+Shi. 2023. <span>“Spatially Aware Self-Representation Learning for
+Tissue Structure Characterization and Spatial Functional Genes
+Identification.”</span>
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

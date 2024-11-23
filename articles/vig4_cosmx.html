@@ -99,7 +99,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig4_cosmx.Rmd" class="external-link"><code>vignettes/vig4_cosmx.Rmd</code></a></small>
       <div class="d-none name"><code>vig4_cosmx.Rmd</code></div>
@@ -113,14 +113,14 @@ Moses</h4>
 <p>Nanostring GeoMX DSP is a popular spatial transcriptomics technology
 for formalin fixed paraffin embedded (FFPE) tissues, but it doesn’t have
 single cell resolution. The CosMX FISH based technology for FFPE tissue
-<span class="citation">(<strong>He2021-oy?</strong>)</span> does have
-single cell resolution, and this vignette provides an example of how to
-analyze CosMX data with voyager. Note that FFPE is a common way to
-preserve and archive tissue, and in some cases, the only samples
-available may be FFPE.</p>
+<span class="citation">(He et al. 2022)</span> does have single cell
+resolution, and this vignette provides an example of how to analyze
+CosMX data with voyager. Note that FFPE is a common way to preserve and
+archive tissue, and in some cases, the only samples available may be
+FFPE.</p>
 <p>The CosMX dataset for non-small cell lung cancer that we used is
-described in <span class="citation">(<strong>He2021-oy?</strong>)</span>. The processed
-data is available for download from the <a href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/" class="external-link">Nanostring
+described in <span class="citation">(He et al. 2022)</span>. The
+processed data is available for download from the <a href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/" class="external-link">Nanostring
 website</a>. The gene count matrix, cell metadata, and cell segmentation
 polygon coordinates were downloaded from the Nanostring website as CSV
 files and read into R as data frames. The gene count matrix was then
@@ -552,8 +552,8 @@ spatial neighborhood graphs and spatial weights, and between
 <code>spdep</code> and <code>gstat</code>. Perhaps there is no one best
 method, but different methods reveal different phenomena. The problem of
 choosing a spatial neighborhood matrix has a long history far predating
-spatial transcriptomics. See <span class="citation">(<strong>Getis2009-iw?</strong>)</span> for a brief
-discussion of decades of work around this issue.</p>
+spatial transcriptomics. See <span class="citation">(Getis 2009)</span>
+for a brief discussion of decades of work around this issue.</p>
 <p>Spatial autocorrelation metrics seek to measure how nearby things
 tend to be more similar or dissimilar, and the neighborhood graph and
 edge weights define what we mean by “nearby” in areal data. Note that
@@ -589,7 +589,7 @@ doesn’t seem to be a bad approximate for contiguity.</p>
 <span>                                                  style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   4.729   0.000   4.729</span></span></code></pre></div>
+<span><span class="co">#&gt;   4.780   0.000   4.781</span></span></code></pre></div>
 <p>Now compute Moran’s I for some cell QC metrics</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">features_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span>, <span class="st">"Area"</span>, <span class="st">"AspectRatio"</span><span class="op">)</span></span>
@@ -627,7 +627,7 @@ graphs.</p>
 <span>                         BPPARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt; 187.358   1.196 189.397</span></span></code></pre></div>
+<span><span class="co">#&gt; 190.136   1.103 191.271</span></span></code></pre></div>
 <p>Note that <code><a href="https://rdrr.io/pkg/BiocParallel/man/MulticoreParam-class.html" class="external-link">MulticoreParam()</a></code> doesn’t work on Windows; this
 vignette was built on Linux. Use <code><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam()</a></code> or
 <code><a href="https://rdrr.io/pkg/BiocParallel/man/DoparParam-class.html" class="external-link">DoparParam()</a></code> for Windows. See
@@ -764,7 +764,7 @@ This is subject to the different definitions of the neighborhood.</li>
 <li>Which cell types tend to co-localize where?</li>
 <li>Find spatial regions based on cell type colocalization, which can be
 done with the R package <a href="https://bioconductor.org/packages/release/bioc/html/spicyR.html" class="external-link"><code>spicyR</code></a>
-<span class="citation">(<strong>Canete2022-tz?</strong>)</span>
+<span class="citation">(Canete et al. 2022)</span>
 </li>
 </ul>
 </div>
@@ -1000,8 +1000,25 @@ genes, and how this differs in cell types and gene functions.</p>
 <span><span class="co">#&gt; [157] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Canete2022-uk" class="csl-entry">
+Canete, Nicolas P, Sourish S Iyengar, John T Ormerod, Heeva Baharlou,
+Andrew N Harman, and Ellis Patrick. 2022. <span>“<span class="nocase">spicyR</span>: Spatial Analysis of in Situ Cytometry Data
+in <span>R</span>.”</span> <em>Bioinformatics</em> 38 (11): 3099–3105.
+</div>
+<div id="ref-Getis2009-wn" class="csl-entry">
+Getis, Arthur. 2009. <span>“Spatial Weights Matrices.”</span> <em>Geogr.
+Anal.</em> 41 (4): 404–10.
+</div>
+<div id="ref-He2022-gd" class="csl-entry">
+He, Shanshan, Ruchir Bhatt, Carl Brown, Emily A Brown, Derek L Buhr, Kan
+Chantranuvatana, Patrick Danaher, et al. 2022. <span>“High-Plex
+Multiomic Analysis in <span>FFPE</span> at Subcellular Level by Spatial
+Molecular Imaging.”</span>
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

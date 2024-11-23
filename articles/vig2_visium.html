@@ -99,7 +99,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig2_visium.Rmd" class="external-link"><code>vignettes/vig2_visium.Rmd</code></a></small>
       <div class="d-none name"><code>vig2_visium.Rmd</code></div>
@@ -144,9 +144,9 @@ a Visium dataset.</p>
 </h2>
 <p>The dataset used in this vignette is from the paper <a href="https://doi.org/10.1038/s42003-021-02810-x" class="external-link">Large-scale
 integration of single-cell transcriptomic data captures transitional
-progenitor states in mouse skeletal muscle regeneration</a> <span class="citation">(<strong>McKellar2021-ek?</strong>)</span>. Notexin was
-injected into the tibialis anterior muscle of mice to induce injury, and
-the healing muscle was collected 2, 5, and 7 days post injury for Visium
+progenitor states in mouse skeletal muscle regeneration</a> <span class="citation">(McKellar et al. 2021)</span>. Notexin was injected
+into the tibialis anterior muscle of mice to induce injury, and the
+healing muscle was collected 2, 5, and 7 days post injury for Visium
 analysis. The dataset in this vignette is from the timepoint at day 2.
 The vignette starts with a <code>SpatialFeatureExperiment</code> (SFE)
 object.</p>
@@ -238,23 +238,23 @@ removing small polygons that are most likely debris. The
 <code>in_tissue</code> column of <code>colData(sfe)</code> indicates
 which Visium spot polygon intersects the tissue polygon; this can be
 found with <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/annotPred.html" class="external-link">SpatialFeatureExperiment::annotPred()</a></code>.</p>
-<p>We demonstrate the use of <code>scran</code> <span class="citation">(<strong>Lun2016-yq?</strong>)</span> for normalization
-below, although we note that it is not necessarily the best approach to
-normalizing spatial transcriptomics data. The problem of when and how to
-normalize spatial transcriptomics data is non-trivial because, as the
-<code>nCounts</code> plot in space shows above, spatial autocorrelation
-is evident. Furthemrore, in Visium, reverse transcription occurs in situ
-on the spots, but PCR amplification occurs after the cDNA is dissociated
-from the spots. Artifacts may be subsequently introduced from the
-amplification step, and these would not be associated with spatial
-origin. Spatial artifacts may arise from the diffusion of transcripts
-and tissue permeablization. However, given how the total counts seem to
-correspond to histological regions, the total counts may have a
-biological component and hence should not be treated as a technical
-artifact to be normalized away as in scRNA-seq data normalization
-methods. In other words, the issue of normalization for spatial
-transcriptomics data, and Visium in particular, is complex and is
-currently unsolved.</p>
+<p>We demonstrate the use of <code>scran</code> <span class="citation">(Lun, McCarthy, and Marioni 2016)</span> for
+normalization below, although we note that it is not necessarily the
+best approach to normalizing spatial transcriptomics data. The problem
+of when and how to normalize spatial transcriptomics data is non-trivial
+because, as the <code>nCounts</code> plot in space shows above, spatial
+autocorrelation is evident. Furthemrore, in Visium, reverse
+transcription occurs in situ on the spots, but PCR amplification occurs
+after the cDNA is dissociated from the spots. Artifacts may be
+subsequently introduced from the amplification step, and these would not
+be associated with spatial origin. Spatial artifacts may arise from the
+diffusion of transcripts and tissue permeablization. However, given how
+the total counts seem to correspond to histological regions, the total
+counts may have a biological component and hence should not be treated
+as a technical artifact to be normalized away as in scRNA-seq data
+normalization methods. In other words, the issue of normalization for
+spatial transcriptomics data, and Visium in particular, is complex and
+is currently unsolved.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">$</span><span class="va">in_tissue</span><span class="op">]</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="va">sfe_tissue</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>,<span class="op">]</span></span></code></pre></div>
@@ -370,7 +370,8 @@ seem to be related to myofiber size.</p>
 <p>Marker genes: Myh7 (Type I, slow twitch, aerobic), Myh2 (Type IIa,
 fast twitch, somewhat aerobic), Myh4 (Type IIb, fast twitch, anareobic),
 Myh1 (Type IIx, fast twitch, anaerobic), from <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5526362/" class="external-link">this
-protocol</a> <span class="citation">(<strong>Wang2017-li?</strong>)</span></p>
+protocol</a> <span class="citation">(Wang, Yue, and Kuang
+2017)</span></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>I <span class="op">=</span> <span class="st">"Myh7"</span>, IIa <span class="op">=</span> <span class="st">"Myh2"</span>, IIb <span class="op">=</span> <span class="st">"Myh4"</span>, IIx <span class="op">=</span> <span class="st">"Myh1"</span><span class="op">)</span></span></code></pre></div>
 <p>We can use the <a href="https://pachterlab.github.io/gget/search.html" class="external-link">gget search</a> and
@@ -779,17 +780,16 @@ Geary’s C.</p>
 analytically, but the theory behind the mean and variance of the null
 distribution of Moran’s I assumes normal distribution of the data, while
 gene expression data is generally non-normal. However, according to
-<span class="citation">(<strong>Griffith2010-uy?</strong>)</span>, with
-large sample size (“preferably at least 100”), mean and variance of
-Moran’s I of several iid non-normal simulated datasets (including
-negative binomial, which is commonly used to model gene expression data)
-don’t seem to deviate much from the values expected from normally
-distributed data. Spatial transcriptomics datasets typically have
-thousands or more spots or cells, so sample size is most likely large
-enough. Hence using the analytical test on non-normal data might not be
-too bad. However, with large sample size, a minuscule difference can
-create very significant p-values. Here we perform the analytical test
-for Moran’s I:</p>
+<span class="citation">(Griffith 2010)</span>, with large sample size
+(“preferably at least 100”), mean and variance of Moran’s I of several
+iid non-normal simulated datasets (including negative binomial, which is
+commonly used to model gene expression data) don’t seem to deviate much
+from the values expected from normally distributed data. Spatial
+transcriptomics datasets typically have thousands or more spots or
+cells, so sample size is most likely large enough. Hence using the
+analytical test on non-normal data might not be too bad. However, with
+large sample size, a minuscule difference can create very significant
+p-values. Here we perform the analytical test for Moran’s I:</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">colDataUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nCounts"</span>, <span class="st">"nGenes"</span><span class="op">)</span>, </span>
 <span>                                colGraphName <span class="op">=</span> <span class="st">"visium"</span>, type <span class="op">=</span> <span class="st">"moran.test"</span><span class="op">)</span></span>
@@ -820,11 +820,11 @@ tests indicate very significant positive spatial autocorrelation.</p>
 that each permutation of the values among the locations is equally
 likely, which is not necessarily true. For instance, in epidemiology,
 disease rate in regions with small population more likely assumes more
-extreme values <span class="citation">(<strong>Assuncao1999-xu?</strong>)</span>, which is
-analogous to rare cell types and lowly expressed genes in histological
-space given that we divide by total UMI counts per spot. The extent this
-happens may depend on tissue, gene of interest, technology, and data
-normalization method.</p>
+extreme values <span class="citation">(Assunção and Reis 1999)</span>,
+which is analogous to rare cell types and lowly expressed genes in
+histological space given that we divide by total UMI counts per spot.
+The extent this happens may depend on tissue, gene of interest,
+technology, and data normalization method.</p>
 </div>
 <div class="section level3">
 <h3 id="correlogram">Correlogram<a class="anchor" aria-label="anchor" href="#correlogram"></a>
@@ -860,12 +860,12 @@ means p &lt; 0.01, and *** means p &lt; 0.001.</p>
 </h2>
 <p>Local statistics yield a result at each location rather than the
 whole dataset, while global statistics may obscure local heterogeneity.
-See <span class="citation">(<strong>Fotheringham2009-ak?</strong>)</span> for an
-interesting discussion of relationships between global and local spatial
-statistics. Local statistics are stored in the <code>localResults</code>
-field of the SFE object, which can be accessed by the
-<code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResult()</a></code> or <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResults()</a></code> functions in
-the <code>SpatialFeatureExperiment</code> package.</p>
+See <span class="citation">(Fotheringham 2009)</span> for an interesting
+discussion of relationships between global and local spatial statistics.
+Local statistics are stored in the <code>localResults</code> field of
+the SFE object, which can be accessed by the <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResult()</a></code>
+or <code><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResults()</a></code> functions in the
+<code>SpatialFeatureExperiment</code> package.</p>
 <p>All univariate local methods in <code>Voyager</code> are listed
 here:</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
@@ -937,8 +937,8 @@ testing.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mfrac><mi>n</mi><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
 </annotation></semantics></math></p>
-<p>Local Moran’s I <span class="citation">(<strong>Anselin1995-cs?</strong>)</span> is defined
-as</p>
+<p>Local Moran’s I <span class="citation">(Anselin 1995)</span> is
+defined as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>i</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 I_i = (n-1)\frac{(x_i - \bar{x})\sum_{j=1}^n w_{ij} (x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2}.
 </annotation></semantics></math></p>
@@ -1034,9 +1034,9 @@ z-score of the spatially lagged value of the feature at each location
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">w_{ij}</annotation></semantics></math>
 is the spatial weight. In the <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1992.tb00261.x" class="external-link">original
-publication for Getis-Ord Gi* from 1992</a> <span class="citation">(<strong>Getis1992-fr?</strong>)</span>, the spatial
-weight is a distance-based binary weight indicating whether another
-location is within a certain distance from each location
+publication for Getis-Ord Gi* from 1992</a> <span class="citation">(Getis and Ord 1992)</span>, the spatial weight is a
+distance-based binary weight indicating whether another location is
+within a certain distance from each location
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.
 Getis-Ord Gi excludes the location
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
@@ -1045,8 +1045,9 @@ while Gi* includes the location
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
 itself. Usually Gi and Gi* yield similar results. The mean and variance
 used in the z-score differ in Gi and Gi* and is described in <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00912.x" class="external-link">this
-paper from 1995</a> <span class="citation">(<strong>Ord1995-we?</strong>)</span> and derived in
-<span class="citation">(<strong>Getis1992-fr?</strong>)</span>.</p>
+paper from 1995</a> <span class="citation">(J. K. Ord and Getis
+1995)</span> and derived in <span class="citation">(Getis and Ord
+1992)</span>.</p>
 <p>Binary weights are recommended for Getis-Ord Gi*.</p>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium_B"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, style <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span></code></pre></div>
@@ -1111,7 +1112,7 @@ adjusted
 <div class="section level3">
 <h3 id="local-spatial-heteroscedasticity-losh">Local spatial heteroscedasticity (LOSH)<a class="anchor" aria-label="anchor" href="#local-spatial-heteroscedasticity-losh"></a>
 </h3>
-<p>LOSH <span class="citation">(<strong>Ord2012-qi?</strong>)</span> is
+<p>LOSH <span class="citation">(J. Keith Ord and Getis 2012)</span> is
 defined as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>i</mi></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msup><mrow><mo stretchy="true" form="prefix">|</mo><msub><mi>e</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">|</mo></mrow><mi>a</mi></msup></mrow><mrow><msub><mi>h</mi><mn>1</mn></msub><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">
 H_i = \frac{\sum_j w_{ij}\left| e_j \right|^a}{h_1\sum_j w_{ij}}
@@ -1124,8 +1125,8 @@ and</p>
 </annotation></semantics></math></p>
 <p>By default,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">a = 2</annotation></semantics></math>
-so LOSH is like a local variance. See <span class="citation">(<strong>Ord2012-qi?</strong>)</span> for more details
-and interpretation.</p>
+so LOSH is like a local variance. See <span class="citation">(J. Keith
+Ord and Getis 2012)</span> for more details and interpretation.</p>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateUnivariate.html">runUnivariate</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"LOSH.cs"</span>, <span class="st">"Myh2"</span>, </span>
 <span>                            colGraphName <span class="op">=</span> <span class="st">"visium"</span>, swap_rownames <span class="op">=</span> <span class="st">"symbol"</span><span class="op">)</span></span></code></pre></div>
@@ -1309,8 +1310,63 @@ reduction should be interpretable, and scalable.</li>
 <span><span class="co">#&gt; [157] bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Anselin1995-wg" class="csl-entry">
+Anselin, Luc. 1995. <span>“Local Indicators of Spatial
+<span>Association—<span>LISA</span></span>.”</span> <em>Geogr.
+Anal.</em> 27 (2): 93–115.
+</div>
+<div id="ref-Assuncao1999-ez" class="csl-entry">
+Assunção, R M, and E A Reis. 1999. <span>“A New Proposal to Adjust
+Moran’s <span>I</span> for Population Density.”</span> <em>Stat.
+Med.</em> 18 (16): 2147–62.
+</div>
+<div id="ref-Fotheringham2009-xn" class="csl-entry">
+Fotheringham, A Stewart. 2009. <span>“<span>‘The Problem of Spatial
+Autocorrelation’</span> and Local Spatial Statistics.”</span> <em>Geogr.
+Anal.</em> 41 (4): 398–403.
+</div>
+<div id="ref-Getis1992-fh" class="csl-entry">
+Getis, Arthur, and J Keith Ord. 1992. <span>“The Analysis of Spatial
+Association by Use of Distance Statistics.”</span> In <em>Perspectives
+on Spatial Data Analysis</em>, edited by Luc Anselin and Sergio J Rey,
+127–45. Berlin, Heidelberg: Springer Berlin Heidelberg.
+</div>
+<div id="ref-Griffith2010-lm" class="csl-entry">
+Griffith, Daniel A. 2010. <span>“The Moran Coefficient for Non-Normal
+Data.”</span> <em>J. Stat. Plan. Inference</em> 140 (11): 2980–90.
+</div>
+<div id="ref-Lun2016-fb" class="csl-entry">
+Lun, Aaron T L, Davis J McCarthy, and John C Marioni. 2016. <span>“A
+Step-by-Step Workflow for Low-Level Analysis of Single-Cell <span class="nocase">RNA-seq</span> Data with Bioconductor.”</span>
+<em>F1000Res.</em> 5 (August): 2122.
+</div>
+<div id="ref-McKellar2021-az" class="csl-entry">
+McKellar, David W, Lauren D Walter, Leo T Song, Madhav Mantri, Michael F
+Z Wang, Iwijn De Vlaminck, and Benjamin D Cosgrove. 2021.
+<span>“Large-Scale Integration of Single-Cell Transcriptomic Data
+Captures Transitional Progenitor States in Mouse Skeletal Muscle
+Regeneration.”</span> <em>Commun. Biol.</em> 4 (1): 1280.
+</div>
+<div id="ref-Ord2012-nk" class="csl-entry">
+Ord, J Keith, and Arthur Getis. 2012. <span>“Local Spatial
+Heteroscedasticity (<span>LOSH</span>).”</span> <em>Ann. Reg. Sci.</em>
+48 (2): 529–39.
+</div>
+<div id="ref-Ord1995-bv" class="csl-entry">
+Ord, J K, and Arthur Getis. 1995. <span>“Local Spatial Autocorrelation
+Statistics: Distributional Issues and an Application.”</span> <em>Geogr.
+Anal.</em> 27 (4): 286–306.
+</div>
+<div id="ref-Wang2017-fn" class="csl-entry">
+Wang, Chao, Feng Yue, and Shihuan Kuang. 2017. <span>“Muscle Histology
+Characterization Using <span>H&amp;E</span> Staining and Muscle Fiber
+Type Classification Using Immunofluorescence Staining.”</span> <em>Bio
+Protoc.</em> 7 (10).
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

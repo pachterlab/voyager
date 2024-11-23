@@ -99,7 +99,7 @@
                         <h4 data-toc-skip class="author">Lambda
 Moses</h4>
             
-            <h4 data-toc-skip class="date">2024-11-22</h4>
+            <h4 data-toc-skip class="date">2024-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/pachterlab/voyager/blob/documentation/vignettes/vig1_visium_basic.Rmd" class="external-link"><code>vignettes/vig1_visium_basic.Rmd</code></a></small>
       <div class="d-none name"><code>vig1_visium_basic.Rmd</code></div>
@@ -118,7 +118,8 @@ is assumed.</p>
 <p>This vignette showcases the packages with a Visium spatial gene
 expression system dataset. The technology was chosen due to its
 popularity, and therefore the availability of numerous publicly
-available datasets for analysis <span class="citation">(<strong>Moses2022-xz?</strong>)</span>.</p>
+available datasets for analysis <span class="citation">(Moses and
+Pachter 2022)</span>.</p>
 <p><img src="https://pachterlab.github.io/LP_2021/04-current_files/figure-html/n-insts-1.png" alt="Bar chart showing the number of institutions using each spatial transcriptomics data collection method. Only methods used by at least 3 different institutions are shown. The bars are colored by category of the methods. 10X Visium which is based on sequence barcoding is used by over 100 institutions. Following Visium are GeoMX DSP and GeoMX WTA which are “regions of interest” (ROI) methods, along with 2016 ST and some other ROI selection methods.">
 While Voyager was developed with the goal of facilitating the use of
 geospatial methods in spatial genomics, this introductory vignette is
@@ -160,9 +161,9 @@ spatial data analyis vignette</a> with the same dataset.</p>
 </h2>
 <p>The dataset used in this vignette is from the paper <a href="https://doi.org/10.1038/s42003-021-02810-x" class="external-link">Large-scale
 integration of single-cell transcriptomic data captures transitional
-progenitor states in mouse skeletal muscle regeneration</a> <span class="citation">(<strong>McKellar2021-ek?</strong>)</span>. Notexin was
-injected into the tibialis anterior muscle of mice to induce injury, and
-the healing muscle was collected 2, 5, and 7 days post injury for Visium
+progenitor states in mouse skeletal muscle regeneration</a> <span class="citation">(McKellar et al. 2021)</span>. Notexin was injected
+into the tibialis anterior muscle of mice to induce injury, and the
+healing muscle was collected 2, 5, and 7 days post injury for Visium
 analysis. The dataset in this vignette is from the timepoint at day 2.
 The vignette starts with a <code>SpatialFeatureExperiment</code> (SFE)
 object.</p>
@@ -397,8 +398,8 @@ methods. In other words, the issue of normalization for spatial
 transcriptomics data, and Visium in particular, is complex and is
 currently unsolved.</p>
 <p>There is no one way to normalize non-spatial scRNA-seq data. The
-commented out code implements the <code>scran</code> method <span class="citation">(<strong>Lun2016-yq?</strong>)</span>. To simplify the
-matter, we only perform <code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code> in this
+commented out code implements the <code>scran</code> method <span class="citation">(Lun, McCarthy, and Marioni 2016)</span>. To simplify
+the matter, we only perform <code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code> in this
 introductory vignette.</p>
 <p>Note that <code>scater</code>’s <code><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts()</a></code> is quite
 different from that in Seurat. Let
@@ -492,8 +493,9 @@ does not seem to be informative; it might have picked up an outlier.</p>
 <p>It is also possible to run UMAP following the PCA, as is done for
 scRNA-seq. We do not recommend producing a UMAP since the procedure
 distorts distances, and does not respect either local or global
-structure in the data <span class="citation">(<strong>Chari2021-hb?</strong>)</span>. However, for
-completeness, we show how to compute a UMAP below:</p>
+structure in the data <span class="citation">(Chari and Pachter
+2023)</span>. However, for completeness, we show how to compute a UMAP
+below:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">29</span><span class="op">)</span></span>
 <span><span class="va">sfe_tissue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scater/man/runUMAP.html" class="external-link">runUMAP</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, dimred <span class="op">=</span> <span class="st">"PCA"</span>, n_dimred <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
@@ -537,8 +539,8 @@ clustered</p>
 to spatial autocorrelation of gene expression and the histological
 regions, some of these clusters are spatially contiguous. There are many
 methods to find spatially informed clusters, such as <a href="https://bioconductor.org/packages/release/bioc/html/BayesSpace.html" class="external-link"><code>BayesSpace</code></a>
-<span class="citation">(<strong>Zhao2021-vb?</strong>)</span>, which is
-on Bioconductor.</p>
+<span class="citation">(E. Zhao et al. 2021)</span>, which is on
+Bioconductor.</p>
 <p>Remark on spatial regions: In geographical space, there is usually no
 one single way to define spatial regions. For example, influenced by
 both sociology and geology, LA county can be partitioned into regions
@@ -563,8 +565,8 @@ asked may be relevant. Furthermore, methods for spatial region
 demarcation to be used for spatial -omics would ideally provide
 uncertainty assessments for assignment of cells or Visium spots. An
 existing geospatial method that accounts for such uncertainty is <a href="https://cran.r-project.org/web/packages/geocmeans/" class="external-link"><code>geocmeans</code></a>
-<span class="citation">(<strong>Zhao2013-tw?</strong>)</span>, which is
-on CRAN.</p>
+<span class="citation">(F. Zhao, Jiao, and Liu 2013)</span>, which is on
+CRAN.</p>
 <p>In both the geographical and histological space, there conflicting
 views on spatial variation. On the one hand, methods that identify
 spatially variable genes such as SpatialDE often assume that gene
@@ -574,8 +576,8 @@ regions. The continuous variation in features might be why definitions
 of geographical neighborhoods are often subject to dispute. Some
 existing methods attempt to harmonize the two views. For example, the
 spatially variable gene method <a href="https://github.com/raphael-group/belayer" class="external-link"><code>belayer</code></a>
-<span class="citation">(<strong>Ma2022-dc?</strong>)</span> takes
-discrete tissue layers into account.</p>
+<span class="citation">(Ma et al. 2022)</span> takes discrete tissue
+layers into account.</p>
 </div>
 <div class="section level2">
 <h2 id="non-spatial-differential-expression">Non-spatial differential expression<a class="anchor" aria-label="anchor" href="#non-spatial-differential-expression"></a>
@@ -691,8 +693,8 @@ their gene descriptions from <a href="https://www.ncbi.nlm.nih.gov/" class="exte
 <div class="section level2">
 <h2 id="morans-i">Moran’s I<a class="anchor" aria-label="anchor" href="#morans-i"></a>
 </h2>
-<p>Tobler’s first law of geography <span class="citation">(<strong>Tobler1970-hz?</strong>)</span> states
-that</p>
+<p>Tobler’s first law of geography <span class="citation">(Tobler
+1970)</span> states that</p>
 <blockquote>
 <p>Everything is related to everything else. But near things are more
 related than distant things.</p>
@@ -708,8 +710,7 @@ communication by physical contact, or result from a covariate that has
 such an intrinsic process, or in areal data, when the areal units of
 observation are smaller than the scale of the spatial process.</p>
 <p>The most commonly used measure of spatial autocorrelation is Moran’s
-I <span class="citation">(<strong>Moran1950-aq?</strong>)</span>,
-defined as</p>
+I <span class="citation">(Moran 1950)</span>, defined as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mfrac><mi>n</mi><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><mover><mi>x</mi><mo accent="true">‾</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
 I = \frac{n}{\sum_{i=1}^n \sum_{j=1}^n w_{ij}} \frac{\sum_{i=1}^n \sum_{j=1}^n w_{ij} (x_i - \bar{x})(x_j - \bar{x})}{\sum_{i=1}^n (x_i - \bar{x})^2},
 </annotation></semantics></math></p>
@@ -730,13 +731,12 @@ the number of neighbors. The <a href="https://r-spatial.github.io/spdep/index.ht
 package uses the neighborhood.</p>
 <p>Moran’s I is similar to the Pearson correlation between the value at
 each location and the average value at its neighbors (but not identical,
-see <span class="citation">(<strong>Lee2001-tm?</strong>)</span>). Just
-like Pearson correlation, Moran’s I is generally bound between -1 and 1,
-where positive value indicates positive spatial autocorrelation and
-negative value indicates negative spatial autocorrelation. Spatial
-dependence analysis in <code>spdep</code> requires a spatial
-neighborhood graph. The graph for adjacent Visium spot can be found
-with</p>
+see <span class="citation">(Lee 2001)</span>). Just like Pearson
+correlation, Moran’s I is generally bound between -1 and 1, where
+positive value indicates positive spatial autocorrelation and negative
+value indicates negative spatial autocorrelation. Spatial dependence
+analysis in <code>spdep</code> requires a spatial neighborhood graph.
+The graph for adjacent Visium spot can be found with</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span>, <span class="st">"visium"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/findVisiumGraph.html" class="external-link">findVisiumGraph</a></span><span class="op">(</span><span class="va">sfe_tissue</span><span class="op">)</span></span></code></pre></div>
 <p>We mentioned that spatial autocorrelation is apparent in total UMI
@@ -984,8 +984,63 @@ Visium vignette</a>.</p>
 <span><span class="co">#&gt; [157] bslib_0.8.0               bit_4.5.0</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Chari2023-ys" class="csl-entry">
+Chari, Tara, and Lior Pachter. 2023. <span>“The Specious Art of
+Single-Cell Genomics.”</span> <em>PLoS Comput. Biol.</em> 19 (8):
+e1011288.
+</div>
+<div id="ref-Lee2001-wk" class="csl-entry">
+Lee, Sang-Il. 2001. <span>“Developing a Bivariate Spatial Association
+Measure: An Integration of Pearson’s r and Moran’s
+<span>I</span>.”</span> <em>J. Geogr. Syst.</em> 3 (4): 369–85.
+</div>
+<div id="ref-Lun2016-fb" class="csl-entry">
+Lun, Aaron T L, Davis J McCarthy, and John C Marioni. 2016. <span>“A
+Step-by-Step Workflow for Low-Level Analysis of Single-Cell <span class="nocase">RNA-seq</span> Data with Bioconductor.”</span>
+<em>F1000Res.</em> 5 (August): 2122.
+</div>
+<div id="ref-Ma2022-ho" class="csl-entry">
+Ma, Cong, Uthsav Chitra, Shirley Zhang, and Benjamin J Raphael. 2022.
+<span>“Belayer: Modeling Discrete and Continuous Spatial Variation in
+Gene Expression from Spatially Resolved Transcriptomics.”</span>
+<em>Cell Syst.</em> 13 (10): 786–797.e13.
+</div>
+<div id="ref-McKellar2021-az" class="csl-entry">
+McKellar, David W, Lauren D Walter, Leo T Song, Madhav Mantri, Michael F
+Z Wang, Iwijn De Vlaminck, and Benjamin D Cosgrove. 2021.
+<span>“Large-Scale Integration of Single-Cell Transcriptomic Data
+Captures Transitional Progenitor States in Mouse Skeletal Muscle
+Regeneration.”</span> <em>Commun. Biol.</em> 4 (1): 1280.
+</div>
+<div id="ref-Moran1950-ib" class="csl-entry">
+Moran, P A P. 1950. <span>“Notes on Continuous Stochastic
+Phenomena.”</span> <em>Biometrika</em> 37 (1-2): 17–23.
+</div>
+<div id="ref-Moses2022-rs" class="csl-entry">
+Moses, Lambda, and Lior Pachter. 2022. <span>“Publisher Correction:
+Museum of Spatial Transcriptomics.”</span> <em>Nat. Methods</em> 19 (5):
+628.
+</div>
+<div id="ref-Tobler1970-zv" class="csl-entry">
+Tobler, W R. 1970. <span>“A Computer Movie Simulating Urban Growth in
+the Detroit Region.”</span> <em>Econ. Geogr.</em> 46 (sup1): 234–40.
+</div>
+<div id="ref-Zhao2021-hk" class="csl-entry">
+Zhao, Edward, Matthew R Stone, Xing Ren, Jamie Guenthoer, Kimberly S
+Smythe, Thomas Pulliam, Stephen R Williams, et al. 2021. <span>“Spatial
+Transcriptomics at Subspot Resolution with
+<span>BayesSpace</span>.”</span> <em>Nat. Biotechnol.</em> 39 (11):
+1375–84.
+</div>
+<div id="ref-Zhao2013-gj" class="csl-entry">
+Zhao, Feng, Licheng Jiao, and Hanqiang Liu. 2013. <span>“Kernel
+Generalized Fuzzy c-Means Clustering with Spatial Information for Image
+Segmentation.”</span> <em>Digit. Signal Process.</em> 23 (1): 184–99.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
