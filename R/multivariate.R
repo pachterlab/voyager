@@ -178,7 +178,7 @@ setMethod("calculateMultivariate", "SpatialFeatureExperiment",
 
                       is_vector <- all(vapply(out, is.vector, FUN.VALUE = logical(1)))
                       is_matrix <- all(vapply(out, is.matrix, FUN.VALUE = logical(1)))
-                      is_df <- all(vapply(out, function(o) is.data.frame(o) | is(o, "DataFrame"),
+                      is_df <- all(vapply(out, function(o) is.data.frame(o) | inherits(o, "DataFrame"),
                                           FUN.VALUE = logical(1)))
                       if (is_vector) {
                           out <- unlist(out)
@@ -223,7 +223,7 @@ runMultivariate <- function(x, type, colGraphName = 1L,
         reducedDim(x, name) <- out
     } else {
         if (is.vector(out)) colData(x)[[name]] <- out
-        if (is.data.frame(out) || is(out, "DataFrame")) {
+        if (is.data.frame(out) || inherits(out, "DataFrame")) {
             inds <- !grepl(name, names(out))
             names(out)[inds] <- paste(name, names(out)[inds], sep = "_")
             colData(x) <- cbind(colData(x), out)

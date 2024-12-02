@@ -52,7 +52,7 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
         stop("At least one of nfposi and nfnega must be positive.")
     }
     x <- sweep(x, 2, colMeans(x))
-    if (is(x, "dgeMatrix")) x <- as.matrix(x)
+    if (inherits(x, "dgeMatrix")) x <- as.matrix(x)
     if (scale) {
         # Note that dudi.pca divides by n instead of n-1 when scaling data
         n <- nrow(x)
@@ -60,7 +60,7 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     }
     if (inherits(listw, "Matrix") || is.matrix(listw))
         W <- listw
-    else if (is(listw, "listw"))
+    else if (inherits(listw, "listw"))
         W <- listw2sparse(listw)
     else
         stop("listw must be either a listw object or an adjacency matrix.")
