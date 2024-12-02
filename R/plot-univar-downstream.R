@@ -38,7 +38,7 @@
             warning("Too few points for stat_density2d, not plotting contours.")
         }
     )
-    if (is(p_test, "ggplot_built")) {
+    if (inherits(p_test, "ggplot_built")) {
         p <- p + geom_density2d(color = contour_color, bins = bins, ...)
     }
     p <- p +
