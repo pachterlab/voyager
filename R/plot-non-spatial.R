@@ -117,7 +117,7 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 .get_loadings_df <- function(sce, loadings, loading_cols, nfeatures, balanced,
                              swap_rownames) {
     df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
-                loadings[, loading_cols])
+                loadings[, loading_cols, drop = FALSE])
     if (is.null(swap_rownames) || !swap_rownames %in% names(df)) {
         df$gene_show <- rownames(loadings)
     } else {
