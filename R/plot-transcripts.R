@@ -1,3 +1,4 @@
+#' @importFrom sf st_is_empty
 .get_tx_df <- function(sfe, data_dir, tech, file, sample_id, spatialCoordsNames,
                        gene_col, bbox, gene, return_sf = FALSE,
                        rowGeometryName = "txSpots", geoparquet_file = NULL,
