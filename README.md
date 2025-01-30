@@ -10,7 +10,7 @@
 
 > "Everything is related to everything else. But near things are more related than distant things." - Tobler's first law of geography 
 
-This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the `SpatialFeatureExperiment` class, which extends SpatialExperiment with sf. This is the `Voyager` R documentation website. Documentation for the Python implementation is available [here](https://pmelsted.github.io/voyagerpy). Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
+This package brings the tradition of geospatial statistics to spatial omics by wrapping classical geospatial packages such as `spdep` and `gstat` to be used with the `SpatialFeatureExperiment` class, which extends SpatialExperiment with sf. This is the `Voyager` R documentation website. Documentation for the Python implementation is available [here](https://pachterlab.github.io/voyagerpy/). Questions, suggestions, or problems should be submitted as [GitHub issues](https://github.com/pachterlab/voyager/issues).
 
 [`Voyager`](https://bioconductor.org/packages/devel/bioc/html/Voyager.html) is a package that facilitates exploratory spatial data analysis and visualization for spatial genomics data represented by [`SpatialFeatureExperiment`](https://bioconductor.org/packages/devel/bioc/html/SpatialFeatureExperiment.html) objects. 
 
