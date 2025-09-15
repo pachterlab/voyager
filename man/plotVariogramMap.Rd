@@ -42,7 +42,7 @@ frames associated with cells/spots.}
 annotate the gene expression plot.}
 
 \item{reducedDimName}{Name of a dimension reduction, can be seen in
-\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{\link[SingleCellExperiment]{reducedDimNames}}. \code{colGeometryName} and
 \code{annotGeometryName} have precedence over \code{reducedDimName}.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to

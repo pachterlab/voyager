@@ -37,7 +37,7 @@ for each sample.}
 features.}
 
 \item{reducedDimName}{Name of a dimension reduction, can be seen in
-\code{\link{reducedDimNames}}. \code{colGeometryName} and
+\code{\link[SingleCellExperiment]{reducedDimNames}}. \code{colGeometryName} and
 \code{annotGeometryName} have precedence over \code{reducedDimName}.}
 
 \item{swap_rownames}{Column name of \code{rowData(object)} to be used to
