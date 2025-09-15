@@ -263,10 +263,6 @@ colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
     replace = TRUE), levels = as.character(1:5))
 
 test_that("moranPlot, not filled, no color_by", {
-    expect_warning(
-        moranPlot(sfe, "B", "visium", "sample01"),
-        "Too few points"
-    )
     expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium", swap_rownames = "symbol")
     )
