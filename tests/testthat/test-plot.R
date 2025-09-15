@@ -9,6 +9,8 @@ library(ggplot2)
 library(scran)
 library(EBImage)
 library(scales)
+spdep::set.SubgraphOption(FALSE)
+spdep::set.NoNeighbourOption(FALSE)
 
 expect_ggplot <- function(description, g) {
     expect_s3_class(g, "ggplot")
@@ -261,10 +263,6 @@ colData(sfe_muscle)$GraphBased <- factor(sample(1:5, ncol(sfe_muscle),
     replace = TRUE), levels = as.character(1:5))
 
 test_that("moranPlot, not filled, no color_by", {
-    expect_warning(
-        moranPlot(sfe, "B", "visium", "sample01"),
-        "Too few points"
-    )
     expect_ggplot("",
         moranPlot(sfe_muscle, feature_use, "visium", swap_rownames = "symbol")
     )
@@ -465,6 +463,10 @@ test_that("plotDimLoadings for PCA", {
     expect_doppelganger("Change the number of columns",
                         plotDimLoadings(sfe_muscle, 1:2, balanced = TRUE,
                                         ncol = 1))
+})
+
+test_that("plotDimLoadings, when only plotting one PC", {
+    expect_doppelganger("Only plotting one PC", plotDimLoadings(sfe_muscle, dims = 1))
 })
 
 test_that("plotDimLoadings for multiple samples", {

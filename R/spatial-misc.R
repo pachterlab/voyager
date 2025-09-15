@@ -10,7 +10,7 @@
 #' eigenvalues without performing unnecessary work to find the full spectrum as
 #' done in base R's \code{\link{eigen}}.
 #'
-#' @inheritParams SpatialFeatureExperiment::listw2sparse
+#' @param listw A listw object for the spatial neighborhood graph.
 #' @return A numeric vector of minimum and maximum Moran's I given the spatial
 #'   neighborhood graph.
 #' @note
@@ -19,7 +19,7 @@
 #' @export
 #' @importFrom RSpectra eigs_sym
 #' @importFrom spdep listw2mat
-#' @importFrom SpatialFeatureExperiment listw2sparse multi_listw2sparse
+#' @importFrom SpatialFeatureExperiment multi_listw2sparse
 #' @concept Spatial statistics
 #' @references de Jong, P., Sprenger, C., & van Veen, F. (1984). On extreme values of Moran's I and Geary's C. Geographical Analysis, 16(1), 17-24.
 #' @examples
