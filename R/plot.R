@@ -1287,7 +1287,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, colGeometryName = "spotPoly")
 #' plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
 plotGeometry <- function(sfe,
-                         type = deprecated(), MARGIN = deprecated(),
+                         type = lifecycle::deprecated(), MARGIN = lifecycle::deprecated(),
                          colGeometryName = NULL, annotGeometryName = NULL,
                          rowGeometryName = NULL, gene = "all",
                          sample_id = "all",

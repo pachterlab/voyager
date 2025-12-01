@@ -6,8 +6,8 @@
 \usage{
 plotGeometry(
   sfe,
-  type = deprecated(),
-  MARGIN = deprecated(),
+  type = lifecycle::deprecated(),
+  MARGIN = lifecycle::deprecated(),
   colGeometryName = NULL,
   annotGeometryName = NULL,
   rowGeometryName = NULL,
