@@ -1390,6 +1390,7 @@ plotGeometry <- function(sfe,
 #'   assign channels to images. The vector must be named if it's length 2.
 #' @return A \code{ggplot} object.
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(SpatialFeatureExperiment)
@@ -1430,5 +1431,58 @@ plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
     }
     if (dark) p <- p + .dark_theme(show_axes)
     else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
+}
+
+#' Plot expression of two genes or features with bivariate palette
+#' 
+#' This function uses the `biscale` package to plot two features simultaneously
+#' using a bivariate palette. The features can come from the assays or colData.
+#' 
+#' @inheritParams plotSpatialFeature
+#' @inheritParams biscale::bi_class
+#' @param feature1 First feature to plot
+#' @param feature2 Second feature to plot
+#' @param palette Name of bivariate palette; see \code{\link[biscale]{bi_pal}}
+#' for complete list of built-in palettes in the `biscale` package.
+#' @note
+#' Legend must be plotted separated as another `ggplot` object. See
+#' \code{\link[biscale]{bi_legend}}.
+#' @export
+#' @concept Spatial plotting
+plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
+                          sample_id = "all", bbox = NULL, palette = "BlueGold", 
+                          size = 0.5, dim = 4, style = "fisher", 
+                          exprs_values = "logcounts", swap_rownames = NULL, 
+                          show_axes = FALSE, ncol = NULL) {
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    stopifnot(length(feature1) == 1L)
+    stopifnot(length(feature2) == 1L)
+    values <- .get_feature_values(sfe, c(feature1, feature2), sample_id,
+                                  colGeometryName = colGeometryName,
+                                  exprs_values = exprs_values,
+                                  swap_rownames = swap_rownames,
+                                  show_symbol = !is.null(swap_rownames)
+    )
+    names(values) <- c("feature1", "feature2")
+    df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    df <- cbind(df[,c("geometry", "sample_id")], values)
+    df <- .crop(df, bbox)
+    type_df <- .get_generalized_geometry_type(df)
+    
+    df <- df |> bi_class(feature1, feature2, dim = dim, style = style)
+    
+    p <- ggplot(df)
+    if (grepl("POLYGON", type_df))
+        p <- p + geom_sf(aes(fill = bi_class), linewidth = 0, 
+                         show.legend = FALSE) +
+        bi_scale_fill(pal = palette, dim = dim)
+    else
+        p <- p + geom_sf(aes(color = bi_class), size = size,
+                         show.legend = FALSE) +
+        bi_scale_color(pal = palette, dim = dim)
+    if (!show_axes) p <- p + theme_void()
+    if (length(sample_id) > 1L) p <- p + facet_wrap(~ sample_id, ncol = ncol)
     p
 }
