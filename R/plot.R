@@ -1455,6 +1455,7 @@ plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
                           size = 0.5, dim = 4, style = "fisher", 
                           exprs_values = "logcounts", swap_rownames = NULL, 
                           show_axes = FALSE, ncol = NULL) {
+    check_installed("biscale")
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
     stopifnot(length(feature1) == 1L)
     stopifnot(length(feature2) == 1L)
@@ -1471,7 +1472,7 @@ plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
     df <- .crop(df, bbox)
     type_df <- .get_generalized_geometry_type(df)
     
-    df <- df |> bi_class(feature1, feature2, dim = dim, style = style)
+    df <- df |> biscale::bi_class(feature1, feature2, dim = dim, style = style)
     
     p <- ggplot(df)
     if (grepl("POLYGON", type_df))
