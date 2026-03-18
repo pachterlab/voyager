@@ -1478,11 +1478,11 @@ plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
     if (grepl("POLYGON", type_df))
         p <- p + geom_sf(aes(fill = bi_class), linewidth = 0, 
                          show.legend = FALSE) +
-        bi_scale_fill(pal = palette, dim = dim)
+        biscale::bi_scale_fill(pal = palette, dim = dim)
     else
         p <- p + geom_sf(aes(color = bi_class), size = size,
                          show.legend = FALSE) +
-        bi_scale_color(pal = palette, dim = dim)
+        biscale::bi_scale_color(pal = palette, dim = dim)
     if (!show_axes) p <- p + theme_void()
     if (length(sample_id) > 1L) p <- p + facet_wrap(~ sample_id, ncol = ncol)
     p
