@@ -1465,6 +1465,7 @@ plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
                                   swap_rownames = swap_rownames,
                                   show_symbol = !is.null(swap_rownames)
     )
+    if (length(values) < 2L) stop("At least one of the two features not found")
     names(values) <- c("feature1", "feature2")
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
