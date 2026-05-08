@@ -206,7 +206,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
                                                       channel, bbox, maxcell,
                                                       normalize_channels)
         else img_df <- NULL
-        if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
+        if (inherits(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
         if (!is.null(rowGeometryName)) {
             tx_df <- .get_tx_df(sfe, data_dir = NULL, tech = NULL, file = NULL,
                                 sample_id = sample_id, spatialCoordsNames = c("X", "Y"),
@@ -229,7 +229,7 @@ plotLocalResult <- function(sfe, name, features, attribute = NULL,
         )
     }
     # Add title to not to confuse with gene expression
-    if (is(out, "patchwork")) {
+    if (inherits(out, "patchwork")) {
         out <- out + plot_annotation(title = title_use)
     } else {
         out <- out + ggtitle(title_use)

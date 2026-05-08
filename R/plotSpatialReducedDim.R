@@ -75,7 +75,7 @@ spatialReducedDim <- function(sfe, dimred, ncomponents = NULL,
         normalize_channels = normalize_channels, rowGeometryName = rowGeometryName,
         rowGeometryFeatures = rowGeometryFeatures, tx_file = tx_file, ...
     )
-    if (is(out, "patchwork")) {
+    if (inherits(out, "patchwork")) {
         out <- out + plot_annotation(title = dimred)
     } else {
         out <- out + ggtitle(dimred)

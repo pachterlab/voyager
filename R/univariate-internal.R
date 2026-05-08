@@ -1,7 +1,7 @@
 # Internal function for univariate metrics
 .calc_univar <- function(x, fun, BPPARAM, ...) {
-    if (is(x, "DFrame") || is.data.frame(x)) {
-        if (is(x, "sf")) x <- st_drop_geometry(x)
+    if (inherits(x, "DFrame") || is.data.frame(x)) {
+        if (inherits(x, "sf")) x <- st_drop_geometry(x)
         x <- t(as.matrix(x))
         if (anyNA(x)) {
             stop("Only numeric columns without NA (within the sample_id) can be used.")
@@ -17,12 +17,12 @@
 #' @importFrom stats as.formula terms
 .get_coords_df <- function(x, df, sample_id, exprs_values,
                            swap_rownames, ...) {
-    if (!is(df, "sf") || st_geometry_type(df, by_geometry = FALSE) != "POINT") {
-        if (is(df, "sf")) df <- st_drop_geometry(df)
+    if (!inherits(df, "sf") || st_geometry_type(df, by_geometry = FALSE) != "POINT") {
+        if (inherits(df, "sf")) df <- st_drop_geometry(df)
         # Can't use list columns as regressors
         inds_keep <- vapply(df, is.atomic, FUN.VALUE = logical(1))
         df <- df[,inds_keep]
-        if (is(df, "DataFrame")) df <- as.data.frame(df)
+        if (inherits(df, "DataFrame")) df <- as.data.frame(df)
         colnames_use <- spatialCoordsNames(x)
         geo <- df2sf(spatialCoords(x)[x$sample_id == sample_id,], colnames_use)
         oth_names <- setdiff(names(df), colnames_use)

@@ -195,7 +195,7 @@
 }
 
 .get_not_na_items <- function(df, features, colname_use) {
-    if (is(df, "sf")) df <- st_drop_geometry(df)
+    if (inherits(df, "sf")) df <- st_drop_geometry(df)
     if (!colname_use %in% names(df)) {
         return(NULL)
     }

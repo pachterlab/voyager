@@ -123,7 +123,7 @@ mkdir /build_local && cd /build_local
 
 ## tiledb
 GCC_ARCH="$(uname -m)"
-export TILEDB_VERSION=2.16.3
+export TILEDB_VERSION=2.28.0
 apt-get update -y &&
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
         libspdlog-dev &&

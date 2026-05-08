@@ -413,7 +413,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 
 #' @importFrom sf st_as_sfc st_bbox st_intersection
 .bbox_sample <- function(df, bbox) {
-    if (is(df, "sf")) {
+    if (inherits(df, "sf")) {
         # Only for one sample
         bbox_use <- st_as_sfc(st_bbox(bbox))
         suppressWarnings(df <- st_intersection(df, bbox_use))
@@ -660,7 +660,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         # the bbox is a large part of the image that also needs to be written to
         # disk
         imgs <- lapply(imgs, function(x) {
-            if (is(x, "SpatRasterImage")) {
+            if (inherits(x, "SpatRasterImage")) {
                 tot_area <- ext(x) |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_area <- bbox |> st_bbox() |> st_as_sfc() |> st_area()
                 bb_prop <- bb_area/tot_area
@@ -685,10 +685,10 @@ getDivergeRange <- function(values, diverge_center = 0) {
     }
     # All convert to SpatRaster
     imgs <- lapply(imgs, function(img) {
-        if (is(img, "BioFormatsImage")) {
+        if (inherits(img, "BioFormatsImage")) {
             res_use <- .find_res(img, maxcell)
             spi <- toSpatRasterImage(img, resolution = res_use, save_geotiff = FALSE)
-        } else if (is(img, "ExtImage")) {
+        } else if (inherits(img, "ExtImage")) {
             spi <- toSpatRasterImage(img, save_geotiff = FALSE)
         } else spi <- img
         spi |> resample_spat(maxcell)
@@ -773,7 +773,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         img_df <- .get_img_df(sfe, sample_id, image_id, channel, bbox, maxcell,
                               normalize_channels)
     } else img_df <- NULL
-    if (is(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
+    if (inherits(img_df, "DataFrame") && !nrow(img_df)) img_df <- NULL
     .wrap_spatial_plots(
         df, annot_df, img_df, channel, type_annot, values, aes_use,
         annot_aes, annot_fixed, tx_fixed, size, shape, linewidth, linetype, alpha,
@@ -1288,7 +1288,7 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, colGeometryName = "spotPoly")
 #' plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
 plotGeometry <- function(sfe,
-                         type = deprecated(), MARGIN = deprecated(),
+                         type = lifecycle::deprecated(), MARGIN = lifecycle::deprecated(),
                          colGeometryName = NULL, annotGeometryName = NULL,
                          rowGeometryName = NULL, gene = "all",
                          sample_id = "all",
@@ -1392,6 +1392,7 @@ plotGeometry <- function(sfe,
 #' @return A \code{ggplot} object.
 #' @concept Spatial plotting
 #' @export
+#' @concept Spatial plotting
 #' @examples
 #' library(SFEData)
 #' library(SpatialFeatureExperiment)
@@ -1432,5 +1433,60 @@ plotImage <- function(sfe, sample_id = "all", image_id = NULL, channel = NULL,
     }
     if (dark) p <- p + .dark_theme(show_axes)
     else if (show_axes) p <- p + theme_bw() else p <- p + theme_void()
+    p
+}
+
+#' Plot expression of two genes or features with bivariate palette
+#' 
+#' This function uses the `biscale` package to plot two features simultaneously
+#' using a bivariate palette. The features can come from the assays or colData.
+#' 
+#' @inheritParams plotSpatialFeature
+#' @inheritParams biscale::bi_class
+#' @param feature1 First feature to plot
+#' @param feature2 Second feature to plot
+#' @param palette Name of bivariate palette; see \code{\link[biscale]{bi_pal}}
+#' for complete list of built-in palettes in the `biscale` package.
+#' @note
+#' Legend must be plotted separated as another `ggplot` object. See
+#' \code{\link[biscale]{bi_legend}}.
+#' @export
+#' @concept Spatial plotting
+plotBivariate <- function(sfe, feature1, feature2, colGeometryName = 1L,
+                          sample_id = "all", bbox = NULL, palette = "BlueGold", 
+                          size = 0.5, dim = 4, style = "fisher", 
+                          exprs_values = "logcounts", swap_rownames = NULL, 
+                          show_axes = FALSE, ncol = NULL) {
+    check_installed("biscale")
+    sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
+    stopifnot(length(feature1) == 1L)
+    stopifnot(length(feature2) == 1L)
+    values <- .get_feature_values(sfe, c(feature1, feature2), sample_id,
+                                  colGeometryName = colGeometryName,
+                                  exprs_values = exprs_values,
+                                  swap_rownames = swap_rownames,
+                                  show_symbol = !is.null(swap_rownames)
+    )
+    if (length(values) < 2L) stop("At least one of the two features not found")
+    names(values) <- c("feature1", "feature2")
+    df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
+    df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
+    df <- cbind(df[,c("geometry", "sample_id")], values)
+    df <- .crop(df, bbox)
+    type_df <- .get_generalized_geometry_type(df)
+    
+    df <- df |> biscale::bi_class(feature1, feature2, dim = dim, style = style)
+    
+    p <- ggplot(df)
+    if (grepl("POLYGON", type_df))
+        p <- p + geom_sf(aes(fill = bi_class), linewidth = 0, 
+                         show.legend = FALSE) +
+        biscale::bi_scale_fill(pal = palette, dim = dim)
+    else
+        p <- p + geom_sf(aes(color = bi_class), size = size,
+                         show.legend = FALSE) +
+        biscale::bi_scale_color(pal = palette, dim = dim)
+    if (!show_axes) p <- p + theme_void()
+    if (length(sample_id) > 1L) p <- p + facet_wrap(~ sample_id, ncol = ncol)
     p
 }

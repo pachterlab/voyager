@@ -148,7 +148,7 @@ setMethod("calculateBivariate", "ANY",
                       out <- reorganize_fun(type)(out, name = name, ...)
                   }
               }
-              if (length(out) == 1L && !is(out, "DataFrame")) out <- out[[1]]
+              if (length(out) == 1L && !inherits(out, "DataFrame")) out <- out[[1]]
               out
           })
 

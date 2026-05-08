@@ -7,7 +7,7 @@
 moranBounds(listw)
 }
 \arguments{
-\item{listw}{A \code{listw} object for spatial neighborhood graph.}
+\item{listw}{A listw object for the spatial neighborhood graph.}
 }
 \value{
 A numeric vector of minimum and maximum Moran's I given the spatial

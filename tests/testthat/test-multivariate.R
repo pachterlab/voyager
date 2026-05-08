@@ -1,5 +1,6 @@
 library(SFEData)
 library(scater)
+library(DelayedArray)
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
@@ -59,6 +60,14 @@ test_that("Correct output structure of multispati_rsp, only negative", {
     expect_true(is.numeric(eigs))
     expect_true(all(diff(eigs) < 0))
     expect_true(all(eigs < 0))
+})
+
+test_that("multispati_rsp for DelayedArray", {
+    da <- t(DelayedArray(mat))
+    out <- multispati_rsp(da, listw = g, nfposi = 2, nfnega = 2)
+    expect_equal(colnames(out), paste0("PC", 1:4))
+    expect_equal(rownames(out), colnames(sfe))
+    expect_true(is.numeric(out))
 })
 
 ref <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)

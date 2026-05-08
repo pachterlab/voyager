@@ -31,7 +31,7 @@
 #' Dray, S., Said, S. and Debias, F. (2008) Spatial ordination of vegetation data using a generalization of Wartenberg's multivariate spatial correlation. Journal of vegetation science, 19, 45-56.
 #' @export
 #' @importFrom Matrix colMeans
-#' @importFrom matrixStats colVars
+#' @importFrom MatrixGenerics colVars
 #' @importFrom utils head tail
 #' @examples
 #' library(SFEData)
@@ -52,16 +52,16 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
         stop("At least one of nfposi and nfnega must be positive.")
     }
     x <- sweep(x, 2, colMeans(x))
-    if (is(x, "dgeMatrix")) x <- as.matrix(x)
+    if (inherits(x, "dgeMatrix")) x <- as.matrix(x)
     if (scale) {
         # Note that dudi.pca divides by n instead of n-1 when scaling data
         n <- nrow(x)
-        x <- sweep(x, 2, sqrt(matrixStats::colVars(x)*(n-1)/n), FUN = "/")
+        x <- sweep(x, 2, sqrt(colVars(x)*(n-1)/n), FUN = "/")
     }
     if (inherits(listw, "Matrix") || is.matrix(listw))
         W <- listw
-    else if (is(listw, "listw"))
-        W <- listw2sparse(listw)
+    else if (inherits(listw, "listw"))
+        W <- spatialreg::as_dgRMatrix_listw(listw)
     else
         stop("listw must be either a listw object or an adjacency matrix.")
     covar <- t(x) %*% (W + t(W)) %*% x / (2*nrow(x))
