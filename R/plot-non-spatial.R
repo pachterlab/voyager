@@ -117,14 +117,14 @@ ElbowPlot <- function(sce, ndims = 20, nfnega = 0, reduction = "PCA",
 .get_loadings_df <- function(sce, loadings, loading_cols, nfeatures, balanced,
                              swap_rownames) {
     df <- cbind(as.data.frame(rowData(sce)[rownames(loadings),, drop = FALSE]),
-                loadings[, loading_cols, drop = FALSE])
+                as.matrix(loadings[, loading_cols, drop = FALSE]))
     if (is.null(swap_rownames) || !swap_rownames %in% names(df)) {
         df$gene_show <- rownames(loadings)
     } else {
         df$gene_show <- df[[swap_rownames]]
     }
     df_plt <- lapply(loading_cols, function(p) {
-        df_use <- df[, c("gene_show", p)]
+        df_use <- df[, c("gene_show", p), drop = FALSE]
         names(df_use)[2] <- "value"
         out <- .get_top_loading_genes(df_use, nfeatures, balanced)
         out$PC <- p
