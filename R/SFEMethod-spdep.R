@@ -7,9 +7,9 @@ uni_local <- c(spdep_uni, scope = "local")
 # Construct SFEMethod object for Moran's I
 moran <- SFEMethod(
     name = "moran", title = "Moran's I", package = "spdep",
-    fun = function(x, listw, zero.policy = NULL)
+    fun = function(x, listw, zero.policy = NULL, NAOK = FALSE)
         spdep::moran(x, listw, n = length(listw$neighbours), S0 = spdep::Szero(listw),
-                     zero.policy = zero.policy),
+                     zero.policy = zero.policy, NAOK = NAOK),
     reorganize_fun = .moran2df
 )
 
