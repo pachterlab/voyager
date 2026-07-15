@@ -2,15 +2,16 @@
 .calc_univar <- function(x, fun, BPPARAM, ...) {
     if (inherits(x, "DFrame") || is.data.frame(x)) {
         if (inherits(x, "sf")) x <- st_drop_geometry(x)
-        x <- t(as.matrix(x))
+        x <- as.matrix(x)
         if (anyNA(x)) {
             stop("Only numeric columns without NA (within the sample_id) can be used.")
         }
     }
-    out <- bplapply(seq_len(nrow(x)), function(i) {
-        fun(x[i, ], ...)
+    x <- t(x)
+    out <- bplapply(seq_len(ncol(x)), function(i) {
+        fun(x[, i], ...)
     }, BPPARAM = BPPARAM)
-    names(out) <- rownames(x)
+    names(out) <- colnames(x)
     return(out)
 }
 
