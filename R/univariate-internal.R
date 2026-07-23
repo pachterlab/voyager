@@ -6,8 +6,7 @@
         if (anyNA(x)) {
             stop("Only numeric columns without NA (within the sample_id) can be used.")
         }
-    }
-    x <- t(x)
+    } else x <- t(x)
     out <- bplapply(seq_len(ncol(x)), function(i) {
         fun(x[, i], ...)
     }, BPPARAM = BPPARAM)
