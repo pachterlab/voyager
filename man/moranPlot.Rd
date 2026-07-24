@@ -120,10 +120,10 @@ library(SpatialFeatureExperiment)
 library(SingleCellExperiment)
 library(SFEData)
 library(bluster)
-library(scater)
+library(scrapper)
 sfe <- McKellarMuscleData("full")
 sfe <- sfe[, colData(sfe)$in_tissue]
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1",
                      swap_rownames = "symbol")

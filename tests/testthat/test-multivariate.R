@@ -1,10 +1,10 @@
 library(SFEData)
-library(scater)
+library(scrapper)
 library(DelayedArray)
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 inds <- order(Matrix::rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
 mat <- logcounts(sfe)[inds,]
 g <- colGraph(sfe, "visium") <- findVisiumGraph(sfe)
@@ -85,7 +85,7 @@ test_that("CalculateMultivariate for SFE, one sample", {
 
 sfe2 <- McKellarMuscleData("small2")
 sfe2 <- sfe2[,sfe2$in_tissue]
-sfe2 <- logNormCounts(sfe2)
+sfe2 <- normalizeRnaCounts.se(sfe2)
 colGraph(sfe2, "visium") <- findVisiumGraph(sfe2)
 sfe3 <- SpatialFeatureExperiment::cbind(sfe, sfe2)
 # More general case when different samples don't occupy distinct blocks

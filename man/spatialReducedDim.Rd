@@ -241,9 +241,10 @@ deal with GWPCA results.
 }
 \examples{
 library(SFEData)
+library(scrapper)
 library(scater)
 sfe <- McKellarMuscleData("small")
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 sfe <- runPCA(sfe, ncomponents = 2)
 spatialReducedDim(sfe, "PCA", ncomponents = 2, "spotPoly",
     annotGeometryName = "tissueBoundary",

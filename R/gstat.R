@@ -489,10 +489,10 @@ design_ragged_rows <- function(data, rows, cols) {
 #' @export
 #' @examples
 #' library(SFEData)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData()
 #' sfe <- sfe[,sfe$in_tissue]
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #'
 #' res <- calculateBivariate(sfe, type = "cross_variogram",
 #' feature1 = c("Myh1", "Myh2", "Csrp3"), swap_rownames = "symbol")
@@ -535,10 +535,10 @@ plotCrossVariogram <- function(res, show_np = TRUE) {
 #' @export
 #' @examples
 #' library(SFEData)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData()
 #' sfe <- sfe[,sfe$in_tissue]
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #'
 #' res <- calculateBivariate(sfe, type = "cross_variogram_map",
 #' feature1 = c("Myh1", "Myh2", "Csrp3"), swap_rownames = "symbol",

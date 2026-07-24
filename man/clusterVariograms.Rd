@@ -23,7 +23,7 @@ computed for features of interest.}
 
 \item{features}{Features whose correlograms to cluster.}
 
-\item{BLUSPARAM}{A \linkS4class{BlusterParam} object specifying the algorithm to use.}
+\item{BLUSPARAM}{A \link[bluster:BlusterParam-class]{BlusterParam} object specifying the algorithm to use.}
 
 \item{n}{Number of points on the fitted variogram line.}
 
@@ -60,11 +60,11 @@ different samples can have different distance bins.
 }
 \examples{
 library(SFEData)
-library(scater)
+library(scrapper)
 library(bluster)
 library(Matrix)
 sfe <- McKellarMuscleData()
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 # Just the highly expressed genes
 gs <- order(Matrix::rowSums(counts(sfe)), decreasing = TRUE)[1:10]
 genes <- rownames(sfe)[gs]

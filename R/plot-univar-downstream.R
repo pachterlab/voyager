@@ -192,10 +192,7 @@
 #' @param ... Other arguments to pass to \code{\link{geom_density2d}}.
 #' @return A ggplot object.
 #' @concept Plot spatial analysis results
-#' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline
-#'   geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled
-#'   scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion
-#'   ggplot_build aes geom_hex geom_bin2d
+#' @importFrom ggplot2 geom_point geom_smooth geom_hline geom_vline geom_density2d scale_shape_manual coord_equal labs geom_density2d_filled scale_fill_viridis_d scale_x_continuous scale_y_continuous expansion ggplot_build aes geom_hex geom_bin2d
 #' @importFrom SpatialFeatureExperiment localResult
 #' @export
 #' @examples
@@ -203,10 +200,10 @@
 #' library(SingleCellExperiment)
 #' library(SFEData)
 #' library(bluster)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData("full")
 #' sfe <- sfe[, colData(sfe)$in_tissue]
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' sfe <- runUnivariate(sfe, type = "moran.plot", features = "Myh1",
 #'                      swap_rownames = "symbol")
@@ -443,9 +440,9 @@ moranPlot <- function(sfe, feature, graphName = 1L, sample_id = "all",
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
 #' library(bluster)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData("small")
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' inds <- c(1, 3, 4, 5)
 #' features <- rownames(sfe)[inds]

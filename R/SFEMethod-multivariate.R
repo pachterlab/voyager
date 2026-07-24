@@ -35,11 +35,11 @@
 #' @importFrom utils head tail
 #' @examples
 #' library(SFEData)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData("small")
 #' sfe <- sfe[,sfe$in_tissue]
-#' sfe <- logNormCounts(sfe)
-#' inds <- order(rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
+#' sfe <- normalizeRnaCounts.se(sfe)
+#' inds <- order(Matrix::rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
 #' mat <- logcounts(sfe)[inds,]
 #' g <- findVisiumGraph(sfe)
 #' out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)
@@ -60,9 +60,10 @@ multispati_rsp <- function(x, listw, nfposi = 30L, nfnega = 30L, scale = TRUE) {
     }
     if (inherits(listw, "Matrix") || is.matrix(listw))
         W <- listw
-    else if (inherits(listw, "listw"))
+    else if (inherits(listw, "listw")) {
+        rlang::check_installed("spatialreg")
         W <- spatialreg::as_dgRMatrix_listw(listw)
-    else
+    } else
         stop("listw must be either a listw object or an adjacency matrix.")
     covar <- t(x) %*% (W + t(W)) %*% x / (2*nrow(x))
     if (nfnega == 0L) {

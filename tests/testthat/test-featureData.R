@@ -1,6 +1,5 @@
 library(SFEData)
 library(SpatialFeatureExperiment)
-library(scater)
 library(spdep)
 
 sfe <- McKellarMuscleData("small")

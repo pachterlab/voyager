@@ -2,6 +2,7 @@ library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
 library(Matrix)
 library(bluster)
+library(scrapper)
 library(scater)
 sfe <- readRDS(system.file("extdata/sfe.rds", package = "Voyager"))
 set.seed(29)
@@ -302,7 +303,7 @@ res <- localResult(sfe, "localmoran", "nCounts", sample_id = "all")
 
 test_that("Properly add moran.plot results to localResults when only one gene is used", {
     colGraph(sfe1, "visium") <- findVisiumGraph(sfe1)
-    sfe1 <- logNormCounts(sfe1)
+    sfe1 <- normalizeRnaCounts.se(sfe1)
     sfe1 <- runUnivariate(sfe1, "moran.plot", features = "Myh1", colGraphName = "visium",
                           swap_rownames = "symbol")
     expect_equal(localResultFeatures(sfe1, "moran.plot"),
@@ -367,7 +368,7 @@ test_that("annotGeometryUnivariate run on multiple samples", {
                  attr(annotGraph(sfe, "knn", "Vis5A"), "method"))
 })
 
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 sfe <- runPCA(sfe, ncomponent = 2)
 
 test_that("Univariate global results corrected added to metadata of reducedDim", {

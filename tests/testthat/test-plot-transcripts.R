@@ -1,6 +1,7 @@
 library(SFEData)
 library(SingleCellExperiment)
 library(SpatialFeatureExperiment)
+library(scrapper)
 library(scater)
 library(sf)
 library(spdep)
@@ -139,7 +140,7 @@ test_that("plotSpatialFeature showing transcript spots", {
                                      tx_fixed = list(size = 0.5, shape = 4, color = "violet")))
 })
 
-sfe <- logNormCounts(sfe, size.factors = sfe$cell_area)
+sfe <- normalizeRnaCounts.se(sfe, size.factors = sfe$cell_area)
 colGraph(sfe, "knn") <- findSpatialNeighbors(sfe, method = "knearneigh", k = 5)
 sfe <- runUnivariate(sfe, "localmoran", features = genes_use)
 

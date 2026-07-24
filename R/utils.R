@@ -1,5 +1,4 @@
-#' @importFrom SpatialFeatureExperiment .value2df .check_features
-#'   .warn_symbol_duplicate .symbol2id .check_sample_id .rm_empty_geometries
+#' @importFrom SpatialFeatureExperiment .value2df .check_features .warn_symbol_duplicate .symbol2id .check_sample_id .rm_empty_geometries
 
 .drop_null_list <- function(l) {
     null_inds <- vapply(l, is.null, FUN.VALUE = logical(1L))
@@ -15,8 +14,7 @@
     name
 }
 
-#' @importFrom SpatialFeatureExperiment sampleIDs annotGeometry annotGeometry<-
-#' colGeometry colGeometry<-
+#' @importFrom SpatialFeatureExperiment sampleIDs annotGeometry annotGeometry<- colGeometry colGeometry<-
 #' @importFrom SummarizedExperiment colData<-
 #' @importFrom methods is
 #' @importFrom SingleCellExperiment int_colData int_colData<-
@@ -203,8 +201,7 @@
     out[!.is_na_list(out)]
 }
 
-#' @importFrom SpatialFeatureExperiment colFeatureData geometryFeatureData
-#' reducedDimFeatureData
+#' @importFrom SpatialFeatureExperiment colFeatureData geometryFeatureData reducedDimFeatureData
 .get_feature_metadata <- function(sfe, features, name, sample_id,
                                   colGeometryName, annotGeometryName,
                                   reducedDimName,

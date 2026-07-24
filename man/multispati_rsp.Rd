@@ -40,11 +40,11 @@ in the scaled matrix.
 }
 \examples{
 library(SFEData)
-library(scater)
+library(scrapper)
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
-sfe <- logNormCounts(sfe)
-inds <- order(rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
+sfe <- normalizeRnaCounts.se(sfe)
+inds <- order(Matrix::rowSums(logcounts(sfe)), decreasing = TRUE)[1:50]
 mat <- logcounts(sfe)[inds,]
 g <- findVisiumGraph(sfe)
 out <- multispati_rsp(t(mat), listw = g, nfposi = 10, nfnega = 10)

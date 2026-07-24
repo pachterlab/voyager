@@ -69,14 +69,12 @@
 #' @examples
 #' # example code
 #' library(SFEData)
-#' library(scater)
-#' library(scran)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData()
-#' sfe <- logNormCounts(sfe)
-#' gvs <- modelGeneVar(sfe)
-#' hvgs <- getTopHVGs(gvs, fdr.threshold = 0.05)
+#' sfe <- normalizeRnaCounts.se(sfe)
+#' sfe <- chooseRnaHvgs.se(sfe)
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
-#' sfe <- runMultivariate(sfe, "multispati", subset_row = hvgs)
+#' sfe <- runMultivariate(sfe, "multispati", subset_row = rowData(sfe)$hvg)
 NULL
 
 #' @rdname calculateMultivariate

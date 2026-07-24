@@ -216,10 +216,6 @@ plotDimLoadings <- function(sce, dims = 1:4, nfeatures = 10,
              bins = 100, binwidth = NULL, scales = "free", ncol = 1,
              position = "stack", ...) {
         args <- list(...)
-        if (missing(sce) && "sfe" %in% names(args)) {
-            warning("Argument 'sfe' is deprecated. Please use 'sce' instead.")
-            sce <- args$sfe
-        }
         df <- as.data.frame(fun(sce)[, c(feature, fill_by, facet_by, subset),
                                      drop = FALSE], optional = TRUE)
         if (!is.null(facet_by) && !.is_discrete(df[[facet_by]])) {

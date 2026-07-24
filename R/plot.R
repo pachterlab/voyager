@@ -147,8 +147,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     out
 }
 
-#' @importFrom ggplot2 element_rect element_text theme margin %+replace% element_line
-#' theme_gray rel
+#' @importFrom ggplot2 element_rect element_text theme margin %+replace% element_line theme_gray rel
 .dark_theme <- function(show_axes = FALSE) {
     # From Seurat but no axes
     black.background <- element_rect(fill = 'black')
@@ -198,9 +197,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
 }
 
 #' @importFrom sf st_drop_geometry st_geometry_type
-#' @importFrom ggplot2 ggplot geom_sf scale_fill_manual
-#' scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon
-#' geom_segment stat_density2d waiver stat_summary_2d stat_summary_hex
+#' @importFrom ggplot2 ggplot geom_sf scale_fill_manual scale_color_manual scale_fill_distiller scale_color_distiller geom_polygon geom_segment stat_density2d waiver stat_summary_2d stat_summary_hex
 #' @importFrom scico scale_fill_scico scale_color_scico
 #' @importFrom ggnewscale new_scale_color new_scale_fill
 #' @importFrom rlang syms !!!
@@ -496,8 +493,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
     df
 }
 
-#' @importFrom SpatialFeatureExperiment isFull imgSource getPixelSize ext
-#' aggBboxes cropImg imageIDs translateImg toSpatRasterImage getParams
+#' @importFrom SpatialFeatureExperiment isFull imgSource getPixelSize ext aggBboxes cropImg imageIDs translateImg toSpatRasterImage getParams
 #' @importFrom sf st_area
 #' @importFrom terra RGB<- rast
 .find_res <- function(bfi, maxcell) {
@@ -1269,7 +1265,6 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' shouldn't exceed about 6 or a warning will be issued.
 #'
 #' @inheritParams plotSpatialFeature
-#' @inheritParams SpatialFeatureExperiment::findSpatialNeighbors
 #' @inheritParams plotTxBin2D
 #' @param fill Logical, whether to fill polygons.
 #' @param tx_alpha Transparency for transcript spots, helpful when the
@@ -1287,7 +1282,6 @@ plotCellBin2D <- function(sfe, sample_id = "all", bins = 200, binwidth = NULL,
 #' plotGeometry(sfe, colGeometryName = "spotPoly")
 #' plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
 plotGeometry <- function(sfe,
-                         type = lifecycle::deprecated(), MARGIN = lifecycle::deprecated(),
                          colGeometryName = NULL, annotGeometryName = NULL,
                          rowGeometryName = NULL, gene = "all",
                          sample_id = "all",
@@ -1298,25 +1292,7 @@ plotGeometry <- function(sfe,
                          palette = colorRampPalette(c("black", "white"))(255),
                          normalize_channels = FALSE) {
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
-    if (is_present(type))
-        deprecate_warn("1.8.0", "plotGeometry(type)", details =
-                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
-    if (is_present(MARGIN))
-        deprecate_warn("1.8.0", "plotGeometry(MARGIN)", details =
-                           "Please use colGeometryName, annotGeometryName, or rowGeometryName instead.")
-    if (is_present(type) && is_present(MARGIN)) {
-        # The old behavior
-        if (MARGIN == 2L) {
-            colGeometryName <- type
-            annotGeometryName <- NULL
-            rowGeometryName <- NULL
-        }
-        else if (MARGIN == 3L) {
-            annotGeometryName <- type
-            colGeometryName <- NULL
-            rowGeometryName <- NULL
-        }
-    }
+
     if (is.null(colGeometryName) && is.null(annotGeometryName) && is.null(rowGeometryName)) {
         stop("At lease one of colGeometryName, annotGeometryName, and rowGeometryName must be specified.")
     }

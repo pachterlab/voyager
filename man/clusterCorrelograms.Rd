@@ -23,7 +23,7 @@ computed for features of interest.}
 
 \item{features}{Features whose correlograms to cluster.}
 
-\item{BLUSPARAM}{A \linkS4class{BlusterParam} object specifying the algorithm to use.}
+\item{BLUSPARAM}{A \link[bluster:BlusterParam-class]{BlusterParam} object specifying the algorithm to use.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately

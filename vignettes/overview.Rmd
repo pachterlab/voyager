@@ -63,8 +63,7 @@ library(SpatialFeatureExperiment)
 library(SpatialExperiment)
 library(ggplot2)
 library(Voyager)
-library(scater)
-library(scran)
+library(scrapper)
 library(pheatmap)
 ```
 
@@ -92,14 +91,11 @@ sfe <- addImg(sfe, imageSource = "tissue_lowres_5a.jpeg", sample_id = "Vis5A",
 ```
 
 The image needs to be flipped to match the spots, because the origin of the image is at the top left corner while the origin of the spots is at the bottom left.
-```{r}
-sfe <- mirrorImg(sfe, sample_id = "Vis5A", image_id = "lowres")
-```
 
 ```{r}
 # Only use spots in tissue here
 sfe <- sfe[,colData(sfe)$in_tissue]
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 sfe
 ```
 
@@ -138,8 +134,8 @@ Spatial statistics can also be computed for numeric columns of `colData(sfe)`, w
 Akin to `runUnivariate()` and `calculateUnivariate()`, the uniform user interface for bivariate spatial statistics is `runBivariate()` and `calculateBivariate()`. Here we find top highly variable genes (HVGs) and compute a spatially informed correlation matrix, with Lee's L. Note that global bivariate results can't be stored in the SFE object in this version of `Voyager`.
 
 ```{r}
-gs <- modelGeneVar(sfe)
-hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+sfe <- chooseRnaHvgs.se(sfe, top = 1000)
+hvgs <- rownames(sfe)[which(rowData(sfe)$hvg)]
 ```
 
 ```{r}
@@ -156,8 +152,7 @@ Here we see groups of genes correlated to each other, taking spatial autocorrela
 Multivariate spatial statistics also have a uniform user interface, `runMultivariate()`. The matrix results will go to `reducedDims`, while vector and data frame results can go into `colData`. Here we perform a form of spatially informed PCA, which maximizes the product of Moran's I and variance explained by each principal component. This method is called MULTISPATI, which is originally implemented in the `adespatial` package, but a much faster albeit less flexible implementation is used in `Voyager`. Because of the Moran's I, MULTISPATI can give negative eigenvalues, signifying negative spatial autocorrelation. The number of the most negative components to compute is specified in the `nfnega` argument.
 
 ```{r}
-hvgs2 <- getTopHVGs(gs, n = 1000)
-sfe <- runMultivariate(sfe, "multispati", colGraphName = "visium", subset_row = hvgs2,
+sfe <- runMultivariate(sfe, "multispati", colGraphName = "visium", subset_row = hvgs,
                        nfposi = 10, nfnega = 10)
 ```
 

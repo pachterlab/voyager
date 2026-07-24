@@ -74,12 +74,12 @@
 #' @examples
 #' library(SpatialFeatureExperiment)
 #' library(SFEData)
-#' library(scater)
+#' library(scrapper)
 #' sfe <- McKellarMuscleData("small")
 #' sfe <- sfe[,sfe$in_tissue]
 #' colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #' feature_use <- rownames(sfe)[1]
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #' sfe <- runUnivariate(sfe, "localmoran", feature_use)
 #' # Which types of results are available?
 #' localResultNames(sfe)

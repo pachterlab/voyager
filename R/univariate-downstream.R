@@ -179,11 +179,11 @@ clusterMoranPlot <- function(sfe, features, BLUSPARAM, sample_id = "all",
 #' @concept Downstream analyses of univariate spatial results
 #' @examples
 #' library(SFEData)
-#' library(scater)
+#' library(scrapper)
 #' library(bluster)
 #' library(Matrix)
 #' sfe <- McKellarMuscleData()
-#' sfe <- logNormCounts(sfe)
+#' sfe <- normalizeRnaCounts.se(sfe)
 #' # Just the highly expressed genes
 #' gs <- order(Matrix::rowSums(counts(sfe)), decreasing = TRUE)[1:10]
 #' genes <- rownames(sfe)[gs]

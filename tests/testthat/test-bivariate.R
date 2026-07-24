@@ -1,6 +1,5 @@
 library(SFEData)
-library(scater)
-library(scran)
+library(scrapper)
 library(SpatialFeatureExperiment)
 library(SpatialExperiment)
 library(vdiffr)
@@ -8,9 +7,10 @@ library(DelayedArray)
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
-sfe <- logNormCounts(sfe)
-gs <- modelGeneVar(sfe)
-hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+sfe <- normalizeRnaCounts.se(sfe)
+sfe <- chooseRnaHvgs.se(sfe)
+hvgs <- rownames(sfe)[which(rowData(sfe)$hvg)]
+hvgs <- hvgs[order(rowData(sfe)$residuals[rowData(sfe)$hvg], decreasing = TRUE)]
 
 g <- colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 
@@ -179,7 +179,8 @@ test_that("calculateBivariate SFE method", {
 
 sfe2 <- McKellarMuscleData("small2")
 sfe2 <- sfe2[,sfe2$in_tissue]
-sfe2 <- logNormCounts(sfe2)
+sfe2 <- normalizeRnaCounts.se(sfe2)
+rowData(sfe2)$means <- NULL
 sfe3 <- SpatialFeatureExperiment::cbind(sfe, sfe2)
 colGraphs(sfe3, sample_id = "all", name = "visium") <- findVisiumGraph(sfe3, sample_id = "all")
 
@@ -267,7 +268,7 @@ try(sfe <- readXenium(fp))
 sfe <- readXenium(fp)
 sfe <- sfe[rowData(sfe)$Type == "Gene Expression",]
 sfe <- sfe[DelayedArray::rowSums(counts(sfe)) > 0, DelayedArray::colSums(counts(sfe)) > 5]
-sfe <- logNormCounts(sfe, size.factors = sfe$cell_area)
+sfe <- normalizeRnaCounts.se(sfe, size.factors = sfe$cell_area)
 colGraph(sfe, "knn") <- findSpatialNeighbors(sfe, MARGIN = 2L,
                                              method = "knearneigh", k = 5)
 # Both counts and logcounts are DelayedArray

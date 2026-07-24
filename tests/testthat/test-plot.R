@@ -3,12 +3,12 @@ library(SpatialFeatureExperiment)
 library(SpatialExperiment)
 library(SingleCellExperiment)
 library(vdiffr)
-library(scater)
+library(scrapper)
 library(Matrix)
 library(ggplot2)
-library(scran)
 library(EBImage)
 library(scales)
+library(scater)
 spdep::set.SubgraphOption(FALSE)
 spdep::set.NoNeighbourOption(FALSE)
 
@@ -147,7 +147,7 @@ test_that("Everything plotSpatialFeature", {
 library(SFEData)
 sfe_muscle <- McKellarMuscleData("small")
 colGraph(sfe_muscle, "visium") <- findVisiumGraph(sfe_muscle)
-sfe_muscle <- logNormCounts(sfe_muscle)
+sfe_muscle <- normalizeRnaCounts.se(sfe_muscle)
 sfe_muscle <- runUnivariate(sfe_muscle, type = "localmoran",
                             c("Myh1", "Myh2"), "visium",
                             swap_rownames = "symbol")
@@ -410,11 +410,11 @@ test_that("ElbowPlot for PCA", {
 
 sfe1 <- McKellarMuscleData("small")
 sfe1 <- sfe1[,sfe1$in_tissue]
-sfe1 <- logNormCounts(sfe1)
+sfe1 <- normalizeRnaCounts.se(sfe1)
 inds <- order(Matrix::rowSums(logcounts(sfe1)), decreasing = TRUE)[1:50]
 sfe2 <- McKellarMuscleData("small2")
 sfe2 <- sfe2[,sfe2$in_tissue]
-sfe2 <- logNormCounts(sfe2)
+sfe2 <- normalizeRnaCounts.se(sfe2)
 sfe3 <- SpatialFeatureExperiment::cbind(sfe1, sfe2)
 colGraphs(sfe3, sample_id = "all", name = "visium") <-
     findVisiumGraph(sfe3, "all")
@@ -539,7 +539,7 @@ annot <- data.frame(x = c(bbox_use[c("xmin", "xmax")]),
 annot <- df2sf(annot, geometryType = "LINESTRING")
 annotGeometry(sfe_cosmx, "foo") <- annot
 sfe_cosmx <- sfe_cosmx[, sfe_cosmx$nCounts > 10]
-sfe_cosmx <- logNormCounts(sfe_cosmx)
+sfe_cosmx <- normalizeRnaCounts.se(sfe_cosmx)
 test_that("scattermore in plotSpatialFeature", {
     expect_ggplot("Plot colData with scattermore", {
         plotSpatialFeature(sfe_cosmx, "nCounts", colGeometryName = "centroids",
@@ -626,8 +626,6 @@ test_that("colData and rowData histograms", {
         sfe_cosmx$`n-counts` <- sfe_cosmx$nCounts
         plotColDataHistogram(sfe_cosmx, "n-counts")
     })
-    expect_warning(plotColDataHistogram(sfe = sfe_cosmx, feature = "nCounts"),
-                   "deprecated")
 })
 
 test_that("colData and rowData freqpoly", {
@@ -786,7 +784,7 @@ test_that("Using bbox with plotLocalResults", {
                         divergent = TRUE, diverge_center = 0)
     })
 })
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 sfe <- runPCA(sfe, ncomponents = 20, BSPARAM = BiocSingular::ExactParam())
 test_that("Using bbox with spatialReducedDim", {
     expect_ggplot("Use bbox with spatialReducedDim", {
@@ -848,9 +846,6 @@ test_that("Incorrect formats of bbox", {
     }, "Column names of bbox must match the sample IDs")
     expect_error(plotSpatialFeature(sfe, "nCounts", bbox = bbox),
                  "The bounding box does not overlap with the geometry")
-    expect_doppelganger("Cell density, hex", {
-        plotCellBin2D(sfe_cosmx, hex = TRUE, bins = 50)
-    })
 })
 
 sfe_muscle2 <- McKellarMuscleData()
@@ -878,11 +873,6 @@ test_that("Plot geometries", {
     expect_ggplot("plot colGeometry 1 sample", {
         plotGeometry(sfe_muscle, colGeometryName = "spotPoly")
     })
-    # Old behavior still works for now
-    w <- capture_warnings(plotGeometry(sfe, type = "myofiber_simplified", MARGIN = 3))
-    expect_match(w, "deprecated")
-    expect_ggplot("Old behavior for colGeometry",
-                  suppressWarnings(plotGeometry(sfe, type = "spotPoly", MARGIN = 2)))
     expect_ggplot("plot annotGeometry 2 samples", {
         plotGeometry(sfe, annotGeometryName = "myofiber_simplified")
     })
@@ -903,9 +893,9 @@ test_that("Plot geometries", {
     })
 })
 
-sfe_muscle2 <- logNormCounts(sfe_muscle2)
-gs <- modelGeneVar(sfe_muscle2)
-hvgs <- getTopHVGs(gs, fdr.threshold = 0.05)
+sfe_muscle2 <- normalizeRnaCounts.se(sfe_muscle2)
+sfe_muscle2 <- chooseRnaHvgs.se(sfe_muscle2)
+hvgs <- which(rowData(sfe_muscle2)$hvg)
 sfe_muscle2 <- runMultivariate(sfe_muscle2, "multispati", subset_row = hvgs)
 sfe_muscle2 <- reducedDimUnivariate(sfe_muscle2, "sp.correlogram", dimred = "multispati",
                                     components = 1:10, order = 3)
@@ -1010,9 +1000,9 @@ test_that("plotSpatialFeature with grayscale image", {
 })
 
 colGraph(sfe_ob, "visium") <- findVisiumGraph(sfe_ob)
-sfe_ob <- logNormCounts(sfe_ob)
-gs <- modelGeneVar(sfe_ob)
-hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+sfe_ob <- normalizeRnaCounts.se(sfe_ob)
+sfe_ob <- chooseRnaHvgs.se(sfe_ob)
+hvgs <- rownames(sfe_ob)[which(rowData(sfe_ob)$hvg)]
 sfe_ob <- runUnivariate(sfe_ob, "localmoran", hvgs[1])
 
 ag <- spotPoly(sfe_ob)

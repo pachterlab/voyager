@@ -34,18 +34,17 @@
 #' @export
 #' @examples
 #' library(SFEData)
-#' library(scater)
-#' library(scran)
+#' library(scrapper)
 #' library(SpatialFeatureExperiment)
 #' library(SpatialExperiment)
 #' sfe <- McKellarMuscleData()
 #' sfe <- sfe[,sfe$in_tissue]
-#' sfe <- logNormCounts(sfe)
-#' gs <- modelGeneVar(sfe)
-#' hvgs <- getTopHVGs(gs, fdr.threshold = 0.01)
+#' sfe <- normalizeRnaCounts.se(sfe)
+#' sfe <- chooseRnaHvgs.se(sfe)
 #' g <- colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 #'
 #' # Matrix method
+#' hvgs <- which(rowData(sfe)$hvg)
 #' mat <- logcounts(sfe)[hvgs[1:5],]
 #' df <- df2sf(spatialCoords(sfe), spatialCoordsNames(sfe))
 #' out <- calculateBivariate(mat, type = "lee", listw = g)

@@ -23,7 +23,7 @@ stored in \code{rowData}. See \code{\link{calculateUnivariate}}.}
 \item{features}{Features whose Moran plot are to be cluster. Features whose
 Moran plots have not been computed will be skipped, with a warning.}
 
-\item{BLUSPARAM}{A \linkS4class{BlusterParam} object specifying the algorithm to use.}
+\item{BLUSPARAM}{A \link[bluster:BlusterParam-class]{BlusterParam} object specifying the algorithm to use.}
 
 \item{sample_id}{Sample(s) in the SFE object whose cells/spots to use. Can be
 "all" to compute metric for all samples; the metric is computed separately

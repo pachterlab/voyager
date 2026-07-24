@@ -12,8 +12,10 @@
 #' @importFrom DelayedArray sweep
 .lee_mat <- function(x, y = NULL, listw, zero.policy = TRUE, ...) {
     # X has genes in rows
-    if (inherits(listw, "listw"))
+    if (inherits(listw, "listw")) {
+        rlang::check_installed("spatialreg")
         W <- spatialreg::as_dgRMatrix_listw(listw)
+    }
     else W <- listw
     x <- .scale_n(x)
     if (!is.null(y)) {

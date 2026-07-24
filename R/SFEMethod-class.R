@@ -122,8 +122,7 @@
 #' )
 #' @name SFEMethod
 #' @concept Extensibility
-#' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun
-#'   is_joint use_graph use_matrix
+#' @aliases SFEMethod-class args_not_check fun info is_local reorganize_fun is_joint use_graph use_matrix
 setClass("SFEMethod", slots = c(
     info = "character",
     fun = "function",

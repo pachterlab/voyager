@@ -104,9 +104,9 @@ error bars are twice the standard deviation of the estimated Moran's I value.
 library(SpatialFeatureExperiment)
 library(SFEData)
 library(bluster)
-library(scater)
+library(scrapper)
 sfe <- McKellarMuscleData("small")
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 colGraph(sfe, "visium") <- findVisiumGraph(sfe)
 inds <- c(1, 3, 4, 5)
 features <- rownames(sfe)[inds]

@@ -1,4 +1,5 @@
 library(SFEData)
+library(scrapper)
 library(scater)
 library(SpatialExperiment)
 library(vdiffr)
@@ -12,7 +13,7 @@ expect_ggplot <- function(g) {
 
 sfe <- McKellarMuscleData("small")
 sfe <- sfe[,sfe$in_tissue]
-sfe <- logNormCounts(sfe)
+sfe <- normalizeRnaCounts.se(sfe)
 gs <- order(Matrix::rowSums(counts(sfe)), decreasing = TRUE)[1:10]
 genes <- rownames(sfe)[gs]
 mat <- logcounts(sfe)[gs,]
@@ -90,7 +91,7 @@ test_that("Use formula", {
 
 sfe2 <- McKellarMuscleData("small2")
 sfe2 <- sfe2[,sfe2$in_tissue]
-sfe2 <- logNormCounts(sfe2)
+sfe2 <- normalizeRnaCounts.se(sfe2)
 sfe3 <- SpatialFeatureExperiment::cbind(sfe, sfe2)
 sfe <- runPCA(sfe, ncomponents = 5)
 

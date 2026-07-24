@@ -6,8 +6,6 @@
 \usage{
 plotGeometry(
   sfe,
-  type = lifecycle::deprecated(),
-  MARGIN = lifecycle::deprecated(),
   colGeometryName = NULL,
   annotGeometryName = NULL,
   rowGeometryName = NULL,
@@ -30,13 +28,6 @@ plotGeometry(
 }
 \arguments{
 \item{sfe}{A \code{SpatialFeatureExperiment} object.}
-
-\item{type}{Name of the geometry associated with the MARGIN of interest for
-which to compute the graph.}
-
-\item{MARGIN}{Just like in \code{\link{apply}}, where 1 stands for row, 2
-stands for column. Here, in addition, 3 stands for annotation, to query the
-\code{\link[SpatialFeatureExperiment]{annotGeometries}}, such as nuclei segmentation in a Visium data}
 
 \item{colGeometryName}{Name of a \code{colGeometry} \code{sf} data frame
 whose numeric columns of interest are to be used to compute the metric. Use
