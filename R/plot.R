@@ -361,7 +361,8 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 divergent, diverge_center, annot_divergent,
                                 annot_diverge_center, scattermore, pointsize,
                                 bins, summary_fun, hex, maxcell, show_axes, dark,
-                                palette, tx_df, rowGeometryFeatures, ...) {
+                                palette, tx_df, rowGeometryFeatures,
+                                drop_zero = FALSE, ...) {
     feature_fixed <- list(
         size = size, linewidth = linewidth, shape = shape, linetype = linetype,
         alpha = alpha, color = color, fill = fill
@@ -373,6 +374,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         plots <- lapply(features, function(n) {
             feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
             feature_aes <- setNames(list(n), feature_aes_name)
+            if (drop_zero) df <- .drop_zero_inds(df, n)
             .plot_var_sf(
                 df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
                 annot_aes, annot_fixed, tx_fixed, divergent, diverge_center,
@@ -385,6 +387,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         plots <- lapply(names(values), function(n) {
             feature_aes_name <- .get_feature_aes(df[[n]], type, aes_use, shape)
             feature_aes <- setNames(list(n), feature_aes_name)
+            if (drop_zero) df <- .drop_zero_inds(df, n)
             .plot_var_sf(
                 df, annot_df, img_df, channel, type, type_annot, feature_aes, feature_fixed,
                 annot_aes, annot_fixed, tx_fixed, divergent, diverge_center,
@@ -715,6 +718,50 @@ getDivergeRange <- function(values, diverge_center = 0) {
     data.frame(sample_id = sample_id, data = I(imgs))
 }
 
+# Which cells/spots of the samples plotted are selected by argument `subset`,
+# as a logical vector aligned to the rows of the colGeometry being plotted
+.subset_inds <- function(sfe, subset, sample_id) {
+    in_sample <- colData(sfe)$sample_id %in% sample_id
+    n_plotted <- sum(in_sample)
+    if (is.logical(subset)) {
+        if (!length(subset) %in% c(ncol(sfe), n_plotted)) {
+            stop("Logical vector `subset` must have length ncol(sfe) (",
+                 ncol(sfe), ") or the number of cells or spots in the ",
+                 "sample(s) plotted (", n_plotted, ").")
+        }
+        if (length(subset) == ncol(sfe)) subset <- subset[in_sample]
+        subset[is.na(subset)] <- FALSE
+        out <- subset
+    } else if (is.character(subset)) {
+        ids <- colnames(sfe)
+        if (is.null(ids)) {
+            stop("`sfe` does not have colnames, so `subset` can't be cell IDs.")
+        }
+        out <- ids[in_sample] %in% subset
+    } else if (is.numeric(subset)) {
+        inds <- seq_len(ncol(sfe))[subset]
+        if (anyNA(inds)) {
+            stop("`subset` has indices out of range of the columns of `sfe`.")
+        }
+        out <- (seq_len(ncol(sfe)) %in% inds)[in_sample]
+    } else {
+        stop("`subset` must be a logical vector, a character vector of cell ",
+             "IDs, or a numeric vector of column indices of `sfe`.")
+    }
+    if (!any(out)) {
+        stop("`subset` does not select any cell or spot in the sample(s) plotted.")
+    }
+    out
+}
+
+# Drop the items whose value of the feature about to be plotted is 0, so the
+# geometries of sparse features don't cover up what's plotted beneath them
+.drop_zero_inds <- function(df, feature) {
+    values <- df[[feature]]
+    if (!is.numeric(values)) return(df)
+    df[is.na(values) | values != 0, , drop = FALSE]
+}
+
 #' @importFrom rlang check_installed
 .plotSpatialFeature <- function(sfe, values, colGeometryName, sample_id, ncol,
                                 ncol_sample, annotGeometryName, annot_aes,
@@ -724,12 +771,14 @@ getDivergeRange <- function(values, diverge_center = 0) {
                                 linetype, alpha, color, fill, scattermore,
                                 pointsize, bins, summary_fun, hex, maxcell,
                                 show_axes, dark, palette, normalize_channels,
-                                rowGeometryName, rowGeometryFeatures, tx_file,...) {
+                                rowGeometryName, rowGeometryFeatures, tx_file,
+                                subset = NULL, drop_zero = FALSE, ...) {
     df <- colGeometry(sfe, colGeometryName, sample_id = sample_id)
     df$sample_id <- colData(sfe)$sample_id[colData(sfe)$sample_id %in% sample_id]
     # In case of illegal names
     names_orig <- names(values)
     df <- cbind(df[,c("geometry", "sample_id")], values)
+    if (!is.null(subset)) df <- df[.subset_inds(sfe, subset, sample_id),]
     df <- .crop(df, bbox)
     names(df)[!names(df) %in% c("geometry", "sample_id")] <- names_orig
     type_df <- .get_generalized_geometry_type(df)
@@ -775,7 +824,7 @@ getDivergeRange <- function(values, diverge_center = 0) {
         color, fill, ncol, ncol_sample, divergent,
         diverge_center, annot_divergent, annot_diverge_center, scattermore,
         pointsize, bins, summary_fun, hex, maxcell, show_axes, dark, palette,
-        tx_df, rowGeometryFeatures,...
+        tx_df, rowGeometryFeatures, drop_zero = drop_zero,...
     )
 }
 
@@ -881,6 +930,21 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #'   relevant defaults for this function.
 #' @param tx_fixed Similar to \code{annot_fixed}, but to specify fixed aesthetic
 #'   for transcript spots.
+#' @param subset Which cells or spots to plot, for instance to only plot the
+#'   cells of one cluster. Can be a logical vector as long as the number of
+#'   columns of \code{sfe} or the number of cells or spots in the sample(s)
+#'   plotted, a character vector of cell IDs as in \code{colnames(sfe)}, or a
+#'   numeric vector of column indices of \code{sfe}, negative to exclude. The
+#'   cells or spots left out are not drawn at all, while the extent of the plot
+#'   and the \code{annotGeometry}, image, and transcript spots plotted are
+#'   unaffected. Defaults to \code{NULL}, which means plotting all of them.
+#' @param drop_zero Logical, whether to leave out the cells or spots whose value
+#'   of the feature being plotted is 0. Useful for sparse data such as Visium HD
+#'   at 2 micron resolution, where the geometries of the many items with 0
+#'   counts cover up the image or the transcript spots beneath them. This is
+#'   applied to each feature separately, so an item left out of the panel of one
+#'   feature is still plotted in the panel of another feature where it's
+#'   non-zero. Only applies to numeric features; \code{NA}s are kept.
 #' @param ncol Number of columns if plotting multiple features. Defaults to
 #'   \code{NULL}, which means using the same logic as \code{facet_wrap}, which
 #'   is used by \code{patchwork}'s \code{\link{wrap_plots}} by default.
@@ -993,6 +1057,12 @@ getDivergeRange <- function(values, diverge_center = 0) {
 #' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
 #'                   annotGeometry = "myofiber_simplified",
 #'                   bbox = bbox, annot_fixed = list(linewidth = 0.3))
+#' # Only plot the spots in tissue
+#' plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+#'                   subset = sfe$in_tissue)
+#' # Leave out the spots where the gene isn't detected
+#' plotSpatialFeature(sfe, rownames(sfe)[1], colGeometryName = "spotPoly",
+#'                   exprs_values = "counts", drop_zero = TRUE)
 plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                sample_id = "all", ncol = NULL,
                                ncol_sample = NULL,
@@ -1017,6 +1087,7 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
                                show_axes = FALSE, dark = FALSE,
                                palette = colorRampPalette(c("black", "white"))(255),
                                normalize_channels = FALSE,
+                               subset = NULL, drop_zero = FALSE,
                                ...) {
     aes_use <- match.arg(aes_use)
     sample_id <- .check_sample_id(sfe, sample_id, one = FALSE)
@@ -1041,7 +1112,8 @@ plotSpatialFeature <- function(sfe, features, colGeometryName = 1L,
         annot_diverge_center, size, shape, linewidth, linetype,
         alpha, color, fill, scattermore, pointsize, bins, summary_fun, hex,
         maxcell, show_axes, dark, palette, normalize_channels,
-        rowGeometryName, rowGeometryFeatures, tx_file, ...
+        rowGeometryName, rowGeometryFeatures, tx_file,
+        subset = subset, drop_zero = drop_zero, ...
     )
 }
 
