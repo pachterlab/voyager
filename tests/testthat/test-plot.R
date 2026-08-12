@@ -143,6 +143,163 @@ test_that("Everything plotSpatialFeature", {
     })
 })
 
+# Selectively plotting cells or spots
+n_drawn <- function(g) nrow(ggplot_build(g)$data[[1]])
+in_sample01 <- colData(sfe)$sample_id == "sample01"
+counts_h <- assay(sfe, "counts")["H", in_sample01]
+counts_b <- assay(sfe, "counts")["B", in_sample01]
+
+test_that("subset says which cells or spots to plot", {
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts")),
+                 sum(in_sample01))
+    # Logical vector as long as the sample plotted
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = counts_h > 0)),
+                 sum(counts_h > 0))
+    # Logical vector as long as the whole object
+    l <- rep(FALSE, ncol(sfe))
+    l[in_sample01] <- counts_h > 0
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = l)),
+                 sum(counts_h > 0))
+    # NAs don't select
+    l2 <- counts_h > 0
+    l2[1] <- NA
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = l2)),
+                 sum(l2, na.rm = TRUE))
+    # Cell IDs
+    ids <- colnames(sfe)[in_sample01][1:4]
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = ids)),
+                 4L)
+    # Column indices, and negative indices to leave cells out
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = which(in_sample01)[1:3])),
+                 3L)
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = -which(in_sample01)[1])),
+                 sum(in_sample01) - 1L)
+})
+
+test_that("subset doesn't affect the annotGeometry plotted", {
+    args <- list(sfe, "H", "spotPoly", "sample01", exprs_values = "counts",
+                 annotGeometryName = "annot", annot_aes = list(fill = "bar"))
+    n_all <- vapply(ggplot_build(do.call(plotSpatialFeature, args))$data,
+                    nrow, FUN.VALUE = integer(1))
+    n_sub <- vapply(ggplot_build(do.call(plotSpatialFeature,
+                                         c(args, list(subset = counts_h > 0))))$data,
+                    nrow, FUN.VALUE = integer(1))
+    # Only the layer of the colGeometry has fewer geometries
+    expect_equal(sum(n_all != n_sub), 1L)
+    expect_equal(unname(n_sub[n_all != n_sub]), sum(counts_h > 0))
+})
+
+test_that("subset must make sense", {
+    expect_error(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                    exprs_values = "counts",
+                                    subset = c(TRUE, FALSE)),
+                 "must have length")
+    expect_error(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                    exprs_values = "counts",
+                                    subset = rep(FALSE, sum(in_sample01))),
+                 "does not select any cell or spot")
+    expect_error(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                    exprs_values = "counts",
+                                    subset = "not a cell"),
+                 "does not select any cell or spot")
+    expect_error(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                    exprs_values = "counts",
+                                    subset = ncol(sfe) + 1L),
+                 "out of range")
+    expect_error(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                    exprs_values = "counts",
+                                    subset = list(TRUE)),
+                 "must be a logical vector")
+})
+
+test_that("drop_zero leaves out the items whose value is 0", {
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            drop_zero = TRUE)),
+                 sum(counts_h > 0))
+    # Applied to each feature separately, so a spot left out of one panel is
+    # still plotted in the panel of another feature where it's non-zero
+    p <- plotSpatialFeature(sfe, c("H", "B"), "spotPoly", "sample01",
+                            exprs_values = "counts", drop_zero = TRUE)
+    expect_equal(n_drawn(p[[1]]), sum(counts_h > 0))
+    expect_equal(n_drawn(p[[2]]), sum(counts_b > 0))
+    expect_false(sum(counts_h > 0) == sum(counts_b > 0))
+    # NAs are kept
+    sfe2 <- sfe
+    v <- assay(sfe2, "counts")["H",]
+    v[which(v == 0)[1]] <- NA
+    assay(sfe2, "counts")["H",] <- v
+    expect_equal(n_drawn(plotSpatialFeature(sfe2, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            drop_zero = TRUE)),
+                 sum(counts_h > 0) + 1L)
+})
+
+test_that("drop_zero only applies to numeric features", {
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "category", "centroids",
+                                            "sample01", size = 2,
+                                            drop_zero = TRUE)),
+                 sum(in_sample01))
+})
+
+test_that("subset and drop_zero can be used together", {
+    keep <- rep(TRUE, sum(in_sample01))
+    keep[which(counts_h > 0)[1]] <- FALSE
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "sample01",
+                                            exprs_values = "counts",
+                                            subset = keep, drop_zero = TRUE)),
+                 sum(counts_h > 0) - 1L)
+})
+
+test_that("subset and drop_zero apply when plotting multiple samples", {
+    counts_all <- assay(sfe, "counts")["H",]
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "all",
+                                            exprs_values = "counts",
+                                            subset = counts_all > 0)),
+                 sum(counts_all > 0))
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "spotPoly", "all",
+                                            exprs_values = "counts",
+                                            drop_zero = TRUE)),
+                 sum(counts_all > 0))
+})
+
+test_that("subset and drop_zero apply when points are rasterized", {
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "centroids", "sample01",
+                                            exprs_values = "counts",
+                                            scattermore = TRUE,
+                                            drop_zero = TRUE)),
+                 sum(counts_h > 0))
+    expect_equal(n_drawn(plotSpatialFeature(sfe, "H", "centroids", "sample01",
+                                            exprs_values = "counts",
+                                            scattermore = TRUE,
+                                            subset = counts_h > 0)),
+                 sum(counts_h > 0))
+})
+
+test_that("drop_zero on a feature that is 0 everywhere plots nothing", {
+    sfe2 <- sfe
+    colData(sfe2)$all_zero <- 0
+    expect_ggplot("Nothing left to plot",
+                  plotSpatialFeature(sfe2, "all_zero", "spotPoly", "sample01",
+                                     drop_zero = TRUE))
+    expect_equal(n_drawn(plotSpatialFeature(sfe2, "all_zero", "spotPoly",
+                                            "sample01", drop_zero = TRUE)),
+                 0L)
+})
+
 # Real dataset
 library(SFEData)
 sfe_muscle <- McKellarMuscleData("small")
