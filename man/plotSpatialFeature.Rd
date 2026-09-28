@@ -45,6 +45,8 @@ plotSpatialFeature(
   dark = FALSE,
   palette = colorRampPalette(c("black", "white"))(255),
   normalize_channels = FALSE,
+  subset = NULL,
+  drop_zero = FALSE,
   ...
 )
 }
@@ -99,6 +101,23 @@ relevant defaults for this function.}
 
 \item{tx_fixed}{Similar to \code{annot_fixed}, but to specify fixed aesthetic
 for transcript spots.}
+
+\item{subset}{Which cells or spots to plot, for instance to only plot the
+cells of one cluster. Can be a logical vector as long as the number of
+columns of \code{sfe} or the number of cells or spots in the sample(s)
+plotted, a character vector of cell IDs as in \code{colnames(sfe)}, or a
+numeric vector of column indices of \code{sfe}, negative to exclude. The
+cells or spots left out are not drawn at all, while the extent of the plot
+and the \code{annotGeometry}, image, and transcript spots plotted are
+unaffected. Defaults to \code{NULL}, which means plotting all of them.}
+
+\item{drop_zero}{Logical, whether to leave out the cells or spots whose value
+of the feature being plotted is 0. Useful for sparse data such as Visium HD
+at 2 micron resolution, where the geometries of the many items with 0
+counts cover up the image or the transcript spots beneath them. This is
+applied to each feature separately, so an item left out of the panel of one
+feature is still plotted in the panel of another feature where it's
+non-zero. Only applies to numeric features; \code{NA}s are kept.}
 
 \item{exprs_values}{Integer scalar or string indicating which assay of x
 contains the expression values.}
@@ -297,5 +316,11 @@ bbox <- c(xmin = 5500, ymin = 13500, xmax = 6000, ymax = 14000)
 plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
                   annotGeometry = "myofiber_simplified",
                   bbox = bbox, annot_fixed = list(linewidth = 0.3))
+# Only plot the spots in tissue
+plotSpatialFeature(sfe, "nCounts", colGeometryName = "spotPoly",
+                  subset = sfe$in_tissue)
+# Leave out the spots where the gene isn't detected
+plotSpatialFeature(sfe, rownames(sfe)[1], colGeometryName = "spotPoly",
+                  exprs_values = "counts", drop_zero = TRUE)
 }
 \concept{Spatial plotting}
